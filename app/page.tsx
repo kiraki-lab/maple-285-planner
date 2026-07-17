@@ -9,6 +9,7 @@ import {
 } from "@/lib/calculator-core.mjs";
 
 type PullStrategy = "monsterPark" | "blue" | "mech" | "both";
+type ViewTab = "calculator" | "pre280" | "efficiency" | "passes";
 type Settings = {
   level: number;
   exp: number;
@@ -160,6 +161,13 @@ const pullStrategies: { id: PullStrategy; label: string; caption: string }[] = [
   { id: "blue", label: "블루베리 구매", caption: "주당 2장 · 7,000 메포" },
   { id: "mech", label: "메카베리 구매", caption: "주당 2장 · 10,000 메포" },
   { id: "both", label: "농장 둘 다", caption: "주당 4장 · 17,000 메포" },
+];
+
+const viewTabs: { id: ViewTab; label: string; description: string }[] = [
+  { id: "calculator", label: "285 계산", description: "달성일·몬파·메포" },
+  { id: "pre280", label: "260→280", description: "버닝 비욘드" },
+  { id: "efficiency", label: "경험치 효율", description: "레벨별 비교" },
+  { id: "passes", label: "패스 보상", description: "전체 보상표" },
 ];
 
 const challengerBlueLevels = new Set([1, 3, 5, 6, 8, 10, 11, 13, 15, 16, 18, 20, 21, 23, 25, 26, 28]);
@@ -584,6 +592,7 @@ function ProgressChart({ selected, sunday, free }: { selected: Simulation; sunda
 export default function Home() {
   const [s, setS] = useState<Settings>(defaults);
   const [preApplied, setPreApplied] = useState(false);
+  const [activeTab, setActiveTab] = useState<ViewTab>("calculator");
   const set = <K extends keyof Settings>(key: K, value: Settings[K]) => {
     if (["preLevel", "preExp", "prePassLevel", "preUnclaimed", "preUseBlue", "preUseSauna", "preUseAdv", "preUsePotion", "challengerExp", "start"].includes(key)) setPreApplied(false);
     setS(current => ({ ...current, [key]: value }));
@@ -648,9 +657,6 @@ export default function Home() {
     const selectedPlan = requestedPlan?.feasible && recommendedPlans.some(plan => plan.strategy === requestedPlan.strategy) ? requestedPlan : bestPlansByWeek[effectivePullWeeks] || basePlan;
     const previousPlan = effectivePullWeeks > 1 ? strategyPlans[selectedPlan.strategy][effectivePullWeeks - 1] : basePlan;
     const selected = selectedPlan.result;
-    const immediate = selected.scheduleLabel === "매일 7판"
-      ? simulate(strategySettings, { fixedRuns: 7, deferMomentumMech: false, shopBlueWeeks: selectedPlan.shopBlueWeeks, shopMechWeeks: selectedPlan.shopMechWeeks })
-      : simulate(strategySettings, { sevenUntil: selected.sevenUntil, deferMomentumMech: false, shopBlueWeeks: selectedPlan.shopBlueWeeks, shopMechWeeks: selectedPlan.shopMechWeeks });
     const hardValue = Math.max(0, s.mayrinMesoGap) * 100000000 + Math.max(0, s.mayrinNormalFrag) * Math.max(0, s.fragPrice) * 10000;
     const reset = s.postReset ? 1 : 0;
     const selectedHardWeeks = mayrinClearWeeks(selected.reached) + (selected.reached ? reset : 0);
@@ -677,14 +683,12 @@ export default function Home() {
       return { strategy: plan.strategy, netValue: gainedHardWeeks * hardValue - costValue };
     });
     const bestRoiStrategy = [...recommendedRoiPlans].sort((a, b) => b.netValue - a.netValue || pullStrategies.findIndex(strategy => strategy.id === a.strategy) - pullStrategies.findIndex(strategy => strategy.id === b.strategy))[0]?.strategy || selectedPlan.strategy;
-    const mechRaw280 = efficiency[280].mech * req(280) / 100;
-    const mechRawTarget = efficiency[selected.momentumMechLevel].mech * req(selected.momentumMechLevel) / 100;
     return {
-      selected, sunday, free, allSeven, immediate, strategyPlans, recommendedPlansByWeek, bestPlansByWeek, selectedPlan, basePlan, previousPlan,
+      selected, sunday, free, allSeven, strategyPlans, recommendedPlansByWeek, bestPlansByWeek, selectedPlan, basePlan, previousPlan,
       effectivePullWeeks, maxPullWeeks, hardValue, selectedHardWeeks, baseHardWeeks, marginalGainedHardWeeks,
       marginalMP, marginalMonsterParkMP, marginalShopMP, marginalCostValue, marginalRecoveredValue, marginalNetValue, marginalRecoveryRate,
       cumulativeGainedHardWeeks, cumulativeMP, cumulativeCostValue, cumulativeRecoveredValue, cumulativeNetValue,
-      bestRoiStrategy, deadline, deadlineMet: selectedPlan.feasible, mechGain: (mechRawTarget / mechRaw280 - 1) * 100,
+      bestRoiStrategy, deadline, deadlineMet: selectedPlan.feasible,
     };
   }, [s]);
   const connectPre280 = () => {
@@ -702,6 +706,7 @@ export default function Home() {
       ownedPotion279: current.ownedPotion279 + pre280.inventory.potion279,
     }));
     setPreApplied(true);
+    setActiveTab("calculator");
   };
   const r = calc.selected;
   const pullDays = r.reached && calc.basePlan.result.reached ? Math.max(0, Math.round((calc.basePlan.result.reached.getTime() - r.reached.getTime()) / 86400000)) : 0;
@@ -726,11 +731,11 @@ export default function Home() {
   ].filter(Boolean).join(" · ") || "보상 적립";
 
   return <main>
-    <header className="topbar"><a className="brand" href="#top" aria-label="285 플래너 홈"><span className="brand-mark">M</span><span>285 PLANNER</span></a><nav><a href="#pre280">260→280</a><a href="#efficiency">효율 순위</a><a href="#compare">경로 비교</a><a href="#rewards">보상표</a><a href="#sources">근거</a></nav></header>
+    <header className="topbar"><a className="brand" href="#top" aria-label="285 계산기 홈"><span className="brand-mark">M</span><span>285 CALCULATOR</span></a><span className="topbar-status">CHALLENGERS WORLD</span></header>
     <section className="hero" id="top">
-      <div className="eyebrow"><span /> CHALLENGERS WORLD · 2026 SUMMER</div>
+      <div className="eyebrow"><span /> CHALLENGERS 285 CALCULATOR</div>
       <h1>285, 언제 찍을까?</h1>
-      <p>260부터 버닝 비욘드로 280을 설계하고, 그 뒤엔 패스를 아껴 쓰며 몬파를 필요한 날까지만. 하드 메이린 한 주를 당기는 비용까지 계산합니다.</p>
+      <p>현재 레벨과 보유 보상을 입력하면 285 달성일, 필요한 몬파 횟수와 메포를 계산합니다.</p>
       <div className="hero-grid">
         <article className="hero-card primary"><div className="card-label">{calc.effectivePullWeeks ? `${calc.effectivePullWeeks}주 당김 · ${selectedStrategy.label}` : "마감만 맞추기"}</div><strong>{longDate(r.reached)}</strong><span>{r.scheduleLabel}</span><div className="card-meta"><b>{formatMP(r.maplePoints)}</b><em>몬파 {formatMP(r.monsterParkMaplePoints)} · 상점 {formatMP(r.shopMaplePoints)}</em></div></article>
         <article className="hero-card"><div className="card-label">0주 · 마감 기준</div><strong>{longDate(calc.basePlan.result.reached)}</strong><span>{calc.basePlan.result.scheduleLabel}</span><div className="card-meta"><b>{formatMP(calc.basePlan.result.maplePoints)}</b><em>상점 없이 9월 16일 달성</em></div></article>
@@ -739,14 +744,18 @@ export default function Home() {
       <div className={`hero-note ${calc.deadlineMet ? "" : "deadline-fail"}`}><span className="pulse" /><p><b>{calc.selectedPlan.strategy === calc.bestRoiStrategy ? "추천 · 순손익 최고" : calc.selectedPlan.strategy === calc.bestPlansByWeek[calc.effectivePullWeeks]?.strategy ? "메포 최저" : "더 빠른 선택"}</b> {selectedStrategy.id === "monsterPark" ? recommendedPrefix : `${selectedStrategy.label} · ${recommendedPrefix}`} → {shortDate(r.reached)} · 총 {formatMP(r.maplePoints)} · {pullDays ? `마감 경로보다 ${pullDays}일 빠름` : "9월 16일 마감 기준"}</p></div>
     </section>
 
-    <section className="pre280-section" id="pre280">
+    <nav className="view-tabs" role="tablist" aria-label="계산기 화면 선택">
+      {viewTabs.map(tab => <button key={tab.id} id={`${tab.id}-tab`} type="button" role="tab" aria-selected={activeTab === tab.id} aria-controls={`${tab.id}-panel`} className={activeTab === tab.id ? "active" : ""} onClick={() => setActiveTab(tab.id)}><b>{tab.label}</b><span>{tab.description}</span></button>)}
+    </nav>
+
+    {activeTab === "pre280" && <section className="pre280-section tab-panel" id="pre280-panel" role="tabpanel" aria-labelledby="pre280-tab">
       <div className="pre280-head">
-        <div><span>260→280 · BURNING BEYOND</span><h2>늦게 시작해도,<br />280부터 다시 합류.</h2></div>
-        <a href="https://haru1sojae.kr/table" target="_blank" rel="noreferrer">하루1소재 표시값 기준 ↗</a>
+        <div><span>BURNING BEYOND</span><h2>260→280 계산</h2></div>
+        <a href="https://haru1sojae.kr/table" target="_blank" rel="noreferrer">경험치 기준표 ↗</a>
       </div>
       <div className="pre280-grid">
         <div className="pre280-controls">
-          <div className="pre280-control-head"><span>STEP 01</span><h3>280 이전 캐릭터</h3><p>챌린저스 EXP 패스 보상만으로 280에 닿는 주차를 계산합니다. 별도 사냥 경험치는 넣지 않습니다.</p></div>
+          <div className="pre280-control-head"><span>입력</span><h3>현재 캐릭터</h3><p>챌린저스 EXP 패스 기준으로 280 도달 주차를 계산합니다.</p></div>
           <div className="field-grid compact pre-fields">
             <label className="field"><span>현재 레벨</span><select value={s.preLevel} onChange={e => set("preLevel", Number(e.target.value))}>{Array.from({ length: 20 }, (_, index) => index + 260).map(level => <option key={level}>{level}</option>)}</select></label>
             <InputField label="현재 경험치 %" value={s.preExp} min={0} max={99.999} step={0.001} onChange={v => set("preExp", Number(v))} />
@@ -764,7 +773,7 @@ export default function Home() {
             <Toggle label="VIP 사우나" checked={s.preUseSauna} onChange={v => set("preUseSauna", v)} />
             <Toggle label="200~279 비약" checked={s.preUsePotion} onChange={v => set("preUsePotion", v)} />
           </div>
-          <div className="pre-lock"><b>Lv.280 잠금</b><p>모멘텀 패스와 메카베리는 이 단계에서 획득·사용하지 않습니다. 280 도달 후 기존 계산기로 넘어가야 반영됩니다.</p></div>
+          <div className="pre-lock"><b>Lv.280 이전 제한</b><p>모멘텀 패스와 메카베리는 280부터 계산합니다.</p></div>
         </div>
 
         <div className="pre280-results">
@@ -775,7 +784,7 @@ export default function Home() {
             <article><span>VIP 사우나 1시간</span><strong>{preLevelData.sauna.toFixed(3)}%</strong><small>하루1소재 환산</small></article>
           </div>
 
-          <div className="pre-route-head"><div><span>STEP 02</span><h3>버닝 비욘드 패스 동선</h3></div><p>레벨업할 때마다 <b>2레벨 상승</b>. 280에서도 가치가 큰 보상은 가능한 한 남기고, 현재 효율이 더 좋을 때만 먼저 씁니다.</p></div>
+          <div className="pre-route-head"><div><span>결과</span><h3>주차별 예상 경로</h3></div><p>버닝 비욘드 <b>+2레벨</b> 적용</p></div>
           <div className="pre-timeline">
             {pre280.rows.length ? pre280.rows.map(row => <article className="pre-row" key={`${iso(row.date)}-${row.label}`}><time>{shortDate(row.date)}</time><div><b>{row.label}</b><span>Lv.{row.beforeLevel} {row.beforeExp.toFixed(1)}% → Lv.{row.level} {row.exp.toFixed(1)}%</span></div><em>{preUsedLabel(row.used)}</em></article>) : <div className="pre-empty">남은 챌린저스 패스 보상이 없습니다. 현재 경험치나 패스 레벨을 확인해 주세요.</div>}
           </div>
@@ -783,14 +792,14 @@ export default function Home() {
             <div><span>280 도달 뒤 남는 보상</span><b>블루 {pre280.inventory.blue} · 사우나 {pre280.inventory.sauna.toFixed(1)}h · 상급 {pre280.inventory.adv.toLocaleString("ko-KR")} · 비약 {pre280.inventory.potion279}</b></div>
             <button onClick={connectPre280} disabled={!pre280.reached || preApplied}>{preApplied ? "280→285 연결 완료" : pre280.reached ? "280→285 계산기에 연결" : "패스만으로 280 미도달"}</button>
           </div>
-          <p className="pre-disclaimer">필요 경험치는 메이플로드 결과와 대조한 정밀값을, 보상별 환산은 크롬에 열어둔 하루1소재 Lv.260+ 표시값을 사용합니다. 패스 현재 레벨까지 받은 보상은 이미 사용했거나 보유한 것으로 보고 다시 지급하지 않습니다.</p>
+          <p className="pre-disclaimer">필요 경험치는 메이플로드, 보상별 환산은 하루1소재 Lv.260+ 표시값 기준입니다. 현재 패스 레벨까지 받은 보상은 다시 지급하지 않습니다.</p>
         </div>
       </div>
-    </section>
+    </section>}
 
-    <section className="calculator-shell" id="compare">
+    {activeTab === "calculator" && <><section className="calculator-shell main-calculator tab-panel" id="calculator-panel" role="tabpanel" aria-labelledby="calculator-tab">
       <aside className="controls">
-        <div className="section-heading"><span>01</span><div><p>내 캐릭터 입력</p><h2>계산 조건</h2></div></div>
+        <div className="section-heading"><span>입력</span><div><p>현재 캐릭터</p><h2>285 계산 조건</h2></div></div>
         <div className="field-grid compact">
           <label className="field"><span>현재 레벨</span><select value={s.level} onChange={e => set("level", Number(e.target.value))}>{[280, 281, 282, 283, 284].map(level => <option key={level}>{level}</option>)}</select></label>
           <InputField label="현재 경험치 %" value={s.exp} min={0} max={99.999} step={0.001} onChange={v => set("exp", Number(v))} />
@@ -818,31 +827,21 @@ export default function Home() {
       </aside>
 
       <div className="results">
-        <div className="section-heading"><span>02</span><div><p>시나리오 비교</p><h2>레벨업 타임라인</h2></div><button className="reset" onClick={() => { setS(defaults); setPreApplied(false); }}>기본값 복원</button></div>
-        <section className="efficiency-panel" id="efficiency">
-          <div className="efficiency-head"><div><span>VALUE RANKING · LV.{s.level}</span><h3>무엇부터 챙기는 게 이득일까?</h3></div><b>VIP 사우나 = 100</b></div>
-          <div className="efficiency-list">
-            {efficiencyRanking.map((source, index) => <div className={`efficiency-row ${index < 3 ? "top" : ""}`} key={source.id}>
-              <strong>{index + 1}</strong><div className="efficiency-name"><b>{source.label}</b>{index === 0 && <small>현재 레벨 최고 효율</small>}</div>
-              <div className="efficiency-values">{efficiencyLevels.map(level => <span className={level === s.level ? "active" : ""} key={level}><small>Lv.{level}</small><b>{relativeEfficiencyScore(source, level).toFixed(1)}%</b></span>)}</div>
-            </div>)}
-          </div>
-          <p>크롬에 열어둔 하루1소재 효율표의 Lv.281 수치를 기준점으로 두고, Lv.280·282~284는 각 콘텐츠 경험치 감소율을 VIP 사우나 대비로 보정했습니다. 추가 경험치 50%와 소경축비는 사냥 속도에 따라 달라져 기준값으로 표시합니다.</p>
-        </section>
+        <div className="section-heading"><span>결과</span><div><p>선택한 조건</p><h2>285 도달 경로</h2></div><button className="reset" onClick={() => { setS(defaults); setPreApplied(false); }}>기본값 복원</button></div>
         <div className="pull-selector">
-          <div className="pull-selector-head"><div><span>WEEKLY DECISION</span><h3>몇 주를 당겨올까요?</h3></div><b className={calc.deadlineMet ? "deadline-ok" : "deadline-bad"}>{calc.deadlineMet ? "9/16 이전 달성" : "9/16 달성 불가"}</b></div>
+          <div className="pull-selector-head"><div><span>목표 주차</span><h3>285 도달 시점</h3></div><b className={calc.deadlineMet ? "deadline-ok" : "deadline-bad"}>{calc.deadlineMet ? "9/16 이전 달성" : "9/16 달성 불가"}</b></div>
           <div className="pull-buttons" role="group" aria-label="285 달성 주차 당기기">
             {calc.bestPlansByWeek.map((bestPlan) => <button key={bestPlan.pullWeeks} className={bestPlan.pullWeeks === calc.effectivePullWeeks ? "active" : ""} onClick={() => setS(current => ({ ...current, pullWeeks: bestPlan.pullWeeks, pullStrategy: bestPlan.strategy }))} disabled={!bestPlan.feasible}><span>{bestPlan.pullWeeks ? `${bestPlan.pullWeeks}주 당김` : "마감만"}</span><strong>{shortDate(bestPlan.result.reached)}</strong><small>최저 {formatMP(bestPlan.result.maplePoints)}</small></button>)}
           </div>
-          <p>0주는 상점 구매 없이 9월 16일 전에 285를 찍는 최소 비용입니다. 주차를 고른 뒤 아래에서 몬파·농장 구매 전략을 선택하면 해당 방식의 날짜와 손익으로 바뀝니다.</p>
+          <p>주차를 선택하면 해당 날짜를 맞추는 최소 비용 경로를 계산합니다.</p>
         </div>
         <div className="strategy-choice">
-          <div className="strategy-choice-head"><span>BEST VALUE ROUTES</span><h3>{calc.effectivePullWeeks ? `${calc.effectivePullWeeks}주 당김의 낭비 없는 선택` : "마감 기준 최저 메포 전략"}</h3><p>같거나 더 늦게 도착하면서 메포가 더 드는 전략은 숨겼습니다.</p></div>
+          <div className="strategy-choice-head"><span>경로 선택</span><h3>{calc.effectivePullWeeks ? `${calc.effectivePullWeeks}주 당김 경로` : "마감 기준 경로"}</h3><p>같은 도달일에는 메포가 적은 경로만 표시합니다.</p></div>
           <div className="strategy-choice-grid">{calc.recommendedPlansByWeek[calc.effectivePullWeeks].map((plan, index) => { const strategy = pullStrategies.find(item => item.id === plan.strategy)!; const active = plan.strategy === calc.selectedPlan.strategy; const recommended = plan.strategy === calc.bestRoiStrategy; return <button key={strategy.id} className={`${active ? "active" : ""} ${recommended ? "recommended" : ""}`} onClick={() => set("pullStrategy", strategy.id)}><div><span>{recommended ? "추천 · 순손익 최고" : index === 0 ? "메포 최저" : "더 빠른 선택"}</span><i>{active ? "선택됨" : "선택"}</i></div><h4>{strategy.label}</h4><p>{strategy.caption}</p><strong>{shortDate(plan.result.reached)}</strong><dl><div><dt>총액</dt><dd>{formatMP(plan.result.maplePoints)}</dd></div><div><dt>몬파</dt><dd>{formatMP(plan.result.monsterParkMaplePoints)}</dd></div><div><dt>상점</dt><dd>{formatMP(plan.result.shopMaplePoints)}</dd></div></dl><small>{calc.effectivePullWeeks ? `블루 ${plan.shopBlueWeeks}주 · 메카 ${plan.shopMechWeeks}주 구매 계획` : "0주에서는 농장 미구매"}</small></button>; })}</div>
         </div>
         <ProgressChart selected={r} sunday={calc.sunday} free={calc.free} />
         <div className={`route-grid ${calc.effectivePullWeeks === 0 ? "two" : ""}`}>
-          <article className="route-card chosen"><div><div className="route-card-label"><span>내가 선택한 경로 · {calc.effectivePullWeeks}주</span><i>{calc.selectedPlan.strategy === calc.bestRoiStrategy ? "추천 · 순손익 최고" : "선택됨"}</i></div><h3>{selectedRouteTitle}</h3><p>{calc.effectivePullWeeks === 0 ? "0주는 마감 기준과 같은 경로라 중복 카드를 표시하지 않습니다." : "선택한 주차와 구매 전략을 반영한 결과입니다."}</p></div><strong>{shortDate(r.reached)}</strong><dl><div><dt>총 비용</dt><dd>{formatMP(r.maplePoints)}</dd></div><div><dt>메포샵</dt><dd>{formatMP(r.shopMaplePoints)}</dd></div><div><dt>하드</dt><dd>{calc.selectedHardWeeks}회</dd></div></dl></article>
+          <article className="route-card chosen"><div><div className="route-card-label"><span>선택 경로 · {calc.effectivePullWeeks}주</span><i>{calc.selectedPlan.strategy === calc.bestRoiStrategy ? "추천 · 순손익 최고" : "선택됨"}</i></div><h3>{selectedRouteTitle}</h3><p>{calc.effectivePullWeeks === 0 ? "9월 16일 마감 기준" : `${calc.effectivePullWeeks}주 당김 기준`}</p></div><strong>{shortDate(r.reached)}</strong><dl><div><dt>총 비용</dt><dd>{formatMP(r.maplePoints)}</dd></div><div><dt>메포샵</dt><dd>{formatMP(r.shopMaplePoints)}</dd></div><div><dt>하드</dt><dd>{calc.selectedHardWeeks}회</dd></div></dl></article>
           {calc.effectivePullWeeks > 0 && <article className="route-card baseline"><div><div className="route-card-label"><span>0주 비교 기준</span><i>추가 당김 없음</i></div><h3>{calc.basePlan.result.scheduleLabel}</h3><p>선택 경로의 비용·하드 횟수를 비교하는 기준입니다.</p></div><strong>{shortDate(calc.basePlan.result.reached)}</strong><dl><div><dt>총 비용</dt><dd>{formatMP(calc.basePlan.result.maplePoints)}</dd></div><div><dt>하드</dt><dd>{calc.baseHardWeeks}회</dd></div></dl></article>}
           <article className="route-card free-route"><div><div className="route-card-label"><span>추가 메포 0 비교</span><i>무료 기준</i></div><h3>매일 2판</h3><p>일요일 추가 5판도 하지 않는 비교 경로입니다.</p></div><strong>{shortDate(calc.free.reached)}</strong><dl><div><dt>추가 메포</dt><dd>0 메포</dd></div><div><dt>9/16 마감</dt><dd>{calc.free.reached && calc.free.reached <= calc.deadline ? "통과" : "실패"}</dd></div></dl></article>
         </div>
@@ -856,16 +855,33 @@ export default function Home() {
       </div>
     </section>
 
-    <section className="strategy-band"><div><span>03 · REWARD TIMING</span><h2>메카베리는<br />늦게 쓸수록 세다.</h2></div><div className="strategy-copy"><p>모멘텀 메카베리 1장은 280보다 <b>{r.momentumMechLevel}에서 절대 경험치가 약 {calc.mechGain.toFixed(1)}% 큽니다.</b> 기본 전략은 {r.momentumMechLevel}레벨 또는 {shortDate(r.momentumMechDeadline)} 중 빠른 시점까지 모아두는 것입니다.</p><div className="timing-compare"><span>모아쓰기 <b>{shortDate(r.reached)} · {formatMP(r.maplePoints)}</b></span><span>즉시사용 <b>{shortDate(calc.immediate.reached)} · {formatMP(calc.immediate.maplePoints)}</b></span></div><small>같은 도달일이면 총 메포가 가장 적은 전략만 남기고, 메포 환산 비용에 하드 메이린 회수 가치를 반영한 순손익 최고 경로를 추천합니다.</small></div></section>
-
-    <section className="rewards-section" id="rewards">
-      <div className="section-heading light"><span>04</span><div><p>도달 시점 잔여분</p><h2>285 뒤에 남는 보상</h2></div></div>
+    <section className="rewards-section main-leftovers">
+      <div className="section-heading light"><span>잔여</span><div><p>{shortDate(r.reached)} 기준</p><h2>285 달성 후 남는 보상</h2></div></div>
       <div className="leftover-grid">{leftoverRows.map(([label, value]) => <article key={label}><span>{label}</span><strong>{value}</strong></article>)}</div>
-      <p className="leftover-note">{r.leftoverSources.length ? `남는 보상 출처 · ${r.leftoverSources.join(" · ")}` : "계산에 넣은 성장 보상은 모두 사용합니다."} {momentumLeft ? "추천 경로에서는 모멘텀 4주차 보상이 285 뒤에 남습니다." : "모멘텀 4주차 보상까지 사용합니다."}</p>
-      <div className="pass-grid"><article><div className="table-title"><span>CHALLENGERS · 현재 {s.challengerPassLevel}레벨</span><h3>챌린저스 EXP 패스</h3></div><table><thead><tr><th>레벨 구간</th><th>일반</th><th>EXP 패스 포함</th></tr></thead><tbody><tr><td>1~10</td><td>-</td><td>블루베리 6 · 사우나 2시간 · 상급 EXP 2,000</td></tr><tr><td>11~20</td><td>-</td><td>블루베리 6 · 사우나 2시간 · 상급 EXP 2,000</td></tr><tr><td>21~25</td><td>상급 EXP 100</td><td>블루베리 3 · 사우나 1시간 · 상급 EXP 1,100</td></tr><tr><td>26~30</td><td>상급 EXP 2,100</td><td>블루베리 2 · 사우나 1시간 · 상급 EXP 3,100 · 비약 1</td></tr><tr className="total"><td>1~30 합계</td><td>상급 EXP 2,200</td><td>블루베리 17 · 사우나 6시간 · 상급 EXP 8,200 · 비약 1</td></tr></tbody></table></article><article><div className="table-title"><span>MOMENTUM · 현재 {s.momentumPassLevel}레벨</span><h3>모멘텀 패스</h3></div><table><thead><tr><th>레벨 구간</th><th>프라임 핵심 보상</th></tr></thead><tbody><tr><td>1~2</td><td>메카베리 2 · 사우나 30분 · 4배 쿠폰 2</td></tr><tr><td>3~5</td><td>메카베리 2 · 사우나 30분 · 상급 EXP 3,100 · 4배 2</td></tr><tr><td>6~8</td><td>메카베리 3 · 사우나 30분 · 상급 EXP 3,100 · 4배 2</td></tr><tr><td>9~10</td><td>메카베리 4 · 상급 EXP 3,300</td></tr><tr className="total"><td>1~10 합계</td><td>메카베리 11 · 사우나 1.5시간 · 상급 EXP 9,500</td></tr></tbody></table></article></div>
+      <p className="leftover-note">{momentumLeft ? "모멘텀 패스 4주차 보상은 285 달성 후 수령합니다." : "모멘텀 패스 4주차 보상까지 사용한 결과입니다."}</p>
     </section>
 
-    <section className="audit" id="sources"><div><span>CALCULATION AUDIT</span><h2>무엇을 넣었는지<br />숨기지 않았습니다.</h2></div><ul><li><b>260→280</b> 메이플로드 대조 필요 경험치 · 하루1소재 Lv.260+ 보상 환산 · 버닝 비욘드 레벨업마다 +2</li><li><b>잠금</b> 모멘텀 패스와 메카베리는 Lv.280 이후 계산에서만 획득·사용</li><li><b>마감</b> 모든 추천 경로는 2026년 9월 16일 285 달성을 먼저 만족</li><li><b>매일</b> 그란디스 일퀘와 몬스터파크만 반영 · 별도 사냥 경험치는 제외</li><li><b>매주</b> 익스트림 몬파, 악몽선경 1단계, 입력한 스페셜 선데이 횟수</li><li><b>패스</b> 입력 레벨 이후 보상만 챌섭 주 5레벨 · 모멘텀 2→3→3→2레벨로 반영</li><li><b>추천</b> 같은 날짜는 총 메포 최저 전략만 남기고 순손익 최고 경로에 추천 표시</li><li><b>패치</b> 7/23 코어 4개·총합 20, 8/6 코어 5개·총합 25</li><li><b>선택</b> 에테리온 아티팩트 코어 6레벨 토글과 달성일</li><li><b>이벤트</b> 스펙터 블래스트, 울티마 스쿼드 EXP 5,000, 울티마 작전 일지</li><li><b>비약</b> 200~269 고정 경험치 0.072458, 200~279 고정 경험치 0.49505</li></ul></section>
-    <footer><div className="brand"><span className="brand-mark">M</span><span>285 PLANNER</span></div><p>하루1소재 경험치 표시값과 업데이트 조건을 바탕으로 만든 전략 계산기 · 2026.07.17 기준</p><div className="source-links"><a href="https://haru1sojae.kr/table" target="_blank" rel="noreferrer">하루1소재 경험치표</a><a href="https://mapleroad.kr/utils/exp_calculator" target="_blank" rel="noreferrer">메이플로드 계산기</a><a href="https://maplestory.nexon.com/testworld/news/all/188" target="_blank" rel="noreferrer">테스트월드</a></div></footer>
+    <section className="mech-summary" aria-label="메카베리 사용 시점"><span>메카베리 모아쓰기</span><strong>{s.deferMomentumMech ? `Lv.${r.momentumMechLevel} 또는 ${shortDate(r.momentumMechDeadline)}부터 사용` : "즉시 사용"}</strong></section>
+    </>}
+
+    {activeTab === "efficiency" && <section className="standalone-panel tab-panel" id="efficiency-panel" role="tabpanel" aria-labelledby="efficiency-tab">
+      <section className="efficiency-panel">
+        <div className="efficiency-head"><div><span>LV.{s.level} · VIP 사우나 100 기준</span><h3>경험치 효율 비교</h3></div><b>Lv.280~284</b></div>
+        <div className="efficiency-list">
+          {efficiencyRanking.map((source, index) => <div className={`efficiency-row ${index < 3 ? "top" : ""}`} key={source.id}>
+            <strong>{index + 1}</strong><div className="efficiency-name"><b>{source.label}</b>{index === 0 && <small>현재 레벨 최고</small>}</div>
+            <div className="efficiency-values">{efficiencyLevels.map(level => <span className={level === s.level ? "active" : ""} key={level}><small>Lv.{level}</small><b>{relativeEfficiencyScore(source, level).toFixed(1)}%</b></span>)}</div>
+          </div>)}
+        </div>
+        <p>하루1소재 Lv.281 수치를 기준으로 레벨별 경험치 감소율을 반영했습니다. 추가 경험치 50%와 소경축비는 기준값입니다.</p>
+      </section>
+    </section>}
+
+    {activeTab === "passes" && <section className="rewards-section passes-panel tab-panel" id="passes-panel" role="tabpanel" aria-labelledby="passes-tab">
+      <div className="section-heading light"><span>표</span><div><p>현재 패스 레벨 입력 가능</p><h2>패스 보상표</h2></div></div>
+      <div className="pass-grid"><article><div className="table-title"><span>CHALLENGERS · 현재 {s.challengerPassLevel}레벨</span><h3>챌린저스 EXP 패스</h3></div><table><thead><tr><th>레벨 구간</th><th>일반</th><th>EXP 패스 포함</th></tr></thead><tbody><tr><td>1~10</td><td>-</td><td>블루베리 6 · 사우나 2시간 · 상급 EXP 2,000</td></tr><tr><td>11~20</td><td>-</td><td>블루베리 6 · 사우나 2시간 · 상급 EXP 2,000</td></tr><tr><td>21~25</td><td>상급 EXP 100</td><td>블루베리 3 · 사우나 1시간 · 상급 EXP 1,100</td></tr><tr><td>26~30</td><td>상급 EXP 2,100</td><td>블루베리 2 · 사우나 1시간 · 상급 EXP 3,100 · 비약 1</td></tr><tr className="total"><td>1~30 합계</td><td>상급 EXP 2,200</td><td>블루베리 17 · 사우나 6시간 · 상급 EXP 8,200 · 비약 1</td></tr></tbody></table></article><article><div className="table-title"><span>MOMENTUM · 현재 {s.momentumPassLevel}레벨</span><h3>모멘텀 패스</h3></div><table><thead><tr><th>레벨 구간</th><th>프라임 핵심 보상</th></tr></thead><tbody><tr><td>1~2</td><td>메카베리 2 · 사우나 30분 · 4배 쿠폰 2</td></tr><tr><td>3~5</td><td>메카베리 2 · 사우나 30분 · 상급 EXP 3,100 · 4배 2</td></tr><tr><td>6~8</td><td>메카베리 3 · 사우나 30분 · 상급 EXP 3,100 · 4배 2</td></tr><tr><td>9~10</td><td>메카베리 4 · 상급 EXP 3,300</td></tr><tr className="total"><td>1~10 합계</td><td>메카베리 11 · 사우나 1.5시간 · 상급 EXP 9,500</td></tr></tbody></table></article></div>
+    </section>}
+
+    <footer><div className="brand"><span className="brand-mark">M</span><span>285 CALCULATOR</span></div><p>경험치 기준 · 하루1소재 · 메이플로드 · 2026.07.17</p><div className="source-links"><a href="https://haru1sojae.kr/table" target="_blank" rel="noreferrer">하루1소재</a><a href="https://mapleroad.kr/utils/exp_calculator" target="_blank" rel="noreferrer">메이플로드</a><a href="https://maplestory.nexon.com/testworld/news/all/188" target="_blank" rel="noreferrer">테스트월드</a></div></footer>
   </main>;
 }

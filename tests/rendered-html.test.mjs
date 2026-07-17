@@ -10,7 +10,7 @@ import {
 
 const root = new URL("../", import.meta.url);
 
-test("ships the finished calculator instead of the starter preview", async () => {
+test("keeps the 285 calculator primary and moves supporting content into tabs", async () => {
   const [page, layout, css, packageJson] = await Promise.all([
     readFile(new URL("app/page.tsx", root), "utf8"),
     readFile(new URL("app/layout.tsx", root), "utf8"),
@@ -18,29 +18,33 @@ test("ships the finished calculator instead of the starter preview", async () =>
     readFile(new URL("package.json", root), "utf8"),
   ]);
 
-  assert.match(page, /285, 언제 찍을까\?/);
-  assert.match(page, /평일 2판 · 일요일 7판/);
-  assert.match(page, /울티마 작전 일지/);
-  assert.match(page, /코어 6레벨 적용/);
-  assert.match(page, /몇 주를 당겨올까요\?/);
-  assert.match(page, /2026년 9월 16일 285 달성/);
-  assert.match(page, /평일 몬파/);
-  assert.match(page, /블루베리 구매/);
-  assert.match(page, /메카베리 구매/);
-  assert.match(page, /농장 둘 다/);
-  assert.match(page, /직전 단계 대비 총 메포/);
-  assert.match(page, /추천 · 순손익 최고/);
-  assert.match(page, /같은 도달일이면 총 메포가 가장 적은 전략만 남기고/);
-  assert.match(page, /같거나 더 늦게 도착하면서 메포가 더 드는 전략은 숨겼습니다/);
-  assert.match(page, /내가 선택한 경로/);
-  assert.match(page, /0주 비교 기준/);
+  assert.match(page, /type ViewTab = "calculator" \| "pre280" \| "efficiency" \| "passes"/);
+  assert.match(page, /useState<ViewTab>\("calculator"\)/);
+  assert.match(page, /role="tablist"/);
+  assert.match(page, /label: "285 계산"/);
+  assert.match(page, /label: "260→280"/);
+  assert.match(page, /label: "경험치 효율"/);
+  assert.match(page, /label: "패스 보상"/);
+  assert.match(page, /activeTab === "calculator"/);
+  assert.match(page, /activeTab === "pre280"/);
+  assert.match(page, /activeTab === "efficiency"/);
+  assert.match(page, /activeTab === "passes"/);
+  assert.match(page, /285 계산 조건/);
+  assert.match(page, /285 달성 후 남는 보상/);
+  assert.match(page, /메카베리 모아쓰기/);
+  assert.match(page, /패스 보상표/);
+  assert.ok(page.indexOf("main-leftovers") > page.indexOf("main-calculator"));
+  assert.ok(page.indexOf("mech-summary") > page.indexOf("main-leftovers"));
+  assert.doesNotMatch(page, /무엇을 넣었는지/);
+  assert.doesNotMatch(page, /숨기지 않았/);
+  assert.doesNotMatch(page, /strategy-band/);
+  assert.doesNotMatch(page, /메카베리는 늦게 쓸수록 세다/);
   assert.match(page, /recommendedPlansByWeek/);
   assert.match(page, /스페셜 선데이 몬파 횟수/);
   assert.match(page, /기본 몬파 경험치 \+300%\(총 4배\)/);
   assert.match(page, /label: "소경축비"/);
   assert.match(page, /챌섭 EXP 패스 현재 레벨/);
   assert.match(page, /모멘텀 패스 현재 레벨/);
-  assert.match(page, /무엇부터 챙기는 게 이득일까\?/);
   assert.doesNotMatch(page, /일일 사냥 경험치/);
   assert.match(layout, /285 플래너/);
   assert.match(layout, /\/og\.png/);
