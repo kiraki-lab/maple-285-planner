@@ -134,11 +134,18 @@ main { overflow: hidden; }
 .calculate-bar { margin: 22px -30px -30px; padding: 16px 30px 24px; position: sticky; bottom: -30px; z-index: 3; border-top: 1px solid var(--soft-line); background: linear-gradient(180deg, rgba(255,253,247,.94), #fffdf7 28%); }
 .calculate-bar span { display: block; margin-bottom: 8px; color: #67636e; font-size: 11px; font-weight: 750; }
 .calculate-bar.pending span { color: #6c5200; }
+.calculate-actions { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
 .calculate-bar button { width: 100%; min-height: 52px; border: 0; border-radius: 14px; color: #85818e; background: #ebe9ee; font-size: 14px; font-weight: 900; cursor: not-allowed; }
 .calculate-bar.pending button { color: white; background: var(--purple); box-shadow: 0 12px 24px rgba(115,87,255,.22); cursor: pointer; }
 .calculate-bar.pending button:hover:not(:disabled) { background: #6247f2; }
 .calculate-bar button:focus-visible { outline: 3px solid rgba(115,87,255,.3); outline-offset: 2px; }
-.calculate-bar button:disabled { box-shadow: none; }
+.calculate-bar button:disabled { box-shadow: none; cursor: progress; }
+.calculate-bar .cancel-calculation { width: auto; padding: 0 15px; color: #4e4b56; border: 1px solid #d8d4df; background: white; box-shadow: none; cursor: pointer; }
+.calculate-bar .cancel-calculation:hover { color: #a12c43; border-color: #e3a9b4; background: #fff4f6; }
+.calculation-progress { height: 4px; margin: 0 0 10px; overflow: hidden; border-radius: 999px; background: #e6e2f5; }
+.calculation-progress i { width: 38%; height: 100%; display: block; border-radius: inherit; background: var(--purple); animation: calculation-slide 1s ease-in-out infinite; }
+.calculate-bar small { display: block; margin-top: 8px; color: #67636e; font-size: 11px; line-height: 1.45; }
+@keyframes calculation-slide { from { transform: translateX(-105%); } to { transform: translateX(275%); } }
 
 .field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .field-grid.compact { gap: 10px; }
