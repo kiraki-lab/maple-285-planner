@@ -1106,7 +1106,7 @@ export default function Home() {
 
         <div className="pre280-results">
           <div className="pre-result-grid">
-            <article className="pre-result-main"><span>280 예상 도달</span><strong>{pre280.reached ? longDate(pre280.reached) : "9/16까지 미도달"}</strong><p>{pre280.reached ? `챌섭 패스 ${pre280.passLevel}레벨 시점 · Lv.280 ${pre280.exp.toFixed(3)}%` : `9월 16일 기준 Lv.${pre280.level} ${pre280.exp.toFixed(3)}%`} · 일퀘 ${pre280.dailyDays}일 · 몬파 ${pre280.monsterParkRuns}판 · 주간 ${pre280.weeklyCount}회 · {formatMP(pre280.monsterParkMaplePoints)}</p></article>
+            <article className="pre-result-main"><span>280 예상 도달</span><strong>{pre280.reached ? longDate(pre280.reached) : "9/16까지 미도달"}</strong><p>{pre280.reached ? `챌섭 패스 ${pre280.passLevel}레벨 시점 · Lv.280 ${pre280.exp.toFixed(3)}%` : `9월 16일 기준 Lv.${pre280.level} ${pre280.exp.toFixed(3)}%`} · 일퀘 {pre280.dailyDays}일 · 몬파 {pre280.monsterParkRuns}판 · 주간 {pre280.weeklyCount}회 · {formatMP(pre280.monsterParkMaplePoints)}</p></article>
             <article><span>현재 레벨 블루베리</span><strong>{preLevelData.blue.toFixed(3)}%</strong><small>1장당 표시 경험치</small></article>
             <article><span>상급 EXP 1,000장</span><strong>{preLevelData.adv1000.toFixed(3)}%</strong><small>하루1소재 환산</small></article>
             <article><span>VIP 사우나 1시간</span><strong>{preLevelData.sauna.toFixed(3)}%</strong><small>하루1소재 환산</small></article>

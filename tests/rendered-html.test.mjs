@@ -103,6 +103,9 @@ test("keeps verified calculator constants visible in source", async () => {
   assert.match(page, /아케인·그란디스 일퀘/);
   assert.match(page, /익몬·에픽던전·아케인 주간/);
   assert.match(page, /paidMonsterParkMaplePoints\(completedRuns\)/);
+  assert.doesNotMatch(page, /일퀘 \$\{pre280\./);
+  assert.doesNotMatch(page, /몬파 \$\{pre280\./);
+  assert.doesNotMatch(page, /주간 \$\{pre280\./);
   assert.match(page, /haru1sojae\.kr\/table/);
   assert.match(page, /ownedPotion279/);
 });
