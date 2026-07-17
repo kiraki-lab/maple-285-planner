@@ -113,6 +113,33 @@ summary::-webkit-details-marker { display: none; }
 .pull-buttons button.active small { color: rgba(255,255,255,.7); }
 .pull-selector > p { margin: 14px 0 0; color: #6b6679; font-size: 11px; line-height: 1.6; }
 
+.strategy-choice { margin-bottom: 14px; padding: 22px; border: 1px solid var(--line); border-radius: 20px; background: white; }
+.strategy-choice-head span { color: var(--purple); font-size: 10px; font-weight: 900; letter-spacing: .13em; }
+.strategy-choice-head h3 { margin: 5px 0 18px; font-size: 21px; letter-spacing: -.035em; }
+.strategy-choice-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.strategy-choice-grid > button { min-width: 0; padding: 16px; border: 1px solid var(--line); border-radius: 16px; color: var(--ink); background: #fbfafc; text-align: left; cursor: pointer; transition: transform .2s ease, border-color .2s ease, background .2s ease, box-shadow .2s ease; }
+.strategy-choice-grid > button:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--purple); }
+.strategy-choice-grid > button.recommended { border-color: rgba(53,184,132,.42); }
+.strategy-choice-grid > button.active { color: white; border-color: var(--purple); background: var(--purple); box-shadow: 0 10px 24px rgba(115,87,255,.2); }
+.strategy-choice-grid > button:disabled { opacity: .4; cursor: not-allowed; }
+.strategy-choice-grid > button > div { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.strategy-choice-grid > button > div span { color: var(--purple); font-size: 9px; font-weight: 900; letter-spacing: .08em; }
+.strategy-choice-grid > button.recommended > div span { color: #16815a; }
+.strategy-choice-grid > button.active > div span { color: var(--mint); }
+.strategy-choice-grid i { padding: 4px 7px; border-radius: 999px; color: var(--muted); background: #efedf3; font-size: 9px; font-style: normal; font-weight: 800; }
+.strategy-choice-grid > button.active i { color: var(--purple); background: white; }
+.strategy-choice-grid h4 { margin: 13px 0 3px; font-size: 15px; letter-spacing: -.025em; }
+.strategy-choice-grid p { min-height: 30px; margin: 0 0 12px; color: var(--muted); font-size: 10px; line-height: 1.45; }
+.strategy-choice-grid > button.active p { color: rgba(255,255,255,.68); }
+.strategy-choice-grid > button > strong { display: block; margin-bottom: 13px; font-size: 25px; letter-spacing: -.05em; }
+.strategy-choice-grid dl { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 0; padding-top: 11px; border-top: 1px solid var(--soft-line); }
+.strategy-choice-grid > button.active dl { border-color: rgba(255,255,255,.18); }
+.strategy-choice-grid dt { color: var(--muted); font-size: 8px; }
+.strategy-choice-grid > button.active dt { color: rgba(255,255,255,.55); }
+.strategy-choice-grid dd { margin: 2px 0 0; font-size: 9px; font-weight: 850; white-space: nowrap; }
+.strategy-choice-grid > button > small { display: block; margin-top: 11px; color: var(--muted); font-size: 9px; line-height: 1.45; }
+.strategy-choice-grid > button.active > small { color: rgba(255,255,255,.65); }
+
 .chart-wrap { padding: 18px 12px 4px; border: 1px solid var(--soft-line); background: linear-gradient(180deg, #fbfaff, #fff); border-radius: 20px; overflow: hidden; }
 .chart-wrap svg { width: 100%; height: auto; overflow: visible; }
 .chart-legend { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 16px; padding: 4px 12px 0; font-size: 11px; color: var(--muted); }
@@ -209,6 +236,7 @@ footer p { margin: 0; color: var(--muted); font-size: 11px; text-align: center; 
   .controls { position: static; max-height: none; }
   .leftover-grid { grid-template-columns: repeat(2, 1fr); }
   .pass-grid { grid-template-columns: 1fr; }
+  .strategy-choice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 720px) {
@@ -233,6 +261,8 @@ footer p { margin: 0; color: var(--muted); font-size: 11px; text-align: center; 
   .pull-selector { padding: 18px; }
   .pull-selector-head { flex-direction: column; gap: 10px; }
   .pull-buttons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .strategy-choice { padding: 18px; }
+  .strategy-choice-grid { grid-template-columns: 1fr; }
   .decision-top { flex-direction: column; }
   .decision-top > strong { text-align: left; }
   .roi-grid { grid-template-columns: 1fr; }
