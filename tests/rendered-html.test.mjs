@@ -57,4 +57,9 @@ test("keeps verified calculator constants visible in source", async () => {
   assert.match(page, /pullStrategy: "monsterPark"/);
   assert.match(page, /shopBlueWeeks/);
   assert.match(page, /shopMech: false, shopBlue: false/);
+  assert.match(page, /preLevel: 270/);
+  assert.match(page, /pre280Data/);
+  assert.match(page, /simulatePre280/);
+  assert.match(page, /haru1sojae\.kr\/table/);
+  assert.match(page, /ownedPotion279/);
 });

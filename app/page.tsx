@@ -12,6 +12,14 @@ type Settings = {
   specialSundayCount: number;
   challengerPassLevel: number;
   momentumPassLevel: number;
+  preLevel: number;
+  preExp: number;
+  prePassLevel: number;
+  preUnclaimed: boolean;
+  preUseBlue: boolean;
+  preUseSauna: boolean;
+  preUseAdv: boolean;
+  preUsePotion: boolean;
   momentumMechLevel: number;
   momentumMechDeadline: string;
   mayrinMesoGap: number;
@@ -62,6 +70,7 @@ type Settings = {
   ownedMech: number;
   ownedSauna: number;
   ownedAdv: number;
+  ownedPotion279: number;
 };
 
 type ItemType = "blue" | "mech" | "sauna" | "adv" | "potion269" | "potion279" | "coupon3x" | "coupon4x";
@@ -99,6 +108,9 @@ type Simulation = {
   ultimaCountAtReach: number;
 };
 type PullPlan = { pullWeeks: number; targetClearWeeks: number; result: Simulation; feasible: boolean; strategy: PullStrategy; shopBlueWeeks: number; shopMechWeeks: number };
+type Pre280Inventory = { blue: number; sauna: number; adv: number; potion279: number };
+type Pre280Row = { date: Date; label: string; beforeLevel: number; beforeExp: number; level: number; exp: number; used: Pre280Inventory };
+type Pre280Simulation = { reached: Date | null; level: number; exp: number; passLevel: number; inventory: Pre280Inventory; used: Pre280Inventory; rows: Pre280Row[] };
 
 const efficiency: Record<number, Record<string, number>> = {
   280: { grandis: 0.3857, mp7: 2.2302, extreme: 2.604, epic: 3.0885, adv100: 0.22977, sauna: 0.9313, blue: 6.4818, mech: 9.7053 },
@@ -123,6 +135,8 @@ const eok = (value: number) => `${(value / 100000000).toLocaleString("ko-KR", { 
 const defaults: Settings = {
   level: 280, exp: 87.39, start: "2026-07-17", pullWeeks: 0, pullStrategy: "monsterPark", specialSundayCount: 1,
   challengerPassLevel: 20, momentumPassLevel: 0,
+  preLevel: 270, preExp: 0, prePassLevel: 0, preUnclaimed: true,
+  preUseBlue: true, preUseSauna: true, preUseAdv: true, preUsePotion: true,
   momentumMechLevel: 284, momentumMechDeadline: "2026-08-12", mayrinMesoGap: 3, mayrinNormalFrag: 30,
   fragPrice: 640, mpPerEok: 2500, postReset: true, challengerUnclaimed: true, challengerExp: true,
   momentumPrime: true, deferMomentumMech: true, core6Enabled: false, apology: true, specter: true,
@@ -132,7 +146,7 @@ const defaults: Settings = {
   ultimaCount: 21, ultimaWeek: 1, ultimaStart: true, grandis: true, weeklyOpen: true, todayDaily: true,
   extreme: true, epic: true, epicMult: 5, epicNow: 30, epicPatch: 30, core25Date: "2026-08-06",
   core25Bonus: 10, epicArtifactDate: "2026-08-13", epicArtifact: 180, epicCore6: 40,
-  epicCore6Artifact: 190, ownedBlue: 0, ownedMech: 0, ownedSauna: 0, ownedAdv: 0,
+  epicCore6Artifact: 190, ownedBlue: 0, ownedMech: 0, ownedSauna: 0, ownedAdv: 0, ownedPotion279: 0,
 };
 
 const pullStrategies: { id: PullStrategy; label: string; caption: string }[] = [
@@ -182,10 +196,119 @@ const efficiencyBenchmarks: EfficiencyBenchmark[] = [
 ];
 const relativeEfficiencyScore = (source: EfficiencyBenchmark, level: number) => {
   if (!source.raw) return source.base;
-  const sourceChange = source.raw(level) / source.raw(280);
-  const saunaChange = efficiency[level].sauna / efficiency[280].sauna;
+  const sourceChange = source.raw(level) / source.raw(281);
+  const saunaChange = efficiency[level].sauna / efficiency[281].sauna;
   return source.base * sourceChange / saunaChange;
 };
+
+const pre280Data: Record<number, { required: number; adv1000: number; sauna: number; blue: number }> = {
+  260: { required: 1.73, adv1000: 22.416, sauna: 9.086, blue: 47.343 },
+  261: { required: 1.75, adv1000: 22.514, sauna: 9.125, blue: 47.549 },
+  262: { required: 1.77, adv1000: 22.607, sauna: 9.164, blue: 47.747 },
+  263: { required: 1.78, adv1000: 22.699, sauna: 9.201, blue: 47.941 },
+  264: { required: 1.80, adv1000: 22.827, sauna: 9.252, blue: 48.210 },
+  265: { required: 2.34, adv1000: 19.754, sauna: 8.007, blue: 41.720 },
+  266: { required: 2.37, adv1000: 19.827, sauna: 8.037, blue: 41.875 },
+  267: { required: 2.39, adv1000: 19.898, sauna: 8.065, blue: 42.024 },
+  268: { required: 2.41, adv1000: 19.999, sauna: 8.106, blue: 42.238 },
+  269: { required: 2.44, adv1000: 20.066, sauna: 8.133, blue: 42.379 },
+  270: { required: 5.41, adv1000: 10.165, sauna: 4.120, blue: 32.203 },
+  271: { required: 5.47, adv1000: 10.213, sauna: 4.140, blue: 32.355 },
+  272: { required: 5.52, adv1000: 10.243, sauna: 4.152, blue: 32.451 },
+  273: { required: 5.58, adv1000: 10.273, sauna: 4.164, blue: 32.546 },
+  274: { required: 5.63, adv1000: 10.318, sauna: 4.182, blue: 32.689 },
+  275: { required: 11.38, adv1000: 5.741, sauna: 2.327, blue: 18.188 },
+  276: { required: 12.51, adv1000: 5.285, sauna: 2.142, blue: 16.743 },
+  277: { required: 13.77, adv1000: 4.872, sauna: 1.975, blue: 15.435 },
+  278: { required: 15.14, adv1000: 4.484, sauna: 1.818, blue: 14.206 },
+  279: { required: 16.66, adv1000: 4.133, sauna: 1.675, blue: 13.093 },
+  280: { required: 33.65, adv1000: 2.298, sauna: 0.931, blue: 6.482 },
+};
+
+function simulatePre280(s: Settings): Pre280Simulation {
+  let level = Math.max(260, Math.min(279, Math.floor(s.preLevel)));
+  let xp = pre280Data[level].required * Math.max(0, Math.min(99.999, s.preExp)) / 100;
+  let passLevel = Math.max(0, Math.min(30, Math.floor(s.prePassLevel)));
+  const inventory: Pre280Inventory = { blue: 0, sauna: 0, adv: 0, potion279: 0 };
+  const used: Pre280Inventory = { blue: 0, sauna: 0, adv: 0, potion279: 0 };
+  const rows: Pre280Row[] = [];
+  const start = parseDate(s.start);
+  let rewardDate = s.preUnclaimed ? start : nextThursdayAfter(start);
+  const end = parseDate("2026-09-16");
+  let reached: Date | null = null;
+  const copyInventory = (value: Pre280Inventory): Pre280Inventory => ({ ...value });
+  const rawFor = (type: keyof Pre280Inventory, unit: number) => {
+    const data = pre280Data[Math.min(280, level)];
+    if (type === "adv") return data.required * data.adv1000 / 100 / 1000 * unit;
+    if (type === "sauna") return data.required * data.sauna / 100 * unit;
+    if (type === "blue") return data.required * data.blue / 100 * unit;
+    return Math.max(0, data.required - xp);
+  };
+  const rawAt280 = (type: keyof Pre280Inventory, unit: number) => {
+    const data = pre280Data[280];
+    if (type === "adv") return data.required * data.adv1000 / 100 / 1000 * unit;
+    if (type === "sauna") return data.required * data.sauna / 100 * unit;
+    if (type === "blue") return data.required * data.blue / 100 * unit;
+    return pre280Data[279].required;
+  };
+  const applyRaw = (initialRaw: number) => {
+    let raw = initialRaw;
+    while (raw > 0.000000001 && level < 280) {
+      const remaining = pre280Data[level].required - xp;
+      if (raw + 0.000000001 < remaining) { xp += raw; raw = 0; }
+      else { raw -= remaining; level = Math.min(280, level + 2); xp = 0; }
+    }
+    if (level === 280 && raw > 0) xp += raw;
+  };
+  const consumeAvailableRewards = () => {
+    while (level < 280) {
+      const candidates: { type: keyof Pre280Inventory; unit: number; ratio: number; priority: number }[] = [];
+      if (s.preUsePotion && inventory.potion279 >= 1) candidates.push({ type: "potion279", unit: 1, ratio: 1, priority: 4 });
+      if (s.preUseBlue && inventory.blue >= 1) candidates.push({ type: "blue", unit: 1, ratio: rawFor("blue", 1) / rawAt280("blue", 1), priority: 3 });
+      if (s.preUseAdv && inventory.adv >= 1) {
+        const perCoupon = rawFor("adv", 1);
+        const toNextBurningLevel = Math.max(1, Math.ceil((pre280Data[level].required - xp) / perCoupon));
+        const couponBatch = Math.min(inventory.adv, toNextBurningLevel);
+        candidates.push({ type: "adv", unit: couponBatch, ratio: perCoupon / rawAt280("adv", 1), priority: 2 });
+      }
+      if (s.preUseSauna && inventory.sauna >= 0.5) candidates.push({ type: "sauna", unit: 0.5, ratio: rawFor("sauna", 0.5) / rawAt280("sauna", 0.5), priority: 1 });
+      if (!candidates.length) break;
+      candidates.sort((a, b) => b.ratio - a.ratio || b.priority - a.priority);
+      const choice = candidates[0];
+      const raw = rawFor(choice.type, choice.unit);
+      inventory[choice.type] -= choice.unit;
+      used[choice.type] += choice.unit;
+      applyRaw(raw);
+    }
+  };
+
+  while (passLevel < 30 && rewardDate <= end && level < 280) {
+    const from = passLevel + 1;
+    const to = Math.min(30, passLevel + 5);
+    const beforeLevel = level;
+    const beforeExp = xp / pre280Data[level].required * 100;
+    const usedBefore = copyInventory(used);
+    for (let current = from; current <= to; current += 1) {
+      const reward = challengerRewardForLevel(current, s.challengerExp);
+      inventory.blue += Number(reward.blue || 0);
+      inventory.sauna += Number(reward.sauna || 0);
+      inventory.adv += Number(reward.adv || 0);
+      inventory.potion279 += Number(reward.potion279 || 0);
+    }
+    passLevel = to;
+    consumeAvailableRewards();
+    const progressExp = xp / pre280Data[level].required * 100;
+    rows.push({
+      date: rewardDate, label: `챌섭 패스 ${from}~${to}레벨`, beforeLevel, beforeExp,
+      level, exp: progressExp,
+      used: { blue: used.blue - usedBefore.blue, sauna: used.sauna - usedBefore.sauna, adv: used.adv - usedBefore.adv, potion279: used.potion279 - usedBefore.potion279 },
+    });
+    if (level >= 280) { reached = rewardDate; break; }
+    rewardDate = rewardDate.getTime() === start.getTime() ? nextThursdayAfter(start) : addDays(rewardDate, 7);
+  }
+
+  return { reached, level, exp: xp / pre280Data[level].required * 100, passLevel, inventory, used, rows };
+}
 
 function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number; deferMomentumMech?: boolean; shopBlueWeeks?: number; shopMechWeeks?: number } = {}): Simulation {
   const start = parseDate(s.start);
@@ -299,7 +422,7 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
       });
     });
   }
-  addReward(start, { label: "현재 보유분", blue: s.ownedBlue, mech: s.ownedMech, sauna: s.ownedSauna, adv: s.ownedAdv });
+  addReward(start, { label: "현재 보유분", blue: s.ownedBlue, mech: s.ownedMech, sauna: s.ownedSauna, adv: s.ownedAdv, potion279: s.ownedPotion279 });
 
   const applyRaw = (initialRaw: number) => {
     let raw = initialRaw;
@@ -448,7 +571,12 @@ function ProgressChart({ selected, sunday, free }: { selected: Simulation; sunda
 
 export default function Home() {
   const [s, setS] = useState<Settings>(defaults);
-  const set = <K extends keyof Settings>(key: K, value: Settings[K]) => setS(current => ({ ...current, [key]: value }));
+  const [preApplied, setPreApplied] = useState(false);
+  const set = <K extends keyof Settings>(key: K, value: Settings[K]) => {
+    if (["preLevel", "preExp", "prePassLevel", "preUnclaimed", "preUseBlue", "preUseSauna", "preUseAdv", "preUsePotion", "challengerExp", "start"].includes(key)) setPreApplied(false);
+    setS(current => ({ ...current, [key]: value }));
+  };
+  const pre280 = useMemo(() => simulatePre280(s), [s]);
   const calc = useMemo(() => {
     const start = parseDate(s.start);
     const deadline = parseDate("2026-09-16");
@@ -547,6 +675,22 @@ export default function Home() {
       bestRoiStrategy, deadline, deadlineMet: selectedPlan.feasible, mechGain: (mechRawTarget / mechRaw280 - 1) * 100,
     };
   }, [s]);
+  const connectPre280 = () => {
+    if (!pre280.reached) return;
+    setS(current => ({
+      ...current,
+      level: 280,
+      exp: pre280.exp,
+      start: iso(pre280.reached!),
+      challengerPassLevel: pre280.passLevel,
+      challengerUnclaimed: false,
+      ownedBlue: current.ownedBlue + pre280.inventory.blue,
+      ownedSauna: current.ownedSauna + pre280.inventory.sauna,
+      ownedAdv: current.ownedAdv + pre280.inventory.adv,
+      ownedPotion279: current.ownedPotion279 + pre280.inventory.potion279,
+    }));
+    setPreApplied(true);
+  };
   const r = calc.selected;
   const pullDays = r.reached && calc.basePlan.result.reached ? Math.max(0, Math.round((calc.basePlan.result.reached.getTime() - r.reached.getTime()) / 86400000)) : 0;
   const recommendedPrefix = r.sevenUntil < r.start ? "평일 2판 · 일요일 7판" : `${shortDate(r.sevenUntil)}까지만 평일 7판`;
@@ -561,19 +705,75 @@ export default function Home() {
   ];
   const efficiencyLevels = [280, 281, 282, 283, 284];
   const efficiencyRanking = [...efficiencyBenchmarks].sort((a, b) => relativeEfficiencyScore(b, s.level) - relativeEfficiencyScore(a, s.level));
+  const preLevelData = pre280Data[Math.max(260, Math.min(279, Math.floor(s.preLevel)))];
+  const preUsedLabel = (used: Pre280Inventory) => [
+    used.blue ? `블루 ${used.blue}` : "",
+    used.sauna ? `사우나 ${used.sauna}h` : "",
+    used.adv ? `상급 ${used.adv.toLocaleString("ko-KR")}` : "",
+    used.potion279 ? `비약 ${used.potion279}` : "",
+  ].filter(Boolean).join(" · ") || "보상 적립";
 
   return <main>
-    <header className="topbar"><a className="brand" href="#top" aria-label="285 플래너 홈"><span className="brand-mark">M</span><span>285 PLANNER</span></a><nav><a href="#efficiency">효율 순위</a><a href="#compare">경로 비교</a><a href="#rewards">보상표</a><a href="#sources">근거</a></nav></header>
+    <header className="topbar"><a className="brand" href="#top" aria-label="285 플래너 홈"><span className="brand-mark">M</span><span>285 PLANNER</span></a><nav><a href="#pre280">260→280</a><a href="#efficiency">효율 순위</a><a href="#compare">경로 비교</a><a href="#rewards">보상표</a><a href="#sources">근거</a></nav></header>
     <section className="hero" id="top">
       <div className="eyebrow"><span /> CHALLENGERS WORLD · 2026 SUMMER</div>
       <h1>285, 언제 찍을까?</h1>
-      <p>패스를 바로 쓰지 않고, 몬파를 필요한 날까지만. 하드 메이린 한 주를 당기는 비용까지 계산합니다.</p>
+      <p>260부터 버닝 비욘드로 280을 설계하고, 그 뒤엔 패스를 아껴 쓰며 몬파를 필요한 날까지만. 하드 메이린 한 주를 당기는 비용까지 계산합니다.</p>
       <div className="hero-grid">
         <article className="hero-card primary"><div className="card-label">{calc.effectivePullWeeks ? `${calc.effectivePullWeeks}주 당김 · ${selectedStrategy.label}` : "마감만 맞추기"}</div><strong>{longDate(r.reached)}</strong><span>{r.scheduleLabel}</span><div className="card-meta"><b>{formatMP(r.maplePoints)}</b><em>몬파 {formatMP(r.monsterParkMaplePoints)} · 상점 {formatMP(r.shopMaplePoints)}</em></div></article>
         <article className="hero-card"><div className="card-label">0주 · 마감 기준</div><strong>{longDate(calc.basePlan.result.reached)}</strong><span>{calc.basePlan.result.scheduleLabel}</span><div className="card-meta"><b>{formatMP(calc.basePlan.result.maplePoints)}</b><em>상점 없이 9월 16일 달성</em></div></article>
         <article className="hero-card verdict"><div className="card-label">이번 한 주 손익</div><strong className={calc.marginalNetValue >= 0 ? "positive" : "negative"}>{calc.marginalNetValue >= 0 ? "+" : ""}{eok(calc.marginalNetValue)}</strong><span>{calc.effectivePullWeeks ? `직전 단계 대비 회수율 ${calc.marginalRecoveryRate.toFixed(1)}%` : "마감은 필수조건 · 손익과 분리"}</span><div className="card-meta"><b>{calc.marginalGainedHardWeeks}회 추가</b><em>보상 {eok(calc.marginalRecoveredValue)}</em></div></article>
       </div>
       <div className={`hero-note ${calc.deadlineMet ? "" : "deadline-fail"}`}><span className="pulse" /><p><b>{calc.selectedPlan.strategy === calc.bestRoiStrategy ? "추천 · 순손익 최고" : calc.selectedPlan.strategy === calc.bestPlansByWeek[calc.effectivePullWeeks]?.strategy ? "메포 최저" : "더 빠른 선택"}</b> {selectedStrategy.id === "monsterPark" ? recommendedPrefix : `${selectedStrategy.label} · ${recommendedPrefix}`} → {shortDate(r.reached)} · 총 {formatMP(r.maplePoints)} · {pullDays ? `마감 경로보다 ${pullDays}일 빠름` : "9월 16일 마감 기준"}</p></div>
+    </section>
+
+    <section className="pre280-section" id="pre280">
+      <div className="pre280-head">
+        <div><span>260→280 · BURNING BEYOND</span><h2>늦게 시작해도,<br />280부터 다시 합류.</h2></div>
+        <a href="https://haru1sojae.kr/table" target="_blank" rel="noreferrer">하루1소재 표시값 기준 ↗</a>
+      </div>
+      <div className="pre280-grid">
+        <div className="pre280-controls">
+          <div className="pre280-control-head"><span>STEP 01</span><h3>280 이전 캐릭터</h3><p>챌린저스 EXP 패스 보상만으로 280에 닿는 주차를 계산합니다. 별도 사냥 경험치는 넣지 않습니다.</p></div>
+          <div className="field-grid compact pre-fields">
+            <label className="field"><span>현재 레벨</span><select value={s.preLevel} onChange={e => set("preLevel", Number(e.target.value))}>{Array.from({ length: 20 }, (_, index) => index + 260).map(level => <option key={level}>{level}</option>)}</select></label>
+            <InputField label="현재 경험치 %" value={s.preExp} min={0} max={99.999} step={0.001} onChange={v => set("preExp", Number(v))} />
+            <InputField label="계산 시작일" value={s.start} type="date" onChange={v => set("start", v)} />
+            <InputField label="챌섭 패스 현재 레벨" value={s.prePassLevel} min={0} max={30} step={1} onChange={v => set("prePassLevel", Number(v))} />
+          </div>
+          <div className="pre-toggles">
+            <Toggle label="챌린저스 EXP 패스 보유" checked={s.challengerExp} onChange={v => set("challengerExp", v)} />
+            <Toggle label="이번 주 5레벨 미완료" checked={s.preUnclaimed} onChange={v => set("preUnclaimed", v)} />
+          </div>
+          <div className="pre-reward-toggles">
+            <span>280 전에 사용할 보상</span>
+            <Toggle label="블루베리" checked={s.preUseBlue} onChange={v => set("preUseBlue", v)} />
+            <Toggle label="상급 EXP" checked={s.preUseAdv} onChange={v => set("preUseAdv", v)} />
+            <Toggle label="VIP 사우나" checked={s.preUseSauna} onChange={v => set("preUseSauna", v)} />
+            <Toggle label="200~279 비약" checked={s.preUsePotion} onChange={v => set("preUsePotion", v)} />
+          </div>
+          <div className="pre-lock"><b>Lv.280 잠금</b><p>모멘텀 패스와 메카베리는 이 단계에서 획득·사용하지 않습니다. 280 도달 후 기존 계산기로 넘어가야 반영됩니다.</p></div>
+        </div>
+
+        <div className="pre280-results">
+          <div className="pre-result-grid">
+            <article className="pre-result-main"><span>280 예상 도달</span><strong>{pre280.reached ? longDate(pre280.reached) : "패스만으로 미달"}</strong><p>{pre280.reached ? `챌섭 패스 ${pre280.passLevel}레벨 시점 · Lv.280 ${pre280.exp.toFixed(3)}%` : `9월 16일 기준 Lv.${pre280.level} ${pre280.exp.toFixed(3)}%`}</p></article>
+            <article><span>현재 레벨 블루베리</span><strong>{preLevelData.blue.toFixed(3)}%</strong><small>1장당 표시 경험치</small></article>
+            <article><span>상급 EXP 1,000장</span><strong>{preLevelData.adv1000.toFixed(3)}%</strong><small>하루1소재 환산</small></article>
+            <article><span>VIP 사우나 1시간</span><strong>{preLevelData.sauna.toFixed(3)}%</strong><small>하루1소재 환산</small></article>
+          </div>
+
+          <div className="pre-route-head"><div><span>STEP 02</span><h3>버닝 비욘드 패스 동선</h3></div><p>레벨업할 때마다 <b>2레벨 상승</b>. 280에서도 가치가 큰 보상은 가능한 한 남기고, 현재 효율이 더 좋을 때만 먼저 씁니다.</p></div>
+          <div className="pre-timeline">
+            {pre280.rows.length ? pre280.rows.map(row => <article className="pre-row" key={`${iso(row.date)}-${row.label}`}><time>{shortDate(row.date)}</time><div><b>{row.label}</b><span>Lv.{row.beforeLevel} {row.beforeExp.toFixed(1)}% → Lv.{row.level} {row.exp.toFixed(1)}%</span></div><em>{preUsedLabel(row.used)}</em></article>) : <div className="pre-empty">남은 챌린저스 패스 보상이 없습니다. 현재 경험치나 패스 레벨을 확인해 주세요.</div>}
+          </div>
+          <div className="pre-bottom">
+            <div><span>280 도달 뒤 남는 보상</span><b>블루 {pre280.inventory.blue} · 사우나 {pre280.inventory.sauna.toFixed(1)}h · 상급 {pre280.inventory.adv.toLocaleString("ko-KR")} · 비약 {pre280.inventory.potion279}</b></div>
+            <button onClick={connectPre280} disabled={!pre280.reached || preApplied}>{preApplied ? "280→285 연결 완료" : pre280.reached ? "280→285 계산기에 연결" : "패스만으로 280 미도달"}</button>
+          </div>
+          <p className="pre-disclaimer">필요 경험치와 보상별 경험치 환산은 크롬에 열어둔 하루1소재 Lv.260+ 표시값을 사용합니다. 패스 현재 레벨까지 받은 보상은 이미 사용했거나 보유한 것으로 보고 다시 지급하지 않습니다.</p>
+        </div>
+      </div>
     </section>
 
     <section className="calculator-shell" id="compare">
@@ -602,11 +802,11 @@ export default function Home() {
           <Toggle label="이번 주 익몬·악몽선경 미완료" checked={s.weeklyOpen} onChange={v => set("weeklyOpen", v)} /><Toggle label="그란디스 일퀘" checked={s.grandis} onChange={v => set("grandis", v)} /><Toggle label="익스트림 몬스터파크" checked={s.extreme} onChange={v => set("extreme", v)} /><Toggle label="악몽선경 1단계" checked={s.epic} onChange={v => set("epic", v)} />
           <div className="field-grid compact"><label className="field"><span>악몽선경 보상 배수</span><select value={s.epicMult} onChange={e => set("epicMult", Number(e.target.value))}><option value={1}>기본</option><option value={5}>4배 추가</option><option value={9}>8배 추가</option></select></label><InputField label="5레벨 에픽 · 현재 %" value={s.epicNow} onChange={v => set("epicNow", Number(v))} /><InputField label="5레벨 에픽 · 패치 후 %" value={s.epicPatch} onChange={v => set("epicPatch", Number(v))} /><InputField label="코어 총합 25 달성일" value={s.core25Date} type="date" onChange={v => set("core25Date", v)} /><InputField label="총합 25 에픽 추가 %" value={s.core25Bonus} onChange={v => set("core25Bonus", Number(v))} /><InputField label="에픽 아티팩트 활성일" value={s.epicArtifactDate} type="date" onChange={v => set("epicArtifactDate", v)} /><InputField label="아티팩트 후 5레벨 %" value={s.epicArtifact} onChange={v => set("epicArtifact", Number(v))} /><InputField label="6레벨 · 아티팩트 전 %" value={s.epicCore6} disabled={!s.core6Enabled} onChange={v => set("epicCore6", Number(v))} /><InputField label="6레벨 · 아티팩트 후 %" value={s.epicCore6Artifact} disabled={!s.core6Enabled} onChange={v => set("epicCore6Artifact", Number(v))} /></div>
         </div></details>
-        <details><summary>보유 보상 · 울티마 <span>8</span></summary><div className="detail-body"><div className="field-grid compact"><InputField label="보유 블루베리" value={s.ownedBlue} min={0} onChange={v => set("ownedBlue", Number(v))} /><InputField label="보유 메카베리" value={s.ownedMech} min={0} onChange={v => set("ownedMech", Number(v))} /><InputField label="보유 사우나 시간" value={s.ownedSauna} min={0} onChange={v => set("ownedSauna", Number(v))} /><InputField label="보유 상급 EXP" value={s.ownedAdv} min={0} onChange={v => set("ownedAdv", Number(v))} /><InputField label="EXP 5,000 사용일" value={s.shardDate} type="date" disabled={!s.shardEvent} onChange={v => set("shardDate", v)} /><InputField label="상급 EXP 사용량" value={s.shardAdv} disabled={!s.shardEvent} onChange={v => set("shardAdv", Number(v))} /><InputField label="울티마 누적 출석" value={s.ultimaCount} disabled={!s.ultima} onChange={v => set("ultimaCount", Number(v))} /><InputField label="이번 주 이미 출석" value={s.ultimaWeek} disabled={!s.ultima} onChange={v => set("ultimaWeek", Number(v))} /></div><Toggle label="시작일 울티마 출석 예정" checked={s.ultimaStart} disabled={!s.ultima} onChange={v => set("ultimaStart", v)} /></div></details>
+        <details><summary>보유 보상 · 울티마 <span>9</span></summary><div className="detail-body"><div className="field-grid compact"><InputField label="보유 블루베리" value={s.ownedBlue} min={0} onChange={v => set("ownedBlue", Number(v))} /><InputField label="보유 메카베리" value={s.ownedMech} min={0} onChange={v => set("ownedMech", Number(v))} /><InputField label="보유 사우나 시간" value={s.ownedSauna} min={0} onChange={v => set("ownedSauna", Number(v))} /><InputField label="보유 상급 EXP" value={s.ownedAdv} min={0} onChange={v => set("ownedAdv", Number(v))} /><InputField label="보유 200~279 비약" value={s.ownedPotion279} min={0} onChange={v => set("ownedPotion279", Number(v))} /><InputField label="EXP 5,000 사용일" value={s.shardDate} type="date" disabled={!s.shardEvent} onChange={v => set("shardDate", v)} /><InputField label="상급 EXP 사용량" value={s.shardAdv} disabled={!s.shardEvent} onChange={v => set("shardAdv", Number(v))} /><InputField label="울티마 누적 출석" value={s.ultimaCount} disabled={!s.ultima} onChange={v => set("ultimaCount", Number(v))} /><InputField label="이번 주 이미 출석" value={s.ultimaWeek} disabled={!s.ultima} onChange={v => set("ultimaWeek", Number(v))} /></div><Toggle label="시작일 울티마 출석 예정" checked={s.ultimaStart} disabled={!s.ultima} onChange={v => set("ultimaStart", v)} /></div></details>
       </aside>
 
       <div className="results">
-        <div className="section-heading"><span>02</span><div><p>시나리오 비교</p><h2>레벨업 타임라인</h2></div><button className="reset" onClick={() => setS(defaults)}>기본값 복원</button></div>
+        <div className="section-heading"><span>02</span><div><p>시나리오 비교</p><h2>레벨업 타임라인</h2></div><button className="reset" onClick={() => { setS(defaults); setPreApplied(false); }}>기본값 복원</button></div>
         <section className="efficiency-panel" id="efficiency">
           <div className="efficiency-head"><div><span>VALUE RANKING · LV.{s.level}</span><h3>무엇부터 챙기는 게 이득일까?</h3></div><b>VIP 사우나 = 100</b></div>
           <div className="efficiency-list">
@@ -615,7 +815,7 @@ export default function Home() {
               <div className="efficiency-values">{efficiencyLevels.map(level => <span className={level === s.level ? "active" : ""} key={level}><small>Lv.{level}</small><b>{relativeEfficiencyScore(source, level).toFixed(1)}%</b></span>)}</div>
             </div>)}
           </div>
-          <p>첨부 효율표의 Lv.280 수치를 기준점으로 두고, Lv.281~284는 각 콘텐츠 경험치 감소율을 VIP 사우나 대비로 보정했습니다. 추가 경험치 50%와 사냥 쿠폰 가치는 사냥 속도에 따라 달라져 기준값으로 표시합니다.</p>
+          <p>크롬에 열어둔 하루1소재 효율표의 Lv.281 수치를 기준점으로 두고, Lv.280·282~284는 각 콘텐츠 경험치 감소율을 VIP 사우나 대비로 보정했습니다. 추가 경험치 50%와 사냥 쿠폰 가치는 사냥 속도에 따라 달라져 기준값으로 표시합니다.</p>
         </section>
         <div className="pull-selector">
           <div className="pull-selector-head"><div><span>WEEKLY DECISION</span><h3>몇 주를 당겨올까요?</h3></div><b className={calc.deadlineMet ? "deadline-ok" : "deadline-bad"}>{calc.deadlineMet ? "9/16 이전 달성" : "9/16 달성 불가"}</b></div>
@@ -653,7 +853,7 @@ export default function Home() {
       <div className="pass-grid"><article><div className="table-title"><span>CHALLENGERS · 현재 {s.challengerPassLevel}레벨</span><h3>챌린저스 EXP 패스</h3></div><table><thead><tr><th>레벨 구간</th><th>일반</th><th>EXP 패스 포함</th></tr></thead><tbody><tr><td>1~10</td><td>-</td><td>블루베리 6 · 사우나 2시간 · 상급 EXP 2,000</td></tr><tr><td>11~20</td><td>-</td><td>블루베리 6 · 사우나 2시간 · 상급 EXP 2,000</td></tr><tr><td>21~25</td><td>상급 EXP 100</td><td>블루베리 3 · 사우나 1시간 · 상급 EXP 1,100</td></tr><tr><td>26~30</td><td>상급 EXP 2,100</td><td>블루베리 2 · 사우나 1시간 · 상급 EXP 3,100 · 비약 1</td></tr><tr className="total"><td>1~30 합계</td><td>상급 EXP 2,200</td><td>블루베리 17 · 사우나 6시간 · 상급 EXP 8,200 · 비약 1</td></tr></tbody></table></article><article><div className="table-title"><span>MOMENTUM · 현재 {s.momentumPassLevel}레벨</span><h3>모멘텀 패스</h3></div><table><thead><tr><th>레벨 구간</th><th>프라임 핵심 보상</th></tr></thead><tbody><tr><td>1~2</td><td>메카베리 2 · 사우나 30분 · 4배 쿠폰 2</td></tr><tr><td>3~5</td><td>메카베리 2 · 사우나 30분 · 상급 EXP 3,100 · 4배 2</td></tr><tr><td>6~8</td><td>메카베리 3 · 사우나 30분 · 상급 EXP 3,100 · 4배 2</td></tr><tr><td>9~10</td><td>메카베리 4 · 상급 EXP 3,300</td></tr><tr className="total"><td>1~10 합계</td><td>메카베리 11 · 사우나 1.5시간 · 상급 EXP 9,500</td></tr></tbody></table></article></div>
     </section>
 
-    <section className="audit" id="sources"><div><span>CALCULATION AUDIT</span><h2>무엇을 넣었는지<br />숨기지 않았습니다.</h2></div><ul><li><b>마감</b> 모든 추천 경로는 2026년 9월 16일 285 달성을 먼저 만족</li><li><b>매일</b> 그란디스 일퀘와 몬스터파크만 반영 · 별도 사냥 경험치는 제외</li><li><b>매주</b> 익스트림 몬파, 악몽선경 1단계, 입력한 스페셜 선데이 횟수</li><li><b>패스</b> 입력 레벨 이후 보상만 챌섭 주 5레벨 · 모멘텀 2→3→3→2레벨로 반영</li><li><b>추천</b> 같은 날짜는 총 메포 최저 전략만 남기고 순손익 최고 경로에 추천 표시</li><li><b>패치</b> 7/23 코어 4개·총합 20, 8/6 코어 5개·총합 25</li><li><b>선택</b> 에테리온 아티팩트 코어 6레벨 토글과 달성일</li><li><b>이벤트</b> 스펙터 블래스트, 울티마 스쿼드 EXP 5,000, 울티마 작전 일지</li><li><b>비약</b> 200~269 고정 경험치 0.072458, 200~279 고정 경험치 0.49505</li></ul></section>
-    <footer><div className="brand"><span className="brand-mark">M</span><span>285 PLANNER</span></div><p>경험치 효율표와 공식 업데이트 수치를 바탕으로 만든 전략 계산기 · 2026.07.17 기준</p><div className="source-links"><a href="https://mapleroad.kr/utils/exp_calculator" target="_blank" rel="noreferrer">메이플로드 계산기</a><a href="https://maplestory.nexon.com/news/update/805" target="_blank" rel="noreferrer">공식 업데이트</a><a href="https://maplestory.nexon.com/testworld/news/all/188" target="_blank" rel="noreferrer">테스트월드</a></div></footer>
+    <section className="audit" id="sources"><div><span>CALCULATION AUDIT</span><h2>무엇을 넣었는지<br />숨기지 않았습니다.</h2></div><ul><li><b>260→280</b> 하루1소재 Lv.260+ 표시값 · 버닝 비욘드 레벨업마다 +2 · 챌섭 패스만 반영</li><li><b>잠금</b> 모멘텀 패스와 메카베리는 Lv.280 이후 계산에서만 획득·사용</li><li><b>마감</b> 모든 추천 경로는 2026년 9월 16일 285 달성을 먼저 만족</li><li><b>매일</b> 그란디스 일퀘와 몬스터파크만 반영 · 별도 사냥 경험치는 제외</li><li><b>매주</b> 익스트림 몬파, 악몽선경 1단계, 입력한 스페셜 선데이 횟수</li><li><b>패스</b> 입력 레벨 이후 보상만 챌섭 주 5레벨 · 모멘텀 2→3→3→2레벨로 반영</li><li><b>추천</b> 같은 날짜는 총 메포 최저 전략만 남기고 순손익 최고 경로에 추천 표시</li><li><b>패치</b> 7/23 코어 4개·총합 20, 8/6 코어 5개·총합 25</li><li><b>선택</b> 에테리온 아티팩트 코어 6레벨 토글과 달성일</li><li><b>이벤트</b> 스펙터 블래스트, 울티마 스쿼드 EXP 5,000, 울티마 작전 일지</li><li><b>비약</b> 200~269 고정 경험치 0.072458, 200~279 고정 경험치 0.49505</li></ul></section>
+    <footer><div className="brand"><span className="brand-mark">M</span><span>285 PLANNER</span></div><p>하루1소재 경험치 표시값과 업데이트 조건을 바탕으로 만든 전략 계산기 · 2026.07.17 기준</p><div className="source-links"><a href="https://haru1sojae.kr/table" target="_blank" rel="noreferrer">하루1소재 경험치표</a><a href="https://mapleroad.kr/utils/exp_calculator" target="_blank" rel="noreferrer">메이플로드 계산기</a><a href="https://maplestory.nexon.com/testworld/news/all/188" target="_blank" rel="noreferrer">테스트월드</a></div></footer>
   </main>;
 }
