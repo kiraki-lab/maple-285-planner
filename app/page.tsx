@@ -27,6 +27,12 @@ type Settings = {
   preUseSauna: boolean;
   preUseAdv: boolean;
   preUsePotion: boolean;
+  preMonsterParkRuns: number;
+  preSpecialSundayCount: number;
+  preDailyQuests: boolean;
+  preWeeklyContent: boolean;
+  preTodayDaily: boolean;
+  preWeeklyOpen: boolean;
   momentumMechLevel: number;
   momentumMechDeadline: string;
   mayrinMesoGap: number;
@@ -129,7 +135,19 @@ type Planning = {
 };
 type Pre280Inventory = { blue: number; sauna: number; adv: number; potion279: number };
 type Pre280Row = { date: Date; label: string; beforeLevel: number; beforeExp: number; level: number; exp: number; used: Pre280Inventory };
-type Pre280Simulation = { reached: Date | null; level: number; exp: number; passLevel: number; inventory: Pre280Inventory; used: Pre280Inventory; rows: Pre280Row[] };
+type Pre280Simulation = {
+  reached: Date | null;
+  level: number;
+  exp: number;
+  passLevel: number;
+  inventory: Pre280Inventory;
+  used: Pre280Inventory;
+  rows: Pre280Row[];
+  monsterParkMaplePoints: number;
+  dailyDays: number;
+  monsterParkRuns: number;
+  weeklyCount: number;
+};
 
 const efficiency: Record<number, Record<string, number>> = {
   280: { grandis: 0.3857, mp7: 2.2302, extreme: 2.604, epic: 3.0885, adv100: 0.22977, sauna: 0.9313, blue: 6.4818, mech: 9.7053 },
@@ -156,6 +174,8 @@ const defaults: Settings = {
   challengerPassLevel: 20, momentumPassLevel: 0,
   preLevel: 270, preExp: 0, prePassLevel: 0, preUnclaimed: true,
   preUseBlue: true, preUseSauna: true, preUseAdv: true, preUsePotion: true,
+  preMonsterParkRuns: 2, preSpecialSundayCount: 1, preDailyQuests: true, preWeeklyContent: true,
+  preTodayDaily: true, preWeeklyOpen: true,
   momentumMechLevel: 284, momentumMechDeadline: "2026-08-12", mayrinMesoGap: 3, mayrinNormalFrag: 30,
   fragPrice: 640, mpPerEok: 2500, postReset: true, challengerUnclaimed: true, challengerExp: true,
   momentumPrime: true, deferMomentumMech: true, core6Enabled: false, apology: true, specter: true,
@@ -183,7 +203,11 @@ const viewTabs: { id: ViewTab; label: string; description: string }[] = [
 ];
 
 const pre280SettingKeys: (keyof Settings)[] = [
-  "preLevel", "preExp", "prePassLevel", "preUnclaimed", "preUseBlue", "preUseSauna", "preUseAdv", "preUsePotion", "challengerExp", "start",
+  "preLevel", "preExp", "prePassLevel", "preUnclaimed", "preUseBlue", "preUseSauna", "preUseAdv", "preUsePotion",
+  "preMonsterParkRuns", "preSpecialSundayCount", "preDailyQuests", "preWeeklyContent", "preTodayDaily", "preWeeklyOpen",
+  "challengerExp", "start", "mpNow", "mpPatch", "core20Date", "core20Bonus", "core6Enabled", "core6Date", "mpCore6",
+  "dailyNow", "dailyPatch", "dailyCore6", "epicNow", "epicPatch", "core25Date", "core25Bonus", "epicArtifactDate",
+  "epicArtifact", "epicCore6", "epicCore6Artifact",
 ];
 const selectedSettingsKey = (settings: Settings, keys: (keyof Settings)[]) => JSON.stringify(keys.map(key => settings[key]));
 
@@ -257,6 +281,37 @@ const pre280Data: Record<number, { required: number; adv1000: number; sauna: num
   280: { required: 33_647_601_750_165, adv1000: 2.298, sauna: 0.931, blue: 6.482 },
 };
 
+type Pre280Content = { daily: number; extreme: number; epic: number; arcaneWeekly: number };
+const pre280Content: Record<number, Pre280Content> = {
+  260: { daily: 3.6049, extreme: 15.3125, epic: 15.0642, arcaneWeekly: 0.2709 },
+  261: { daily: 3.5692, extreme: 15.2192, epic: 15.1323, arcaneWeekly: 0.2682 },
+  262: { daily: 3.5338, extreme: 15.1262, epic: 15.1976, arcaneWeekly: 0.2656 },
+  263: { daily: 3.4989, extreme: 15.0336, epic: 15.2544, arcaneWeekly: 0.2629 },
+  264: { daily: 3.4643, extreme: 14.9414, epic: 15.3420, arcaneWeekly: 0.2603 },
+  265: { daily: 3.4916, extreme: 14.9980, epic: 13.2741, arcaneWeekly: 0.2002 },
+  266: { daily: 3.4570, extreme: 14.9055, epic: 13.3243, arcaneWeekly: 0.1983 },
+  267: { daily: 3.4229, extreme: 14.8134, epic: 13.3723, arcaneWeekly: 0.1963 },
+  268: { daily: 3.3889, extreme: 14.7217, epic: 13.4429, arcaneWeekly: 0.1944 },
+  269: { daily: 3.3554, extreme: 14.6303, epic: 13.4862, arcaneWeekly: 0.1924 },
+  270: { daily: 1.9409, extreme: 10.4758, epic: 10.2486, arcaneWeekly: 0.0867 },
+  271: { daily: 1.9217, extreme: 10.4105, epic: 10.2953, arcaneWeekly: 0.0858 },
+  272: { daily: 1.9026, extreme: 10.3455, epic: 10.3265, arcaneWeekly: 0.0850 },
+  273: { daily: 1.8838, extreme: 10.2807, epic: 10.3560, arcaneWeekly: 0.0841 },
+  274: { daily: 1.8651, extreme: 10.2162, epic: 10.4026, arcaneWeekly: 0.0833 },
+  275: { daily: 1.2057, extreme: 6.5067, epic: 5.7879, arcaneWeekly: 0.0412 },
+  276: { daily: 1.0961, extreme: 5.9897, epic: 5.3277, arcaneWeekly: 0.0375 },
+  277: { daily: 0.9965, extreme: 5.5219, epic: 4.9120, arcaneWeekly: 0.0341 },
+  278: { daily: 0.9059, extreme: 5.0822, epic: 4.5209, arcaneWeekly: 0.0310 },
+  279: { daily: 0.8235, extreme: 4.6840, epic: 4.1667, arcaneWeekly: 0.0282 },
+};
+
+const pre280MonsterParkRawPerRun = (level: number) => {
+  if (level >= 275) return 76_640_000_000;
+  if (level >= 270) return 52_819_000_000;
+  if (level >= 265) return 44_435_000_000;
+  return 37_475_000_000;
+};
+
 function simulatePre280(s: Settings): Pre280Simulation {
   let level = Math.max(260, Math.min(279, Math.floor(s.preLevel)));
   let xp = pre280Data[level].required * Math.max(0, Math.min(99.999, s.preExp)) / 100;
@@ -267,7 +322,18 @@ function simulatePre280(s: Settings): Pre280Simulation {
   const start = parseDate(s.start);
   let rewardDate = s.preUnclaimed ? start : nextThursdayAfter(start);
   const end = parseDate("2026-09-16");
+  const patchDate = parseDate("2026-07-23");
+  const core20Date = s.core20Date ? parseDate(s.core20Date) : null;
+  const core25Date = s.core25Date ? parseDate(s.core25Date) : null;
+  const epicArtifactDate = s.epicArtifactDate ? parseDate(s.epicArtifactDate) : null;
+  const requestedCore6Date = s.core6Enabled && s.core6Date ? parseDate(s.core6Date) : null;
+  const core6Date = requestedCore6Date && requestedCore6Date >= patchDate ? requestedCore6Date : requestedCore6Date ? patchDate : null;
   let reached: Date | null = null;
+  let monsterParkMaplePoints = 0;
+  let dailyDays = 0;
+  let monsterParkRuns = 0;
+  let weeklyCount = 0;
+  let sundaysSeen = 0;
   const copyInventory = (value: Pre280Inventory): Pre280Inventory => ({ ...value });
   const rawFor = (type: keyof Pre280Inventory, unit: number) => {
     const data = pre280Data[Math.min(280, level)];
@@ -293,6 +359,26 @@ function simulatePre280(s: Settings): Pre280Simulation {
     level = result.level;
     xp = result.experience;
   };
+  const applyCurrentPercent = (percent: number) => {
+    if (level >= 280 || !pre280Data[level]) return;
+    applyRaw(pre280Data[level].required * percent / 100);
+  };
+  const bonusesForDate = (date: Date) => {
+    const afterPatch = date >= patchDate;
+    const afterCore6 = Boolean(core6Date && date >= core6Date);
+    const afterCore20 = Boolean(core20Date && date >= core20Date);
+    const afterCore25 = Boolean(core25Date && date >= core25Date);
+    const afterArtifact = Boolean(epicArtifactDate && date >= epicArtifactDate);
+    const mpBase = afterCore6 ? s.mpCore6 : afterPatch ? s.mpPatch : s.mpNow;
+    const epicBase = afterCore6
+      ? (afterArtifact ? s.epicCore6Artifact : s.epicCore6)
+      : (afterArtifact ? s.epicArtifact : afterPatch ? s.epicPatch : s.epicNow);
+    return {
+      mp: mpBase + (afterPatch && afterCore20 ? s.core20Bonus : 0),
+      daily: afterCore6 ? s.dailyCore6 : afterPatch ? s.dailyPatch : s.dailyNow,
+      epic: epicBase + (afterPatch && afterCore25 ? s.core25Bonus : 0),
+    };
+  };
   const consumeAvailableRewards = () => {
     while (level < 280) {
       const candidates: { type: keyof Pre280Inventory; unit: number; ratio: number; priority: number }[] = [];
@@ -314,37 +400,111 @@ function simulatePre280(s: Settings): Pre280Simulation {
       applyRaw(raw);
     }
   };
+  let checkpointLevel = level;
+  let checkpointExp = xp / pre280Data[level].required * 100;
+  let checkpointUsed = copyInventory(used);
+  let pendingDailyDays = 0;
+  let pendingRuns = 0;
 
-  while (passLevel < 30 && rewardDate <= end && level < 280) {
-    const from = passLevel + 1;
-    const to = Math.min(challengerPassCapForDate(rewardDate), passLevel + 5);
-    if (to < from) {
-      rewardDate = nextThursdayAfter(rewardDate);
-      continue;
+  for (let day = 0; day <= 90 && level < 280; day += 1) {
+    const date = addDays(start, day);
+    if (date > end) break;
+    const events: string[] = [];
+
+    if (passLevel < 30 && date.getTime() === rewardDate.getTime()) {
+      const from = passLevel + 1;
+      const to = Math.min(challengerPassCapForDate(rewardDate), passLevel + 5);
+      if (to >= from) {
+        for (let current = from; current <= to; current += 1) {
+          const reward = challengerRewardForLevel(current, s.challengerExp);
+          inventory.blue += Number(reward.blue || 0);
+          inventory.sauna += Number(reward.sauna || 0);
+          inventory.adv += Number(reward.adv || 0);
+          inventory.potion279 += Number(reward.potion279 || 0);
+        }
+        passLevel = to;
+        consumeAvailableRewards();
+        events.push(`챌섭 패스 ${from}~${to}레벨`);
+      }
+      rewardDate = rewardDate.getTime() === start.getTime() ? nextThursdayAfter(start) : addDays(rewardDate, 7);
     }
-    const beforeLevel = level;
-    const beforeExp = xp / pre280Data[level].required * 100;
-    const usedBefore = copyInventory(used);
-    for (let current = from; current <= to; current += 1) {
-      const reward = challengerRewardForLevel(current, s.challengerExp);
-      inventory.blue += Number(reward.blue || 0);
-      inventory.sauna += Number(reward.sauna || 0);
-      inventory.adv += Number(reward.adv || 0);
-      inventory.potion279 += Number(reward.potion279 || 0);
+
+    const weeklyDate = (day === 0 && s.preWeeklyOpen) || (day > 0 && date.getDay() === 4);
+    if (s.preWeeklyContent && weeklyDate && level < 280) {
+      const bonuses = bonusesForDate(date);
+      applyCurrentPercent(pre280Content[level].extreme * (1 + bonuses.mp / 100));
+      if (level < 280) applyCurrentPercent(pre280Content[level].epic * (1 + bonuses.epic / 100));
+      if (level < 280) applyCurrentPercent(pre280Content[level].arcaneWeekly);
+      weeklyCount += 1;
+      events.push("익몬 · 최고 에픽던전 · 아케인 주간");
     }
-    passLevel = to;
-    consumeAvailableRewards();
-    const progressExp = xp / pre280Data[level].required * 100;
-    rows.push({
-      date: rewardDate, label: `챌섭 패스 ${from}~${to}레벨`, beforeLevel, beforeExp,
-      level, exp: progressExp,
-      used: { blue: used.blue - usedBefore.blue, sauna: used.sauna - usedBefore.sauna, adv: used.adv - usedBefore.adv, potion279: used.potion279 - usedBefore.potion279 },
-    });
-    if (level >= 280) { reached = rewardDate; break; }
-    rewardDate = rewardDate.getTime() === start.getTime() ? nextThursdayAfter(start) : addDays(rewardDate, 7);
+
+    const dailyOpen = day > 0 || s.preTodayDaily;
+    if (dailyOpen && level < 280) {
+      const bonuses = bonusesForDate(date);
+      const runs = Math.max(0, Math.min(7, Math.floor(s.preMonsterParkRuns)));
+      if (runs > 0) {
+        const isSunday = date.getDay() === 0;
+        const isSpecialSunday = isSunday && sundaysSeen < Math.max(0, Math.floor(s.preSpecialSundayCount));
+        if (isSunday) sundaysSeen += 1;
+        const sundayBonus = isSpecialSunday ? 3 : isSunday ? 0.5 : 0;
+        let completedRuns = 0;
+        while (completedRuns < runs && level < 280) {
+          applyRaw(pre280MonsterParkRawPerRun(level) * (1 + bonuses.mp / 100 + sundayBonus));
+          completedRuns += 1;
+        }
+        monsterParkMaplePoints += paidMonsterParkMaplePoints(completedRuns);
+        monsterParkRuns += completedRuns;
+        pendingRuns += completedRuns;
+      }
+      if (s.preDailyQuests && level < 280) {
+        applyCurrentPercent(pre280Content[level].daily * (1 + bonuses.daily / 100));
+        dailyDays += 1;
+        pendingDailyDays += 1;
+      }
+    }
+
+    if (level >= 280) reached = date;
+    const isLastDay = date.getTime() === end.getTime();
+    if (events.length || reached || isLastDay) {
+      const labels = [...events];
+      if (pendingDailyDays) labels.push(`일퀘 ${pendingDailyDays}일`);
+      if (pendingRuns) labels.push(`몬파 ${pendingRuns}판`);
+      rows.push({
+        date,
+        label: labels.join(" · ") || "콘텐츠 누적",
+        beforeLevel: checkpointLevel,
+        beforeExp: checkpointExp,
+        level,
+        exp: xp / pre280Data[level].required * 100,
+        used: {
+          blue: used.blue - checkpointUsed.blue,
+          sauna: used.sauna - checkpointUsed.sauna,
+          adv: used.adv - checkpointUsed.adv,
+          potion279: used.potion279 - checkpointUsed.potion279,
+        },
+      });
+      checkpointLevel = level;
+      checkpointExp = xp / pre280Data[level].required * 100;
+      checkpointUsed = copyInventory(used);
+      pendingDailyDays = 0;
+      pendingRuns = 0;
+    }
   }
 
-  return { reached, level, exp: xp / pre280Data[level].required * 100, passLevel, inventory, used, rows };
+  return {
+    reached,
+    level,
+    exp: xp / pre280Data[level].required * 100,
+    passLevel,
+    inventory,
+    used,
+    rows,
+    monsterParkMaplePoints,
+    dailyDays,
+    monsterParkRuns,
+    weeklyCount,
+  };
 }
 
 function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number; deferMomentumMech?: boolean; shopBlueWeeks?: number; shopMechWeeks?: number } = {}): Simulation {
@@ -765,7 +925,7 @@ export default function Home() {
   const [preApplied, setPreApplied] = useState(false);
   const [activeTab, setActiveTab] = useState<ViewTab>("calculator");
   const set = <K extends keyof Settings>(key: K, value: Settings[K]) => {
-    if (["preLevel", "preExp", "prePassLevel", "preUnclaimed", "preUseBlue", "preUseSauna", "preUseAdv", "preUsePotion", "challengerExp", "start"].includes(key)) setPreApplied(false);
+    if (pre280SettingKeys.includes(key)) setPreApplied(false);
     setS(current => ({ ...current, [key]: value }));
   };
   const pre280Key = selectedSettingsKey(s, pre280SettingKeys);
@@ -890,7 +1050,7 @@ export default function Home() {
     used.sauna ? `사우나 ${used.sauna}h` : "",
     used.adv ? `상급 ${used.adv.toLocaleString("ko-KR")}` : "",
     used.potion279 ? `비약 ${used.potion279}` : "",
-  ].filter(Boolean).join(" · ") || "보상 적립";
+  ].filter(Boolean).join(" · ") || "콘텐츠 누적";
 
   return <main>
     <header className="topbar"><a className="brand" href="#top" aria-label="285 계산기 홈"><span className="brand-mark">M</span><span>285 CALCULATOR</span></a><span className="topbar-status">CHALLENGERS WORLD</span></header>
@@ -923,10 +1083,16 @@ export default function Home() {
             <InputField label="현재 경험치 %" value={s.preExp} min={0} max={99.999} step={0.001} onChange={v => set("preExp", Number(v))} />
             <InputField label="계산 시작일" value={s.start} type="date" onChange={v => set("start", v)} />
             <InputField label="챌섭 패스 현재 레벨" value={s.prePassLevel} min={0} max={30} step={1} onChange={v => set("prePassLevel", Number(v))} />
+            <label className="field"><span>매일 몬스터파크</span><select value={s.preMonsterParkRuns} onChange={e => set("preMonsterParkRuns", Number(e.target.value))}><option value={0}>안 함</option><option value={2}>2판 · 무료</option><option value={7}>7판 · 3,000 메포</option></select></label>
+            <InputField label="스페셜 선데이 횟수" value={s.preSpecialSundayCount} min={0} max={12} step={1} onChange={v => set("preSpecialSundayCount", Number(v))} />
           </div>
           <div className="pre-toggles">
             <Toggle label="챌린저스 EXP 패스 보유" checked={s.challengerExp} onChange={v => set("challengerExp", v)} />
             <Toggle label="이번 주 5레벨 미완료" checked={s.preUnclaimed} onChange={v => set("preUnclaimed", v)} />
+            <Toggle label="아케인·그란디스 일퀘" checked={s.preDailyQuests} onChange={v => set("preDailyQuests", v)} />
+            <Toggle label="익몬·에픽던전·아케인 주간" checked={s.preWeeklyContent} onChange={v => set("preWeeklyContent", v)} />
+            <Toggle label="오늘 일퀘·몬파 미완료" checked={s.preTodayDaily} onChange={v => set("preTodayDaily", v)} />
+            <Toggle label="이번 주 주간 콘텐츠 미완료" checked={s.preWeeklyOpen} onChange={v => set("preWeeklyOpen", v)} />
           </div>
           <div className="pre-reward-toggles">
             <span>280 전에 사용할 보상</span>
@@ -940,7 +1106,7 @@ export default function Home() {
 
         <div className="pre280-results">
           <div className="pre-result-grid">
-            <article className="pre-result-main"><span>280 예상 도달</span><strong>{pre280.reached ? longDate(pre280.reached) : "패스만으로 미달"}</strong><p>{pre280.reached ? `챌섭 패스 ${pre280.passLevel}레벨 시점 · Lv.280 ${pre280.exp.toFixed(3)}%` : `9월 16일 기준 Lv.${pre280.level} ${pre280.exp.toFixed(3)}%`}</p></article>
+            <article className="pre-result-main"><span>280 예상 도달</span><strong>{pre280.reached ? longDate(pre280.reached) : "9/16까지 미도달"}</strong><p>{pre280.reached ? `챌섭 패스 ${pre280.passLevel}레벨 시점 · Lv.280 ${pre280.exp.toFixed(3)}%` : `9월 16일 기준 Lv.${pre280.level} ${pre280.exp.toFixed(3)}%`} · 일퀘 ${pre280.dailyDays}일 · 몬파 ${pre280.monsterParkRuns}판 · 주간 ${pre280.weeklyCount}회 · {formatMP(pre280.monsterParkMaplePoints)}</p></article>
             <article><span>현재 레벨 블루베리</span><strong>{preLevelData.blue.toFixed(3)}%</strong><small>1장당 표시 경험치</small></article>
             <article><span>상급 EXP 1,000장</span><strong>{preLevelData.adv1000.toFixed(3)}%</strong><small>하루1소재 환산</small></article>
             <article><span>VIP 사우나 1시간</span><strong>{preLevelData.sauna.toFixed(3)}%</strong><small>하루1소재 환산</small></article>
@@ -948,13 +1114,13 @@ export default function Home() {
 
           <div className="pre-route-head"><div><span>결과</span><h3>주차별 예상 경로</h3></div><p>버닝 비욘드 <b>+2레벨</b> 적용</p></div>
           <div className="pre-timeline">
-            {pre280.rows.length ? pre280.rows.map(row => <article className="pre-row" key={`${iso(row.date)}-${row.label}`}><time>{shortDate(row.date)}</time><div><b>{row.label}</b><span>Lv.{row.beforeLevel} {row.beforeExp.toFixed(1)}% → Lv.{row.level} {row.exp.toFixed(1)}%</span></div><em>{preUsedLabel(row.used)}</em></article>) : <div className="pre-empty">남은 챌린저스 패스 보상이 없습니다. 현재 경험치나 패스 레벨을 확인해 주세요.</div>}
+            {pre280.rows.length ? pre280.rows.map(row => <article className="pre-row" key={`${iso(row.date)}-${row.label}`}><time>{shortDate(row.date)}</time><div><b>{row.label}</b><span>Lv.{row.beforeLevel} {row.beforeExp.toFixed(1)}% → Lv.{row.level} {row.exp.toFixed(1)}%</span></div><em>{preUsedLabel(row.used)}</em></article>) : <div className="pre-empty">계산할 경험치 콘텐츠가 없습니다. 일퀘·몬파·주간 설정을 확인해 주세요.</div>}
           </div>
           <div className="pre-bottom">
             <div><span>280 도달 뒤 남는 보상</span><b>블루 {pre280.inventory.blue} · 사우나 {pre280.inventory.sauna.toFixed(1)}h · 상급 {pre280.inventory.adv.toLocaleString("ko-KR")} · 비약 {pre280.inventory.potion279}</b></div>
-            <button onClick={connectPre280} disabled={!pre280.reached || preApplied}>{preApplied ? "280→285 연결 완료" : pre280.reached ? "280→285 계산기에 연결" : "패스만으로 280 미도달"}</button>
+            <button onClick={connectPre280} disabled={!pre280.reached || preApplied}>{preApplied ? "280→285 연결 완료" : pre280.reached ? "280→285 계산기에 연결" : "9/16까지 280 미도달"}</button>
           </div>
-          <p className="pre-disclaimer">필요 경험치는 메이플로드, 보상별 환산은 하루1소재 Lv.260+ 표시값 기준입니다. 현재 패스 레벨까지 받은 보상은 다시 지급하지 않습니다.</p>
+          <p className="pre-disclaimer">일퀘·익몬·에픽던전은 메이플로드, 몬스터파크 지역별 경험치는 하루1소재 기준입니다. 레벨에 맞는 최고 입장 지역과 버닝 비욘드 +2레벨, 285 탭의 에테리온 콘텐츠 보정을 함께 적용합니다.</p>
         </div>
       </div>
     </section>}

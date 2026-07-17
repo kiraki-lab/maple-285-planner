@@ -93,6 +93,16 @@ test("keeps verified calculator constants visible in source", async () => {
   assert.match(page, /preLevel: 270/);
   assert.match(page, /pre280Data/);
   assert.match(page, /simulatePre280/);
+  assert.match(page, /pre280Content/);
+  assert.match(page, /pre280MonsterParkRawPerRun/);
+  assert.match(page, /37_475_000_000/);
+  assert.match(page, /76_640_000_000/);
+  assert.match(page, /daily: 3\.6049, extreme: 15\.3125, epic: 15\.0642/);
+  assert.match(page, /daily: 0\.8235, extreme: 4\.6840, epic: 4\.1667/);
+  assert.match(page, /매일 몬스터파크/);
+  assert.match(page, /아케인·그란디스 일퀘/);
+  assert.match(page, /익몬·에픽던전·아케인 주간/);
+  assert.match(page, /paidMonsterParkMaplePoints\(completedRuns\)/);
   assert.match(page, /haru1sojae\.kr\/table/);
   assert.match(page, /ownedPotion279/);
 });
