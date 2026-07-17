@@ -467,9 +467,12 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
 
   const applyRaw = (initialRaw: number) => {
     let raw = initialRaw;
-    while (raw > 0 && level < 285) {
+    let guard = 0;
+    while (raw > 0.000000000001 && level < 285 && guard < 8) {
+      guard += 1;
       const remaining = req(level) - xp;
-      if (raw < remaining) { xp += raw; raw = 0; } else { raw -= remaining; level += 1; xp = 0; }
+      if (remaining <= 0.000000000001) { level += 1; xp = 0; continue; }
+      if (raw + 0.000000000001 < remaining) { xp += raw; raw = 0; } else { raw = Math.max(0, raw - remaining); level += 1; xp = 0; }
     }
   };
   const applyPercent = (percent: number) => { if (level < 285 && efficiency[level]) applyRaw(req(level) * percent / 100); };
@@ -477,10 +480,28 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
     let remaining = type === "sauna" ? Math.max(0, Number(count || 0)) : Math.max(0, Math.floor(count || 0));
     let used = 0;
     if (type === "sauna") {
-      while (remaining > 0.0000001 && level < 285) {
+      let guard = 0;
+      while (remaining > 0.0000001 && level < 285 && guard < 8) {
+        guard += 1;
         const rawPerHour = req(level) * efficiency[level].sauna / 100;
-        const hours = Math.min(remaining, (req(level) - xp) / rawPerHour);
+        const required = req(level) - xp;
+        if (required <= 0.000000000001) { level += 1; xp = 0; continue; }
+        const hours = Math.min(remaining, required / rawPerHour);
+        if (hours <= 0.000000000001) break;
         applyRaw(rawPerHour * hours); remaining -= hours; used += hours;
+      }
+      return used;
+    }
+    if (type === "adv") {
+      let guard = 0;
+      while (remaining > 0 && level < 285 && guard < 8) {
+        guard += 1;
+        const rawPerCoupon = req(level) * efficiency[level].adv100 / 10000;
+        const required = Math.max(0, req(level) - xp);
+        const couponBatch = Math.min(remaining, Math.max(1, Math.ceil(required / rawPerCoupon)));
+        applyRaw(rawPerCoupon * couponBatch);
+        remaining -= couponBatch;
+        used += couponBatch;
       }
       return used;
     }

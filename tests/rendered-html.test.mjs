@@ -35,6 +35,9 @@ test("keeps the 285 calculator primary and moves supporting content into tabs", 
   assert.match(page, /hasPendingChanges/);
   assert.match(page, /runPlanningInChunks/);
   assert.match(page, /requestAnimationFrame/);
+  assert.match(page, /rawPerCoupon/);
+  assert.match(page, /couponBatch/);
+  assert.match(page, /guard < 8/);
   assert.match(page, /285 도달일 계산하기/);
   assert.match(page, /계산 취소/);
   assert.match(page, /화면 사용 가능/);
