@@ -115,7 +115,7 @@ const shortDate = (date: Date | null) => date ? `${date.getMonth() + 1}/${date.g
 const longDate = (date: Date | null) => date ? `${date.getMonth() + 1}월 ${date.getDate()}일` : "120일 이후";
 const addDays = (date: Date, days: number) => { const next = new Date(date); next.setDate(next.getDate() + days); return next; };
 const req = (level: number) => Math.pow(1.1, level - 280);
-const formatMP = (value: number) => `${Math.round(value).toLocaleString("ko-KR")} MP`;
+const formatMP = (value: number) => `${Math.round(value).toLocaleString("ko-KR")} 메포`;
 const formatSignedMP = (value: number) => `${value > 0 ? "+" : ""}${formatMP(value)}`;
 const eok = (value: number) => `${(value / 100000000).toLocaleString("ko-KR", { maximumFractionDigits: 2 })}억`;
 
@@ -135,9 +135,9 @@ const defaults: Settings = {
 
 const pullStrategies: { id: PullStrategy; label: string; caption: string }[] = [
   { id: "monsterPark", label: "평일 몬파", caption: "추가 5판으로만 당기기" },
-  { id: "blue", label: "블루베리 구매", caption: "주당 2장 · 7,000 MP" },
-  { id: "mech", label: "메카베리 구매", caption: "주당 2장 · 10,000 MP" },
-  { id: "both", label: "농장 둘 다", caption: "주당 4장 · 17,000 MP" },
+  { id: "blue", label: "블루베리 구매", caption: "주당 2장 · 7,000 메포" },
+  { id: "mech", label: "메카베리 구매", caption: "주당 2장 · 10,000 메포" },
+  { id: "both", label: "농장 둘 다", caption: "주당 4장 · 17,000 메포" },
 ];
 
 function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number; deferMomentumMech?: boolean; shopBlueWeeks?: number; shopMechWeeks?: number } = {}): Simulation {
@@ -445,6 +445,14 @@ export default function Home() {
     const cumulativeCostValue = cumulativeMP / Math.max(1, s.mpPerEok) * 100000000;
     const cumulativeRecoveredValue = cumulativeGainedHardWeeks * hardValue;
     const cumulativeNetValue = cumulativeRecoveredValue - cumulativeCostValue;
+    const recommendedRoiPlans = recommendedPlansByWeek[effectivePullWeeks].map(plan => {
+      const hardWeeks = mayrinClearWeeks(plan.result.reached) + (plan.result.reached ? reset : 0);
+      const gainedHardWeeks = Math.max(0, hardWeeks - baseHardWeeks);
+      const extraMaplePoints = plan.result.maplePoints - basePlan.result.maplePoints;
+      const costValue = extraMaplePoints / Math.max(1, s.mpPerEok) * 100000000;
+      return { strategy: plan.strategy, netValue: gainedHardWeeks * hardValue - costValue };
+    });
+    const bestRoiStrategy = [...recommendedRoiPlans].sort((a, b) => b.netValue - a.netValue || pullStrategies.findIndex(strategy => strategy.id === a.strategy) - pullStrategies.findIndex(strategy => strategy.id === b.strategy))[0]?.strategy || selectedPlan.strategy;
     const mechRaw280 = efficiency[280].mech * req(280) / 100;
     const mechRawTarget = efficiency[selected.momentumMechLevel].mech * req(selected.momentumMechLevel) / 100;
     return {
@@ -452,13 +460,14 @@ export default function Home() {
       effectivePullWeeks, maxPullWeeks, hardValue, selectedHardWeeks, baseHardWeeks, marginalGainedHardWeeks,
       marginalMP, marginalMonsterParkMP, marginalShopMP, marginalCostValue, marginalRecoveredValue, marginalNetValue, marginalRecoveryRate,
       cumulativeGainedHardWeeks, cumulativeMP, cumulativeCostValue, cumulativeRecoveredValue, cumulativeNetValue,
-      deadline, deadlineMet: selectedPlan.feasible, mechGain: (mechRawTarget / mechRaw280 - 1) * 100,
+      bestRoiStrategy, deadline, deadlineMet: selectedPlan.feasible, mechGain: (mechRawTarget / mechRaw280 - 1) * 100,
     };
   }, [s]);
   const r = calc.selected;
   const pullDays = r.reached && calc.basePlan.result.reached ? Math.max(0, Math.round((calc.basePlan.result.reached.getTime() - r.reached.getTime()) / 86400000)) : 0;
   const recommendedPrefix = r.sevenUntil < r.start ? "평일 2판 · 일요일 7판" : `${shortDate(r.sevenUntil)}까지만 평일 7판`;
   const selectedStrategy = pullStrategies.find(strategy => strategy.id === calc.selectedPlan.strategy) || pullStrategies[0];
+  const selectedRouteTitle = selectedStrategy.id === "monsterPark" ? r.scheduleLabel : `${selectedStrategy.label} · ${r.scheduleLabel}`;
   const momentumLeft = r.reached && r.reached < parseDate("2026-08-13");
   const leftoverRows: [string, string][] = [
     ["상급 EXP 교환권", `${r.leftovers.adv.toLocaleString("ko-KR")}장`], ["VIP 사우나", `${r.leftovers.sauna.toLocaleString("ko-KR", { maximumFractionDigits: 2 })}시간`],
@@ -478,7 +487,7 @@ export default function Home() {
         <article className="hero-card"><div className="card-label">0주 · 마감 기준</div><strong>{longDate(calc.basePlan.result.reached)}</strong><span>{calc.basePlan.result.scheduleLabel}</span><div className="card-meta"><b>{formatMP(calc.basePlan.result.maplePoints)}</b><em>상점 없이 9월 16일 달성</em></div></article>
         <article className="hero-card verdict"><div className="card-label">이번 한 주 손익</div><strong className={calc.marginalNetValue >= 0 ? "positive" : "negative"}>{calc.marginalNetValue >= 0 ? "+" : ""}{eok(calc.marginalNetValue)}</strong><span>{calc.effectivePullWeeks ? `직전 단계 대비 회수율 ${calc.marginalRecoveryRate.toFixed(1)}%` : "마감은 필수조건 · 손익과 분리"}</span><div className="card-meta"><b>{calc.marginalGainedHardWeeks}회 추가</b><em>보상 {eok(calc.marginalRecoveredValue)}</em></div></article>
       </div>
-      <div className={`hero-note ${calc.deadlineMet ? "" : "deadline-fail"}`}><span className="pulse" /><p><b>{calc.selectedPlan.strategy === calc.bestPlansByWeek[calc.effectivePullWeeks]?.strategy ? "메포 최저" : "더 빠른 선택"}</b> {selectedStrategy.label} · {recommendedPrefix} → {shortDate(r.reached)} · 총 {formatMP(r.maplePoints)} · {pullDays ? `마감 경로보다 ${pullDays}일 빠름` : "9월 16일 마감 기준"}</p></div>
+      <div className={`hero-note ${calc.deadlineMet ? "" : "deadline-fail"}`}><span className="pulse" /><p><b>{calc.selectedPlan.strategy === calc.bestRoiStrategy ? "추천 · 순손익 최고" : calc.selectedPlan.strategy === calc.bestPlansByWeek[calc.effectivePullWeeks]?.strategy ? "메포 최저" : "더 빠른 선택"}</b> {selectedStrategy.id === "monsterPark" ? recommendedPrefix : `${selectedStrategy.label} · ${recommendedPrefix}`} → {shortDate(r.reached)} · 총 {formatMP(r.maplePoints)} · {pullDays ? `마감 경로보다 ${pullDays}일 빠름` : "9월 16일 마감 기준"}</p></div>
     </section>
 
     <section className="calculator-shell" id="compare">
@@ -496,7 +505,7 @@ export default function Home() {
           <Toggle label="챌린저스 EXP 패스" checked={s.challengerExp} onChange={v => set("challengerExp", v)} /><Toggle label="프라임 모멘텀 패스" checked={s.momentumPrime} onChange={v => set("momentumPrime", v)} /><Toggle label="모멘텀 메카베리 모아쓰기" checked={s.deferMomentumMech} onChange={v => set("deferMomentumMech", v)} />
           <div className="field-grid compact inset"><label className="field"><span>메카베리 사용 레벨</span><select value={s.momentumMechLevel} disabled={!s.deferMomentumMech} onChange={e => set("momentumMechLevel", Number(e.target.value))}>{[280, 281, 282, 283, 284].map(level => <option key={level}>{level}</option>)}</select></label><InputField label="최종 사용일" value={s.momentumMechDeadline} type="date" disabled={!s.deferMomentumMech} onChange={v => set("momentumMechDeadline", v)} /></div>
           <Toggle label="7월 NOW 보상" checked={s.apology} onChange={v => set("apology", v)} /><Toggle label="스펙터 블래스트 미완료" checked={s.specter} onChange={v => set("specter", v)} /><Toggle label="울티마 스쿼드 EXP 5,000장" checked={s.shardEvent} onChange={v => set("shardEvent", v)} /><Toggle label="울티마 작전 일지" checked={s.ultima} onChange={v => set("ultima", v)} />
-          <div className="callout-mini shop-priority">같거나 더 늦은 날짜에 더 많은 MP를 쓰는 전략은 추천에서 제외합니다. 가장 적은 MP 전략과, 비용을 더 써서 실제 날짜를 앞당기는 선택지만 표시합니다.</div>
+          <div className="callout-mini shop-priority">같거나 더 늦은 날짜에 더 많은 메포를 쓰는 전략은 추천에서 제외합니다. 남은 선택지 중 순손익이 가장 좋은 경로에 추천 표시를 붙입니다.</div>
         </div></details>
         <details><summary>에테리온 · 콘텐츠 보정 <span>18</span></summary><div className="detail-body">
           <Toggle label="코어 6레벨 적용" checked={s.core6Enabled} onChange={v => set("core6Enabled", v)} /><div className="callout-mini">이번 주는 변경 전 5레벨. 7/23부터 5레벨 기본, 6레벨은 선택 시 적용합니다.</div>
@@ -517,26 +526,26 @@ export default function Home() {
           <p>0주는 상점 구매 없이 9월 16일 전에 285를 찍는 최소 비용입니다. 주차를 고른 뒤 아래에서 몬파·농장 구매 전략을 선택하면 해당 방식의 날짜와 손익으로 바뀝니다.</p>
         </div>
         <div className="strategy-choice">
-          <div className="strategy-choice-head"><span>MP-EFFICIENT ROUTES</span><h3>{calc.effectivePullWeeks ? `${calc.effectivePullWeeks}주 당김의 낭비 없는 선택` : "마감 기준 최저 MP 전략"}</h3><p>같거나 더 늦게 도착하면서 MP가 더 드는 전략은 숨겼습니다.</p></div>
-          <div className="strategy-choice-grid">{calc.recommendedPlansByWeek[calc.effectivePullWeeks].map((plan, index) => { const strategy = pullStrategies.find(item => item.id === plan.strategy)!; const active = plan.strategy === calc.selectedPlan.strategy; return <button key={strategy.id} className={active ? "active" : ""} onClick={() => set("pullStrategy", strategy.id)}><div><span>{index === 0 ? "메포 최저" : "더 빠른 선택"}</span><i>{active ? "선택됨" : "선택"}</i></div><h4>{strategy.label}</h4><p>{strategy.caption}</p><strong>{shortDate(plan.result.reached)}</strong><dl><div><dt>총액</dt><dd>{formatMP(plan.result.maplePoints)}</dd></div><div><dt>몬파</dt><dd>{formatMP(plan.result.monsterParkMaplePoints)}</dd></div><div><dt>상점</dt><dd>{formatMP(plan.result.shopMaplePoints)}</dd></div></dl><small>{calc.effectivePullWeeks ? `블루 ${plan.shopBlueWeeks}주 · 메카 ${plan.shopMechWeeks}주 구매 계획` : "0주에서는 농장 미구매"}</small></button>; })}</div>
+          <div className="strategy-choice-head"><span>BEST VALUE ROUTES</span><h3>{calc.effectivePullWeeks ? `${calc.effectivePullWeeks}주 당김의 낭비 없는 선택` : "마감 기준 최저 메포 전략"}</h3><p>같거나 더 늦게 도착하면서 메포가 더 드는 전략은 숨겼습니다.</p></div>
+          <div className="strategy-choice-grid">{calc.recommendedPlansByWeek[calc.effectivePullWeeks].map((plan, index) => { const strategy = pullStrategies.find(item => item.id === plan.strategy)!; const active = plan.strategy === calc.selectedPlan.strategy; const recommended = plan.strategy === calc.bestRoiStrategy; return <button key={strategy.id} className={`${active ? "active" : ""} ${recommended ? "recommended" : ""}`} onClick={() => set("pullStrategy", strategy.id)}><div><span>{recommended ? "추천 · 순손익 최고" : index === 0 ? "메포 최저" : "더 빠른 선택"}</span><i>{active ? "선택됨" : "선택"}</i></div><h4>{strategy.label}</h4><p>{strategy.caption}</p><strong>{shortDate(plan.result.reached)}</strong><dl><div><dt>총액</dt><dd>{formatMP(plan.result.maplePoints)}</dd></div><div><dt>몬파</dt><dd>{formatMP(plan.result.monsterParkMaplePoints)}</dd></div><div><dt>상점</dt><dd>{formatMP(plan.result.shopMaplePoints)}</dd></div></dl><small>{calc.effectivePullWeeks ? `블루 ${plan.shopBlueWeeks}주 · 메카 ${plan.shopMechWeeks}주 구매 계획` : "0주에서는 농장 미구매"}</small></button>; })}</div>
         </div>
         <ProgressChart selected={r} sunday={calc.sunday} free={calc.free} />
-        <div className="route-grid">
-          <article className="route-card chosen"><div><span>선택 · {calc.effectivePullWeeks}주</span><h3>{selectedStrategy.label} · {r.scheduleLabel}</h3></div><strong>{shortDate(r.reached)}</strong><dl><div><dt>총 비용</dt><dd>{formatMP(r.maplePoints)}</dd></div><div><dt>메포샵</dt><dd>{formatMP(r.shopMaplePoints)}</dd></div><div><dt>하드</dt><dd>{calc.selectedHardWeeks}회</dd></div></dl></article>
-          <article className="route-card"><div><span>마감 기준</span><h3>{calc.basePlan.result.scheduleLabel}</h3></div><strong>{shortDate(calc.basePlan.result.reached)}</strong><dl><div><dt>총 비용</dt><dd>{formatMP(calc.basePlan.result.maplePoints)}</dd></div><div><dt>하드</dt><dd>{calc.baseHardWeeks}회</dd></div></dl></article>
-          <article className="route-card"><div><span>무료 비교</span><h3>매일 2판</h3></div><strong>{shortDate(calc.free.reached)}</strong><dl><div><dt>몬파</dt><dd>0 MP</dd></div><div><dt>9/16 마감</dt><dd>{calc.free.reached && calc.free.reached <= calc.deadline ? "통과" : "실패"}</dd></div></dl></article>
+        <div className={`route-grid ${calc.effectivePullWeeks === 0 ? "two" : ""}`}>
+          <article className="route-card chosen"><div><div className="route-card-label"><span>내가 선택한 경로 · {calc.effectivePullWeeks}주</span><i>{calc.selectedPlan.strategy === calc.bestRoiStrategy ? "추천 · 순손익 최고" : "선택됨"}</i></div><h3>{selectedRouteTitle}</h3><p>{calc.effectivePullWeeks === 0 ? "0주는 마감 기준과 같은 경로라 중복 카드를 표시하지 않습니다." : "선택한 주차와 구매 전략을 반영한 결과입니다."}</p></div><strong>{shortDate(r.reached)}</strong><dl><div><dt>총 비용</dt><dd>{formatMP(r.maplePoints)}</dd></div><div><dt>메포샵</dt><dd>{formatMP(r.shopMaplePoints)}</dd></div><div><dt>하드</dt><dd>{calc.selectedHardWeeks}회</dd></div></dl></article>
+          {calc.effectivePullWeeks > 0 && <article className="route-card baseline"><div><div className="route-card-label"><span>0주 비교 기준</span><i>추가 당김 없음</i></div><h3>{calc.basePlan.result.scheduleLabel}</h3><p>선택 경로의 비용·하드 횟수를 비교하는 기준입니다.</p></div><strong>{shortDate(calc.basePlan.result.reached)}</strong><dl><div><dt>총 비용</dt><dd>{formatMP(calc.basePlan.result.maplePoints)}</dd></div><div><dt>하드</dt><dd>{calc.baseHardWeeks}회</dd></div></dl></article>}
+          <article className="route-card free-route"><div><div className="route-card-label"><span>추가 메포 0 비교</span><i>무료 기준</i></div><h3>매일 2판</h3><p>일요일 추가 5판도 하지 않는 비교 경로입니다.</p></div><strong>{shortDate(calc.free.reached)}</strong><dl><div><dt>추가 메포</dt><dd>0 메포</dd></div><div><dt>9/16 마감</dt><dd>{calc.free.reached && calc.free.reached <= calc.deadline ? "통과" : "실패"}</dd></div></dl></article>
         </div>
         <div className="decision-card">
           <div className="decision-top"><div><span>HARD MAYRIN ROI · {calc.effectivePullWeeks ? `${calc.effectivePullWeeks - 1}→${calc.effectivePullWeeks}주 · ${selectedStrategy.label}` : "DEADLINE"}</span><h3>{calc.effectivePullWeeks ? "이번 한 주를 더 당기는 가격" : "9월 16일 마감 확보 비용"}</h3></div><strong className={calc.marginalNetValue >= 0 ? "positive" : "negative"}>{calc.marginalNetValue >= 0 ? "+" : ""}{eok(calc.marginalNetValue)} 메소</strong></div>
-          <div className="roi-grid"><div><span>직전 단계 대비 총 MP</span><b>{formatMP(calc.marginalMP)}</b><small>몬파 {formatSignedMP(calc.marginalMonsterParkMP)} · 상점 {formatSignedMP(calc.marginalShopMP)}</small></div><div><span>하드 추가 횟수</span><b>{calc.marginalGainedHardWeeks}회</b><small>노말→하드 가치 {eok(calc.hardValue)}</small></div><div><span>이번 단계 회수</span><b>{eok(calc.marginalRecoveredValue)}</b><small>비용 {eok(calc.marginalCostValue)} · 회수율 {calc.marginalRecoveryRate.toFixed(1)}%</small></div></div>
-          <div className="cumulative-roi"><span>0주 대비 누적</span><b>MP {formatMP(calc.cumulativeMP)} · 하드 +{calc.cumulativeGainedHardWeeks}회 · 순손익 <em className={calc.cumulativeNetValue >= 0 ? "positive" : "negative"}>{calc.cumulativeNetValue >= 0 ? "+" : ""}{eok(calc.cumulativeNetValue)}</em></b></div>
-          <p>{calc.effectivePullWeeks ? `${selectedStrategy.label} 기준으로 바로 앞 단계와 비교했습니다. 2주 당김이라면 같은 전략으로 두 번째 한 주를 추가할 때 드는 몬파·상점 MP만 표시합니다.` : "9월 16일 285는 필수조건으로 보고, 0주에서는 상점 구매 없이 마감을 맞추는 최소 몬파 비용만 표시합니다."} 이미 돌린 몬파 7판은 현재 경험치에 들어간 매몰비용입니다.</p>
+          <div className="roi-grid"><div><span>직전 단계 대비 총 메포</span><b>{formatMP(calc.marginalMP)}</b><small>몬파 {formatSignedMP(calc.marginalMonsterParkMP)} · 상점 {formatSignedMP(calc.marginalShopMP)}</small></div><div><span>하드 추가 횟수</span><b>{calc.marginalGainedHardWeeks}회</b><small>노말→하드 가치 {eok(calc.hardValue)}</small></div><div><span>이번 단계 회수</span><b>{eok(calc.marginalRecoveredValue)}</b><small>비용 {eok(calc.marginalCostValue)} · 회수율 {calc.marginalRecoveryRate.toFixed(1)}%</small></div></div>
+          <div className="cumulative-roi"><span>0주 대비 누적</span><b>추가 {formatMP(calc.cumulativeMP)} · 하드 +{calc.cumulativeGainedHardWeeks}회 · 순손익 <em className={calc.cumulativeNetValue >= 0 ? "positive" : "negative"}>{calc.cumulativeNetValue >= 0 ? "+" : ""}{eok(calc.cumulativeNetValue)}</em></b></div>
+          <p>{calc.effectivePullWeeks ? `${selectedStrategy.label} 기준으로 바로 앞 단계와 비교했습니다. 2주 당김이라면 같은 전략으로 두 번째 한 주를 추가할 때 드는 몬파·상점 메포만 표시합니다.` : "9월 16일 285는 필수조건으로 보고, 0주에서는 상점 구매 없이 마감을 맞추는 최소 몬파 비용만 표시합니다."} 이미 돌린 몬파 7판은 현재 경험치에 들어간 매몰비용입니다.</p>
         </div>
-        <details className="value-settings"><summary>메이린 가치·환율 수정</summary><div className="field-grid"><InputField label="노말→하드 결정석 차이 · 억" value={s.mayrinMesoGap} step={0.1} onChange={v => set("mayrinMesoGap", Number(v))} /><InputField label="노말 조각 예상량" value={s.mayrinNormalFrag} onChange={v => set("mayrinNormalFrag", Number(v))} /><InputField label="조각 1개 · 만 메소" value={s.fragPrice} step={10} onChange={v => set("fragPrice", Number(v))} /><InputField label="메소 1억당 MP" value={s.mpPerEok} step={100} onChange={v => set("mpPerEok", Number(v))} /></div><Toggle label="9/17 초기화 후 추가 1회 가정" checked={s.postReset} onChange={v => set("postReset", v)} /></details>
+        <details className="value-settings"><summary>메이린 가치·환율 수정</summary><div className="field-grid"><InputField label="노말→하드 결정석 차이 · 억" value={s.mayrinMesoGap} step={0.1} onChange={v => set("mayrinMesoGap", Number(v))} /><InputField label="노말 조각 예상량" value={s.mayrinNormalFrag} onChange={v => set("mayrinNormalFrag", Number(v))} /><InputField label="조각 1개 · 만 메소" value={s.fragPrice} step={10} onChange={v => set("fragPrice", Number(v))} /><InputField label="메소 1억당 메포" value={s.mpPerEok} step={100} onChange={v => set("mpPerEok", Number(v))} /></div><Toggle label="9/17 초기화 후 추가 1회 가정" checked={s.postReset} onChange={v => set("postReset", v)} /></details>
       </div>
     </section>
 
-    <section className="strategy-band"><div><span>03 · REWARD TIMING</span><h2>메카베리는<br />늦게 쓸수록 세다.</h2></div><div className="strategy-copy"><p>모멘텀 메카베리 1장은 280보다 <b>{r.momentumMechLevel}에서 절대 경험치가 약 {calc.mechGain.toFixed(1)}% 큽니다.</b> 기본 전략은 {r.momentumMechLevel}레벨 또는 {shortDate(r.momentumMechDeadline)} 중 빠른 시점까지 모아두는 것입니다.</p><div className="timing-compare"><span>모아쓰기 <b>{shortDate(r.reached)} · {formatMP(r.maplePoints)}</b></span><span>즉시사용 <b>{shortDate(calc.immediate.reached)} · {formatMP(calc.immediate.maplePoints)}</b></span></div><small>같은 도달일이면 총 MP가 가장 적은 전략만 추천합니다. 더 비싼 전략은 실제 도달일을 더 앞당길 때만 별도 선택지로 남깁니다.</small></div></section>
+    <section className="strategy-band"><div><span>03 · REWARD TIMING</span><h2>메카베리는<br />늦게 쓸수록 세다.</h2></div><div className="strategy-copy"><p>모멘텀 메카베리 1장은 280보다 <b>{r.momentumMechLevel}에서 절대 경험치가 약 {calc.mechGain.toFixed(1)}% 큽니다.</b> 기본 전략은 {r.momentumMechLevel}레벨 또는 {shortDate(r.momentumMechDeadline)} 중 빠른 시점까지 모아두는 것입니다.</p><div className="timing-compare"><span>모아쓰기 <b>{shortDate(r.reached)} · {formatMP(r.maplePoints)}</b></span><span>즉시사용 <b>{shortDate(calc.immediate.reached)} · {formatMP(calc.immediate.maplePoints)}</b></span></div><small>같은 도달일이면 총 메포가 가장 적은 전략만 남기고, 메포 환산 비용에 하드 메이린 회수 가치를 반영한 순손익 최고 경로를 추천합니다.</small></div></section>
 
     <section className="rewards-section" id="rewards">
       <div className="section-heading light"><span>04</span><div><p>도달 시점 잔여분</p><h2>285 뒤에 남는 보상</h2></div></div>
@@ -545,7 +554,7 @@ export default function Home() {
       <div className="pass-grid"><article><div className="table-title"><span>CHALLENGERS</span><h3>챌린저스 EXP 패스</h3></div><table><thead><tr><th>구간</th><th>일반</th><th>EXP 패스</th></tr></thead><tbody><tr><td>21~25</td><td>상급 EXP 100</td><td>블루베리 3 · 사우나 1시간 · 상급 EXP 1,100</td></tr><tr><td>26~30</td><td>상급 EXP 2,100</td><td>블루베리 2 · 사우나 1시간 · 상급 EXP 3,100 · 비약 1</td></tr><tr className="total"><td>합계</td><td>상급 EXP 2,200</td><td>블루베리 5 · 사우나 2시간 · 상급 EXP 4,200 · 비약 1</td></tr></tbody></table></article><article><div className="table-title"><span>MOMENTUM</span><h3>모멘텀 패스</h3></div><table><thead><tr><th>주차</th><th>프라임 핵심 보상</th></tr></thead><tbody><tr><td>1주 · 7/23</td><td>메카베리 2 · 사우나 30분 · 4배 쿠폰 2</td></tr><tr><td>2주 · 7/30</td><td>메카베리 2 · 사우나 30분 · 상급 EXP 3,100 · 4배 2</td></tr><tr><td>3주 · 8/6</td><td>메카베리 3 · 사우나 30분 · 상급 EXP 3,100 · 4배 2</td></tr><tr><td>4주 · 8/13</td><td>메카베리 4 · 상급 EXP 3,300</td></tr><tr className="total"><td>합계</td><td>메카베리 11 · 사우나 1.5시간 · 상급 EXP 9,500</td></tr></tbody></table></article></div>
     </section>
 
-    <section className="audit" id="sources"><div><span>CALCULATION AUDIT</span><h2>무엇을 넣었는지<br />숨기지 않았습니다.</h2></div><ul><li><b>마감</b> 모든 추천 경로는 2026년 9월 16일 285 달성을 먼저 만족</li><li><b>매일</b> 그란디스 일퀘, 몬스터파크, 선택한 사냥 경험치</li><li><b>매주</b> 익스트림 몬파, 악몽선경 1단계</li><li><b>추천</b> 같은 날짜는 총 MP 최저 전략만, 더 비싼 전략은 실제 날짜를 앞당길 때만 표시</li><li><b>패치</b> 7/23 코어 4개·총합 20, 8/6 코어 5개·총합 25</li><li><b>선택</b> 에테리온 아티팩트 코어 6레벨 토글과 달성일</li><li><b>이벤트</b> 스펙터 블래스트, 울티마 스쿼드 EXP 5,000, 울티마 작전 일지</li><li><b>비약</b> 200~269 고정 경험치 0.072458, 200~279 고정 경험치 0.49505</li></ul></section>
+    <section className="audit" id="sources"><div><span>CALCULATION AUDIT</span><h2>무엇을 넣었는지<br />숨기지 않았습니다.</h2></div><ul><li><b>마감</b> 모든 추천 경로는 2026년 9월 16일 285 달성을 먼저 만족</li><li><b>매일</b> 그란디스 일퀘, 몬스터파크, 선택한 사냥 경험치</li><li><b>매주</b> 익스트림 몬파, 악몽선경 1단계</li><li><b>추천</b> 같은 날짜는 총 메포 최저 전략만 남기고 순손익 최고 경로에 추천 표시</li><li><b>패치</b> 7/23 코어 4개·총합 20, 8/6 코어 5개·총합 25</li><li><b>선택</b> 에테리온 아티팩트 코어 6레벨 토글과 달성일</li><li><b>이벤트</b> 스펙터 블래스트, 울티마 스쿼드 EXP 5,000, 울티마 작전 일지</li><li><b>비약</b> 200~269 고정 경험치 0.072458, 200~279 고정 경험치 0.49505</li></ul></section>
     <footer><div className="brand"><span className="brand-mark">M</span><span>285 PLANNER</span></div><p>경험치 효율표와 공식 업데이트 수치를 바탕으로 만든 전략 계산기 · 2026.07.17 기준</p><div className="source-links"><a href="https://mapleroad.kr/utils/exp_calculator" target="_blank" rel="noreferrer">메이플로드 계산기</a><a href="https://maplestory.nexon.com/news/update/805" target="_blank" rel="noreferrer">공식 업데이트</a><a href="https://maplestory.nexon.com/testworld/news/all/188" target="_blank" rel="noreferrer">테스트월드</a></div></footer>
   </main>;
 }
