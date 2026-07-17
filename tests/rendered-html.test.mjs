@@ -16,7 +16,9 @@ test("ships the finished calculator instead of the starter preview", async () =>
   assert.match(page, /평일 2판 · 일요일 7판/);
   assert.match(page, /울티마 작전 일지/);
   assert.match(page, /코어 6레벨 적용/);
-  assert.match(page, /메포샵 메카베리 · 매주 2장/);
+  assert.match(page, /몇 주를 당겨올까요\?/);
+  assert.match(page, /2026년 9월 16일 285 달성/);
+  assert.match(page, /메포샵 농장은 추천·손익에서 제외/);
   assert.match(layout, /285 플래너/);
   assert.match(layout, /\/og\.png/);
   assert.match(css, /@media \(max-width: 720px\)/);
@@ -34,4 +36,6 @@ test("keeps verified calculator constants visible in source", async () => {
   assert.match(page, /0\.072458/);
   assert.match(page, /0\.49505/);
   assert.match(page, /Math\.max\(0, dailyRuns - 2\) \* 600/);
+  assert.match(page, /pullWeeks: 0/);
+  assert.match(page, /shopMech: false, shopBlue: false/);
 });
