@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import {
+  advanceBurningBeyondExperience,
+  growthPotionExperience,
+  monsterParkExperiencePercent,
+  paidMonsterParkMaplePoints,
+} from "../lib/calculator-core.mjs";
 
 const root = new URL("../", import.meta.url);
 
@@ -30,6 +36,8 @@ test("ships the finished calculator instead of the starter preview", async () =>
   assert.match(page, /0주 비교 기준/);
   assert.match(page, /recommendedPlansByWeek/);
   assert.match(page, /스페셜 선데이 몬파 횟수/);
+  assert.match(page, /기본 몬파 경험치 \+300%\(총 4배\)/);
+  assert.match(page, /label: "소경축비"/);
   assert.match(page, /챌섭 EXP 패스 현재 레벨/);
   assert.match(page, /모멘텀 패스 현재 레벨/);
   assert.match(page, /무엇부터 챙기는 게 이득일까\?/);
@@ -52,7 +60,7 @@ test("keeps verified calculator constants visible in source", async () => {
   assert.match(page, /core25Date: "2026-08-06"/);
   assert.match(page, /0\.072458/);
   assert.match(page, /0\.49505/);
-  assert.match(page, /Math\.max\(0, dailyRuns - 2\) \* 600/);
+  assert.match(page, /paidMonsterParkMaplePoints\(dailyRuns\)/);
   assert.match(page, /pullWeeks: 0/);
   assert.match(page, /pullStrategy: "monsterPark"/);
   assert.match(page, /shopBlueWeeks/);
@@ -62,4 +70,38 @@ test("keeps verified calculator constants visible in source", async () => {
   assert.match(page, /simulatePre280/);
   assert.match(page, /haru1sojae\.kr\/table/);
   assert.match(page, /ownedPotion279/);
+});
+
+test("applies normal and Special Sunday Monster Park bonuses additively", () => {
+  const mapleRoad280 = { baseSevenRunPercent: 2.2302, runs: 7, contentBonusPercent: 0 };
+  const common = { baseSevenRunPercent: 2.0272, runs: 7, contentBonusPercent: 86 };
+
+  assert.equal(monsterParkExperiencePercent({ ...mapleRoad280, sundayKind: "none" }), 2.2302);
+  assert.equal(monsterParkExperiencePercent({ ...mapleRoad280, sundayKind: "normal" }), 3.3453);
+  assert.equal(monsterParkExperiencePercent({ ...mapleRoad280, sundayKind: "special" }), 8.9208);
+  assert.equal(monsterParkExperiencePercent({ ...common, sundayKind: "none" }), 3.770592);
+  assert.equal(monsterParkExperiencePercent({ ...common, sundayKind: "normal" }), 4.784192);
+  assert.ok(Math.abs(monsterParkExperiencePercent({ ...common, sundayKind: "special" }) - 9.852192) < 1e-12);
+  assert.ok(Math.abs(monsterParkExperiencePercent({ ...common, sundayKind: "none" }) - 3.771) < 0.0021);
+  assert.ok(Math.abs(monsterParkExperiencePercent({ ...common, sundayKind: "normal" }) - 4.785) < 0.0021);
+  assert.ok(Math.abs(monsterParkExperiencePercent({ ...common, sundayKind: "special" }) - 9.854) < 0.0021);
+  assert.equal(paidMonsterParkMaplePoints(7), 3000);
+  assert.equal(paidMonsterParkMaplePoints(2), 0);
+});
+
+test("carries the full growth-potion overflow into level 280 with Burning Beyond", () => {
+  const required = {
+    278: 15_142_935_081_083,
+    280: 33_647_601_750_165,
+  };
+  const startExperience = required[278] * 0.275;
+  const result = advanceBurningBeyondExperience({
+    level: 278,
+    experience: startExperience,
+    gainedExperience: growthPotionExperience(required[278]),
+    requiredExperience: level => required[level],
+  });
+
+  assert.equal(result.level, 280);
+  assert.ok(Math.abs(result.experience / required[280] * 100 - 12.3762376237629) < 1e-10);
 });

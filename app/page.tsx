@@ -1,6 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import {
+  advanceBurningBeyondExperience,
+  growthPotionExperience,
+  monsterParkExperiencePercent,
+  paidMonsterParkMaplePoints,
+} from "@/lib/calculator-core.mjs";
 
 type PullStrategy = "monsterPark" | "blue" | "mech" | "both";
 type Settings = {
@@ -183,14 +189,14 @@ type EfficiencyBenchmark = { id: string; label: string; base: number; raw?: (lev
 const momentumRaw = (level: number) => efficiency[level].mech * 11 + efficiency[level].sauna * 1.5 + efficiency[level].adv100 * 95;
 const efficiencyBenchmarks: EfficiencyBenchmark[] = [
   { id: "extra50", label: "추가 경험치 50%", base: 1139.8 },
-  { id: "mpSpecial", label: "몬스터파크 · 스페셜 선데이", base: 820.1, raw: level => efficiency[level].mp7 * 1.5 },
+  { id: "mpSpecial", label: "몬스터파크 · 스페셜 선데이", base: 820.1, raw: level => efficiency[level].mp7 * 4 },
   { id: "momentum", label: "프라임 모멘텀 패스", base: 566.5, raw: momentumRaw },
   { id: "epic01", label: "악몽선경 · 0→1단계", base: 466.9, raw: level => efficiency[level].epic * 4 },
-  { id: "mpSunday", label: "몬스터파크 · 선데이", base: 398.2, raw: level => efficiency[level].mp7 },
+  { id: "mpSunday", label: "몬스터파크 · 선데이", base: 398.2, raw: level => efficiency[level].mp7 * 1.5 },
   { id: "mpNormal", label: "몬스터파크 · 일반", base: 313.9, raw: level => efficiency[level].mp7 },
   { id: "mech", label: "메카베리 농장", base: 312.6, raw: level => efficiency[level].mech },
   { id: "blue", label: "블루베리 농장", base: 294.3, raw: level => efficiency[level].blue },
-  { id: "adv", label: "상급 EXP 교환권", base: 175.4, raw: level => efficiency[level].adv100 },
+  { id: "smallExpPotion", label: "소경축비", base: 175.4 },
   { id: "epic12", label: "악몽선경 · 1→2단계", base: 118.7, raw: level => efficiency[level].epic },
   { id: "sauna", label: "VIP 사우나", base: 100, raw: level => efficiency[level].sauna },
 ];
@@ -202,27 +208,27 @@ const relativeEfficiencyScore = (source: EfficiencyBenchmark, level: number) => 
 };
 
 const pre280Data: Record<number, { required: number; adv1000: number; sauna: number; blue: number }> = {
-  260: { required: 1.73, adv1000: 22.416, sauna: 9.086, blue: 47.343 },
-  261: { required: 1.75, adv1000: 22.514, sauna: 9.125, blue: 47.549 },
-  262: { required: 1.77, adv1000: 22.607, sauna: 9.164, blue: 47.747 },
-  263: { required: 1.78, adv1000: 22.699, sauna: 9.201, blue: 47.941 },
-  264: { required: 1.80, adv1000: 22.827, sauna: 9.252, blue: 48.210 },
-  265: { required: 2.34, adv1000: 19.754, sauna: 8.007, blue: 41.720 },
-  266: { required: 2.37, adv1000: 19.827, sauna: 8.037, blue: 41.875 },
-  267: { required: 2.39, adv1000: 19.898, sauna: 8.065, blue: 42.024 },
-  268: { required: 2.41, adv1000: 19.999, sauna: 8.106, blue: 42.238 },
-  269: { required: 2.44, adv1000: 20.066, sauna: 8.133, blue: 42.379 },
-  270: { required: 5.41, adv1000: 10.165, sauna: 4.120, blue: 32.203 },
-  271: { required: 5.47, adv1000: 10.213, sauna: 4.140, blue: 32.355 },
-  272: { required: 5.52, adv1000: 10.243, sauna: 4.152, blue: 32.451 },
-  273: { required: 5.58, adv1000: 10.273, sauna: 4.164, blue: 32.546 },
-  274: { required: 5.63, adv1000: 10.318, sauna: 4.182, blue: 32.689 },
-  275: { required: 11.38, adv1000: 5.741, sauna: 2.327, blue: 18.188 },
-  276: { required: 12.51, adv1000: 5.285, sauna: 2.142, blue: 16.743 },
-  277: { required: 13.77, adv1000: 4.872, sauna: 1.975, blue: 15.435 },
-  278: { required: 15.14, adv1000: 4.484, sauna: 1.818, blue: 14.206 },
-  279: { required: 16.66, adv1000: 4.133, sauna: 1.675, blue: 13.093 },
-  280: { required: 33.65, adv1000: 2.298, sauna: 0.931, blue: 6.482 },
+  260: { required: 1_731_919_984_062, adv1000: 22.416, sauna: 9.086, blue: 47.343 },
+  261: { required: 1_749_239_183_902, adv1000: 22.514, sauna: 9.125, blue: 47.549 },
+  262: { required: 1_766_731_575_741, adv1000: 22.607, sauna: 9.164, blue: 47.747 },
+  263: { required: 1_784_398_891_498, adv1000: 22.699, sauna: 9.201, blue: 47.941 },
+  264: { required: 1_802_242_880_412, adv1000: 22.827, sauna: 9.252, blue: 48.210 },
+  265: { required: 2_342_915_744_535, adv1000: 19.754, sauna: 8.007, blue: 41.720 },
+  266: { required: 2_366_344_901_980, adv1000: 19.827, sauna: 8.037, blue: 41.875 },
+  267: { required: 2_390_008_350_999, adv1000: 19.898, sauna: 8.065, blue: 42.024 },
+  268: { required: 2_413_908_434_508, adv1000: 19.999, sauna: 8.106, blue: 42.238 },
+  269: { required: 2_438_047_518_853, adv1000: 20.066, sauna: 8.133, blue: 42.379 },
+  270: { required: 5_412_465_491_853, adv1000: 10.165, sauna: 4.120, blue: 32.203 },
+  271: { required: 5_466_590_146_771, adv1000: 10.213, sauna: 4.140, blue: 32.355 },
+  272: { required: 5_521_256_048_238, adv1000: 10.243, sauna: 4.152, blue: 32.451 },
+  273: { required: 5_576_468_608_720, adv1000: 10.273, sauna: 4.164, blue: 32.546 },
+  274: { required: 5_632_233_294_807, adv1000: 10.318, sauna: 4.182, blue: 32.689 },
+  275: { required: 11_377_111_255_510, adv1000: 5.741, sauna: 2.327, blue: 18.188 },
+  276: { required: 12_514_822_381_061, adv1000: 5.285, sauna: 2.142, blue: 16.743 },
+  277: { required: 13_766_304_619_167, adv1000: 4.872, sauna: 1.975, blue: 15.435 },
+  278: { required: 15_142_935_081_083, adv1000: 4.484, sauna: 1.818, blue: 14.206 },
+  279: { required: 16_657_228_589_191, adv1000: 4.133, sauna: 1.675, blue: 13.093 },
+  280: { required: 33_647_601_750_165, adv1000: 2.298, sauna: 0.931, blue: 6.482 },
 };
 
 function simulatePre280(s: Settings): Pre280Simulation {
@@ -242,7 +248,7 @@ function simulatePre280(s: Settings): Pre280Simulation {
     if (type === "adv") return data.required * data.adv1000 / 100 / 1000 * unit;
     if (type === "sauna") return data.required * data.sauna / 100 * unit;
     if (type === "blue") return data.required * data.blue / 100 * unit;
-    return Math.max(0, data.required - xp);
+    return growthPotionExperience(data.required);
   };
   const rawAt280 = (type: keyof Pre280Inventory, unit: number) => {
     const data = pre280Data[280];
@@ -252,13 +258,14 @@ function simulatePre280(s: Settings): Pre280Simulation {
     return pre280Data[279].required;
   };
   const applyRaw = (initialRaw: number) => {
-    let raw = initialRaw;
-    while (raw > 0.000000001 && level < 280) {
-      const remaining = pre280Data[level].required - xp;
-      if (raw + 0.000000001 < remaining) { xp += raw; raw = 0; }
-      else { raw -= remaining; level = Math.min(280, level + 2); xp = 0; }
-    }
-    if (level === 280 && raw > 0) xp += raw;
+    const result = advanceBurningBeyondExperience({
+      level,
+      experience: xp,
+      gainedExperience: initialRaw,
+      requiredExperience: (targetLevel: number) => pre280Data[targetLevel].required,
+    });
+    level = result.level;
+    xp = result.experience;
   };
   const consumeAvailableRewards = () => {
     while (level < 280) {
@@ -497,7 +504,7 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
     if (level < 285 && (day > 0 || s.todayDaily)) {
       dailyDaysApplied += 1;
       const dailyRuns = runsForDate(date);
-      monsterParkMaplePoints += Math.max(0, dailyRuns - 2) * 600;
+      monsterParkMaplePoints += paidMonsterParkMaplePoints(dailyRuns);
       const afterPatch = date >= patchDate; const afterCore6 = Boolean(core6Date && date >= core6Date); const afterCore20 = Boolean(core20Date && date >= core20Date);
       const mpBase = afterCore6 ? s.mpCore6 : afterPatch ? s.mpPatch : s.mpNow;
       const mpBonus = mpBase + (afterPatch && afterCore20 ? s.core20Bonus : 0);
@@ -505,7 +512,12 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
       const isSunday = date.getDay() === 0;
       const isSpecialSunday = isSunday && sundaysSeen < specialSundayCount;
       if (isSunday) sundaysSeen += 1;
-      applyPercent(efficiency[level].mp7 * dailyRuns / 7 * (1 + mpBonus / 100) * (isSpecialSunday ? 1.5 : 1));
+      applyPercent(monsterParkExperiencePercent({
+        baseSevenRunPercent: efficiency[level].mp7,
+        runs: dailyRuns,
+        contentBonusPercent: mpBonus,
+        sundayKind: isSpecialSunday ? "special" : isSunday ? "normal" : "none",
+      }));
       if (s.grandis && level < 285) applyPercent(efficiency[level].grandis * (1 + dailyBonus / 100));
     }
 
@@ -771,7 +783,7 @@ export default function Home() {
             <div><span>280 도달 뒤 남는 보상</span><b>블루 {pre280.inventory.blue} · 사우나 {pre280.inventory.sauna.toFixed(1)}h · 상급 {pre280.inventory.adv.toLocaleString("ko-KR")} · 비약 {pre280.inventory.potion279}</b></div>
             <button onClick={connectPre280} disabled={!pre280.reached || preApplied}>{preApplied ? "280→285 연결 완료" : pre280.reached ? "280→285 계산기에 연결" : "패스만으로 280 미도달"}</button>
           </div>
-          <p className="pre-disclaimer">필요 경험치와 보상별 경험치 환산은 크롬에 열어둔 하루1소재 Lv.260+ 표시값을 사용합니다. 패스 현재 레벨까지 받은 보상은 이미 사용했거나 보유한 것으로 보고 다시 지급하지 않습니다.</p>
+          <p className="pre-disclaimer">필요 경험치는 메이플로드 결과와 대조한 정밀값을, 보상별 환산은 크롬에 열어둔 하루1소재 Lv.260+ 표시값을 사용합니다. 패스 현재 레벨까지 받은 보상은 이미 사용했거나 보유한 것으로 보고 다시 지급하지 않습니다.</p>
         </div>
       </div>
     </section>
@@ -787,7 +799,7 @@ export default function Home() {
           <InputField label="챌섭 EXP 패스 현재 레벨" value={s.challengerPassLevel} min={0} max={30} step={1} onChange={v => set("challengerPassLevel", Number(v))} />
           <InputField label="모멘텀 패스 현재 레벨" value={s.momentumPassLevel} min={0} max={10} step={1} onChange={v => set("momentumPassLevel", Number(v))} />
         </div>
-        <div className="callout-mini">스페셜 선데이는 입력한 횟수만큼 가까운 일요일부터 몬파 경험치 +50%로 적용합니다.</div>
+        <div className="callout-mini">스페셜 선데이는 입력한 횟수만큼 가까운 일요일부터 기본 몬파 경험치 +300%(총 4배)로 적용합니다.</div>
         <div className="quick-toggles"><Toggle label="오늘 일퀘·몬파 미완료" checked={s.todayDaily} onChange={v => set("todayDaily", v)} /><Toggle label="이번 주 스펙터 블래스트 미완료" checked={s.specter} onChange={v => set("specter", v)} /><Toggle label="이번 주 챌섭 5레벨 미완료" checked={s.challengerUnclaimed} onChange={v => set("challengerUnclaimed", v)} /></div>
         <details><summary>패스 · 이벤트 설정 <span>10</span></summary><div className="detail-body">
           <Toggle label="챌린저스 EXP 패스" checked={s.challengerExp} onChange={v => set("challengerExp", v)} /><Toggle label="프라임 모멘텀 패스" checked={s.momentumPrime} onChange={v => set("momentumPrime", v)} /><Toggle label="모멘텀 메카베리 모아쓰기" checked={s.deferMomentumMech} onChange={v => set("deferMomentumMech", v)} />
@@ -815,7 +827,7 @@ export default function Home() {
               <div className="efficiency-values">{efficiencyLevels.map(level => <span className={level === s.level ? "active" : ""} key={level}><small>Lv.{level}</small><b>{relativeEfficiencyScore(source, level).toFixed(1)}%</b></span>)}</div>
             </div>)}
           </div>
-          <p>크롬에 열어둔 하루1소재 효율표의 Lv.281 수치를 기준점으로 두고, Lv.280·282~284는 각 콘텐츠 경험치 감소율을 VIP 사우나 대비로 보정했습니다. 추가 경험치 50%와 사냥 쿠폰 가치는 사냥 속도에 따라 달라져 기준값으로 표시합니다.</p>
+          <p>크롬에 열어둔 하루1소재 효율표의 Lv.281 수치를 기준점으로 두고, Lv.280·282~284는 각 콘텐츠 경험치 감소율을 VIP 사우나 대비로 보정했습니다. 추가 경험치 50%와 소경축비는 사냥 속도에 따라 달라져 기준값으로 표시합니다.</p>
         </section>
         <div className="pull-selector">
           <div className="pull-selector-head"><div><span>WEEKLY DECISION</span><h3>몇 주를 당겨올까요?</h3></div><b className={calc.deadlineMet ? "deadline-ok" : "deadline-bad"}>{calc.deadlineMet ? "9/16 이전 달성" : "9/16 달성 불가"}</b></div>
@@ -853,7 +865,7 @@ export default function Home() {
       <div className="pass-grid"><article><div className="table-title"><span>CHALLENGERS · 현재 {s.challengerPassLevel}레벨</span><h3>챌린저스 EXP 패스</h3></div><table><thead><tr><th>레벨 구간</th><th>일반</th><th>EXP 패스 포함</th></tr></thead><tbody><tr><td>1~10</td><td>-</td><td>블루베리 6 · 사우나 2시간 · 상급 EXP 2,000</td></tr><tr><td>11~20</td><td>-</td><td>블루베리 6 · 사우나 2시간 · 상급 EXP 2,000</td></tr><tr><td>21~25</td><td>상급 EXP 100</td><td>블루베리 3 · 사우나 1시간 · 상급 EXP 1,100</td></tr><tr><td>26~30</td><td>상급 EXP 2,100</td><td>블루베리 2 · 사우나 1시간 · 상급 EXP 3,100 · 비약 1</td></tr><tr className="total"><td>1~30 합계</td><td>상급 EXP 2,200</td><td>블루베리 17 · 사우나 6시간 · 상급 EXP 8,200 · 비약 1</td></tr></tbody></table></article><article><div className="table-title"><span>MOMENTUM · 현재 {s.momentumPassLevel}레벨</span><h3>모멘텀 패스</h3></div><table><thead><tr><th>레벨 구간</th><th>프라임 핵심 보상</th></tr></thead><tbody><tr><td>1~2</td><td>메카베리 2 · 사우나 30분 · 4배 쿠폰 2</td></tr><tr><td>3~5</td><td>메카베리 2 · 사우나 30분 · 상급 EXP 3,100 · 4배 2</td></tr><tr><td>6~8</td><td>메카베리 3 · 사우나 30분 · 상급 EXP 3,100 · 4배 2</td></tr><tr><td>9~10</td><td>메카베리 4 · 상급 EXP 3,300</td></tr><tr className="total"><td>1~10 합계</td><td>메카베리 11 · 사우나 1.5시간 · 상급 EXP 9,500</td></tr></tbody></table></article></div>
     </section>
 
-    <section className="audit" id="sources"><div><span>CALCULATION AUDIT</span><h2>무엇을 넣었는지<br />숨기지 않았습니다.</h2></div><ul><li><b>260→280</b> 하루1소재 Lv.260+ 표시값 · 버닝 비욘드 레벨업마다 +2 · 챌섭 패스만 반영</li><li><b>잠금</b> 모멘텀 패스와 메카베리는 Lv.280 이후 계산에서만 획득·사용</li><li><b>마감</b> 모든 추천 경로는 2026년 9월 16일 285 달성을 먼저 만족</li><li><b>매일</b> 그란디스 일퀘와 몬스터파크만 반영 · 별도 사냥 경험치는 제외</li><li><b>매주</b> 익스트림 몬파, 악몽선경 1단계, 입력한 스페셜 선데이 횟수</li><li><b>패스</b> 입력 레벨 이후 보상만 챌섭 주 5레벨 · 모멘텀 2→3→3→2레벨로 반영</li><li><b>추천</b> 같은 날짜는 총 메포 최저 전략만 남기고 순손익 최고 경로에 추천 표시</li><li><b>패치</b> 7/23 코어 4개·총합 20, 8/6 코어 5개·총합 25</li><li><b>선택</b> 에테리온 아티팩트 코어 6레벨 토글과 달성일</li><li><b>이벤트</b> 스펙터 블래스트, 울티마 스쿼드 EXP 5,000, 울티마 작전 일지</li><li><b>비약</b> 200~269 고정 경험치 0.072458, 200~279 고정 경험치 0.49505</li></ul></section>
+    <section className="audit" id="sources"><div><span>CALCULATION AUDIT</span><h2>무엇을 넣었는지<br />숨기지 않았습니다.</h2></div><ul><li><b>260→280</b> 메이플로드 대조 필요 경험치 · 하루1소재 Lv.260+ 보상 환산 · 버닝 비욘드 레벨업마다 +2</li><li><b>잠금</b> 모멘텀 패스와 메카베리는 Lv.280 이후 계산에서만 획득·사용</li><li><b>마감</b> 모든 추천 경로는 2026년 9월 16일 285 달성을 먼저 만족</li><li><b>매일</b> 그란디스 일퀘와 몬스터파크만 반영 · 별도 사냥 경험치는 제외</li><li><b>매주</b> 익스트림 몬파, 악몽선경 1단계, 입력한 스페셜 선데이 횟수</li><li><b>패스</b> 입력 레벨 이후 보상만 챌섭 주 5레벨 · 모멘텀 2→3→3→2레벨로 반영</li><li><b>추천</b> 같은 날짜는 총 메포 최저 전략만 남기고 순손익 최고 경로에 추천 표시</li><li><b>패치</b> 7/23 코어 4개·총합 20, 8/6 코어 5개·총합 25</li><li><b>선택</b> 에테리온 아티팩트 코어 6레벨 토글과 달성일</li><li><b>이벤트</b> 스펙터 블래스트, 울티마 스쿼드 EXP 5,000, 울티마 작전 일지</li><li><b>비약</b> 200~269 고정 경험치 0.072458, 200~279 고정 경험치 0.49505</li></ul></section>
     <footer><div className="brand"><span className="brand-mark">M</span><span>285 PLANNER</span></div><p>하루1소재 경험치 표시값과 업데이트 조건을 바탕으로 만든 전략 계산기 · 2026.07.17 기준</p><div className="source-links"><a href="https://haru1sojae.kr/table" target="_blank" rel="noreferrer">하루1소재 경험치표</a><a href="https://mapleroad.kr/utils/exp_calculator" target="_blank" rel="noreferrer">메이플로드 계산기</a><a href="https://maplestory.nexon.com/testworld/news/all/188" target="_blank" rel="noreferrer">테스트월드</a></div></footer>
   </main>;
 }
