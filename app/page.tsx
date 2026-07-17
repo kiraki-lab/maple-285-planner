@@ -1201,16 +1201,34 @@ export default function Home() {
     <section className="mech-summary" aria-label="메카베리 사용 시점"><span>메카베리 모아쓰기</span><strong>{calculatedSettings.deferMomentumMech ? `Lv.${r.momentumMechLevel} 또는 ${shortDate(r.momentumMechDeadline)}부터 사용` : "즉시 사용"}</strong></section>
     </>}
 
-    {activeTab === "efficiency" && <section className="standalone-panel tab-panel" id="efficiency-panel" role="tabpanel" aria-labelledby="efficiency-tab">
-      <section className="efficiency-panel">
-        <div className="efficiency-head"><div><span>LV.{s.level} · VIP 사우나 100 기준</span><h3>경험치 효율 비교</h3></div><b>Lv.280~284</b></div>
+    {activeTab === "efficiency" && <section className="standalone-panel tab-panel efficiency-screen" id="efficiency-panel" role="tabpanel" aria-labelledby="efficiency-tab">
+      <section className="priority-story" aria-labelledby="lv280-priority-title">
+        <div className="priority-story-head">
+          <div><span>LV.280 · 메포 사용 판단</span><h2 id="lv280-priority-title">먼저 몬파 7판, 농장은 필요할 때만</h2></div>
+          <p>메포샵 메카베리·블루베리는 필수가 아닙니다. 몬파를 반영한 뒤에도 285 도착 주차가 당겨질 때만 고려합니다.</p>
+        </div>
+        <div className="priority-flow">
+          <article className="priority-step first"><span>1 · 가장 먼저</span><h3>스페셜 선데이 몬파 7판</h3><strong>831.4</strong><p>일요일 추가 5판을 우선 반영</p></article>
+          <article className="priority-step second"><span>2 · 다음 판단</span><h3>평일 몬파 7판</h3><strong>318.2</strong><p>285 도착 주차가 당겨지는 날까지만</p></article>
+          <article className="priority-step optional"><span>선택 · 메포샵</span><div><h3>메카베리 농장</h3><strong>312.6</strong></div><div><h3>블루베리 농장</h3><strong>298.3</strong></div><p>같은 날짜라면 더 적은 메포를 쓰는 경로 선택</p></article>
+        </div>
+        <div className="priority-rule"><b>한 줄 결론</b><p>일요일 7판 → 평일 7판 검토 → 그래도 한 주가 당겨질 때만 농장 구매</p></div>
+      </section>
+
+      <section className="video-priority-asset" aria-labelledby="video-priority-title">
+        <div className="video-priority-meta"><span>VIDEO ASSET · 16:9</span><h2 id="video-priority-title">영상용 280구간 우선순위</h2><p>브라우저 화면을 녹화하거나 원본 이미지를 바로 편집 타임라인에 넣을 수 있습니다.</p><a href="/video-lv280-priority.png" download>16:9 원본 이미지 열기</a></div>
+        <figure><img src="/video-lv280-priority.png" alt="Lv.280 메포 사용 우선순위. 스페셜 선데이 몬파, 평일 몬파 7판, 선택 항목인 메카베리와 블루베리 순서" /></figure>
+      </section>
+
+      <section className="efficiency-panel full-efficiency-table">
+        <div className="efficiency-head"><div><span>LV.{s.level} · VIP 사우나 100 기준</span><h3>Lv.280~284 전체 효율표</h3></div><b>비교 지수</b></div>
         <div className="efficiency-list">
           {efficiencyRanking.map((source, index) => <div className={`efficiency-row ${index < 3 ? "top" : ""}`} key={source.id}>
             <strong>{index + 1}</strong><div className="efficiency-name"><b>{source.label}</b>{index === 0 && <small>현재 레벨 최고</small>}</div>
-            <div className="efficiency-values">{efficiencyLevels.map(level => <span className={level === s.level ? "active" : ""} key={level}><small>Lv.{level}</small><b>{relativeEfficiencyScore(source, level).toFixed(1)}%</b></span>)}</div>
+            <div className="efficiency-values">{efficiencyLevels.map(level => <span className={level === s.level ? "active" : ""} key={level}><small>Lv.{level}</small><b>{relativeEfficiencyScore(source, level).toFixed(1)}</b></span>)}</div>
           </div>)}
         </div>
-        <p>하루1소재 Lv.281 수치를 기준으로 레벨별 경험치 감소율을 반영했습니다. 추가 경험치 50%와 소경축비는 기준값입니다.</p>
+        <p>수치는 경험치 %가 아닌 효율 비교 지수입니다. 하루1소재 Lv.281 수치를 기준으로 레벨별 경험치 감소율을 반영했습니다. 추가 경험치 50%와 소경축비는 기준값입니다.</p>
       </section>
     </section>}
 
