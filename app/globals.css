@@ -116,15 +116,14 @@ summary::-webkit-details-marker { display: none; }
 .strategy-choice { margin-bottom: 14px; padding: 22px; border: 1px solid var(--line); border-radius: 20px; background: white; }
 .strategy-choice-head span { color: var(--purple); font-size: 10px; font-weight: 900; letter-spacing: .13em; }
 .strategy-choice-head h3 { margin: 5px 0 18px; font-size: 21px; letter-spacing: -.035em; }
-.strategy-choice-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.strategy-choice-head p { margin: -10px 0 18px; color: var(--muted); font-size: 11px; line-height: 1.55; }
+.strategy-choice-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
 .strategy-choice-grid > button { min-width: 0; padding: 16px; border: 1px solid var(--line); border-radius: 16px; color: var(--ink); background: #fbfafc; text-align: left; cursor: pointer; transition: transform .2s ease, border-color .2s ease, background .2s ease, box-shadow .2s ease; }
 .strategy-choice-grid > button:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--purple); }
-.strategy-choice-grid > button.recommended { border-color: rgba(53,184,132,.42); }
 .strategy-choice-grid > button.active { color: white; border-color: var(--purple); background: var(--purple); box-shadow: 0 10px 24px rgba(115,87,255,.2); }
 .strategy-choice-grid > button:disabled { opacity: .4; cursor: not-allowed; }
 .strategy-choice-grid > button > div { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .strategy-choice-grid > button > div span { color: var(--purple); font-size: 9px; font-weight: 900; letter-spacing: .08em; }
-.strategy-choice-grid > button.recommended > div span { color: #16815a; }
 .strategy-choice-grid > button.active > div span { color: var(--mint); }
 .strategy-choice-grid i { padding: 4px 7px; border-radius: 999px; color: var(--muted); background: #efedf3; font-size: 9px; font-style: normal; font-weight: 800; }
 .strategy-choice-grid > button.active i { color: var(--purple); background: white; }
@@ -236,7 +235,6 @@ footer p { margin: 0; color: var(--muted); font-size: 11px; text-align: center; 
   .controls { position: static; max-height: none; }
   .leftover-grid { grid-template-columns: repeat(2, 1fr); }
   .pass-grid { grid-template-columns: 1fr; }
-  .strategy-choice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 720px) {

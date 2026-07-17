@@ -18,12 +18,14 @@ test("ships the finished calculator instead of the starter preview", async () =>
   assert.match(page, /코어 6레벨 적용/);
   assert.match(page, /몇 주를 당겨올까요\?/);
   assert.match(page, /2026년 9월 16일 285 달성/);
-  assert.match(page, /평일 몬파 우선/);
+  assert.match(page, /평일 몬파/);
   assert.match(page, /블루베리 구매/);
   assert.match(page, /메카베리 구매/);
   assert.match(page, /농장 둘 다/);
   assert.match(page, /직전 단계 대비 총 MP/);
-  assert.match(page, /구매 MP를 포함/);
+  assert.match(page, /같은 도달일이면 총 MP가 가장 적은 전략만 추천/);
+  assert.match(page, /같거나 더 늦게 도착하면서 MP가 더 드는 전략은 숨겼습니다/);
+  assert.match(page, /recommendedPlansByWeek/);
   assert.match(layout, /285 플래너/);
   assert.match(layout, /\/og\.png/);
   assert.match(css, /@media \(max-width: 720px\)/);
