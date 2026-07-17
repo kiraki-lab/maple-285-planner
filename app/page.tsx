@@ -209,6 +209,7 @@ const nextThursdayAfter = (date: Date) => {
   const days = (4 - date.getDay() + 7) % 7;
   return addDays(date, days || 7);
 };
+const challengerPassCapForDate = (date: Date) => date < parseDate("2026-07-23") ? 25 : 30;
 
 type EfficiencyBenchmark = { id: string; label: string; base: number; raw?: (level: number) => number };
 const momentumRaw = (level: number) => efficiency[level].mech * 11 + efficiency[level].sauna * 1.5 + efficiency[level].adv100 * 95;
@@ -316,7 +317,11 @@ function simulatePre280(s: Settings): Pre280Simulation {
 
   while (passLevel < 30 && rewardDate <= end && level < 280) {
     const from = passLevel + 1;
-    const to = Math.min(30, passLevel + 5);
+    const to = Math.min(challengerPassCapForDate(rewardDate), passLevel + 5);
+    if (to < from) {
+      rewardDate = nextThursdayAfter(rewardDate);
+      continue;
+    }
     const beforeLevel = level;
     const beforeExp = xp / pre280Data[level].required * 100;
     const usedBefore = copyInventory(used);
@@ -381,7 +386,11 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
   const challengerEnd = parseDate("2026-09-16");
   while (challengerLevel < 30 && challengerDate <= challengerEnd) {
     const from = challengerLevel + 1;
-    const to = Math.min(30, challengerLevel + 5);
+    const to = Math.min(challengerPassCapForDate(challengerDate), challengerLevel + 5);
+    if (to < from) {
+      challengerDate = nextThursdayAfter(challengerDate);
+      continue;
+    }
     const batch: Reward = { label: `챌섭 패스 ${from}~${to}레벨` };
     for (let passLevel = from; passLevel <= to; passLevel += 1) {
       const reward = challengerRewardForLevel(passLevel, s.challengerExp);
@@ -946,7 +955,7 @@ export default function Home() {
           <Toggle label="챌린저스 EXP 패스" checked={s.challengerExp} onChange={v => set("challengerExp", v)} /><Toggle label="프라임 모멘텀 패스" checked={s.momentumPrime} onChange={v => set("momentumPrime", v)} /><Toggle label="모멘텀 메카베리 모아쓰기" checked={s.deferMomentumMech} onChange={v => set("deferMomentumMech", v)} />
           <div className="field-grid compact inset"><label className="field"><span>메카베리 사용 레벨</span><select value={s.momentumMechLevel} disabled={!s.deferMomentumMech} onChange={e => set("momentumMechLevel", Number(e.target.value))}>{[280, 281, 282, 283, 284].map(level => <option key={level}>{level}</option>)}</select></label><InputField label="최종 사용일" value={s.momentumMechDeadline} type="date" disabled={!s.deferMomentumMech} onChange={v => set("momentumMechDeadline", v)} /></div>
           <Toggle label="7월 NOW 보상" checked={s.apology} onChange={v => set("apology", v)} /><Toggle label="울티마 스쿼드 EXP 5,000장" checked={s.shardEvent} onChange={v => set("shardEvent", v)} /><Toggle label="울티마 작전 일지" checked={s.ultima} onChange={v => set("ultima", v)} />
-          <div className="callout-mini">현재 패스 레벨까지 받은 보상은 현재 경험치에 포함된 것으로 보고 제외합니다. 이후 챌섭은 주 5레벨, 모멘텀은 주차별 2→3→3→2레벨 진행으로 계산합니다.</div>
+          <div className="callout-mini">현재 패스 레벨까지 받은 보상은 현재 경험치에 포함된 것으로 보고 제외합니다. 챌섭은 7/22까지 최대 25레벨, 7/23부터 최대 30레벨이며 주 5레벨씩 계산합니다. 모멘텀은 주차별 2→3→3→2레벨로 진행합니다.</div>
           <div className="callout-mini shop-priority">같거나 더 늦은 날짜에 더 많은 메포를 쓰는 전략은 추천에서 제외합니다. 남은 선택지 중 순손익이 가장 좋은 경로에 추천 표시를 붙입니다.</div>
         </div></details>
         <details><summary>에테리온 · 콘텐츠 보정 <span>18</span></summary><div className="detail-body">

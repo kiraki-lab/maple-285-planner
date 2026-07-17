@@ -55,6 +55,8 @@ test("keeps the 285 calculator primary and moves supporting content into tabs", 
   assert.match(page, /label: "소경축비"/);
   assert.match(page, /챌섭 EXP 패스 현재 레벨/);
   assert.match(page, /모멘텀 패스 현재 레벨/);
+  assert.match(page, /challengerPassCapForDate/);
+  assert.match(page, /7\/22까지 최대 25레벨, 7\/23부터 최대 30레벨/);
   assert.doesNotMatch(page, /일일 사냥 경험치/);
   assert.match(layout, /285 플래너/);
   assert.match(layout, /\/og\.png/);
