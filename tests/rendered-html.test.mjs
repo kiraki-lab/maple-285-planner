@@ -130,3 +130,18 @@ test("carries the full growth-potion overflow into level 280 with Burning Beyond
   assert.equal(result.level, 280);
   assert.ok(Math.abs(result.experience / required[280] * 100 - 12.3762376237629) < 1e-10);
 });
+
+test("advances every Burning Beyond level-up by two levels through 280", () => {
+  const requiredExperience = level => 1_000_000 + level;
+  let state = { level: 260, experience: 0 };
+
+  for (const expectedLevel of [262, 264, 266, 268, 270, 272, 274, 276, 278, 280]) {
+    state = advanceBurningBeyondExperience({
+      ...state,
+      gainedExperience: requiredExperience(state.level) - state.experience,
+      requiredExperience,
+    });
+    assert.equal(state.level, expectedLevel);
+    assert.equal(state.experience, 0);
+  }
+});

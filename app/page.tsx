@@ -917,7 +917,7 @@ export default function Home() {
       </div>
       <div className="pre280-grid">
         <div className="pre280-controls">
-          <div className="pre280-control-head"><span>입력</span><h3>현재 캐릭터</h3><p>챌린저스 EXP 패스 기준으로 280 도달 주차를 계산합니다.</p></div>
+          <div className="pre280-control-head"><span>입력</span><h3>현재 캐릭터</h3><p>경험치 100%마다 2레벨씩 상승하는 버닝 비욘드를 적용해 280 도달 주차를 계산합니다.</p></div>
           <div className="field-grid compact pre-fields">
             <label className="field"><span>현재 레벨</span><select value={s.preLevel} onChange={e => set("preLevel", Number(e.target.value))}>{Array.from({ length: 20 }, (_, index) => index + 260).map(level => <option key={level}>{level}</option>)}</select></label>
             <InputField label="현재 경험치 %" value={s.preExp} min={0} max={99.999} step={0.001} onChange={v => set("preExp", Number(v))} />
