@@ -29,6 +29,9 @@ test("keeps the 285 calculator primary and moves supporting content into tabs", 
   assert.match(page, /activeTab === "pre280"/);
   assert.match(page, /activeTab === "efficiency"/);
   assert.match(page, /activeTab === "passes"/);
+  assert.match(page, /useDeferredValue/);
+  assert.match(page, /leastCostCandidate/);
+  assert.match(page, /calculationPending/);
   assert.match(page, /285 계산 조건/);
   assert.match(page, /285 달성 후 남는 보상/);
   assert.match(page, /메카베리 모아쓰기/);
@@ -49,6 +52,10 @@ test("keeps the 285 calculator primary and moves supporting content into tabs", 
   assert.match(layout, /285 플래너/);
   assert.match(layout, /\/og\.png/);
   assert.match(css, /@media \(max-width: 720px\)/);
+  assert.match(css, /\.efficiency-values small \{ font-size: 11px/);
+  assert.match(css, /\.leftover-note \{[^}]*font-size: 13px/);
+  assert.doesNotMatch(css, /backdrop-filter/);
+  assert.doesNotMatch(css, /\.tab-panel \{ animation/);
   assert.doesNotMatch(page, /SkeletonPreview|codex-preview/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 import {
   advanceBurningBeyondExperience,
   growthPotionExperience,
@@ -169,6 +169,16 @@ const viewTabs: { id: ViewTab; label: string; description: string }[] = [
   { id: "efficiency", label: "경험치 효율", description: "레벨별 비교" },
   { id: "passes", label: "패스 보상", description: "전체 보상표" },
 ];
+
+const pre280SettingKeys: (keyof Settings)[] = [
+  "preLevel", "preExp", "prePassLevel", "preUnclaimed", "preUseBlue", "preUseSauna", "preUseAdv", "preUsePotion", "challengerExp", "start",
+];
+const planningExcludedSettingKeys = new Set<keyof Settings>([
+  "preLevel", "preExp", "prePassLevel", "preUnclaimed", "preUseBlue", "preUseSauna", "preUseAdv", "preUsePotion",
+  "pullWeeks", "pullStrategy", "mayrinMesoGap", "mayrinNormalFrag", "fragPrice", "mpPerEok", "postReset", "shopMech", "shopBlue",
+]);
+const selectedSettingsKey = (settings: Settings, keys: (keyof Settings)[]) => JSON.stringify(keys.map(key => settings[key]));
+const planningSettingsKey = (settings: Settings) => JSON.stringify(Object.entries(settings).filter(([key]) => !planningExcludedSettingKeys.has(key as keyof Settings)));
 
 const challengerBlueLevels = new Set([1, 3, 5, 6, 8, 10, 11, 13, 15, 16, 18, 20, 21, 23, 25, 26, 28]);
 const challengerSaunaLevels = new Set([2, 7, 12, 17, 22, 27]);
@@ -597,19 +607,21 @@ export default function Home() {
     if (["preLevel", "preExp", "prePassLevel", "preUnclaimed", "preUseBlue", "preUseSauna", "preUseAdv", "preUsePotion", "challengerExp", "start"].includes(key)) setPreApplied(false);
     setS(current => ({ ...current, [key]: value }));
   };
-  const pre280 = useMemo(() => simulatePre280(s), [s]);
-  const calc = useMemo(() => {
+  const pre280Key = selectedSettingsKey(s, pre280SettingKeys);
+  const simulationKey = planningSettingsKey(s);
+  const deferredPre280Key = useDeferredValue(pre280Key);
+  const deferredSimulationKey = useDeferredValue(simulationKey);
+  const pre280Settings = useMemo(() => s, [deferredPre280Key]);
+  const simulationSettings = useMemo(() => s, [deferredSimulationKey]);
+  const pre280 = useMemo(() => simulatePre280(pre280Settings), [pre280Settings]);
+  const planning = useMemo(() => {
+    const s = simulationSettings;
     const start = parseDate(s.start);
     const deadline = parseDate("2026-09-16");
     const strategySettings = { ...s, shopMech: false, shopBlue: false };
     const sunday = simulate(strategySettings, { sevenUntil: addDays(start, -1) });
     const free = simulate(strategySettings, { fixedRuns: 2 });
     const allSeven = simulate(strategySettings, { fixedRuns: 7 });
-    const schedules: { sevenUntil?: Date; fixedRuns?: number }[] = [
-      { sevenUntil: addDays(start, -1) },
-      ...Array.from({ length: 63 }, (_, day) => ({ sevenUntil: addDays(start, day) })),
-      { fixedRuns: 7 },
-    ];
     const pairsByStrategy: Record<PullStrategy, [number, number][]> = {
       monsterPark: [[0, 0]],
       blue: [1, 2, 3, 4].map((weeks): [number, number] => [weeks, 0]),
@@ -617,19 +629,49 @@ export default function Home() {
       both: [1, 2, 3, 4].map((weeks): [number, number] => [weeks, weeks]),
     };
     type StrategyCandidate = { result: Simulation; shopBlueWeeks: number; shopMechWeeks: number };
-    const candidatePools = Object.fromEntries(pullStrategies.map(({ id }) => [id, pairsByStrategy[id].flatMap(([shopBlueWeeks, shopMechWeeks]) => schedules.map(schedule => ({
-      result: simulate(strategySettings, { ...schedule, shopBlueWeeks, shopMechWeeks }), shopBlueWeeks, shopMechWeeks,
-    })))])) as Record<PullStrategy, StrategyCandidate[]>;
+    const candidateCache = new Map<string, StrategyCandidate>();
+    candidateCache.set("0:0:0", { result: sunday, shopBlueWeeks: 0, shopMechWeeks: 0 });
+    candidateCache.set("0:0:64", { result: allSeven, shopBlueWeeks: 0, shopMechWeeks: 0 });
+    const candidateAt = (shopBlueWeeks: number, shopMechWeeks: number, scheduleIndex: number): StrategyCandidate => {
+      const key = `${shopBlueWeeks}:${shopMechWeeks}:${scheduleIndex}`;
+      const cached = candidateCache.get(key);
+      if (cached) return cached;
+      const schedule = scheduleIndex === 64 ? { fixedRuns: 7 } : { sevenUntil: addDays(start, scheduleIndex - 1) };
+      const candidate = {
+        result: simulate(strategySettings, { ...schedule, shopBlueWeeks, shopMechWeeks }),
+        shopBlueWeeks,
+        shopMechWeeks,
+      };
+      candidateCache.set(key, candidate);
+      return candidate;
+    };
+    const meetsTarget = (candidate: StrategyCandidate, targetClearWeeks: number) => Boolean(
+      candidate.result.reached && candidate.result.reached <= deadline && mayrinClearWeeks(candidate.result.reached) >= targetClearWeeks,
+    );
+    const leastCostCandidate = (shopBlueWeeks: number, shopMechWeeks: number, targetClearWeeks: number) => {
+      if (!meetsTarget(candidateAt(shopBlueWeeks, shopMechWeeks, 64), targetClearWeeks)) return null;
+      let low = 0;
+      let high = 64;
+      while (low < high) {
+        const middle = Math.floor((low + high) / 2);
+        if (meetsTarget(candidateAt(shopBlueWeeks, shopMechWeeks, middle), targetClearWeeks)) high = middle;
+        else low = middle + 1;
+      }
+      return candidateAt(shopBlueWeeks, shopMechWeeks, low);
+    };
     const baselineClearWeeks = Math.max(1, mayrinClearWeeks(sunday.reached));
-    const maximumClearWeeks = Math.max(...Object.values(candidatePools).flat().map(candidate => mayrinClearWeeks(candidate.result.reached)));
+    const maximumClearWeeks = mayrinClearWeeks(candidateAt(4, 4, 64).result.reached);
     const maxPullWeeks = Math.max(0, maximumClearWeeks - baselineClearWeeks);
     const pickPlan = (strategy: PullStrategy, pullWeeks: number): PullPlan => {
       const targetClearWeeks = baselineClearWeeks + pullWeeks;
-      const pool = pullWeeks === 0 ? candidatePools.monsterPark : candidatePools[strategy];
-      const eligible = pool
-        .filter(candidate => Boolean(candidate.result.reached && candidate.result.reached <= deadline) && mayrinClearWeeks(candidate.result.reached) >= targetClearWeeks)
+      const pairs = pullWeeks === 0 ? pairsByStrategy.monsterPark : pairsByStrategy[strategy];
+      const eligible = pairs
+        .map(([shopBlueWeeks, shopMechWeeks]) => leastCostCandidate(shopBlueWeeks, shopMechWeeks, targetClearWeeks))
+        .filter((candidate): candidate is StrategyCandidate => Boolean(candidate))
         .sort((a, b) => a.result.maplePoints - b.result.maplePoints || a.result.shopMaplePoints - b.result.shopMaplePoints || a.result.monsterParkMaplePoints - b.result.monsterParkMaplePoints);
-      const fallback = [...pool].sort((a, b) => (a.result.reached?.getTime() ?? Infinity) - (b.result.reached?.getTime() ?? Infinity))[0] || { result: allSeven, shopBlueWeeks: 0, shopMechWeeks: 0 };
+      const fallback = pairs
+        .map(([shopBlueWeeks, shopMechWeeks]) => candidateAt(shopBlueWeeks, shopMechWeeks, 64))
+        .sort((a, b) => (a.result.reached?.getTime() ?? Infinity) - (b.result.reached?.getTime() ?? Infinity))[0] || { result: allSeven, shopBlueWeeks: 0, shopMechWeeks: 0 };
       const chosen = eligible[0] || fallback;
       return {
         pullWeeks, targetClearWeeks, result: chosen.result, strategy,
@@ -651,6 +693,10 @@ export default function Home() {
       })).sort((a, b) => a.result.maplePoints - b.result.maplePoints || (a.result.reached?.getTime() ?? Infinity) - (b.result.reached?.getTime() ?? Infinity));
     });
     const bestPlansByWeek = recommendedPlansByWeek.map((plans, pullWeeks) => plans[0] || strategyPlans.monsterPark[pullWeeks]);
+    return { sunday, free, allSeven, strategyPlans, recommendedPlansByWeek, bestPlansByWeek, basePlan, maxPullWeeks, deadline };
+  }, [simulationSettings]);
+  const calc = useMemo(() => {
+    const { sunday, free, allSeven, strategyPlans, recommendedPlansByWeek, bestPlansByWeek, basePlan, maxPullWeeks, deadline } = planning;
     const effectivePullWeeks = Math.min(Math.max(0, Math.floor(s.pullWeeks)), maxPullWeeks);
     const requestedPlan = strategyPlans[s.pullStrategy][effectivePullWeeks];
     const recommendedPlans = recommendedPlansByWeek[effectivePullWeeks] || [];
@@ -690,7 +736,8 @@ export default function Home() {
       cumulativeGainedHardWeeks, cumulativeMP, cumulativeCostValue, cumulativeRecoveredValue, cumulativeNetValue,
       bestRoiStrategy, deadline, deadlineMet: selectedPlan.feasible,
     };
-  }, [s]);
+  }, [planning, s]);
+  const calculationPending = simulationKey !== deferredSimulationKey || (activeTab === "pre280" && pre280Key !== deferredPre280Key);
   const connectPre280 = () => {
     if (!pre280.reached) return;
     setS(current => ({
@@ -826,8 +873,8 @@ export default function Home() {
         <details><summary>보유 보상 · 울티마 <span>9</span></summary><div className="detail-body"><div className="field-grid compact"><InputField label="보유 블루베리" value={s.ownedBlue} min={0} onChange={v => set("ownedBlue", Number(v))} /><InputField label="보유 메카베리" value={s.ownedMech} min={0} onChange={v => set("ownedMech", Number(v))} /><InputField label="보유 사우나 시간" value={s.ownedSauna} min={0} onChange={v => set("ownedSauna", Number(v))} /><InputField label="보유 상급 EXP" value={s.ownedAdv} min={0} onChange={v => set("ownedAdv", Number(v))} /><InputField label="보유 200~279 비약" value={s.ownedPotion279} min={0} onChange={v => set("ownedPotion279", Number(v))} /><InputField label="EXP 5,000 사용일" value={s.shardDate} type="date" disabled={!s.shardEvent} onChange={v => set("shardDate", v)} /><InputField label="상급 EXP 사용량" value={s.shardAdv} disabled={!s.shardEvent} onChange={v => set("shardAdv", Number(v))} /><InputField label="울티마 누적 출석" value={s.ultimaCount} disabled={!s.ultima} onChange={v => set("ultimaCount", Number(v))} /><InputField label="이번 주 이미 출석" value={s.ultimaWeek} disabled={!s.ultima} onChange={v => set("ultimaWeek", Number(v))} /></div><Toggle label="시작일 울티마 출석 예정" checked={s.ultimaStart} disabled={!s.ultima} onChange={v => set("ultimaStart", v)} /></div></details>
       </aside>
 
-      <div className="results">
-        <div className="section-heading"><span>결과</span><div><p>선택한 조건</p><h2>285 도달 경로</h2></div><button className="reset" onClick={() => { setS(defaults); setPreApplied(false); }}>기본값 복원</button></div>
+      <div className="results" aria-busy={calculationPending}>
+        <div className="section-heading"><span>결과</span><div><p>선택한 조건</p><h2>285 도달 경로</h2></div>{calculationPending && <output className="calculation-status" aria-live="polite">계산 중</output>}<button className="reset" onClick={() => { setS(defaults); setPreApplied(false); }}>기본값 복원</button></div>
         <div className="pull-selector">
           <div className="pull-selector-head"><div><span>목표 주차</span><h3>285 도달 시점</h3></div><b className={calc.deadlineMet ? "deadline-ok" : "deadline-bad"}>{calc.deadlineMet ? "9/16 이전 달성" : "9/16 달성 불가"}</b></div>
           <div className="pull-buttons" role="group" aria-label="285 달성 주차 당기기">
