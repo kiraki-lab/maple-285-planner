@@ -1,6 +1,6 @@
 "use client";
 
-import { useDeferredValue, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   advanceBurningBeyondExperience,
   growthPotionExperience,
@@ -601,6 +601,8 @@ function ProgressChart({ selected, sunday, free }: { selected: Simulation; sunda
 
 export default function Home() {
   const [s, setS] = useState<Settings>(defaults);
+  const [calculatedSettings, setCalculatedSettings] = useState<Settings>(defaults);
+  const [isCalculating, setIsCalculating] = useState(false);
   const [preApplied, setPreApplied] = useState(false);
   const [activeTab, setActiveTab] = useState<ViewTab>("calculator");
   const set = <K extends keyof Settings>(key: K, value: Settings[K]) => {
@@ -608,11 +610,9 @@ export default function Home() {
     setS(current => ({ ...current, [key]: value }));
   };
   const pre280Key = selectedSettingsKey(s, pre280SettingKeys);
-  const simulationKey = planningSettingsKey(s);
-  const deferredPre280Key = useDeferredValue(pre280Key);
-  const deferredSimulationKey = useDeferredValue(simulationKey);
-  const pre280Settings = useMemo(() => s, [deferredPre280Key]);
-  const simulationSettings = useMemo(() => s, [deferredSimulationKey]);
+  const simulationKey = planningSettingsKey(calculatedSettings);
+  const pre280Settings = useMemo(() => s, [pre280Key]);
+  const simulationSettings = useMemo(() => calculatedSettings, [simulationKey]);
   const pre280 = useMemo(() => simulatePre280(pre280Settings), [pre280Settings]);
   const planning = useMemo(() => {
     const s = simulationSettings;
@@ -696,6 +696,7 @@ export default function Home() {
     return { sunday, free, allSeven, strategyPlans, recommendedPlansByWeek, bestPlansByWeek, basePlan, maxPullWeeks, deadline };
   }, [simulationSettings]);
   const calc = useMemo(() => {
+    const s = calculatedSettings;
     const { sunday, free, allSeven, strategyPlans, recommendedPlansByWeek, bestPlansByWeek, basePlan, maxPullWeeks, deadline } = planning;
     const effectivePullWeeks = Math.min(Math.max(0, Math.floor(s.pullWeeks)), maxPullWeeks);
     const requestedPlan = strategyPlans[s.pullStrategy][effectivePullWeeks];
@@ -736,8 +737,26 @@ export default function Home() {
       cumulativeGainedHardWeeks, cumulativeMP, cumulativeCostValue, cumulativeRecoveredValue, cumulativeNetValue,
       bestRoiStrategy, deadline, deadlineMet: selectedPlan.feasible,
     };
-  }, [planning, s]);
-  const calculationPending = simulationKey !== deferredSimulationKey || (activeTab === "pre280" && pre280Key !== deferredPre280Key);
+  }, [planning, calculatedSettings]);
+  const hasPendingChanges = JSON.stringify(s) !== JSON.stringify(calculatedSettings);
+  const calculate = () => {
+    if (!hasPendingChanges || isCalculating) return;
+    setIsCalculating(true);
+    window.setTimeout(() => {
+      setCalculatedSettings({ ...s });
+      setIsCalculating(false);
+    }, 0);
+  };
+  const selectCalculatedRoute = (patch: Partial<Pick<Settings, "pullWeeks" | "pullStrategy">>) => {
+    setS(current => ({ ...current, ...patch }));
+    setCalculatedSettings(current => ({ ...current, ...patch }));
+  };
+  const resetCalculator = () => {
+    setS(defaults);
+    setCalculatedSettings(defaults);
+    setIsCalculating(false);
+    setPreApplied(false);
+  };
   const connectPre280 = () => {
     if (!pre280.reached) return;
     setS(current => ({
@@ -871,20 +890,24 @@ export default function Home() {
           <div className="field-grid compact"><label className="field"><span>악몽선경 보상 배수</span><select value={s.epicMult} onChange={e => set("epicMult", Number(e.target.value))}><option value={1}>기본</option><option value={5}>4배 추가</option><option value={9}>8배 추가</option></select></label><InputField label="5레벨 에픽 · 현재 %" value={s.epicNow} onChange={v => set("epicNow", Number(v))} /><InputField label="5레벨 에픽 · 패치 후 %" value={s.epicPatch} onChange={v => set("epicPatch", Number(v))} /><InputField label="코어 총합 25 달성일" value={s.core25Date} type="date" onChange={v => set("core25Date", v)} /><InputField label="총합 25 에픽 추가 %" value={s.core25Bonus} onChange={v => set("core25Bonus", Number(v))} /><InputField label="에픽 아티팩트 활성일" value={s.epicArtifactDate} type="date" onChange={v => set("epicArtifactDate", v)} /><InputField label="아티팩트 후 5레벨 %" value={s.epicArtifact} onChange={v => set("epicArtifact", Number(v))} /><InputField label="6레벨 · 아티팩트 전 %" value={s.epicCore6} disabled={!s.core6Enabled} onChange={v => set("epicCore6", Number(v))} /><InputField label="6레벨 · 아티팩트 후 %" value={s.epicCore6Artifact} disabled={!s.core6Enabled} onChange={v => set("epicCore6Artifact", Number(v))} /></div>
         </div></details>
         <details><summary>보유 보상 · 울티마 <span>9</span></summary><div className="detail-body"><div className="field-grid compact"><InputField label="보유 블루베리" value={s.ownedBlue} min={0} onChange={v => set("ownedBlue", Number(v))} /><InputField label="보유 메카베리" value={s.ownedMech} min={0} onChange={v => set("ownedMech", Number(v))} /><InputField label="보유 사우나 시간" value={s.ownedSauna} min={0} onChange={v => set("ownedSauna", Number(v))} /><InputField label="보유 상급 EXP" value={s.ownedAdv} min={0} onChange={v => set("ownedAdv", Number(v))} /><InputField label="보유 200~279 비약" value={s.ownedPotion279} min={0} onChange={v => set("ownedPotion279", Number(v))} /><InputField label="EXP 5,000 사용일" value={s.shardDate} type="date" disabled={!s.shardEvent} onChange={v => set("shardDate", v)} /><InputField label="상급 EXP 사용량" value={s.shardAdv} disabled={!s.shardEvent} onChange={v => set("shardAdv", Number(v))} /><InputField label="울티마 누적 출석" value={s.ultimaCount} disabled={!s.ultima} onChange={v => set("ultimaCount", Number(v))} /><InputField label="이번 주 이미 출석" value={s.ultimaWeek} disabled={!s.ultima} onChange={v => set("ultimaWeek", Number(v))} /></div><Toggle label="시작일 울티마 출석 예정" checked={s.ultimaStart} disabled={!s.ultima} onChange={v => set("ultimaStart", v)} /></div></details>
+        <div className={`calculate-bar ${hasPendingChanges ? "pending" : ""}`}>
+          <span>{hasPendingChanges ? "입력값이 변경되었습니다" : "현재 입력값으로 계산 완료"}</span>
+          <button type="button" onClick={calculate} disabled={!hasPendingChanges || isCalculating}>{isCalculating ? "계산 중…" : hasPendingChanges ? "285 도달일 계산하기" : "계산 완료"}</button>
+        </div>
       </aside>
 
-      <div className="results" aria-busy={calculationPending}>
-        <div className="section-heading"><span>결과</span><div><p>선택한 조건</p><h2>285 도달 경로</h2></div>{calculationPending && <output className="calculation-status" aria-live="polite">계산 중</output>}<button className="reset" onClick={() => { setS(defaults); setPreApplied(false); }}>기본값 복원</button></div>
+      <div className="results" aria-busy={isCalculating}>
+        <div className="section-heading"><span>결과</span><div><p>선택한 조건</p><h2>285 도달 경로</h2></div>{isCalculating ? <output className="calculation-status" aria-live="polite">계산 중</output> : hasPendingChanges && <output className="calculation-status pending" aria-live="polite">입력값 변경됨</output>}<button className="reset" onClick={resetCalculator}>기본값 복원</button></div>
         <div className="pull-selector">
           <div className="pull-selector-head"><div><span>목표 주차</span><h3>285 도달 시점</h3></div><b className={calc.deadlineMet ? "deadline-ok" : "deadline-bad"}>{calc.deadlineMet ? "9/16 이전 달성" : "9/16 달성 불가"}</b></div>
           <div className="pull-buttons" role="group" aria-label="285 달성 주차 당기기">
-            {calc.bestPlansByWeek.map((bestPlan) => <button key={bestPlan.pullWeeks} className={bestPlan.pullWeeks === calc.effectivePullWeeks ? "active" : ""} onClick={() => setS(current => ({ ...current, pullWeeks: bestPlan.pullWeeks, pullStrategy: bestPlan.strategy }))} disabled={!bestPlan.feasible}><span>{bestPlan.pullWeeks ? `${bestPlan.pullWeeks}주 당김` : "마감만"}</span><strong>{shortDate(bestPlan.result.reached)}</strong><small>최저 {formatMP(bestPlan.result.maplePoints)}</small></button>)}
+            {calc.bestPlansByWeek.map((bestPlan) => <button key={bestPlan.pullWeeks} className={bestPlan.pullWeeks === calc.effectivePullWeeks ? "active" : ""} onClick={() => selectCalculatedRoute({ pullWeeks: bestPlan.pullWeeks, pullStrategy: bestPlan.strategy })} disabled={!bestPlan.feasible}><span>{bestPlan.pullWeeks ? `${bestPlan.pullWeeks}주 당김` : "마감만"}</span><strong>{shortDate(bestPlan.result.reached)}</strong><small>최저 {formatMP(bestPlan.result.maplePoints)}</small></button>)}
           </div>
           <p>주차를 선택하면 해당 날짜를 맞추는 최소 비용 경로를 계산합니다.</p>
         </div>
         <div className="strategy-choice">
           <div className="strategy-choice-head"><span>경로 선택</span><h3>{calc.effectivePullWeeks ? `${calc.effectivePullWeeks}주 당김 경로` : "마감 기준 경로"}</h3><p>같은 도달일에는 메포가 적은 경로만 표시합니다.</p></div>
-          <div className="strategy-choice-grid">{calc.recommendedPlansByWeek[calc.effectivePullWeeks].map((plan, index) => { const strategy = pullStrategies.find(item => item.id === plan.strategy)!; const active = plan.strategy === calc.selectedPlan.strategy; const recommended = plan.strategy === calc.bestRoiStrategy; return <button key={strategy.id} className={`${active ? "active" : ""} ${recommended ? "recommended" : ""}`} onClick={() => set("pullStrategy", strategy.id)}><div><span>{recommended ? "추천 · 순손익 최고" : index === 0 ? "메포 최저" : "더 빠른 선택"}</span><i>{active ? "선택됨" : "선택"}</i></div><h4>{strategy.label}</h4><p>{strategy.caption}</p><strong>{shortDate(plan.result.reached)}</strong><dl><div><dt>총액</dt><dd>{formatMP(plan.result.maplePoints)}</dd></div><div><dt>몬파</dt><dd>{formatMP(plan.result.monsterParkMaplePoints)}</dd></div><div><dt>상점</dt><dd>{formatMP(plan.result.shopMaplePoints)}</dd></div></dl><small>{calc.effectivePullWeeks ? `블루 ${plan.shopBlueWeeks}주 · 메카 ${plan.shopMechWeeks}주 구매 계획` : "0주에서는 농장 미구매"}</small></button>; })}</div>
+          <div className="strategy-choice-grid">{calc.recommendedPlansByWeek[calc.effectivePullWeeks].map((plan, index) => { const strategy = pullStrategies.find(item => item.id === plan.strategy)!; const active = plan.strategy === calc.selectedPlan.strategy; const recommended = plan.strategy === calc.bestRoiStrategy; return <button key={strategy.id} className={`${active ? "active" : ""} ${recommended ? "recommended" : ""}`} onClick={() => selectCalculatedRoute({ pullStrategy: strategy.id })}><div><span>{recommended ? "추천 · 순손익 최고" : index === 0 ? "메포 최저" : "더 빠른 선택"}</span><i>{active ? "선택됨" : "선택"}</i></div><h4>{strategy.label}</h4><p>{strategy.caption}</p><strong>{shortDate(plan.result.reached)}</strong><dl><div><dt>총액</dt><dd>{formatMP(plan.result.maplePoints)}</dd></div><div><dt>몬파</dt><dd>{formatMP(plan.result.monsterParkMaplePoints)}</dd></div><div><dt>상점</dt><dd>{formatMP(plan.result.shopMaplePoints)}</dd></div></dl><small>{calc.effectivePullWeeks ? `블루 ${plan.shopBlueWeeks}주 · 메카 ${plan.shopMechWeeks}주 구매 계획` : "0주에서는 농장 미구매"}</small></button>; })}</div>
         </div>
         <ProgressChart selected={r} sunday={calc.sunday} free={calc.free} />
         <div className={`route-grid ${calc.effectivePullWeeks === 0 ? "two" : ""}`}>
@@ -908,7 +931,7 @@ export default function Home() {
       <p className="leftover-note">{momentumLeft ? "모멘텀 패스 4주차 보상은 285 달성 후 수령합니다." : "모멘텀 패스 4주차 보상까지 사용한 결과입니다."}</p>
     </section>
 
-    <section className="mech-summary" aria-label="메카베리 사용 시점"><span>메카베리 모아쓰기</span><strong>{s.deferMomentumMech ? `Lv.${r.momentumMechLevel} 또는 ${shortDate(r.momentumMechDeadline)}부터 사용` : "즉시 사용"}</strong></section>
+    <section className="mech-summary" aria-label="메카베리 사용 시점"><span>메카베리 모아쓰기</span><strong>{calculatedSettings.deferMomentumMech ? `Lv.${r.momentumMechLevel} 또는 ${shortDate(r.momentumMechDeadline)}부터 사용` : "즉시 사용"}</strong></section>
     </>}
 
     {activeTab === "efficiency" && <section className="standalone-panel tab-panel" id="efficiency-panel" role="tabpanel" aria-labelledby="efficiency-tab">

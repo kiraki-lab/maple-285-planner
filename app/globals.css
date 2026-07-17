@@ -128,7 +128,17 @@ main { overflow: hidden; }
 .reset { margin-left: auto; padding: 10px 14px; border: 1px solid var(--line); border-radius: 12px; background: transparent; color: var(--muted); font-size: 12px; cursor: pointer; transition: all .2s ease; }
 .reset:hover { border-color: var(--purple); color: var(--purple); }
 .calculation-status { margin-left: auto; padding: 7px 10px; border-radius: 999px; color: #4f3bc6; background: #ece8ff; font-size: 12px; font-weight: 850; }
+.calculation-status.pending { color: #7b5a00; background: #fff1b8; }
 .calculation-status + .reset { margin-left: 0; }
+
+.calculate-bar { margin: 22px -30px -30px; padding: 16px 30px 24px; position: sticky; bottom: -30px; z-index: 3; border-top: 1px solid var(--soft-line); background: linear-gradient(180deg, rgba(255,253,247,.94), #fffdf7 28%); }
+.calculate-bar span { display: block; margin-bottom: 8px; color: #67636e; font-size: 11px; font-weight: 750; }
+.calculate-bar.pending span { color: #6c5200; }
+.calculate-bar button { width: 100%; min-height: 52px; border: 0; border-radius: 14px; color: #85818e; background: #ebe9ee; font-size: 14px; font-weight: 900; cursor: not-allowed; }
+.calculate-bar.pending button { color: white; background: var(--purple); box-shadow: 0 12px 24px rgba(115,87,255,.22); cursor: pointer; }
+.calculate-bar.pending button:hover:not(:disabled) { background: #6247f2; }
+.calculate-bar button:focus-visible { outline: 3px solid rgba(115,87,255,.3); outline-offset: 2px; }
+.calculate-bar button:disabled { box-shadow: none; }
 
 .field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .field-grid.compact { gap: 10px; }
@@ -311,6 +321,7 @@ footer p { margin: 0; color: #65636c; font-size: 12px; text-align: center; }
   .pre280-grid { grid-template-columns: 1fr; }
   .pre-result-grid { grid-template-columns: repeat(2, 1fr); }
   .controls { position: static; max-height: none; }
+  .calculate-bar { margin: 22px -30px -30px; position: static; }
   .leftover-grid { grid-template-columns: repeat(2, 1fr); }
   .pass-grid { grid-template-columns: 1fr; }
 }
