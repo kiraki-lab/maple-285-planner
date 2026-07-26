@@ -154,6 +154,14 @@ main { overflow: hidden; }
 .field input, .field select { width: 100%; min-height: 44px; padding: 0 12px; border: 1px solid var(--line); border-radius: 12px; outline: 0; color: var(--ink); background: white; font-size: 14px; font-weight: 700; transition: border-color .2s, box-shadow .2s; }
 .field input:focus, .field select:focus { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(115,87,255,.11); }
 .field input:disabled, .field select:disabled { opacity: .42; background: #ecebf0; cursor: not-allowed; }
+.supply-input { align-items: stretch; }
+.supply-rule { min-height: 70px; padding: 11px 12px; display: flex; flex-direction: column; justify-content: center; gap: 4px; border-radius: 12px; background: rgba(115,87,255,.08); }
+.supply-rule b { color: #4f3bc6; font-size: 12px; }
+.supply-rule span { color: #625f6a; font-size: 11px; line-height: 1.45; }
+.supply-warning { margin: 10px 0 14px; padding: 14px 15px; border-left: 3px solid var(--yellow); border-radius: 0 13px 13px 0; background: #fff9d9; }
+.supply-warning b { color: #765b00; font-size: 11px; letter-spacing: .08em; }
+.supply-warning p { margin: 5px 0 3px; color: #423b25; font-size: 12px; font-weight: 700; line-height: 1.55; }
+.supply-warning small { color: #756b4a; font-size: 11px; line-height: 1.5; }
 .quick-toggles { margin-top: 18px; padding: 12px 0; border-top: 1px solid var(--soft-line); border-bottom: 1px solid var(--soft-line); }
 .toggle-row { min-height: 42px; display: flex; align-items: center; gap: 12px; cursor: pointer; font-size: 13px; font-weight: 650; }
 .toggle-row span { margin-right: auto; }

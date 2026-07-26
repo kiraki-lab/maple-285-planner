@@ -58,6 +58,14 @@ test("keeps the 285 calculator primary and moves supporting content into tabs", 
   assert.match(page, /label: "소경축비"/);
   assert.match(page, /챌섭 EXP 패스 현재 레벨/);
   assert.match(page, /모멘텀 패스 현재 레벨/);
+  assert.match(page, /특수 물자 지원 · 4배 쿠폰 몰아쓰기/);
+  assert.match(page, /시작일 보유 · 당일 충전 포함/);
+  assert.match(page, /5회 저장 시 자동 사용/);
+  assert.match(page, /커뮤니티 테섭 1표본 가정 · 등급 상승 미반영 · 실제값 변동 가능/);
+  assert.match(page, /5회 사용은 총 12,500마리 처치 가정/);
+  assert.match(page, /4배 쿠폰 보유·소모량은 차감하지 않음/);
+  assert.match(page, /285 달성 후 남는 보상/);
+  assert.match(page, /\["특수 물자 저장", calculatedSettings\.specialSupply/);
   assert.match(page, /challengerPassCapForDate/);
   assert.match(page, /7\/22까지 최대 25레벨, 7\/23부터 최대 30레벨/);
   assert.doesNotMatch(page, /일일 사냥 경험치/);
@@ -108,6 +116,14 @@ test("keeps verified calculator constants visible in source", async () => {
   assert.doesNotMatch(page, /주간 \$\{pre280\./);
   assert.match(page, /haru1sojae\.kr\/table/);
   assert.match(page, /ownedPotion279/);
+  assert.match(page, /SPECIAL_SUPPLY_START = "2026-07-23"/);
+  assert.match(page, /SPECIAL_SUPPLY_END = "2026-08-19"/);
+  assert.match(page, /SPECIAL_SUPPLY_EXP_PER_CHARGE = 77_024_335_674/);
+  assert.match(page, /SPECIAL_SUPPLY_BATCH_SIZE = 5/);
+  assert.match(page, /specialSupply: false, specialSupplySaved: 0/);
+  assert.match(page, /SPECIAL_SUPPLY_EXP_PER_CHARGE \* SPECIAL_SUPPLY_BATCH_SIZE \/ LEVEL_280_REQUIRED_EXP/);
+  assert.match(page, /1회 77,024,335,674 EXP, 5회 385,121,678,370 EXP/);
+  assert.doesNotMatch(page, /38[_ ,]?512[_ ,]?167[_ ,]?837\s*[×x*]\s*4/);
 });
 
 test("applies normal and Special Sunday Monster Park bonuses additively", () => {

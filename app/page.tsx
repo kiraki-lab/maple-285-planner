@@ -17,6 +17,8 @@ type Settings = {
   pullWeeks: number;
   pullStrategy: PullStrategy;
   specialSundayCount: number;
+  specialSupply: boolean;
+  specialSupplySaved: number;
   challengerPassLevel: number;
   momentumPassLevel: number;
   preLevel: number;
@@ -119,6 +121,8 @@ type Simulation = {
   momentumMechDeadline: Date;
   dailyDaysApplied: number;
   ultimaCountAtReach: number;
+  specialSupplySaved: number;
+  specialSupplyUsed: number;
 };
 type PullPlan = { pullWeeks: number; targetClearWeeks: number; result: Simulation; feasible: boolean; strategy: PullStrategy; shopBlueWeeks: number; shopMechWeeks: number };
 type StrategyCandidate = { result: Simulation; shopBlueWeeks: number; shopMechWeeks: number };
@@ -165,12 +169,18 @@ const shortDate = (date: Date | null) => date ? `${date.getMonth() + 1}/${date.g
 const longDate = (date: Date | null) => date ? `${date.getMonth() + 1}월 ${date.getDate()}일` : "120일 이후";
 const addDays = (date: Date, days: number) => { const next = new Date(date); next.setDate(next.getDate() + days); return next; };
 const req = (level: number) => Math.pow(1.1, level - 280);
+const LEVEL_280_REQUIRED_EXP = 33_647_601_750_165;
+const SPECIAL_SUPPLY_EXP_PER_CHARGE = 77_024_335_674;
+const SPECIAL_SUPPLY_BATCH_SIZE = 5;
+const SPECIAL_SUPPLY_START = "2026-07-23";
+const SPECIAL_SUPPLY_END = "2026-08-19";
 const formatMP = (value: number) => `${Math.round(value).toLocaleString("ko-KR")} 메포`;
 const formatSignedMP = (value: number) => `${value > 0 ? "+" : ""}${formatMP(value)}`;
 const eok = (value: number) => `${(value / 100000000).toLocaleString("ko-KR", { maximumFractionDigits: 2 })}억`;
 
 const defaults: Settings = {
   level: 280, exp: 87.39, start: "2026-07-17", pullWeeks: 0, pullStrategy: "monsterPark", specialSundayCount: 1,
+  specialSupply: false, specialSupplySaved: 0,
   challengerPassLevel: 20, momentumPassLevel: 0,
   preLevel: 270, preExp: 0, prePassLevel: 0, preUnclaimed: true,
   preUseBlue: true, preUseSauna: true, preUseAdv: true, preUsePotion: true,
@@ -521,6 +531,10 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
   const sevenUntil = schedule.sevenUntil ?? selectedCutoff;
   const fixedRuns = schedule.fixedRuns == null ? null : Math.max(0, Math.min(7, schedule.fixedRuns));
   const specialSundayCount = Math.max(0, Math.min(12, Math.floor(s.specialSundayCount)));
+  const specialSupplyStart = parseDate(SPECIAL_SUPPLY_START);
+  const specialSupplyEnd = parseDate(SPECIAL_SUPPLY_END);
+  let specialSupplySaved = s.specialSupply ? Math.max(0, Math.min(SPECIAL_SUPPLY_BATCH_SIZE, Math.floor(s.specialSupplySaved))) : 0;
+  let specialSupplyUsed = 0;
   const runsForDate = (date: Date) => fixedRuns == null ? (date.getDay() === 0 ? 7 : date <= sevenUntil ? 7 : 2) : fixedRuns;
   const scheduleLabel = fixedRuns == null
     ? sevenUntil < start ? "평일 2판 · 일요일 7판" : `${shortDate(sevenUntil)}까지 7판 · 이후 평일 2판`
@@ -700,6 +714,17 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
       if ((!reward.attendanceReward && (reward.label !== "현재 보유분" || itemTypes.some(type => Number(reward[type] || 0) > 0))) || notableAttendance) events.push(reward.label);
     });
 
+    if (s.specialSupply && date >= specialSupplyStart && date <= specialSupplyEnd) {
+      // 시작일 보유 횟수에는 그날 충전분이 포함된 것으로 보고, 다음 날부터 하루 1회만 더합니다.
+      if (date.getTime() !== start.getTime()) specialSupplySaved = Math.min(SPECIAL_SUPPLY_BATCH_SIZE, specialSupplySaved + 1);
+      if (specialSupplySaved >= SPECIAL_SUPPLY_BATCH_SIZE && level < 285) {
+        applyRaw(SPECIAL_SUPPLY_EXP_PER_CHARGE * SPECIAL_SUPPLY_BATCH_SIZE / LEVEL_280_REQUIRED_EXP);
+        specialSupplyUsed += SPECIAL_SUPPLY_BATCH_SIZE;
+        specialSupplySaved = 0;
+        events.push("특수 물자 5회 · 4배 쿠폰");
+      }
+    }
+
     const thursday = date.getDay() === 4;
     if ((thursday && day > 0) || (day === 0 && s.weeklyOpen)) {
       const afterPatch = date >= patchDate; const afterCore6 = Boolean(core6Date && date >= core6Date);
@@ -761,7 +786,7 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
     const reachKey = reached ? iso(reached) : "9999-12-31";
     rewardDays.forEach(rewards => rewards.forEach(reward => { if (reward.attendanceReward && (reward.date || "") <= reachKey) ultimaCountAtReach = Math.max(ultimaCountAtReach, reward.attendanceCount || 0); }));
   }
-  return { start, startLevel: s.level, startExp: s.exp, rows, reached, leftovers, leftoverSources: [...new Set(leftoverSources)], shopMaplePoints, monsterParkMaplePoints, maplePoints: shopMaplePoints + monsterParkMaplePoints, scheduleLabel, sevenUntil, specialSundayCount, momentumMechLevel, momentumMechDeadline, dailyDaysApplied, ultimaCountAtReach };
+  return { start, startLevel: s.level, startExp: s.exp, rows, reached, leftovers, leftoverSources: [...new Set(leftoverSources)], shopMaplePoints, monsterParkMaplePoints, maplePoints: shopMaplePoints + monsterParkMaplePoints, scheduleLabel, sevenUntil, specialSundayCount, momentumMechLevel, momentumMechDeadline, dailyDaysApplied, ultimaCountAtReach, specialSupplySaved, specialSupplyUsed };
 }
 
 function weekStartThursday(date: Date) { const result = new Date(date); result.setDate(result.getDate() - ((result.getDay() + 3) % 7)); result.setHours(0, 0, 0, 0); return result; }
@@ -1041,6 +1066,7 @@ export default function Home() {
     ["블루베리 농장", `${r.leftovers.blue.toLocaleString("ko-KR")}장`], ["메카베리 농장", `${r.leftovers.mech.toLocaleString("ko-KR")}장`],
     ["성장의 비약 200~269", `${r.leftovers.potion269.toLocaleString("ko-KR")}개`], ["성장의 비약 200~279", `${r.leftovers.potion279.toLocaleString("ko-KR")}개`],
     ["3배 쿠폰 · 30분", `${r.leftovers.coupon3x.toLocaleString("ko-KR")}개`], ["4배 쿠폰 · 30분", `${r.leftovers.coupon4x.toLocaleString("ko-KR")}개`],
+    ["특수 물자 저장", calculatedSettings.specialSupply ? `${r.specialSupplySaved.toLocaleString("ko-KR")}회` : "계산 제외"],
   ];
   const efficiencyLevels = [280, 281, 282, 283, 284];
   const efficiencyRanking = [...efficiencyBenchmarks].sort((a, b) => relativeEfficiencyScore(b, s.level) - relativeEfficiencyScore(a, s.level));
@@ -1138,9 +1164,12 @@ export default function Home() {
         </div>
         <div className="callout-mini">스페셜 선데이는 입력한 횟수만큼 가까운 일요일부터 기본 몬파 경험치 +300%(총 4배)로 적용합니다.</div>
         <div className="quick-toggles"><Toggle label="오늘 일퀘·몬파 미완료" checked={s.todayDaily} onChange={v => set("todayDaily", v)} /><Toggle label="이번 주 스펙터 블래스트 미완료" checked={s.specter} onChange={v => set("specter", v)} /><Toggle label="이번 주 챌섭 5레벨 미완료" checked={s.challengerUnclaimed} onChange={v => set("challengerUnclaimed", v)} /></div>
-        <details><summary>패스 · 이벤트 설정 <span>10</span></summary><div className="detail-body">
+        <details><summary>패스 · 이벤트 설정 <span>12</span></summary><div className="detail-body">
           <Toggle label="챌린저스 EXP 패스" checked={s.challengerExp} onChange={v => set("challengerExp", v)} /><Toggle label="프라임 모멘텀 패스" checked={s.momentumPrime} onChange={v => set("momentumPrime", v)} /><Toggle label="모멘텀 메카베리 모아쓰기" checked={s.deferMomentumMech} onChange={v => set("deferMomentumMech", v)} />
           <div className="field-grid compact inset"><label className="field"><span>메카베리 사용 레벨</span><select value={s.momentumMechLevel} disabled={!s.deferMomentumMech} onChange={e => set("momentumMechLevel", Number(e.target.value))}>{[280, 281, 282, 283, 284].map(level => <option key={level}>{level}</option>)}</select></label><InputField label="최종 사용일" value={s.momentumMechDeadline} type="date" disabled={!s.deferMomentumMech} onChange={v => set("momentumMechDeadline", v)} /></div>
+          <Toggle label="특수 물자 지원 · 4배 쿠폰 몰아쓰기" checked={s.specialSupply} onChange={v => set("specialSupply", v)} />
+          <div className="field-grid compact inset supply-input"><InputField label="시작일 보유 · 당일 충전 포함" value={s.specialSupplySaved} min={0} max={5} step={1} disabled={!s.specialSupply} onChange={v => set("specialSupplySaved", Number(v))} /><div className="supply-rule"><b>5회 저장 시 자동 사용</b><span>7/23~8/19 · 하루 1회 · 1회당 2,500마리</span></div></div>
+          <div className="supply-warning"><b>러프값</b><p>280+ 몬스터 사냥터에서 4배 쿠폰 사용 기준 1회 77,024,335,674 EXP, 5회 385,121,678,370 EXP로 계산합니다.</p><small>5회 사용은 총 12,500마리 처치 가정 · 4배 쿠폰 보유·소모량은 차감하지 않음<br />커뮤니티 테섭 1표본 가정 · 등급 상승 미반영 · 실제값 변동 가능</small></div>
           <Toggle label="7월 NOW 보상" checked={s.apology} onChange={v => set("apology", v)} /><Toggle label="울티마 스쿼드 EXP 5,000장" checked={s.shardEvent} onChange={v => set("shardEvent", v)} /><Toggle label="울티마 작전 일지" checked={s.ultima} onChange={v => set("ultima", v)} />
           <div className="callout-mini">현재 패스 레벨까지 받은 보상은 현재 경험치에 포함된 것으로 보고 제외합니다. 챌섭은 7/22까지 최대 25레벨, 7/23부터 최대 30레벨이며 주 5레벨씩 계산합니다. 모멘텀은 주차별 2→3→3→2레벨로 진행합니다.</div>
           <div className="callout-mini shop-priority">같거나 더 늦은 날짜에 더 많은 메포를 쓰는 전략은 추천에서 제외합니다. 남은 선택지 중 순손익이 가장 좋은 경로에 추천 표시를 붙입니다.</div>
@@ -1195,7 +1224,7 @@ export default function Home() {
     <section className="rewards-section main-leftovers">
       <div className="section-heading light"><span>잔여</span><div><p>{shortDate(r.reached)} 기준</p><h2>285 달성 후 남는 보상</h2></div></div>
       <div className="leftover-grid">{leftoverRows.map(([label, value]) => <article key={label}><span>{label}</span><strong>{value}</strong></article>)}</div>
-      <p className="leftover-note">{momentumLeft ? "모멘텀 패스 4주차 보상은 285 달성 후 수령합니다." : "모멘텀 패스 4주차 보상까지 사용한 결과입니다."}</p>
+      <p className="leftover-note">{momentumLeft ? "모멘텀 패스 4주차 보상은 285 달성 후 수령합니다." : "모멘텀 패스 4주차 보상까지 사용한 결과입니다."} {calculatedSettings.specialSupply ? `특수 물자는 계산 중 ${r.specialSupplyUsed.toLocaleString("ko-KR")}회 사용했고, 도달 시점 저장 잔여를 표시했습니다.` : "특수 물자는 계산에서 제외했습니다."}</p>
     </section>
 
     <section className="mech-summary" aria-label="메카베리 사용 시점"><span>메카베리 모아쓰기</span><strong>{calculatedSettings.deferMomentumMech ? `Lv.${r.momentumMechLevel} 또는 ${shortDate(r.momentumMechDeadline)}부터 사용` : "즉시 사용"}</strong></section>
