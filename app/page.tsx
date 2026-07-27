@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   advanceBurningBeyondExperience,
   growthPotionExperience,
@@ -178,29 +178,60 @@ const SPECIAL_SUPPLY_EXP_PER_CHARGE = 77_024_335_674;
 const SPECIAL_SUPPLY_BATCH_SIZE = 5;
 const SPECIAL_SUPPLY_START = "2026-07-23";
 const SPECIAL_SUPPLY_END = "2026-08-19";
+const SPECTER_BLAST_END = "2026-07-22";
+const ULTIMA_ATTENDANCE_START = "2026-06-18";
+const ULTIMA_ATTENDANCE_MAX = 60;
+const SHOP_WEEK_STARTS = ["2026-07-23", "2026-07-30", "2026-08-06", "2026-08-13"];
+const SHOP_EVENT_END = "2026-08-19";
 const formatMP = (value: number) => `${Math.round(value).toLocaleString("ko-KR")} 메포`;
 const formatSignedMP = (value: number) => `${value > 0 ? "+" : ""}${formatMP(value)}`;
 const eok = (value: number) => `${(value / 100000000).toLocaleString("ko-KR", { maximumFractionDigits: 2 })}억`;
+const SSR_DEFAULT_START = "2026-07-27";
+const localDateInputValue = (date = new Date()) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+const ultimaProgressBefore = (start: string) => {
+  const target = parseDate(start);
+  let date = parseDate(ULTIMA_ATTENDANCE_START);
+  let count = 0;
+  let week = 0;
+  while (date < target) {
+    if (date.getDay() === 4) week = 0;
+    if (count < ULTIMA_ATTENDANCE_MAX && week < 5) { count += 1; week += 1; }
+    date = addDays(date, 1);
+  }
+  if (target.getDay() === 4) week = 0;
+  return { count, week };
+};
+const availableShopWeeksForStart = (start: Date) => {
+  const weekStarts = SHOP_WEEK_STARTS.map(parseDate);
+  const eventEnd = parseDate(SHOP_EVENT_END);
+  return weekStarts
+    .map((weekStart, index) => ({ weekStart, weekEnd: index + 1 < weekStarts.length ? addDays(weekStarts[index + 1], -1) : eventEnd, originalIndex: index }))
+    .filter(({ weekEnd }) => weekEnd >= start);
+};
 
-const defaults: Settings = {
-  level: 280, exp: 87.39, start: "2026-07-17", pullWeeks: 0, pullStrategy: "monsterPark", specialSundayCount: 1,
+const createDefaultSettings = (start = SSR_DEFAULT_START): Settings => {
+  const ultimaProgress = ultimaProgressBefore(start);
+  return ({
+  level: 280, exp: 87.39, start, pullWeeks: 0, pullStrategy: "monsterPark", specialSundayCount: 1,
   specialSupply: false, specialSupplySaved: 0,
-  challengerPassLevel: 20, momentumPassLevel: 0,
-  preLevel: 270, preExp: 0, prePassLevel: 0, preUnclaimed: true,
+  challengerPassLevel: 30, momentumPassLevel: 0,
+  preLevel: 270, preExp: 0, prePassLevel: 30, preUnclaimed: false,
   preUseBlue: true, preUseSauna: true, preUseAdv: true, preUsePotion: true,
   preMonsterParkRuns: 2, preSpecialSundayCount: 1, preDailyQuests: true, preWeeklyContent: true,
   preTodayDaily: true, preWeeklyOpen: true,
   momentumMechLevel: 284, momentumMechDeadline: "2026-08-12", mayrinMesoGap: 3, mayrinNormalFrag: 30,
-  fragPrice: 640, mpPerEok: 2500, postReset: true, challengerUnclaimed: true, challengerExp: true,
-  momentumPrime: true, deferMomentumMech: true, core6Enabled: false, apology: true, specter: true,
+  fragPrice: 640, mpPerEok: 2500, postReset: true, challengerUnclaimed: false, challengerExp: true,
+  momentumPrime: true, deferMomentumMech: true, core6Enabled: false, apology: true, specter: false,
   shardEvent: true, ultima: true, shopMech: false, shopBlue: false, mpNow: 86, mpPatch: 90,
   core20Date: "2026-07-23", core20Bonus: 5, core6Date: "2026-07-23", mpCore6: 95,
-  dailyNow: 76, dailyPatch: 95, dailyCore6: 100, shardDate: "2026-07-23", shardAdv: 5000,
-  ultimaCount: 21, ultimaWeek: 1, ultimaStart: true, grandis: true, weeklyOpen: true, todayDaily: true,
+  dailyNow: 76, dailyPatch: 95, dailyCore6: 100, shardDate: "2026-07-30", shardAdv: 5000,
+  ultimaCount: ultimaProgress.count, ultimaWeek: ultimaProgress.week, ultimaStart: true, grandis: true, weeklyOpen: true, todayDaily: true,
   extreme: true, epic: true, epicMult: 5, epicNow: 30, epicPatch: 30, core25Date: "2026-08-06",
   core25Bonus: 10, epicArtifactDate: "2026-08-13", epicArtifact: 180, epicCore6: 40,
   epicCore6Artifact: 190, ownedBlue: 0, ownedMech: 0, ownedSauna: 0, ownedAdv: 0, ownedPotion279: 0,
+  });
 };
+const defaults = createDefaultSettings();
 
 const paidStrategyIds = PAID_STRATEGY_PRIORITY as readonly Exclude<PullStrategy, "both">[];
 const paidStrategyCopy: Record<Exclude<PullStrategy, "both">, { label: string; caption: string }> = {
@@ -611,8 +642,11 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
     momentumWeekIndex += 1;
   }
   if (s.apology) addReward(start, { label: "7월 NOW 보상", mech: 1, sauna: 2, coupon4x: 4 });
-  if (s.specter) addReward(start, { label: "스펙터 블래스트", adv: 3000 });
-  if (s.shardEvent && s.shardDate) addReward(parseDate(s.shardDate), { label: "울티마 스쿼드 EXP", adv: s.shardAdv });
+  if (s.specter && start <= parseDate(SPECTER_BLAST_END)) addReward(start, { label: "스펙터 블래스트", adv: 3000 });
+  if (s.shardEvent && s.shardDate) {
+    const shardRewardDate = parseDate(s.shardDate);
+    if (shardRewardDate >= start) addReward(shardRewardDate, { label: "울티마 스쿼드 상점 EXP 5,000장 (예상)", adv: s.shardAdv });
+  }
 
   let ultimaLastScheduled = Math.max(0, Math.min(60, Math.floor(s.ultimaCount)));
   if (s.ultima) {
@@ -635,15 +669,16 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
     }
   }
 
-  const shopBlueWeeks = Math.max(0, Math.min(4, Math.floor(schedule.shopBlueWeeks ?? (s.shopBlue ? 4 : 0))));
-  const shopMechWeeks = Math.max(0, Math.min(4, Math.floor(schedule.shopMechWeeks ?? (s.shopMech ? 4 : 0))));
+  const availableShopWeeks = availableShopWeeksForStart(start);
+  const shopBlueWeeks = Math.max(0, Math.min(availableShopWeeks.length, Math.floor(schedule.shopBlueWeeks ?? (s.shopBlue ? availableShopWeeks.length : 0))));
+  const shopMechWeeks = Math.max(0, Math.min(availableShopWeeks.length, Math.floor(schedule.shopMechWeeks ?? (s.shopMech ? availableShopWeeks.length : 0))));
   if (shopBlueWeeks || shopMechWeeks) {
-    ["2026-07-23", "2026-07-30", "2026-08-06", "2026-08-13"].forEach((date, index) => {
+    availableShopWeeks.forEach(({ weekStart, originalIndex }, index) => {
       const buyBlue = index < shopBlueWeeks;
       const buyMech = index < shopMechWeeks;
       if (!buyBlue && !buyMech) return;
-      addReward(parseDate(date), {
-        label: `메포샵 ${index + 1}주차`, blue: buyBlue ? 2 : 0, mech: buyMech ? 2 : 0,
+      addReward(weekStart < start ? start : weekStart, {
+        label: `메포샵 ${originalIndex + 1}주차`, blue: buyBlue ? 2 : 0, mech: buyMech ? 2 : 0,
         maplePoints: (buyBlue ? 7000 : 0) + (buyMech ? 10000 : 0), optionalPurchase: true,
       });
     });
@@ -822,17 +857,20 @@ function* buildPlanningSteps(settings: Settings): Generator<number, Planning, vo
     both: [1, 2, 3, 4].map((weeks): [number, number] => [weeks, weeks]),
   };
   const candidateCache = new Map<string, StrategyCandidate>();
+  const availableShopWeekCount = availableShopWeeksForStart(start).length;
   candidateCache.set("0:0:0", { result: sunday, shopBlueWeeks: 0, shopMechWeeks: 0, scheduleIndex: 0 });
   candidateCache.set("0:0:64", { result: allSeven, shopBlueWeeks: 0, shopMechWeeks: 0, scheduleIndex: 64 });
   const candidateAt = function* (shopBlueWeeks: number, shopMechWeeks: number, scheduleIndex: number): Generator<number, StrategyCandidate, void> {
-    const key = `${shopBlueWeeks}:${shopMechWeeks}:${scheduleIndex}`;
+    const effectiveShopBlueWeeks = Math.min(shopBlueWeeks, availableShopWeekCount);
+    const effectiveShopMechWeeks = Math.min(shopMechWeeks, availableShopWeekCount);
+    const key = `${effectiveShopBlueWeeks}:${effectiveShopMechWeeks}:${scheduleIndex}`;
     const cached = candidateCache.get(key);
     if (cached) return cached;
     const schedule = scheduleIndex === 64 ? { fixedRuns: 7 } : { sevenUntil: addDays(start, scheduleIndex - 1) };
     const candidate = {
-      result: simulate(strategySettings, { ...schedule, shopBlueWeeks, shopMechWeeks }),
-      shopBlueWeeks,
-      shopMechWeeks,
+      result: simulate(strategySettings, { ...schedule, shopBlueWeeks: effectiveShopBlueWeeks, shopMechWeeks: effectiveShopMechWeeks }),
+      shopBlueWeeks: effectiveShopBlueWeeks,
+      shopMechWeeks: effectiveShopMechWeeks,
       scheduleIndex,
     };
     candidateCache.set(key, candidate);
@@ -937,7 +975,7 @@ async function runPlanningInChunks(settings: Settings, onProgress: (completed: n
 }
 
 const defaultPlanning = runPlanningImmediately(defaults);
-export { defaults, runPlanningImmediately };
+export { createDefaultSettings, defaults, localDateInputValue, runPlanningImmediately, simulate, ultimaProgressBefore };
 
 function InputField({ label, value, onChange, type = "number", min, max, step, disabled }: { label: string; value: string | number; onChange: (value: string) => void; type?: "number" | "date"; min?: number; max?: number; step?: number; disabled?: boolean }) {
   return <label className="field"><span>{label}</span><input type={type} value={value} onChange={e => onChange(e.target.value)} min={min} max={max} step={step} disabled={disabled} /></label>;
@@ -972,8 +1010,17 @@ export default function Home() {
   const [planning, setPlanning] = useState<Planning>(defaultPlanning);
   const [calculationSteps, setCalculationSteps] = useState(0);
   const calculationJob = useRef(0);
+  const localDefaultsApplied = useRef(false);
   const [preApplied, setPreApplied] = useState(false);
   const [activeTab, setActiveTab] = useState<ViewTab>("calculator");
+  useEffect(() => {
+    if (localDefaultsApplied.current) return;
+    localDefaultsApplied.current = true;
+    const localDefaults = createDefaultSettings(localDateInputValue());
+    setS(localDefaults);
+    setCalculatedSettings(localDefaults);
+    setPlanning(runPlanningImmediately(localDefaults));
+  }, []);
   const set = <K extends keyof Settings>(key: K, value: Settings[K]) => {
     if (pre280SettingKeys.includes(key)) setPreApplied(false);
     setS(current => ({ ...current, [key]: value }));
@@ -1057,9 +1104,10 @@ export default function Home() {
   };
   const resetCalculator = () => {
     calculationJob.current += 1;
-    setS(defaults);
-    setCalculatedSettings(defaults);
-    setPlanning(defaultPlanning);
+    const localDefaults = createDefaultSettings(localDateInputValue());
+    setS(localDefaults);
+    setCalculatedSettings(localDefaults);
+    setPlanning(runPlanningImmediately(localDefaults));
     setIsCalculating(false);
     setCalculationSteps(0);
     setPreApplied(false);
@@ -1189,14 +1237,14 @@ export default function Home() {
           <InputField label="모멘텀 패스 현재 레벨" value={s.momentumPassLevel} min={0} max={10} step={1} onChange={v => set("momentumPassLevel", Number(v))} />
         </div>
         <div className="callout-mini">스페셜 선데이는 입력한 횟수만큼 가까운 일요일부터 기본 몬파 경험치 +300%(총 4배)로 적용합니다.</div>
-        <div className="quick-toggles"><Toggle label="오늘 일퀘·몬파 미완료" checked={s.todayDaily} onChange={v => set("todayDaily", v)} /><Toggle label="이번 주 스펙터 블래스트 미완료" checked={s.specter} onChange={v => set("specter", v)} /><Toggle label="이번 주 챌섭 5레벨 미완료" checked={s.challengerUnclaimed} onChange={v => set("challengerUnclaimed", v)} /></div>
+        <div className="quick-toggles"><Toggle label="오늘 일퀘·몬파 미완료" checked={s.todayDaily} onChange={v => set("todayDaily", v)} />{parseDate(s.start) <= parseDate(SPECTER_BLAST_END) && <Toggle label="스펙터 블래스트 미완료 · 7/22 종료" checked={s.specter} onChange={v => set("specter", v)} />}<Toggle label="이번 주 챌섭 5레벨 미완료" checked={s.challengerUnclaimed} onChange={v => set("challengerUnclaimed", v)} /></div>
         <details><summary>패스 · 이벤트 설정 <span>12</span></summary><div className="detail-body">
           <Toggle label="챌린저스 EXP 패스" checked={s.challengerExp} onChange={v => set("challengerExp", v)} /><Toggle label="프라임 모멘텀 패스" checked={s.momentumPrime} onChange={v => set("momentumPrime", v)} /><Toggle label="모멘텀 메카베리 모아쓰기" checked={s.deferMomentumMech} onChange={v => set("deferMomentumMech", v)} />
           <div className="field-grid compact inset"><label className="field"><span>메카베리 사용 레벨</span><select value={s.momentumMechLevel} disabled={!s.deferMomentumMech} onChange={e => set("momentumMechLevel", Number(e.target.value))}>{[280, 281, 282, 283, 284].map(level => <option key={level}>{level}</option>)}</select></label><InputField label="최종 사용일" value={s.momentumMechDeadline} type="date" disabled={!s.deferMomentumMech} onChange={v => set("momentumMechDeadline", v)} /></div>
           <Toggle label="특수 물자 지원 · 4배 쿠폰 몰아쓰기" checked={s.specialSupply} onChange={v => set("specialSupply", v)} />
           <div className="field-grid compact inset supply-input"><InputField label="시작일 보유 · 당일 충전 포함" value={s.specialSupplySaved} min={0} max={5} step={1} disabled={!s.specialSupply} onChange={v => set("specialSupplySaved", Number(v))} /><div className="supply-rule"><b>5회 저장 시 자동 사용</b><span>7/23~8/19 · 하루 1회 · 1회당 2,500마리</span></div></div>
           <div className="supply-warning"><b>러프값</b><p>280+ 몬스터 사냥터에서 4배 쿠폰 사용 기준 1회 77,024,335,674 EXP, 5회 385,121,678,370 EXP로 계산합니다.</p><small>5회 사용은 총 12,500마리 처치 가정 · 4배 쿠폰 보유·소모량은 차감하지 않음<br />커뮤니티 테섭 1표본 가정 · 등급 상승 미반영 · 실제값 변동 가능</small></div>
-          <Toggle label="7월 NOW 보상" checked={s.apology} onChange={v => set("apology", v)} /><Toggle label="울티마 스쿼드 EXP 5,000장" checked={s.shardEvent} onChange={v => set("shardEvent", v)} /><Toggle label="울티마 작전 일지" checked={s.ultima} onChange={v => set("ultima", v)} />
+          <Toggle label="7월 NOW 보상" checked={s.apology} onChange={v => set("apology", v)} /><Toggle label="울티마 스쿼드 상점 EXP 5,000장 (예상)" checked={s.shardEvent} onChange={v => set("shardEvent", v)} /><Toggle label="울티마 작전 일지" checked={s.ultima} onChange={v => set("ultima", v)} />
           <div className="callout-mini">현재 패스 레벨까지 받은 보상은 현재 경험치에 포함된 것으로 보고 제외합니다. 챌섭은 7/22까지 최대 25레벨, 7/23부터 최대 30레벨이며 주 5레벨씩 계산합니다. 모멘텀은 주차별 2→3→3→2레벨로 진행합니다.</div>
           <div className="callout-mini shop-priority">평일 몬파는 기본 2판 뒤 유료 추가 5판을 먼저 적용합니다. 농장은 몬파만으로 다음 하드 주차를 못 당길 때만 비교하며, 같은 도달 주차에서는 더 적은 메포 경로를 추천합니다.</div>
         </div></details>
@@ -1206,7 +1254,7 @@ export default function Home() {
           <Toggle label="이번 주 익몬·악몽선경 미완료" checked={s.weeklyOpen} onChange={v => set("weeklyOpen", v)} /><Toggle label="그란디스 일퀘" checked={s.grandis} onChange={v => set("grandis", v)} /><Toggle label="익스트림 몬스터파크" checked={s.extreme} onChange={v => set("extreme", v)} /><Toggle label="악몽선경 1단계" checked={s.epic} onChange={v => set("epic", v)} />
           <div className="field-grid compact"><label className="field"><span>악몽선경 보상 배수</span><select value={s.epicMult} onChange={e => set("epicMult", Number(e.target.value))}><option value={1}>기본</option><option value={5}>4배 추가</option><option value={9}>8배 추가</option></select></label><InputField label="5레벨 에픽 · 현재 %" value={s.epicNow} onChange={v => set("epicNow", Number(v))} /><InputField label="5레벨 에픽 · 패치 후 %" value={s.epicPatch} onChange={v => set("epicPatch", Number(v))} /><InputField label="코어 총합 25 달성일" value={s.core25Date} type="date" onChange={v => set("core25Date", v)} /><InputField label="총합 25 에픽 추가 %" value={s.core25Bonus} onChange={v => set("core25Bonus", Number(v))} /><InputField label="에픽 아티팩트 활성일" value={s.epicArtifactDate} type="date" onChange={v => set("epicArtifactDate", v)} /><InputField label="아티팩트 후 5레벨 %" value={s.epicArtifact} onChange={v => set("epicArtifact", Number(v))} /><InputField label="6레벨 · 아티팩트 전 %" value={s.epicCore6} disabled={!s.core6Enabled} onChange={v => set("epicCore6", Number(v))} /><InputField label="6레벨 · 아티팩트 후 %" value={s.epicCore6Artifact} disabled={!s.core6Enabled} onChange={v => set("epicCore6Artifact", Number(v))} /></div>
         </div></details>
-        <details><summary>보유 보상 · 울티마 <span>9</span></summary><div className="detail-body"><div className="field-grid compact"><InputField label="보유 블루베리" value={s.ownedBlue} min={0} onChange={v => set("ownedBlue", Number(v))} /><InputField label="보유 메카베리" value={s.ownedMech} min={0} onChange={v => set("ownedMech", Number(v))} /><InputField label="보유 사우나 시간" value={s.ownedSauna} min={0} onChange={v => set("ownedSauna", Number(v))} /><InputField label="보유 상급 EXP" value={s.ownedAdv} min={0} onChange={v => set("ownedAdv", Number(v))} /><InputField label="보유 200~279 비약" value={s.ownedPotion279} min={0} onChange={v => set("ownedPotion279", Number(v))} /><InputField label="EXP 5,000 사용일" value={s.shardDate} type="date" disabled={!s.shardEvent} onChange={v => set("shardDate", v)} /><InputField label="상급 EXP 사용량" value={s.shardAdv} disabled={!s.shardEvent} onChange={v => set("shardAdv", Number(v))} /><InputField label="울티마 누적 출석" value={s.ultimaCount} disabled={!s.ultima} onChange={v => set("ultimaCount", Number(v))} /><InputField label="이번 주 이미 출석" value={s.ultimaWeek} disabled={!s.ultima} onChange={v => set("ultimaWeek", Number(v))} /></div><Toggle label="시작일 울티마 출석 예정" checked={s.ultimaStart} disabled={!s.ultima} onChange={v => set("ultimaStart", v)} /></div></details>
+        <details><summary>보유 보상 · 울티마 <span>9</span></summary><div className="detail-body"><div className="field-grid compact"><InputField label="보유 블루베리" value={s.ownedBlue} min={0} onChange={v => set("ownedBlue", Number(v))} /><InputField label="보유 메카베리" value={s.ownedMech} min={0} onChange={v => set("ownedMech", Number(v))} /><InputField label="보유 사우나 시간" value={s.ownedSauna} min={0} onChange={v => set("ownedSauna", Number(v))} /><InputField label="보유 상급 EXP" value={s.ownedAdv} min={0} onChange={v => set("ownedAdv", Number(v))} /><InputField label="보유 200~279 비약" value={s.ownedPotion279} min={0} onChange={v => set("ownedPotion279", Number(v))} /><InputField label="EXP 5,000 예상 사용일" value={s.shardDate} type="date" disabled={!s.shardEvent} onChange={v => set("shardDate", v)} /><InputField label="상급 EXP 사용량" value={s.shardAdv} disabled={!s.shardEvent} onChange={v => set("shardAdv", Number(v))} /><InputField label="울티마 누적 출석" value={s.ultimaCount} disabled={!s.ultima} onChange={v => set("ultimaCount", Number(v))} /><InputField label="이번 주 이미 출석" value={s.ultimaWeek} disabled={!s.ultima} onChange={v => set("ultimaWeek", Number(v))} /></div><Toggle label="시작일 울티마 출석 예정" checked={s.ultimaStart} disabled={!s.ultima} onChange={v => set("ultimaStart", v)} /></div></details>
         <div className={`calculate-bar ${hasPendingChanges ? "pending" : ""} ${isCalculating ? "calculating" : ""}`}>
           <span>{isCalculating ? `전략 비교 중 · ${calculationSteps.toLocaleString("ko-KR")}개 확인` : hasPendingChanges ? "입력값이 변경되었습니다" : "현재 입력값으로 계산 완료"}</span>
           {isCalculating && <div className="calculation-progress" aria-hidden="true"><i /></div>}
@@ -1292,6 +1340,6 @@ export default function Home() {
       <div className="pass-grid"><article><div className="table-title"><span>CHALLENGERS · 현재 {s.challengerPassLevel}레벨</span><h3>챌린저스 EXP 패스</h3></div><table><thead><tr><th>레벨 구간</th><th>일반</th><th>EXP 패스 포함</th></tr></thead><tbody><tr><td>1~10</td><td>-</td><td>블루베리 6 · 사우나 2시간 · 상급 EXP 2,000</td></tr><tr><td>11~20</td><td>-</td><td>블루베리 6 · 사우나 2시간 · 상급 EXP 2,000</td></tr><tr><td>21~25</td><td>상급 EXP 100</td><td>블루베리 3 · 사우나 1시간 · 상급 EXP 1,100</td></tr><tr><td>26~30</td><td>상급 EXP 2,100</td><td>블루베리 2 · 사우나 1시간 · 상급 EXP 3,100 · 비약 1</td></tr><tr className="total"><td>1~30 합계</td><td>상급 EXP 2,200</td><td>블루베리 17 · 사우나 6시간 · 상급 EXP 8,200 · 비약 1</td></tr></tbody></table></article><article><div className="table-title"><span>MOMENTUM · 현재 {s.momentumPassLevel}레벨</span><h3>모멘텀 패스</h3></div><table><thead><tr><th>레벨 구간</th><th>프라임 핵심 보상</th></tr></thead><tbody><tr><td>1~2</td><td>메카베리 2 · 사우나 30분 · 4배 쿠폰 2</td></tr><tr><td>3~5</td><td>메카베리 2 · 사우나 30분 · 상급 EXP 3,100 · 4배 2</td></tr><tr><td>6~8</td><td>메카베리 3 · 사우나 30분 · 상급 EXP 3,100 · 4배 2</td></tr><tr><td>9~10</td><td>메카베리 4 · 상급 EXP 3,300</td></tr><tr className="total"><td>1~10 합계</td><td>메카베리 11 · 사우나 1.5시간 · 상급 EXP 9,500</td></tr></tbody></table></article></div>
     </section>}
 
-    <footer><div className="brand"><span className="brand-mark">M</span><span>285 CALCULATOR</span></div><p>경험치 기준 · 하루1소재 · 메이플로드 · 2026.07.17</p><div className="source-links"><a href="https://haru1sojae.kr/table" target="_blank" rel="noreferrer">하루1소재</a><a href="https://mapleroad.kr/utils/exp_calculator" target="_blank" rel="noreferrer">메이플로드</a><a href="https://maplestory.nexon.com/testworld/news/all/188" target="_blank" rel="noreferrer">테스트월드</a></div></footer>
+    <footer><div className="brand"><span className="brand-mark">M</span><span>285 CALCULATOR</span></div><p>경험치 기준 · 하루1소재 · 메이플로드 · 2026.07.27 확인</p><div className="source-links"><a href="https://haru1sojae.kr/table" target="_blank" rel="noreferrer">하루1소재</a><a href="https://mapleroad.kr/utils/exp_calculator" target="_blank" rel="noreferrer">메이플로드</a><a href="https://maplestory.nexon.com/testworld/news/all/188" target="_blank" rel="noreferrer">테스트월드</a></div></footer>
   </main>;
 }

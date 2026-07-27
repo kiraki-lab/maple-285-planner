@@ -90,9 +90,14 @@ test("keeps the 285 calculator primary and moves supporting content into tabs", 
 test("keeps verified calculator constants visible in source", async () => {
   const page = await readFile(new URL("app/page.tsx", root), "utf8");
   assert.match(page, /mpNow: 86/);
+  assert.match(page, /SSR_DEFAULT_START = "2026-07-27"/);
   assert.match(page, /specialSundayCount: 1/);
-  assert.match(page, /challengerPassLevel: 20/);
+  assert.match(page, /challengerPassLevel: 30/);
+  assert.match(page, /prePassLevel: 30, preUnclaimed: false/);
+  assert.match(page, /challengerUnclaimed: false/);
+  assert.match(page, /specter: false/);
   assert.match(page, /momentumPassLevel: 0/);
+  assert.match(page, /shardDate: "2026-07-30"/);
   assert.match(page, /shardAdv: 5000/);
   assert.match(page, /core20Date: "2026-07-23"/);
   assert.match(page, /core25Date: "2026-08-06"/);
@@ -125,10 +130,161 @@ test("keeps verified calculator constants visible in source", async () => {
   assert.match(page, /SPECIAL_SUPPLY_END = "2026-08-19"/);
   assert.match(page, /SPECIAL_SUPPLY_EXP_PER_CHARGE = 77_024_335_674/);
   assert.match(page, /SPECIAL_SUPPLY_BATCH_SIZE = 5/);
+  assert.match(page, /SPECTER_BLAST_END = "2026-07-22"/);
   assert.match(page, /specialSupply: false, specialSupplySaved: 0/);
   assert.match(page, /SPECIAL_SUPPLY_EXP_PER_CHARGE \* SPECIAL_SUPPLY_BATCH_SIZE \/ LEVEL_280_REQUIRED_EXP/);
   assert.match(page, /1회 77,024,335,674 EXP, 5회 385,121,678,370 EXP/);
   assert.doesNotMatch(page, /38[_ ,]?512[_ ,]?167[_ ,]?837\s*[×x*]\s*4/);
+  assert.match(page, /울티마 스쿼드 상점 EXP 5,000장 \(예상\)/);
+  assert.match(page, /2026\.07\.27 확인/);
+});
+
+test("uses the browser-local date and Challenger EXP Pass level 30 for defaults", async () => {
+  const manifest = JSON.parse(await readFile(new URL("dist/client/.vite/manifest.json", root), "utf8"));
+  const pageModuleUrl = new URL(`dist/client/${manifest["app/page.tsx"].file}`, root);
+  const pageModule = await import(`${pageModuleUrl.href}?local-defaults-regression`);
+
+  const controlledLocalDate = new Date(2026, 0, 2, 23, 59, 59);
+  const controlledNextDay = new Date(2026, 0, 3, 0, 0, 1);
+
+  assert.equal(pageModule.localDateInputValue(controlledLocalDate), "2026-01-02");
+  assert.equal(pageModule.localDateInputValue(controlledNextDay), "2026-01-03");
+  assert.equal(pageModule.defaults.start, "2026-07-27");
+  assert.equal(pageModule.createDefaultSettings("2026-07-27").start, "2026-07-27");
+  const currentDefaults = pageModule.createDefaultSettings("2026-07-27");
+  assert.equal(currentDefaults.challengerPassLevel, 30);
+  assert.equal(currentDefaults.prePassLevel, 30);
+  assert.equal(currentDefaults.challengerUnclaimed, false);
+  assert.equal(currentDefaults.preUnclaimed, false);
+  assert.equal(currentDefaults.specter, false);
+  assert.equal(currentDefaults.shardDate, "2026-07-30");
+  assert.equal(currentDefaults.ultimaCount, 29);
+  assert.equal(currentDefaults.ultimaWeek, 4);
+  assert.deepEqual(pageModule.ultimaProgressBefore("2026-07-17"), { count: 21, week: 1 });
+  assert.deepEqual(pageModule.ultimaProgressBefore("2026-07-23"), { count: 25, week: 0 });
+  assert.deepEqual(pageModule.ultimaProgressBefore("2026-07-27"), { count: 29, week: 4 });
+  assert.deepEqual(pageModule.ultimaProgressBefore("2026-07-30"), { count: 30, week: 0 });
+  assert.deepEqual(pageModule.ultimaProgressBefore("2026-09-17"), { count: 60, week: 0 });
+});
+
+test("applies local defaults only after hydration and keeps reset in sync", async () => {
+  const page = await readFile(new URL("app/page.tsx", root), "utf8");
+
+  assert.match(page, /const defaults = createDefaultSettings\(\)/);
+  assert.match(page, /const localDefaultsApplied = useRef\(false\)/);
+  assert.match(page, /useEffect\(\(\) => \{/);
+  assert.match(page, /const localDefaults = createDefaultSettings\(localDateInputValue\(\)\)/);
+  assert.match(page, /setS\(localDefaults\)/);
+  assert.match(page, /setCalculatedSettings\(localDefaults\)/);
+  assert.match(page, /setPlanning\(runPlanningImmediately\(localDefaults\)\)/);
+  assert.equal((page.match(/const localDefaults = createDefaultSettings\(localDateInputValue\(\)\)/g) || []).length, 2);
+  assert.doesNotMatch(page, /localDateInputValue[\s\S]{0,300}toISOString/);
+});
+
+test("ignores Specter Blast and Ultima shop EXP rewards that are already past", async () => {
+  const manifest = JSON.parse(await readFile(new URL("dist/client/.vite/manifest.json", root), "utf8"));
+  const pageModuleUrl = new URL(`dist/client/${manifest["app/page.tsx"].file}`, root);
+  const pageModule = await import(`${pageModuleUrl.href}?past-reward-regression`);
+  const inactiveSettings = start => ({
+    ...pageModule.createDefaultSettings(start),
+    level: 284,
+    exp: 0,
+    challengerPassLevel: 30,
+    momentumPassLevel: 10,
+    apology: false,
+    ultima: false,
+    specialSupply: false,
+    todayDaily: false,
+    weeklyOpen: false,
+    grandis: false,
+    extreme: false,
+    epic: false,
+  });
+
+  const expired = pageModule.simulate({
+    ...inactiveSettings("2026-07-27"),
+    specter: true,
+    shardEvent: true,
+    shardDate: "2026-07-26",
+  }, { fixedRuns: 0 });
+  const historicalSpecter = pageModule.simulate({
+    ...inactiveSettings("2026-07-22"),
+    specter: true,
+    shardEvent: false,
+  }, { fixedRuns: 0 });
+  const scheduledShopExp = pageModule.simulate({
+    ...inactiveSettings("2026-07-27"),
+    specter: false,
+    shardEvent: true,
+    shardDate: "2026-07-30",
+  }, { fixedRuns: 0 });
+
+  assert.equal(expired.leftovers.adv, 0);
+  assert.equal(expired.rows.some(row => row.events.some(event => event.includes("스펙터 블래스트") || event.includes("울티마 스쿼드 상점"))), false);
+  assert.equal(historicalSpecter.rows[0].events.includes("스펙터 블래스트"), true);
+  assert.equal(scheduledShopExp.rows.some(row => row.key === "2026-07-30" && row.events.includes("울티마 스쿼드 상점 EXP 5,000장 (예상)")), true);
+});
+
+test("buys the first still-open Maple Point shop week on the calculation start date", async () => {
+  const manifest = JSON.parse(await readFile(new URL("dist/client/.vite/manifest.json", root), "utf8"));
+  const pageModuleUrl = new URL(`dist/client/${manifest["app/page.tsx"].file}`, root);
+  const pageModule = await import(`${pageModuleUrl.href}?shop-week-regression`);
+  const settings = {
+    ...pageModule.createDefaultSettings("2026-07-27"),
+    level: 280,
+    exp: 0,
+    challengerPassLevel: 30,
+    momentumPassLevel: 10,
+    apology: false,
+    specter: false,
+    shardEvent: false,
+    ultima: false,
+    specialSupply: false,
+    todayDaily: false,
+    weeklyOpen: false,
+    grandis: false,
+    extreme: false,
+    epic: false,
+  };
+  const result = pageModule.simulate(settings, { fixedRuns: 0, shopBlueWeeks: 1 });
+
+  assert.equal(result.shopMaplePoints, 7000);
+  assert.equal(result.rows[0].key, "2026-07-27");
+  assert.equal(result.rows[0].events.includes("메포샵 1주차"), true);
+});
+
+test("starts Thursday Ultima attendance from the new week without overwriting manual input", async () => {
+  const manifest = JSON.parse(await readFile(new URL("dist/client/.vite/manifest.json", root), "utf8"));
+  const pageModuleUrl = new URL(`dist/client/${manifest["app/page.tsx"].file}`, root);
+  const pageModule = await import(`${pageModuleUrl.href}?ultima-thursday-regression`);
+  const settingsFor = start => ({
+    ...pageModule.createDefaultSettings(start),
+    level: 284,
+    exp: 99.999,
+    challengerPassLevel: 30,
+    momentumPassLevel: 10,
+    apology: false,
+    specter: false,
+    shardEvent: false,
+    specialSupply: false,
+    todayDaily: false,
+    weeklyOpen: false,
+    grandis: false,
+    extreme: false,
+    epic: false,
+    ownedBlue: 1,
+  });
+
+  const july23 = pageModule.simulate(settingsFor("2026-07-23"), { fixedRuns: 0 });
+  const july30 = pageModule.simulate(settingsFor("2026-07-30"), { fixedRuns: 0 });
+  const manuallyCompletedThursday = pageModule.simulate({
+    ...settingsFor("2026-07-23"),
+    ultimaWeek: 5,
+  }, { fixedRuns: 0 });
+
+  assert.equal(july23.ultimaCountAtReach, 26);
+  assert.equal(july30.ultimaCountAtReach, 31);
+  assert.equal(manuallyCompletedThursday.ultimaCountAtReach, 25);
 });
 
 test("applies normal and Special Sunday Monster Park bonuses additively", () => {
@@ -175,7 +331,7 @@ test("recommends paid weekday Monster Park for the reported Lv.282 case", async 
   const pageModuleUrl = new URL(`dist/client/${manifest["app/page.tsx"].file}`, root);
   const pageModule = await import(`${pageModuleUrl.href}?priority-regression`);
   const settings = {
-    ...pageModule.defaults,
+    ...pageModule.createDefaultSettings("2026-07-27"),
     level: 282,
     exp: 40.999,
     start: "2026-07-27",
@@ -187,13 +343,13 @@ test("recommends paid weekday Monster Park for the reported Lv.282 case", async 
   const planning = pageModule.runPlanningImmediately(settings);
   const recommended = planning.recommendedPlansByWeek[1];
 
-  assert.equal(planning.maxPullWeeks, 1);
+  assert.equal(planning.maxPullWeeks, 2);
   assert.equal(planning.bestPlansByWeek[1].strategy, "monsterPark");
   assert.deepEqual(recommended.map(plan => plan.strategy), ["monsterPark"]);
-  assert.equal(recommended[0].scheduleIndex, 12);
+  assert.equal(recommended[0].scheduleIndex, 10);
   assert.equal(recommended[0].result.shopMaplePoints, 0);
-  assert.equal(recommended[0].result.monsterParkMaplePoints, 42_000);
-  assert.equal(recommended[0].result.reached.toISOString().slice(0, 10), "2026-08-17");
+  assert.equal(recommended[0].result.monsterParkMaplePoints, 36_000);
+  assert.equal(recommended[0].result.reached.toISOString().slice(0, 10), "2026-08-18");
 });
 
 test("carries the full growth-potion overflow into level 280 with Burning Beyond", () => {
