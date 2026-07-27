@@ -463,3 +463,40 @@ test("advances every Burning Beyond level-up by two levels through 280", () => {
     assert.equal(state.experience, 0);
   }
 });
+
+test("shows the two-week Mayrin ROI as a cumulative comparison from week zero", async () => {
+  const manifest = JSON.parse(await readFile(new URL("dist/client/.vite/manifest.json", root), "utf8"));
+  const pageModuleUrl = new URL(`dist/client/${manifest["app/page.tsx"].file}`, root);
+  const pageModule = await import(`${pageModuleUrl.href}?cumulative-roi-regression`);
+  const roi = pageModule.calculateMayrinRoi({
+    selectedMaplePoints: 93_000,
+    baselineMaplePoints: 9_000,
+    previousMaplePoints: 93_000,
+    selectedHardWeeks: 2,
+    baselineHardWeeks: 0,
+    previousHardWeeks: 2,
+    hardValue: 492_000_000,
+    mpPerEok: 2_500,
+  });
+
+  assert.equal(roi.cumulative.maplePoints, 84_000);
+  assert.equal(roi.cumulative.hardWeeks, 2);
+  assert.equal(roi.cumulative.costValue, 3_360_000_000);
+  assert.equal(roi.cumulative.recoveredValue, 984_000_000);
+  assert.equal(roi.cumulative.netValue, -2_376_000_000);
+  assert.ok(Math.abs(roi.cumulative.recoveryRate - 29.285714285714285) < 1e-12);
+  assert.equal(roi.marginal.maplePoints, 0);
+  assert.equal(roi.marginal.netValue, 0);
+});
+
+test("labels cumulative ROI as the main result and keeps the prior step secondary", async () => {
+  const page = await readFile(new URL("app/page.tsx", root), "utf8");
+
+  assert.match(page, /HARD MAYRIN ROI · \{calc\.effectivePullWeeks \? `0주 대비/);
+  assert.match(page, /\$\{calc\.effectivePullWeeks\}주 당김 총손익/);
+  assert.match(page, /0주 대비 추가 메포/);
+  assert.match(page, /0주 대비 하드 추가/);
+  assert.match(page, /0주 대비 누적 회수/);
+  assert.match(page, /직전 \{calc\.effectivePullWeeks - 1\}주 경로 대비/);
+  assert.match(page, /직전 \$\{calc\.effectivePullWeeks - 1\}주 경로와 같은 비용/);
+});

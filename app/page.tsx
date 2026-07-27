@@ -186,6 +186,45 @@ const SHOP_EVENT_END = "2026-08-19";
 const formatMP = (value: number) => `${Math.round(value).toLocaleString("ko-KR")} 메포`;
 const formatSignedMP = (value: number) => `${value > 0 ? "+" : ""}${formatMP(value)}`;
 const eok = (value: number) => `${(value / 100000000).toLocaleString("ko-KR", { maximumFractionDigits: 2 })}억`;
+export function calculateMayrinRoi({
+  selectedMaplePoints,
+  baselineMaplePoints,
+  previousMaplePoints,
+  selectedHardWeeks,
+  baselineHardWeeks,
+  previousHardWeeks,
+  hardValue,
+  mpPerEok,
+}: {
+  selectedMaplePoints: number;
+  baselineMaplePoints: number;
+  previousMaplePoints: number;
+  selectedHardWeeks: number;
+  baselineHardWeeks: number;
+  previousHardWeeks: number;
+  hardValue: number;
+  mpPerEok: number;
+}) {
+  const compare = (comparisonMaplePoints: number, comparisonHardWeeks: number) => {
+    const maplePoints = selectedMaplePoints - comparisonMaplePoints;
+    const hardWeeks = Math.max(0, selectedHardWeeks - comparisonHardWeeks);
+    const costValue = maplePoints / Math.max(1, mpPerEok) * 100000000;
+    const recoveredValue = hardWeeks * hardValue;
+    return {
+      maplePoints,
+      hardWeeks,
+      costValue,
+      recoveredValue,
+      netValue: recoveredValue - costValue,
+      recoveryRate: costValue > 0 ? recoveredValue / costValue * 100 : 0,
+    };
+  };
+
+  return {
+    cumulative: compare(baselineMaplePoints, baselineHardWeeks),
+    marginal: compare(previousMaplePoints, previousHardWeeks),
+  };
+}
 const SSR_DEFAULT_START = "2026-07-27";
 const localDateInputValue = (date = new Date()) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 const ultimaProgressBefore = (start: string) => {
@@ -1019,19 +1058,30 @@ export default function Home() {
     const selectedHardWeeks = mayrinClearWeeks(selected.reached) + (selected.reached ? reset : 0);
     const baseHardWeeks = mayrinClearWeeks(basePlan.result.reached) + (basePlan.result.reached ? reset : 0);
     const previousHardWeeks = mayrinClearWeeks(previousPlan.result.reached) + (previousPlan.result.reached ? reset : 0);
-    const marginalGainedHardWeeks = effectivePullWeeks > 0 ? Math.max(0, selectedHardWeeks - previousHardWeeks) : 0;
-    const marginalMP = effectivePullWeeks > 0 ? selected.maplePoints - previousPlan.result.maplePoints : selected.maplePoints - free.maplePoints;
+    const roi = calculateMayrinRoi({
+      selectedMaplePoints: selected.maplePoints,
+      baselineMaplePoints: basePlan.result.maplePoints,
+      previousMaplePoints: effectivePullWeeks > 0 ? previousPlan.result.maplePoints : free.maplePoints,
+      selectedHardWeeks,
+      baselineHardWeeks: baseHardWeeks,
+      previousHardWeeks: effectivePullWeeks > 0 ? previousHardWeeks : selectedHardWeeks,
+      hardValue,
+      mpPerEok: s.mpPerEok,
+    });
+    const marginalGainedHardWeeks = roi.marginal.hardWeeks;
+    const marginalMP = roi.marginal.maplePoints;
     const marginalMonsterParkMP = selected.monsterParkMaplePoints - previousPlan.result.monsterParkMaplePoints;
     const marginalShopMP = selected.shopMaplePoints - previousPlan.result.shopMaplePoints;
-    const marginalCostValue = marginalMP / Math.max(1, s.mpPerEok) * 100000000;
-    const marginalRecoveredValue = marginalGainedHardWeeks * hardValue;
-    const marginalNetValue = marginalRecoveredValue - marginalCostValue;
-    const marginalRecoveryRate = marginalCostValue > 0 ? marginalRecoveredValue / marginalCostValue * 100 : 0;
-    const cumulativeGainedHardWeeks = Math.max(0, selectedHardWeeks - baseHardWeeks);
-    const cumulativeMP = selected.maplePoints - basePlan.result.maplePoints;
-    const cumulativeCostValue = cumulativeMP / Math.max(1, s.mpPerEok) * 100000000;
-    const cumulativeRecoveredValue = cumulativeGainedHardWeeks * hardValue;
-    const cumulativeNetValue = cumulativeRecoveredValue - cumulativeCostValue;
+    const marginalCostValue = roi.marginal.costValue;
+    const marginalRecoveredValue = roi.marginal.recoveredValue;
+    const marginalNetValue = roi.marginal.netValue;
+    const marginalRecoveryRate = roi.marginal.recoveryRate;
+    const cumulativeGainedHardWeeks = roi.cumulative.hardWeeks;
+    const cumulativeMP = roi.cumulative.maplePoints;
+    const cumulativeCostValue = roi.cumulative.costValue;
+    const cumulativeRecoveredValue = roi.cumulative.recoveredValue;
+    const cumulativeNetValue = roi.cumulative.netValue;
+    const cumulativeRecoveryRate = roi.cumulative.recoveryRate;
     const recommendedRoiPlans = recommendedPlansByWeek[effectivePullWeeks].map(plan => {
       const hardWeeks = mayrinClearWeeks(plan.result.reached) + (plan.result.reached ? reset : 0);
       const gainedHardWeeks = Math.max(0, hardWeeks - baseHardWeeks);
@@ -1045,7 +1095,7 @@ export default function Home() {
       selected, sunday, free, allSeven, strategyPlans, recommendedPlansByWeek, bestPlansByWeek, selectedPlan, basePlan, previousPlan,
       effectivePullWeeks, maxPullWeeks, hardValue, selectedHardWeeks, baseHardWeeks, marginalGainedHardWeeks,
       marginalMP, marginalMonsterParkMP, marginalShopMP, marginalCostValue, marginalRecoveredValue, marginalNetValue, marginalRecoveryRate,
-      cumulativeGainedHardWeeks, cumulativeMP, cumulativeCostValue, cumulativeRecoveredValue, cumulativeNetValue,
+      cumulativeGainedHardWeeks, cumulativeMP, cumulativeCostValue, cumulativeRecoveredValue, cumulativeNetValue, cumulativeRecoveryRate,
       bestRoiStrategy, deadline, deadlineMet: selectedPlan.feasible,
     };
   }, [planning, calculatedSettings]);
@@ -1111,6 +1161,10 @@ export default function Home() {
   const recommendedPrefix = r.sevenUntil < r.start ? "평일 2판 · 일요일 7판" : `${shortDate(r.sevenUntil)}까지만 평일 7판`;
   const selectedStrategy = pullStrategies.find(strategy => strategy.id === calc.selectedPlan.strategy) || pullStrategies[0];
   const selectedRouteTitle = selectedStrategy.id === "monsterPark" ? r.scheduleLabel : `${selectedStrategy.label} · ${r.scheduleLabel}`;
+  const primaryRoiNetValue = calc.effectivePullWeeks ? calc.cumulativeNetValue : calc.marginalNetValue;
+  const primaryRoiHardWeeks = calc.effectivePullWeeks ? calc.cumulativeGainedHardWeeks : calc.marginalGainedHardWeeks;
+  const primaryRoiRecoveredValue = calc.effectivePullWeeks ? calc.cumulativeRecoveredValue : calc.marginalRecoveredValue;
+  const primaryRoiRecoveryRate = calc.effectivePullWeeks ? calc.cumulativeRecoveryRate : calc.marginalRecoveryRate;
   const momentumLeft = r.leftoverSources.some(source => source.includes("모멘텀 패스"));
   const leftoverRows: [string, string][] = [
     ["상급 EXP 교환권", `${r.leftovers.adv.toLocaleString("ko-KR")}장`], ["VIP 사우나", `${r.leftovers.sauna.toLocaleString("ko-KR", { maximumFractionDigits: 2 })}시간`],
@@ -1138,7 +1192,7 @@ export default function Home() {
       <div className="hero-grid">
         <article className="hero-card primary"><div className="card-label">{calc.effectivePullWeeks ? `${calc.effectivePullWeeks}주 당김 · ${selectedStrategy.label}` : "마감만 맞추기"}</div><strong>{longDate(r.reached)}</strong><span>{r.scheduleLabel}</span><div className="card-meta"><b>{formatMP(r.maplePoints)}</b><em>몬파 {formatMP(r.monsterParkMaplePoints)} · 상점 {formatMP(r.shopMaplePoints)}</em></div></article>
         <article className="hero-card"><div className="card-label">0주 · 마감 기준</div><strong>{longDate(calc.basePlan.result.reached)}</strong><span>{calc.basePlan.result.scheduleLabel}</span><div className="card-meta"><b>{formatMP(calc.basePlan.result.maplePoints)}</b><em>상점 없이 9월 16일 달성</em></div></article>
-        <article className="hero-card verdict"><div className="card-label">이번 한 주 손익</div><strong className={calc.marginalNetValue >= 0 ? "positive" : "negative"}>{calc.marginalNetValue >= 0 ? "+" : ""}{eok(calc.marginalNetValue)}</strong><span>{calc.effectivePullWeeks ? `직전 단계 대비 회수율 ${calc.marginalRecoveryRate.toFixed(1)}%` : "마감은 필수조건 · 손익과 분리"}</span><div className="card-meta"><b>{calc.marginalGainedHardWeeks}회 추가</b><em>보상 {eok(calc.marginalRecoveredValue)}</em></div></article>
+        <article className="hero-card verdict"><div className="card-label">{calc.effectivePullWeeks ? `${calc.effectivePullWeeks}주 총손익 · 0주 대비` : "마감 확보 손익"}</div><strong className={primaryRoiNetValue >= 0 ? "positive" : "negative"}>{primaryRoiNetValue >= 0 ? "+" : ""}{eok(primaryRoiNetValue)}</strong><span>{calc.effectivePullWeeks ? `누적 회수율 ${primaryRoiRecoveryRate.toFixed(1)}%` : "마감은 필수조건 · 손익과 분리"}</span><div className="card-meta"><b>{primaryRoiHardWeeks}회 추가</b><em>보상 {eok(primaryRoiRecoveredValue)}</em></div></article>
       </div>
       <div className={`hero-note ${calc.deadlineMet ? "" : "deadline-fail"}`}><span className="pulse" /><p><b>{calc.selectedPlan.strategy === calc.bestRoiStrategy ? "추천 · 순손익 최고" : calc.selectedPlan.strategy === calc.bestPlansByWeek[calc.effectivePullWeeks]?.strategy ? "메포 최저" : "더 빠른 선택"}</b> {selectedStrategy.id === "monsterPark" ? recommendedPrefix : `${selectedStrategy.label} · ${recommendedPrefix}`} → {shortDate(r.reached)} · 총 {formatMP(r.maplePoints)} · {pullDays ? `마감 경로보다 ${pullDays}일 빠름` : "9월 16일 마감 기준"}</p></div>
     </section>
@@ -1271,10 +1325,10 @@ export default function Home() {
           <article className="route-card free-route"><div><div className="route-card-label"><span>추가 메포 0 비교</span><i>무료 기준</i></div><h3>매일 2판</h3><p>일요일 추가 5판도 하지 않는 비교 경로입니다.</p></div><strong>{shortDate(calc.free.reached)}</strong><dl><div><dt>추가 메포</dt><dd>0 메포</dd></div><div><dt>9/16 마감</dt><dd>{calc.free.reached && calc.free.reached <= calc.deadline ? "통과" : "실패"}</dd></div></dl></article>
         </div>
         <div className="decision-card">
-          <div className="decision-top"><div><span>HARD MAYRIN ROI · {calc.effectivePullWeeks ? `${calc.effectivePullWeeks - 1}→${calc.effectivePullWeeks}주 · ${selectedStrategy.label}` : "DEADLINE"}</span><h3>{calc.effectivePullWeeks ? "이번 한 주를 더 당기는 가격" : "9월 16일 마감 확보 비용"}</h3></div><strong className={calc.marginalNetValue >= 0 ? "positive" : "negative"}>{calc.marginalNetValue >= 0 ? "+" : ""}{eok(calc.marginalNetValue)} 메소</strong></div>
-          <div className="roi-grid"><div><span>직전 단계 대비 총 메포</span><b>{formatMP(calc.marginalMP)}</b><small>몬파 {formatSignedMP(calc.marginalMonsterParkMP)} · 상점 {formatSignedMP(calc.marginalShopMP)}</small></div><div><span>하드 추가 횟수</span><b>{calc.marginalGainedHardWeeks}회</b><small>노말→하드 가치 {eok(calc.hardValue)}</small></div><div><span>이번 단계 회수</span><b>{eok(calc.marginalRecoveredValue)}</b><small>비용 {eok(calc.marginalCostValue)} · 회수율 {calc.marginalRecoveryRate.toFixed(1)}%</small></div></div>
-          <div className="cumulative-roi"><span>0주 대비 누적</span><b>추가 {formatMP(calc.cumulativeMP)} · 하드 +{calc.cumulativeGainedHardWeeks}회 · 순손익 <em className={calc.cumulativeNetValue >= 0 ? "positive" : "negative"}>{calc.cumulativeNetValue >= 0 ? "+" : ""}{eok(calc.cumulativeNetValue)}</em></b></div>
-          <p>{calc.effectivePullWeeks ? `${selectedStrategy.label} 기준으로 바로 앞 단계와 비교했습니다. 2주 당김이라면 같은 전략으로 두 번째 한 주를 추가할 때 드는 몬파·상점 메포만 표시합니다.` : "9월 16일 285는 필수조건으로 보고, 0주에서는 상점 구매 없이 마감을 맞추는 최소 몬파 비용만 표시합니다."} 이미 돌린 몬파 7판은 현재 경험치에 들어간 매몰비용입니다.</p>
+          <div className="decision-top"><div><span>HARD MAYRIN ROI · {calc.effectivePullWeeks ? `0주 대비 · ${selectedStrategy.label}` : "DEADLINE"}</span><h3>{calc.effectivePullWeeks ? `${calc.effectivePullWeeks}주 당김 총손익` : "9월 16일 마감 확보 비용"}</h3></div><strong className={primaryRoiNetValue >= 0 ? "positive" : "negative"}>{primaryRoiNetValue >= 0 ? "+" : ""}{eok(primaryRoiNetValue)} 메소</strong></div>
+          <div className="roi-grid"><div><span>{calc.effectivePullWeeks ? "0주 대비 추가 메포" : "추가 메포 0 대비"}</span><b>{formatMP(calc.effectivePullWeeks ? calc.cumulativeMP : calc.marginalMP)}</b><small>{calc.effectivePullWeeks ? `0주 ${formatMP(calc.basePlan.result.maplePoints)} → ${calc.effectivePullWeeks}주 ${formatMP(r.maplePoints)}` : `몬파 ${formatSignedMP(calc.marginalMonsterParkMP)} · 상점 ${formatSignedMP(calc.marginalShopMP)}`}</small></div><div><span>{calc.effectivePullWeeks ? "0주 대비 하드 추가" : "하드 추가 횟수"}</span><b>{primaryRoiHardWeeks}회</b><small>노말→하드 가치 {eok(calc.hardValue)}</small></div><div><span>{calc.effectivePullWeeks ? "0주 대비 누적 회수" : "마감 경로 회수"}</span><b>{eok(primaryRoiRecoveredValue)}</b><small>비용 {eok(calc.effectivePullWeeks ? calc.cumulativeCostValue : calc.marginalCostValue)} · 회수율 {primaryRoiRecoveryRate.toFixed(1)}%</small></div></div>
+          {calc.effectivePullWeeks > 0 && <div className="cumulative-roi"><span>직전 {calc.effectivePullWeeks - 1}주 경로 대비</span><b>{calc.marginalMP === 0 ? `직전 ${calc.effectivePullWeeks - 1}주 경로와 같은 비용` : `메포 ${formatSignedMP(calc.marginalMP)}`} · 하드 +{calc.marginalGainedHardWeeks}회 · 단계 손익 <em className={calc.marginalNetValue >= 0 ? "positive" : "negative"}>{calc.marginalNetValue >= 0 ? "+" : ""}{eok(calc.marginalNetValue)}</em></b></div>}
+          <p>{calc.effectivePullWeeks ? `0주 비교 기준부터 선택한 ${calc.effectivePullWeeks}주 경로까지 누적한 비용과 하드 추가 횟수입니다. 직전 단계 증분은 위 보조 줄에서 따로 확인할 수 있습니다.` : "9월 16일 285는 필수조건으로 보고, 0주에서는 상점 구매 없이 마감을 맞추는 최소 몬파 비용만 표시합니다."} 이미 돌린 몬파 7판은 현재 경험치에 들어간 매몰비용입니다.</p>
         </div>
         <details className="value-settings"><summary>메이린 가치·환율 수정</summary><div className="field-grid"><InputField label="노말→하드 결정석 차이 · 억" value={s.mayrinMesoGap} step={0.1} onChange={v => set("mayrinMesoGap", Number(v))} /><InputField label="노말 조각 예상량" value={s.mayrinNormalFrag} onChange={v => set("mayrinNormalFrag", Number(v))} /><InputField label="조각 1개 · 만 메소" value={s.fragPrice} step={10} onChange={v => set("fragPrice", Number(v))} /><InputField label="메소 1억당 메포" value={s.mpPerEok} step={100} onChange={v => set("mpPerEok", Number(v))} /></div><Toggle label="9/17 초기화 후 추가 1회 가정" checked={s.postReset} onChange={v => set("postReset", v)} /></details>
       </div>
