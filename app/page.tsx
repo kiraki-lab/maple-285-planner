@@ -8,6 +8,8 @@ import {
   paidMonsterParkMaplePoints,
 } from "@/lib/calculator-core.mjs";
 
+export const dynamic = "force-static";
+
 type PullStrategy = "monsterPark" | "blue" | "mech" | "both";
 type ViewTab = "calculator" | "pre280" | "efficiency" | "passes";
 type Settings = {
@@ -1245,8 +1247,8 @@ export default function Home() {
       </section>
 
       <section className="video-priority-asset" aria-labelledby="video-priority-title">
-        <div className="video-priority-meta"><span>VIDEO ASSET · 16:9</span><h2 id="video-priority-title">영상용 280구간 우선순위</h2><p>브라우저 화면을 녹화하거나 원본 이미지를 바로 편집 타임라인에 넣을 수 있습니다.</p><a href="/video-lv280-priority.png" download>16:9 원본 이미지 열기</a></div>
-        <figure><img src="/video-lv280-priority.png" alt="Lv.280 메포 사용 우선순위. 스페셜 선데이 몬파, 평일 몬파 7판, 선택 항목인 메카베리와 블루베리 순서" /></figure>
+        <div className="video-priority-meta"><span>VIDEO ASSET · 16:9</span><h2 id="video-priority-title">영상용 280구간 우선순위</h2><p>브라우저 화면을 녹화하거나 원본 이미지를 바로 편집 타임라인에 넣을 수 있습니다.</p><a href="video-lv280-priority.png" download>16:9 원본 이미지 열기</a></div>
+        <figure><img src="video-lv280-priority.png" alt="Lv.280 메포 사용 우선순위. 스페셜 선데이 몬파, 평일 몬파 7판, 선택 항목인 메카베리와 블루베리 순서" /></figure>
       </section>
 
       <section className="efficiency-panel full-efficiency-table">
