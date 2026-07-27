@@ -5,7 +5,9 @@ import {
   advanceBurningBeyondExperience,
   growthPotionExperience,
   monsterParkExperiencePercent,
+  paidMonsterParkExperience,
   paidMonsterParkMaplePoints,
+  PAID_STRATEGY_PRIORITY,
 } from "@/lib/calculator-core.mjs";
 
 export const dynamic = "force-static";
@@ -126,8 +128,8 @@ type Simulation = {
   specialSupplySaved: number;
   specialSupplyUsed: number;
 };
-type PullPlan = { pullWeeks: number; targetClearWeeks: number; result: Simulation; feasible: boolean; strategy: PullStrategy; shopBlueWeeks: number; shopMechWeeks: number };
-type StrategyCandidate = { result: Simulation; shopBlueWeeks: number; shopMechWeeks: number };
+type PullPlan = { pullWeeks: number; targetClearWeeks: number; result: Simulation; feasible: boolean; strategy: PullStrategy; shopBlueWeeks: number; shopMechWeeks: number; scheduleIndex: number };
+type StrategyCandidate = { result: Simulation; shopBlueWeeks: number; shopMechWeeks: number; scheduleIndex: number };
 type Planning = {
   sunday: Simulation;
   free: Simulation;
@@ -200,10 +202,14 @@ const defaults: Settings = {
   epicCore6Artifact: 190, ownedBlue: 0, ownedMech: 0, ownedSauna: 0, ownedAdv: 0, ownedPotion279: 0,
 };
 
+const paidStrategyIds = PAID_STRATEGY_PRIORITY as readonly Exclude<PullStrategy, "both">[];
+const paidStrategyCopy: Record<Exclude<PullStrategy, "both">, { label: string; caption: string }> = {
+  monsterPark: { label: "평일 몬파", caption: "기본 2판 이후 유료 5판 우선" },
+  mech: { label: "메카베리 구매", caption: "주당 2장 · 10,000 메포" },
+  blue: { label: "블루베리 구매", caption: "주당 2장 · 7,000 메포" },
+};
 const pullStrategies: { id: PullStrategy; label: string; caption: string }[] = [
-  { id: "monsterPark", label: "평일 몬파", caption: "추가 5판으로만 당기기" },
-  { id: "blue", label: "블루베리 구매", caption: "주당 2장 · 7,000 메포" },
-  { id: "mech", label: "메카베리 구매", caption: "주당 2장 · 10,000 메포" },
+  ...paidStrategyIds.map(id => ({ id, ...paidStrategyCopy[id] })),
   { id: "both", label: "농장 둘 다", caption: "주당 4장 · 17,000 메포" },
 ];
 
@@ -251,11 +257,11 @@ type EfficiencyBenchmark = { id: string; label: string; base: number; raw?: (lev
 const momentumRaw = (level: number) => efficiency[level].mech * 11 + efficiency[level].sauna * 1.5 + efficiency[level].adv100 * 95;
 const efficiencyBenchmarks: EfficiencyBenchmark[] = [
   { id: "extra50", label: "추가 경험치 50%", base: 1139.8 },
-  { id: "mpSpecial", label: "몬스터파크 · 스페셜 선데이", base: 820.1, raw: level => efficiency[level].mp7 * 4 },
+  { id: "mpSpecial", label: "몬스터파크 · 스페셜 선데이 추가 5판", base: 820.1, raw: level => paidMonsterParkExperience(efficiency[level].mp7) * 4 },
   { id: "momentum", label: "프라임 모멘텀 패스", base: 566.5, raw: momentumRaw },
   { id: "epic01", label: "악몽선경 · 0→1단계", base: 466.9, raw: level => efficiency[level].epic * 4 },
-  { id: "mpSunday", label: "몬스터파크 · 선데이", base: 398.2, raw: level => efficiency[level].mp7 * 1.5 },
-  { id: "mpNormal", label: "몬스터파크 · 일반", base: 313.9, raw: level => efficiency[level].mp7 },
+  { id: "mpSunday", label: "몬스터파크 · 선데이 추가 5판", base: 398.2, raw: level => paidMonsterParkExperience(efficiency[level].mp7) * 1.5 },
+  { id: "mpNormal", label: "몬스터파크 · 일반 추가 5판", base: 313.9, raw: level => paidMonsterParkExperience(efficiency[level].mp7) },
   { id: "mech", label: "메카베리 농장", base: 312.6, raw: level => efficiency[level].mech },
   { id: "blue", label: "블루베리 농장", base: 294.3, raw: level => efficiency[level].blue },
   { id: "smallExpPotion", label: "소경축비", base: 175.4 },
@@ -268,6 +274,9 @@ const relativeEfficiencyScore = (source: EfficiencyBenchmark, level: number) => 
   const saunaChange = efficiency[level].sauna / efficiency[281].sauna;
   return source.base * sourceChange / saunaChange;
 };
+const efficiencyScoreById = (sourceId: string, level: number) => relativeEfficiencyScore(efficiencyBenchmarks.find(source => source.id === sourceId)!, level);
+const paidEfficiencySourceId: Record<Exclude<PullStrategy, "both">, string> = { monsterPark: "mpNormal", mech: "mech", blue: "blue" };
+const paidEfficiencyScore = (strategy: Exclude<PullStrategy, "both">, level: number) => efficiencyScoreById(paidEfficiencySourceId[strategy], level);
 
 const pre280Data: Record<number, { required: number; adv1000: number; sauna: number; blue: number }> = {
   260: { required: 1_731_919_984_062, adv1000: 22.416, sauna: 9.086, blue: 47.343 },
@@ -813,8 +822,8 @@ function* buildPlanningSteps(settings: Settings): Generator<number, Planning, vo
     both: [1, 2, 3, 4].map((weeks): [number, number] => [weeks, weeks]),
   };
   const candidateCache = new Map<string, StrategyCandidate>();
-  candidateCache.set("0:0:0", { result: sunday, shopBlueWeeks: 0, shopMechWeeks: 0 });
-  candidateCache.set("0:0:64", { result: allSeven, shopBlueWeeks: 0, shopMechWeeks: 0 });
+  candidateCache.set("0:0:0", { result: sunday, shopBlueWeeks: 0, shopMechWeeks: 0, scheduleIndex: 0 });
+  candidateCache.set("0:0:64", { result: allSeven, shopBlueWeeks: 0, shopMechWeeks: 0, scheduleIndex: 64 });
   const candidateAt = function* (shopBlueWeeks: number, shopMechWeeks: number, scheduleIndex: number): Generator<number, StrategyCandidate, void> {
     const key = `${shopBlueWeeks}:${shopMechWeeks}:${scheduleIndex}`;
     const cached = candidateCache.get(key);
@@ -824,6 +833,7 @@ function* buildPlanningSteps(settings: Settings): Generator<number, Planning, vo
       result: simulate(strategySettings, { ...schedule, shopBlueWeeks, shopMechWeeks }),
       shopBlueWeeks,
       shopMechWeeks,
+      scheduleIndex,
     };
     candidateCache.set(key, candidate);
     yield ++completed;
@@ -832,9 +842,9 @@ function* buildPlanningSteps(settings: Settings): Generator<number, Planning, vo
   const meetsTarget = (candidate: StrategyCandidate, targetClearWeeks: number) => Boolean(
     candidate.result.reached && candidate.result.reached <= deadline && mayrinClearWeeks(candidate.result.reached) >= targetClearWeeks,
   );
-  const leastCostCandidate = function* (shopBlueWeeks: number, shopMechWeeks: number, targetClearWeeks: number): Generator<number, StrategyCandidate | null, void> {
+  const leastCostCandidate = function* (shopBlueWeeks: number, shopMechWeeks: number, targetClearWeeks: number, minimumScheduleIndex = 0): Generator<number, StrategyCandidate | null, void> {
     if (!meetsTarget(yield* candidateAt(shopBlueWeeks, shopMechWeeks, 64), targetClearWeeks)) return null;
-    let low = 0;
+    let low = Math.max(0, Math.min(64, minimumScheduleIndex));
     let high = 64;
     while (low < high) {
       const middle = Math.floor((low + high) / 2);
@@ -846,13 +856,15 @@ function* buildPlanningSteps(settings: Settings): Generator<number, Planning, vo
   const baselineClearWeeks = Math.max(1, mayrinClearWeeks(sunday.reached));
   const maximumClearWeeks = mayrinClearWeeks((yield* candidateAt(4, 4, 64)).result.reached);
   const maxPullWeeks = Math.max(0, maximumClearWeeks - baselineClearWeeks);
-  const pickPlan = function* (strategy: PullStrategy, pullWeeks: number): Generator<number, PullPlan, void> {
+  const pickPlan = function* (strategy: PullStrategy, pullWeeks: number, monsterParkPlan?: PullPlan): Generator<number, PullPlan, void> {
     const targetClearWeeks = baselineClearWeeks + pullWeeks;
     const pairs = pullWeeks === 0 ? pairsByStrategy.monsterPark : pairsByStrategy[strategy];
+    const minimumScheduleIndex = strategy === "monsterPark" ? 0 : monsterParkPlan?.scheduleIndex ?? 0;
     const eligible: StrategyCandidate[] = [];
     for (const [shopBlueWeeks, shopMechWeeks] of pairs) {
-      const candidate = yield* leastCostCandidate(shopBlueWeeks, shopMechWeeks, targetClearWeeks);
-      if (candidate) eligible.push(candidate);
+      const candidate = yield* leastCostCandidate(shopBlueWeeks, shopMechWeeks, targetClearWeeks, minimumScheduleIndex);
+      if (!candidate) continue;
+      if (strategy === "monsterPark" || !monsterParkPlan?.feasible) eligible.push(candidate);
     }
     eligible.sort((a, b) => a.result.maplePoints - b.result.maplePoints || a.result.shopMaplePoints - b.result.shopMaplePoints || a.result.monsterParkMaplePoints - b.result.monsterParkMaplePoints);
     const fallbacks: StrategyCandidate[] = [];
@@ -862,14 +874,18 @@ function* buildPlanningSteps(settings: Settings): Generator<number, Planning, vo
     return {
       pullWeeks, targetClearWeeks, result: chosen.result, strategy,
       shopBlueWeeks: chosen.shopBlueWeeks, shopMechWeeks: chosen.shopMechWeeks,
-      feasible: Boolean(chosen.result.reached && chosen.result.reached <= deadline && mayrinClearWeeks(chosen.result.reached) >= targetClearWeeks),
+      scheduleIndex: chosen.scheduleIndex,
+      feasible: eligible.length > 0,
     };
   };
   const basePlan = yield* pickPlan("monsterPark", 0);
   const strategyPlans = {} as Record<PullStrategy, PullPlan[]>;
-  for (const { id } of pullStrategies) {
+  const monsterParkPlans: PullPlan[] = [];
+  for (let pullWeeks = 0; pullWeeks <= maxPullWeeks; pullWeeks += 1) monsterParkPlans.push(pullWeeks === 0 ? basePlan : yield* pickPlan("monsterPark", pullWeeks));
+  strategyPlans.monsterPark = monsterParkPlans;
+  for (const { id } of pullStrategies.filter(strategy => strategy.id !== "monsterPark")) {
     const plans: PullPlan[] = [];
-    for (let pullWeeks = 0; pullWeeks <= maxPullWeeks; pullWeeks += 1) plans.push(pullWeeks === 0 ? { ...basePlan, strategy: id } : yield* pickPlan(id, pullWeeks));
+    for (let pullWeeks = 0; pullWeeks <= maxPullWeeks; pullWeeks += 1) plans.push(pullWeeks === 0 ? { ...basePlan, strategy: id } : yield* pickPlan(id, pullWeeks, monsterParkPlans[pullWeeks]));
     strategyPlans[id] = plans;
   }
   const recommendedPlansByWeek = Array.from({ length: maxPullWeeks + 1 }, (_, pullWeeks) => {
@@ -881,9 +897,15 @@ function* buildPlanningSteps(settings: Settings): Generator<number, Planning, vo
       const noMoreExpensive = other.result.maplePoints <= candidate.result.maplePoints;
       const strictlyBetter = otherTime < candidateTime || other.result.maplePoints < candidate.result.maplePoints || (otherTime === candidateTime && other.result.maplePoints === candidate.result.maplePoints && otherIndex < candidateIndex);
       return noLater && noMoreExpensive && strictlyBetter;
-    })).sort((a, b) => a.result.maplePoints - b.result.maplePoints || (a.result.reached?.getTime() ?? Infinity) - (b.result.reached?.getTime() ?? Infinity));
+    })).sort((a, b) => {
+      if (strategyPlans.monsterPark[pullWeeks]?.feasible) {
+        if (a.strategy === "monsterPark") return -1;
+        if (b.strategy === "monsterPark") return 1;
+      }
+      return a.result.maplePoints - b.result.maplePoints || (a.result.reached?.getTime() ?? Infinity) - (b.result.reached?.getTime() ?? Infinity);
+    });
   });
-  const bestPlansByWeek = recommendedPlansByWeek.map((plans, pullWeeks) => plans[0] || strategyPlans.monsterPark[pullWeeks]);
+  const bestPlansByWeek = recommendedPlansByWeek.map((plans, pullWeeks) => strategyPlans.monsterPark[pullWeeks]?.feasible ? strategyPlans.monsterPark[pullWeeks] : plans[0] || strategyPlans.monsterPark[pullWeeks]);
   return { sunday, free, allSeven, strategyPlans, recommendedPlansByWeek, bestPlansByWeek, basePlan, maxPullWeeks, deadline };
 }
 
@@ -915,6 +937,7 @@ async function runPlanningInChunks(settings: Settings, onProgress: (completed: n
 }
 
 const defaultPlanning = runPlanningImmediately(defaults);
+export { defaults, runPlanningImmediately };
 
 function InputField({ label, value, onChange, type = "number", min, max, step, disabled }: { label: string; value: string | number; onChange: (value: string) => void; type?: "number" | "date"; min?: number; max?: number; step?: number; disabled?: boolean }) {
   return <label className="field"><span>{label}</span><input type={type} value={value} onChange={e => onChange(e.target.value)} min={min} max={max} step={step} disabled={disabled} /></label>;
@@ -992,7 +1015,8 @@ export default function Home() {
       const costValue = extraMaplePoints / Math.max(1, s.mpPerEok) * 100000000;
       return { strategy: plan.strategy, netValue: gainedHardWeeks * hardValue - costValue };
     });
-    const bestRoiStrategy = [...recommendedRoiPlans].sort((a, b) => b.netValue - a.netValue || pullStrategies.findIndex(strategy => strategy.id === a.strategy) - pullStrategies.findIndex(strategy => strategy.id === b.strategy))[0]?.strategy || selectedPlan.strategy;
+    const roiWinner = [...recommendedRoiPlans].sort((a, b) => b.netValue - a.netValue || pullStrategies.findIndex(strategy => strategy.id === a.strategy) - pullStrategies.findIndex(strategy => strategy.id === b.strategy))[0]?.strategy || selectedPlan.strategy;
+    const bestRoiStrategy = strategyPlans.monsterPark[effectivePullWeeks]?.feasible ? "monsterPark" : roiWinner;
     return {
       selected, sunday, free, allSeven, strategyPlans, recommendedPlansByWeek, bestPlansByWeek, selectedPlan, basePlan, previousPlan,
       effectivePullWeeks, maxPullWeeks, hardValue, selectedHardWeeks, baseHardWeeks, marginalGainedHardWeeks,
@@ -1174,7 +1198,7 @@ export default function Home() {
           <div className="supply-warning"><b>러프값</b><p>280+ 몬스터 사냥터에서 4배 쿠폰 사용 기준 1회 77,024,335,674 EXP, 5회 385,121,678,370 EXP로 계산합니다.</p><small>5회 사용은 총 12,500마리 처치 가정 · 4배 쿠폰 보유·소모량은 차감하지 않음<br />커뮤니티 테섭 1표본 가정 · 등급 상승 미반영 · 실제값 변동 가능</small></div>
           <Toggle label="7월 NOW 보상" checked={s.apology} onChange={v => set("apology", v)} /><Toggle label="울티마 스쿼드 EXP 5,000장" checked={s.shardEvent} onChange={v => set("shardEvent", v)} /><Toggle label="울티마 작전 일지" checked={s.ultima} onChange={v => set("ultima", v)} />
           <div className="callout-mini">현재 패스 레벨까지 받은 보상은 현재 경험치에 포함된 것으로 보고 제외합니다. 챌섭은 7/22까지 최대 25레벨, 7/23부터 최대 30레벨이며 주 5레벨씩 계산합니다. 모멘텀은 주차별 2→3→3→2레벨로 진행합니다.</div>
-          <div className="callout-mini shop-priority">같거나 더 늦은 날짜에 더 많은 메포를 쓰는 전략은 추천에서 제외합니다. 남은 선택지 중 순손익이 가장 좋은 경로에 추천 표시를 붙입니다.</div>
+          <div className="callout-mini shop-priority">평일 몬파는 기본 2판 뒤 유료 추가 5판을 먼저 적용합니다. 농장은 몬파만으로 다음 하드 주차를 못 당길 때만 비교하며, 같은 도달 주차에서는 더 적은 메포 경로를 추천합니다.</div>
         </div></details>
         <details><summary>에테리온 · 콘텐츠 보정 <span>18</span></summary><div className="detail-body">
           <Toggle label="코어 6레벨 적용" checked={s.core6Enabled} onChange={v => set("core6Enabled", v)} /><div className="callout-mini">이번 주는 변경 전 5레벨. 7/23부터 5레벨 기본, 6레벨은 선택 시 적용합니다.</div>
@@ -1239,9 +1263,9 @@ export default function Home() {
           <p>메포샵 메카베리·블루베리는 필수가 아닙니다. 몬파를 반영한 뒤에도 285 도착 주차가 당겨질 때만 고려합니다.</p>
         </div>
         <div className="priority-flow">
-          <article className="priority-step first"><span>1 · 가장 먼저</span><h3>스페셜 선데이 몬파 7판</h3><strong>831.4</strong><p>일요일 추가 5판을 우선 반영</p></article>
-          <article className="priority-step second"><span>2 · 다음 판단</span><h3>평일 몬파 7판</h3><strong>318.2</strong><p>285 도착 주차가 당겨지는 날까지만</p></article>
-          <article className="priority-step optional"><span>선택 · 메포샵</span><div><h3>메카베리 농장</h3><strong>312.6</strong></div><div><h3>블루베리 농장</h3><strong>298.3</strong></div><p>같은 날짜라면 더 적은 메포를 쓰는 경로 선택</p></article>
+          <article className="priority-step first"><span>1 · 가장 먼저</span><h3>스페셜 선데이 몬파 7판</h3><strong>{efficiencyScoreById("mpSpecial", 280).toFixed(1)}</strong><p>무료 2판 제외 · 유료 추가 5판분</p></article>
+          <article className="priority-step second"><span>2 · 다음 판단</span><h3>평일 몬파 7판</h3><strong>{paidEfficiencyScore("monsterPark", 280).toFixed(1)}</strong><p>유료 추가 5판 · 하루 3,000 메포</p></article>
+          <article className="priority-step optional"><span>선택 · 메포샵</span><div><h3>메카베리 농장</h3><strong>{paidEfficiencyScore("mech", 280).toFixed(1)}</strong></div><div><h3>블루베리 농장</h3><strong>{paidEfficiencyScore("blue", 280).toFixed(1)}</strong></div><p>몬파 우선 경로로 다음 주차를 못 당길 때만 비교</p></article>
         </div>
         <div className="priority-rule"><b>한 줄 결론</b><p>일요일 7판 → 평일 7판 검토 → 그래도 한 주가 당겨질 때만 농장 구매</p></div>
       </section>

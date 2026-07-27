@@ -3,9 +3,14 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
   advanceBurningBeyondExperience,
+  FREE_MONSTER_PARK_RUNS,
   growthPotionExperience,
   monsterParkExperiencePercent,
+  paidMonsterParkExperience,
+  PAID_MONSTER_PARK_RUNS,
   paidMonsterParkMaplePoints,
+  PAID_STRATEGY_PRIORITY,
+  TOTAL_MONSTER_PARK_RUNS,
 } from "../lib/calculator-core.mjs";
 
 const root = new URL("../", import.meta.url);
@@ -141,6 +146,54 @@ test("applies normal and Special Sunday Monster Park bonuses additively", () => 
   assert.ok(Math.abs(monsterParkExperiencePercent({ ...common, sundayKind: "special" }) - 9.854) < 0.0021);
   assert.equal(paidMonsterParkMaplePoints(7), 3000);
   assert.equal(paidMonsterParkMaplePoints(2), 0);
+});
+
+test("prices and compares only the five paid Monster Park runs", () => {
+  assert.equal(FREE_MONSTER_PARK_RUNS, 2);
+  assert.equal(PAID_MONSTER_PARK_RUNS, 5);
+  assert.equal(TOTAL_MONSTER_PARK_RUNS, 7);
+  assert.equal(paidMonsterParkExperience(7), 5);
+  assert.equal(paidMonsterParkExperience(2.2302), 2.2302 * 5 / 7);
+  assert.equal(paidMonsterParkMaplePoints(TOTAL_MONSTER_PARK_RUNS), 3000);
+  assert.deepEqual(PAID_STRATEGY_PRIORITY, ["monsterPark", "mech", "blue"]);
+});
+
+test("requires the Monster Park schedule before shop candidates", async () => {
+  const page = await readFile(new URL("app/page.tsx", root), "utf8");
+
+  assert.match(page, /minimumScheduleIndex = strategy === "monsterPark" \? 0 : monsterParkPlan\?\.scheduleIndex \?\? 0/);
+  assert.match(page, /leastCostCandidate\(shopBlueWeeks, shopMechWeeks, targetClearWeeks, minimumScheduleIndex\)/);
+  assert.match(page, /strategy === "monsterPark" \|\| !monsterParkPlan\?\.feasible/);
+  assert.match(page, /strategyPlans\.monsterPark\[pullWeeks\]\?\.feasible \? strategyPlans\.monsterPark\[pullWeeks\]/);
+  assert.match(page, /strategyPlans\.monsterPark\[effectivePullWeeks\]\?\.feasible \? "monsterPark" : roiWinner/);
+  assert.match(page, /paidMonsterParkExperience\(efficiency\[level\]\.mp7\)/);
+  assert.match(page, /유료 추가 5판 · 하루 3,000 메포/);
+});
+
+test("recommends paid weekday Monster Park for the reported Lv.282 case", async () => {
+  const manifest = JSON.parse(await readFile(new URL("dist/client/.vite/manifest.json", root), "utf8"));
+  const pageModuleUrl = new URL(`dist/client/${manifest["app/page.tsx"].file}`, root);
+  const pageModule = await import(`${pageModuleUrl.href}?priority-regression`);
+  const settings = {
+    ...pageModule.defaults,
+    level: 282,
+    exp: 40.999,
+    start: "2026-07-27",
+    specialSundayCount: 0,
+    challengerPassLevel: 30,
+    momentumPassLevel: 0,
+    pullWeeks: 1,
+  };
+  const planning = pageModule.runPlanningImmediately(settings);
+  const recommended = planning.recommendedPlansByWeek[1];
+
+  assert.equal(planning.maxPullWeeks, 1);
+  assert.equal(planning.bestPlansByWeek[1].strategy, "monsterPark");
+  assert.deepEqual(recommended.map(plan => plan.strategy), ["monsterPark"]);
+  assert.equal(recommended[0].scheduleIndex, 12);
+  assert.equal(recommended[0].result.shopMaplePoints, 0);
+  assert.equal(recommended[0].result.monsterParkMaplePoints, 42_000);
+  assert.equal(recommended[0].result.reached.toISOString().slice(0, 10), "2026-08-17");
 });
 
 test("carries the full growth-potion overflow into level 280 with Burning Beyond", () => {
