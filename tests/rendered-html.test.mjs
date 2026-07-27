@@ -71,15 +71,31 @@ test("keeps the 285 calculator primary and moves supporting content into tabs", 
   assert.match(page, /4배 쿠폰 보유·소모량은 차감하지 않음/);
   assert.match(page, /285 달성 후 남는 보상/);
   assert.match(page, /\["특수 물자 저장", calculatedSettings\.specialSupply/);
-  assert.match(page, /challengerPassCapForDate/);
-  assert.match(page, /7\/22까지 최대 25레벨, 7\/23부터 최대 30레벨/);
+  assert.match(page, /에테리온 코어 6레벨/);
+  assert.match(page, /Core6Choice title="일일 퀘스트"/);
+  assert.match(page, /Core6Choice title="몬스터파크"/);
+  assert.match(page, /Core6Choice title="에픽 던전"/);
+  assert.match(page, /aria-label=\{accessibleLabel\}/);
+  assert.match(page, /accessibleLabel=\{`\$\{title\} 코어 6레벨`\}/);
+  assert.ok(page.indexOf("core6-picker") > page.indexOf("모멘텀 패스 현재 레벨"));
+  assert.ok(page.indexOf("core6-picker") < page.indexOf("<details><summary>패스 · 이벤트 설정"));
   assert.doesNotMatch(page, /일일 사냥 경험치/);
+  assert.doesNotMatch(page, /SPECTER_BLAST_END|specter|mpNow|dailyNow|epicNow|mpPatch|dailyPatch|epicPatch|afterPatch|patchDate|challengerPassCapForDate|7\/22|패치 전|패치 후/);
   assert.match(layout, /285 플래너/);
   assert.match(layout, /\/og\.png/);
   assert.match(css, /@media \(max-width: 720px\)/);
   assert.match(css, /\.efficiency-values small \{ font-size: 11px/);
   assert.match(css, /\.leftover-note \{[^}]*font-size: 13px/);
   assert.match(css, /\.calculate-bar \{/);
+  assert.match(css, /\.core6-picker \{/);
+  assert.match(css, /\.core6-choice\.active \{/);
+  assert.match(css, /\.controls, \.results \{[^}]*min-width: 0/);
+  assert.match(css, /\.core6-picker \{[^}]*width: 100%;[^}]*min-width: 0;[^}]*max-width: 100%/);
+  assert.match(css, /\.core6-picker-grid \{[^}]*min-width: 0;[^}]*grid-template-columns: minmax\(0, 1fr\)/);
+  assert.match(css, /\.core6-choice \{[^}]*min-width: 0/);
+  assert.match(css, /@media \(max-width: 1100px\)[\s\S]*?\.calculator-shell \{ grid-template-columns: minmax\(0, 1fr\); \}/);
+  assert.match(css, /@media \(max-width: 720px\)[\s\S]*?\.chart-wrap \{[^}]*overflow-x: auto/);
+  assert.match(css, /@media \(max-width: 430px\)[\s\S]*\.core6-picker/);
   assert.match(css, /@keyframes calculation-slide/);
   assert.doesNotMatch(css, /backdrop-filter/);
   assert.doesNotMatch(css, /\.tab-panel \{ animation/);
@@ -89,13 +105,21 @@ test("keeps the 285 calculator primary and moves supporting content into tabs", 
 
 test("keeps verified calculator constants visible in source", async () => {
   const page = await readFile(new URL("app/page.tsx", root), "utf8");
-  assert.match(page, /mpNow: 86/);
+  assert.match(page, /mpCore5: 90/);
+  assert.match(page, /dailyCore5: 95, dailyCore6: 100/);
+  assert.match(page, /epicCore5: 30/);
+  assert.match(page, /mpCore6: 95/);
+  assert.match(page, /epicCore6: 40/);
+  assert.match(page, /epicArtifact: 180/);
+  assert.match(page, /epicCore6Artifact: 190/);
+  assert.match(page, /dailyCore6Enabled: false/);
+  assert.match(page, /mpCore6Enabled: false/);
+  assert.match(page, /epicCore6Enabled: false/);
   assert.match(page, /SSR_DEFAULT_START = "2026-07-27"/);
   assert.match(page, /specialSundayCount: 1/);
   assert.match(page, /challengerPassLevel: 30/);
   assert.match(page, /prePassLevel: 30, preUnclaimed: false/);
   assert.match(page, /challengerUnclaimed: false/);
-  assert.match(page, /specter: false/);
   assert.match(page, /momentumPassLevel: 0/);
   assert.match(page, /shardDate: "2026-07-30"/);
   assert.match(page, /shardAdv: 5000/);
@@ -130,7 +154,7 @@ test("keeps verified calculator constants visible in source", async () => {
   assert.match(page, /SPECIAL_SUPPLY_END = "2026-08-19"/);
   assert.match(page, /SPECIAL_SUPPLY_EXP_PER_CHARGE = 77_024_335_674/);
   assert.match(page, /SPECIAL_SUPPLY_BATCH_SIZE = 5/);
-  assert.match(page, /SPECTER_BLAST_END = "2026-07-22"/);
+  assert.match(page, /MOMENTUM_PASS_START = "2026-07-23"/);
   assert.match(page, /specialSupply: false, specialSupplySaved: 0/);
   assert.match(page, /SPECIAL_SUPPLY_EXP_PER_CHARGE \* SPECIAL_SUPPLY_BATCH_SIZE \/ LEVEL_280_REQUIRED_EXP/);
   assert.match(page, /1회 77,024,335,674 EXP, 5회 385,121,678,370 EXP/);
@@ -156,7 +180,9 @@ test("uses the browser-local date and Challenger EXP Pass level 30 for defaults"
   assert.equal(currentDefaults.prePassLevel, 30);
   assert.equal(currentDefaults.challengerUnclaimed, false);
   assert.equal(currentDefaults.preUnclaimed, false);
-  assert.equal(currentDefaults.specter, false);
+  assert.equal(currentDefaults.dailyCore6Enabled, false);
+  assert.equal(currentDefaults.mpCore6Enabled, false);
+  assert.equal(currentDefaults.epicCore6Enabled, false);
   assert.equal(currentDefaults.shardDate, "2026-07-30");
   assert.equal(currentDefaults.ultimaCount, 29);
   assert.equal(currentDefaults.ultimaWeek, 4);
@@ -165,6 +191,70 @@ test("uses the browser-local date and Challenger EXP Pass level 30 for defaults"
   assert.deepEqual(pageModule.ultimaProgressBefore("2026-07-27"), { count: 29, week: 4 });
   assert.deepEqual(pageModule.ultimaProgressBefore("2026-07-30"), { count: 30, week: 0 });
   assert.deepEqual(pageModule.ultimaProgressBefore("2026-09-17"), { count: 60, week: 0 });
+});
+
+test("applies the three Eterion level 6 cores independently by date", async () => {
+  const manifest = JSON.parse(await readFile(new URL("dist/client/.vite/manifest.json", root), "utf8"));
+  const pageModuleUrl = new URL(`dist/client/${manifest["app/page.tsx"].file}`, root);
+  const pageModule = await import(`${pageModuleUrl.href}?eterion-core6-regression`);
+  const targetDate = new Date(2026, 7, 20);
+  const isolated = {
+    ...pageModule.createDefaultSettings("2026-08-20"),
+    dailyCore6Date: "2026-08-20",
+    mpCore6Date: "2026-08-20",
+    epicCore6Date: "2026-08-20",
+    core20Date: "2099-01-01",
+    core25Date: "2099-01-01",
+    epicArtifactDate: "2099-01-01",
+  };
+
+  assert.deepEqual(pageModule.eterionBonusesForDate(isolated, targetDate), { daily: 95, mp: 90, epic: 30 });
+  assert.deepEqual(pageModule.eterionBonusesForDate({ ...isolated, dailyCore6Enabled: true }, targetDate), { daily: 100, mp: 90, epic: 30 });
+  assert.deepEqual(pageModule.eterionBonusesForDate({ ...isolated, mpCore6Enabled: true }, targetDate), { daily: 95, mp: 95, epic: 30 });
+  assert.deepEqual(pageModule.eterionBonusesForDate({ ...isolated, epicCore6Enabled: true }, targetDate), { daily: 95, mp: 90, epic: 40 });
+
+  const afterArtifactAndTotals = {
+    ...isolated,
+    mpCore6Enabled: true,
+    epicCore6Enabled: true,
+    core20Date: "2026-08-01",
+    core25Date: "2026-08-01",
+    epicArtifactDate: "2026-08-13",
+  };
+  assert.deepEqual(pageModule.eterionBonusesForDate(afterArtifactAndTotals, targetDate), { daily: 95, mp: 100, epic: 200 });
+  assert.deepEqual(pageModule.eterionBonusesForDate({ ...afterArtifactAndTotals, epicCore6Enabled: false }, targetDate), { daily: 95, mp: 100, epic: 190 });
+});
+
+test("uses the Epic Dungeon level 6 core in Nightmare Paradise stage 1", async () => {
+  const manifest = JSON.parse(await readFile(new URL("dist/client/.vite/manifest.json", root), "utf8"));
+  const pageModuleUrl = new URL(`dist/client/${manifest["app/page.tsx"].file}`, root);
+  const pageModule = await import(`${pageModuleUrl.href}?epic-core6-simulation`);
+  const common = {
+    ...pageModule.createDefaultSettings("2026-08-20"),
+    level: 284,
+    exp: 0,
+    challengerPassLevel: 30,
+    momentumPassLevel: 10,
+    apology: false,
+    shardEvent: false,
+    ultima: false,
+    specialSupply: false,
+    todayDaily: false,
+    weeklyOpen: true,
+    grandis: false,
+    extreme: false,
+    epic: true,
+    epicMult: 1,
+    core25Date: "2099-01-01",
+    epicArtifactDate: "2099-01-01",
+    epicCore6Date: "2026-08-20",
+  };
+  const core5 = pageModule.simulate({ ...common, epicCore6Enabled: false }, { fixedRuns: 0 });
+  const core6 = pageModule.simulate({ ...common, epicCore6Enabled: true }, { fixedRuns: 0 });
+
+  assert.ok(core6.rows[0].progress > core5.rows[0].progress);
+  assert.equal(core5.rows[0].events.includes("익몬 · 악몽선경"), true);
+  assert.equal(core6.rows[0].events.includes("익몬 · 악몽선경"), true);
 });
 
 test("applies local defaults only after hydration and keeps reset in sync", async () => {
@@ -181,7 +271,7 @@ test("applies local defaults only after hydration and keeps reset in sync", asyn
   assert.doesNotMatch(page, /localDateInputValue[\s\S]{0,300}toISOString/);
 });
 
-test("ignores Specter Blast and Ultima shop EXP rewards that are already past", async () => {
+test("ignores Ultima shop EXP rewards that are already past", async () => {
   const manifest = JSON.parse(await readFile(new URL("dist/client/.vite/manifest.json", root), "utf8"));
   const pageModuleUrl = new URL(`dist/client/${manifest["app/page.tsx"].file}`, root);
   const pageModule = await import(`${pageModuleUrl.href}?past-reward-regression`);
@@ -203,25 +293,17 @@ test("ignores Specter Blast and Ultima shop EXP rewards that are already past", 
 
   const expired = pageModule.simulate({
     ...inactiveSettings("2026-07-27"),
-    specter: true,
     shardEvent: true,
     shardDate: "2026-07-26",
   }, { fixedRuns: 0 });
-  const historicalSpecter = pageModule.simulate({
-    ...inactiveSettings("2026-07-22"),
-    specter: true,
-    shardEvent: false,
-  }, { fixedRuns: 0 });
   const scheduledShopExp = pageModule.simulate({
     ...inactiveSettings("2026-07-27"),
-    specter: false,
     shardEvent: true,
     shardDate: "2026-07-30",
   }, { fixedRuns: 0 });
 
   assert.equal(expired.leftovers.adv, 0);
-  assert.equal(expired.rows.some(row => row.events.some(event => event.includes("스펙터 블래스트") || event.includes("울티마 스쿼드 상점"))), false);
-  assert.equal(historicalSpecter.rows[0].events.includes("스펙터 블래스트"), true);
+  assert.equal(expired.rows.some(row => row.events.some(event => event.includes("울티마 스쿼드 상점"))), false);
   assert.equal(scheduledShopExp.rows.some(row => row.key === "2026-07-30" && row.events.includes("울티마 스쿼드 상점 EXP 5,000장 (예상)")), true);
 });
 
@@ -236,7 +318,6 @@ test("buys the first still-open Maple Point shop week on the calculation start d
     challengerPassLevel: 30,
     momentumPassLevel: 10,
     apology: false,
-    specter: false,
     shardEvent: false,
     ultima: false,
     specialSupply: false,
@@ -264,7 +345,6 @@ test("starts Thursday Ultima attendance from the new week without overwriting ma
     challengerPassLevel: 30,
     momentumPassLevel: 10,
     apology: false,
-    specter: false,
     shardEvent: false,
     specialSupply: false,
     todayDaily: false,
