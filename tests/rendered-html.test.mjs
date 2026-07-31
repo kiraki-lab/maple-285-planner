@@ -394,6 +394,22 @@ test("prices and compares only the five paid Monster Park runs", () => {
   assert.deepEqual(PAID_STRATEGY_PRIORITY, ["monsterPark", "mech", "blue"]);
 });
 
+test("recalculates Lv.280 Monster Park efficiency for Eterion core levels 5 and 6", async () => {
+  const manifest = JSON.parse(await readFile(new URL("dist/client/.vite/manifest.json", root), "utf8"));
+  const pageModuleUrl = new URL(`dist/client/${manifest["app/page.tsx"].file}`, root);
+  const pageModule = await import(`${pageModuleUrl.href}?efficiency-core6-regression`);
+  const rounded = value => Number(value.toFixed(1));
+
+  assert.equal(rounded(pageModule.paidEfficiencyScore("monsterPark", 280, 95)), 333.6);
+  assert.equal(rounded(pageModule.paidEfficiencyScore("monsterPark", 280, 100)), 342.2);
+  assert.equal(rounded(pageModule.efficiencyScoreById("mpSpecial", 280, 95)), 846.8);
+  assert.equal(rounded(pageModule.efficiencyScoreById("mpSpecial", 280, 100)), 855.4);
+
+  const page = await readFile(new URL("app/page.tsx", root), "utf8");
+  assert.match(page, /eterionBonusesForDate\(s, efficiencyStartDate\)\.mp/);
+  assert.match(page, /relativeEfficiencyScore\(source, level, efficiencyMonsterParkBonus\)/);
+});
+
 test("requires the Monster Park schedule before shop candidates", async () => {
   const page = await readFile(new URL("app/page.tsx", root), "utf8");
 

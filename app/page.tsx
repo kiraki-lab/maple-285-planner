@@ -337,30 +337,36 @@ const eterionBonusesForDate = (s: Settings, date: Date) => {
   };
 };
 
-type EfficiencyBenchmark = { id: string; label: string; base: number; raw?: (level: number) => number };
+type EfficiencyBenchmark = { id: string; label: string; base: number; raw?: (level: number) => number; monsterParkSundayBonus?: number };
+const LEGACY_MONSTER_PARK_BONUS_PERCENT = 86;
+export const adjustMonsterParkEfficiencyForBonus = (legacyScore: number, sundayBonus: number, monsterParkBonusPercent: number) =>
+  legacyScore * (1 + monsterParkBonusPercent / 100 + sundayBonus) / (1 + LEGACY_MONSTER_PARK_BONUS_PERCENT / 100 + sundayBonus);
 const momentumRaw = (level: number) => efficiency[level].mech * 11 + efficiency[level].sauna * 1.5 + efficiency[level].adv100 * 95;
 const efficiencyBenchmarks: EfficiencyBenchmark[] = [
   { id: "extra50", label: "추가 경험치 50%", base: 1139.8 },
-  { id: "mpSpecial", label: "몬스터파크 · 스페셜 선데이 추가 5판", base: 820.1, raw: level => paidMonsterParkExperience(efficiency[level].mp7) * 4 },
+  { id: "mpSpecial", label: "몬스터파크 · 스페셜 선데이 추가 5판", base: 820.1, raw: level => paidMonsterParkExperience(efficiency[level].mp7) * 4, monsterParkSundayBonus: 3 },
   { id: "momentum", label: "프라임 모멘텀 패스", base: 566.5, raw: momentumRaw },
   { id: "epic01", label: "악몽선경 · 0→1단계", base: 466.9, raw: level => efficiency[level].epic * 4 },
-  { id: "mpSunday", label: "몬스터파크 · 선데이 추가 5판", base: 398.2, raw: level => paidMonsterParkExperience(efficiency[level].mp7) * 1.5 },
-  { id: "mpNormal", label: "몬스터파크 · 일반 추가 5판", base: 313.9, raw: level => paidMonsterParkExperience(efficiency[level].mp7) },
+  { id: "mpSunday", label: "몬스터파크 · 선데이 추가 5판", base: 398.2, raw: level => paidMonsterParkExperience(efficiency[level].mp7) * 1.5, monsterParkSundayBonus: 0.5 },
+  { id: "mpNormal", label: "몬스터파크 · 일반 추가 5판", base: 313.9, raw: level => paidMonsterParkExperience(efficiency[level].mp7), monsterParkSundayBonus: 0 },
   { id: "mech", label: "메카베리 농장", base: 312.6, raw: level => efficiency[level].mech },
   { id: "blue", label: "블루베리 농장", base: 294.3, raw: level => efficiency[level].blue },
   { id: "smallExpPotion", label: "소경축비", base: 175.4 },
   { id: "epic12", label: "악몽선경 · 1→2단계", base: 118.7, raw: level => efficiency[level].epic },
   { id: "sauna", label: "VIP 사우나", base: 100, raw: level => efficiency[level].sauna },
 ];
-const relativeEfficiencyScore = (source: EfficiencyBenchmark, level: number) => {
+const relativeEfficiencyScore = (source: EfficiencyBenchmark, level: number, monsterParkBonusPercent = LEGACY_MONSTER_PARK_BONUS_PERCENT) => {
   if (!source.raw) return source.base;
   const sourceChange = source.raw(level) / source.raw(281);
   const saunaChange = efficiency[level].sauna / efficiency[281].sauna;
-  return source.base * sourceChange / saunaChange;
+  const legacyScore = source.base * sourceChange / saunaChange;
+  return source.monsterParkSundayBonus === undefined
+    ? legacyScore
+    : adjustMonsterParkEfficiencyForBonus(legacyScore, source.monsterParkSundayBonus, monsterParkBonusPercent);
 };
-const efficiencyScoreById = (sourceId: string, level: number) => relativeEfficiencyScore(efficiencyBenchmarks.find(source => source.id === sourceId)!, level);
+export const efficiencyScoreById = (sourceId: string, level: number, monsterParkBonusPercent = LEGACY_MONSTER_PARK_BONUS_PERCENT) => relativeEfficiencyScore(efficiencyBenchmarks.find(source => source.id === sourceId)!, level, monsterParkBonusPercent);
 const paidEfficiencySourceId: Record<Exclude<PullStrategy, "both">, string> = { monsterPark: "mpNormal", mech: "mech", blue: "blue" };
-const paidEfficiencyScore = (strategy: Exclude<PullStrategy, "both">, level: number) => efficiencyScoreById(paidEfficiencySourceId[strategy], level);
+export const paidEfficiencyScore = (strategy: Exclude<PullStrategy, "both">, level: number, monsterParkBonusPercent = LEGACY_MONSTER_PARK_BONUS_PERCENT) => efficiencyScoreById(paidEfficiencySourceId[strategy], level, monsterParkBonusPercent);
 
 const pre280Data: Record<number, { required: number; adv1000: number; sauna: number; blue: number }> = {
   260: { required: 1_731_919_984_062, adv1000: 22.416, sauna: 9.086, blue: 47.343 },
@@ -1174,7 +1180,11 @@ export default function Home() {
     ["특수 물자 저장", calculatedSettings.specialSupply ? `${r.specialSupplySaved.toLocaleString("ko-KR")}회` : "계산 제외"],
   ];
   const efficiencyLevels = [280, 281, 282, 283, 284];
-  const efficiencyRanking = [...efficiencyBenchmarks].sort((a, b) => relativeEfficiencyScore(b, s.level) - relativeEfficiencyScore(a, s.level));
+  const efficiencyStartDate = parseDate(s.start);
+  const efficiencyMonsterParkBonus = eterionBonusesForDate(s, efficiencyStartDate).mp;
+  const efficiencyCoreLevel = s.mpCore6Enabled && dateReached(efficiencyStartDate, s.mpCore6Date) ? 6 : 5;
+  const efficiencyCore20Applied = dateReached(efficiencyStartDate, s.core20Date);
+  const efficiencyRanking = [...efficiencyBenchmarks].sort((a, b) => relativeEfficiencyScore(b, s.level, efficiencyMonsterParkBonus) - relativeEfficiencyScore(a, s.level, efficiencyMonsterParkBonus));
   const preLevelData = pre280Data[Math.max(260, Math.min(279, Math.floor(s.preLevel)))];
   const preUsedLabel = (used: Pre280Inventory) => [
     used.blue ? `블루 ${used.blue}` : "",
@@ -1347,30 +1357,37 @@ export default function Home() {
       <section className="priority-story" aria-labelledby="lv280-priority-title">
         <div className="priority-story-head">
           <div><span>LV.280 · 메포 사용 판단</span><h2 id="lv280-priority-title">먼저 몬파 7판, 농장은 필요할 때만</h2></div>
-          <p>메포샵 메카베리·블루베리는 필수가 아닙니다. 몬파를 반영한 뒤에도 285 도착 주차가 당겨질 때만 고려합니다.</p>
+          <p>메포샵 메카베리·블루베리는 필수가 아닙니다. 몬파를 반영한 뒤에도 285 도착 주차가 당겨질 때만 고려합니다.<small>현재 입력: {s.start} · 에테리온 {efficiencyCoreLevel}레벨 · 코어 총합 20 {efficiencyCore20Applied ? "적용" : "미적용"} · 몬파 +{efficiencyMonsterParkBonus}%</small></p>
         </div>
+        <style>{`.priority-story-head>p small{margin-top:8px;display:block;color:#b9f5d8;font-size:11px;font-weight:850;line-height:1.55}.priority-benchmark-note{margin-top:12px;padding:13px 16px;display:grid;grid-template-columns:auto 1fr 1fr;align-items:center;gap:12px;border:1px solid rgba(255,255,255,.14);border-radius:15px;background:rgba(255,255,255,.055);font-size:12px}.priority-benchmark-note b{color:#b9f5d8}.priority-benchmark-note span{color:rgba(255,255,255,.82);font-weight:750}@media(max-width:760px){.priority-benchmark-note{grid-template-columns:1fr}}`}</style>
         <div className="priority-flow">
-          <article className="priority-step first"><span>1 · 가장 먼저</span><h3>스페셜 선데이 몬파 7판</h3><strong>{efficiencyScoreById("mpSpecial", 280).toFixed(1)}</strong><p>무료 2판 제외 · 유료 추가 5판분</p></article>
-          <article className="priority-step second"><span>2 · 다음 판단</span><h3>평일 몬파 7판</h3><strong>{paidEfficiencyScore("monsterPark", 280).toFixed(1)}</strong><p>유료 추가 5판 · 하루 3,000 메포</p></article>
+          <article className="priority-step first"><span>1 · 가장 먼저</span><h3>스페셜 선데이 몬파 7판</h3><strong>{efficiencyScoreById("mpSpecial", 280, efficiencyMonsterParkBonus).toFixed(1)}</strong><p>무료 2판 제외 · 유료 추가 5판분</p></article>
+          <article className="priority-step second"><span>2 · 다음 판단</span><h3>평일 몬파 7판</h3><strong>{paidEfficiencyScore("monsterPark", 280, efficiencyMonsterParkBonus).toFixed(1)}</strong><p>유료 추가 5판 · 하루 3,000 메포</p></article>
           <article className="priority-step optional"><span>선택 · 메포샵</span><div><h3>메카베리 농장</h3><strong>{paidEfficiencyScore("mech", 280).toFixed(1)}</strong></div><div><h3>블루베리 농장</h3><strong>{paidEfficiencyScore("blue", 280).toFixed(1)}</strong></div><p>몬파 우선 경로로 다음 주차를 못 당길 때만 비교</p></article>
         </div>
+        <div className="priority-benchmark-note"><b>7월 23일 이후 Lv.280 검산</b><span>5레벨+총합20 · 평일 333.6 · 스페셜 846.8</span><span>6레벨+총합20 · 평일 342.2 · 스페셜 855.4</span></div>
         <div className="priority-rule"><b>한 줄 결론</b><p>일요일 7판 → 평일 7판 검토 → 그래도 한 주가 당겨질 때만 농장 구매</p></div>
       </section>
 
       <section className="video-priority-asset" aria-labelledby="video-priority-title">
-        <div className="video-priority-meta"><span>VIDEO ASSET · 16:9</span><h2 id="video-priority-title">영상용 280구간 우선순위</h2><p>브라우저 화면을 녹화하거나 원본 이미지를 바로 편집 타임라인에 넣을 수 있습니다.</p><a href="video-lv280-priority.png" download>16:9 원본 이미지 열기</a></div>
-        <figure><img src="video-lv280-priority.png" alt="Lv.280 메포 사용 우선순위. 스페셜 선데이 몬파, 평일 몬파 7판, 선택 항목인 메카베리와 블루베리 순서" /></figure>
+        <div className="video-priority-meta"><span>LIVE DATA · LV.280</span><h2 id="video-priority-title">현재 입력을 반영한 효율 비교</h2><p>이전 고정 이미지는 제거했습니다. 계산 시작일과 에테리온 5·6레벨 선택에 따라 몬스터파크 수치가 함께 바뀝니다.</p></div>
+        <figure style={{ padding: 20, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, alignContent: "center", background: "#11121a" }}>
+          <div style={{ padding: 18, borderRadius: 14, background: "#7357ff", color: "white" }}><small>스페셜 선데이</small><strong style={{ marginTop: 8, display: "block", fontSize: 34 }}>{efficiencyScoreById("mpSpecial", 280, efficiencyMonsterParkBonus).toFixed(1)}</strong></div>
+          <div style={{ padding: 18, borderRadius: 14, background: "#b9f5d8", color: "#11121a" }}><small>평일 몬파</small><strong style={{ marginTop: 8, display: "block", fontSize: 34 }}>{paidEfficiencyScore("monsterPark", 280, efficiencyMonsterParkBonus).toFixed(1)}</strong></div>
+          <div style={{ padding: 18, borderRadius: 14, background: "#242633", color: "white" }}><small>메카베리</small><strong style={{ marginTop: 8, display: "block", fontSize: 28 }}>{paidEfficiencyScore("mech", 280).toFixed(1)}</strong></div>
+          <div style={{ padding: 18, borderRadius: 14, background: "#242633", color: "white" }}><small>블루베리</small><strong style={{ marginTop: 8, display: "block", fontSize: 28 }}>{paidEfficiencyScore("blue", 280).toFixed(1)}</strong></div>
+        </figure>
       </section>
 
       <section className="efficiency-panel full-efficiency-table">
-        <div className="efficiency-head"><div><span>LV.{s.level} · VIP 사우나 100 기준</span><h3>Lv.280~284 전체 효율표</h3></div><b>비교 지수</b></div>
+        <div className="efficiency-head"><div><span>LV.{s.level} · VIP 사우나 100 기준 · 현재 몬파 +{efficiencyMonsterParkBonus}%</span><h3>Lv.280~284 전체 효율표</h3></div><b>비교 지수</b></div>
         <div className="efficiency-list">
           {efficiencyRanking.map((source, index) => <div className={`efficiency-row ${index < 3 ? "top" : ""}`} key={source.id}>
             <strong>{index + 1}</strong><div className="efficiency-name"><b>{source.label}</b>{index === 0 && <small>현재 레벨 최고</small>}</div>
-            <div className="efficiency-values">{efficiencyLevels.map(level => <span className={level === s.level ? "active" : ""} key={level}><small>Lv.{level}</small><b>{relativeEfficiencyScore(source, level).toFixed(1)}</b></span>)}</div>
+            <div className="efficiency-values">{efficiencyLevels.map(level => <span className={level === s.level ? "active" : ""} key={level}><small>Lv.{level}</small><b>{relativeEfficiencyScore(source, level, efficiencyMonsterParkBonus).toFixed(1)}</b></span>)}</div>
           </div>)}
         </div>
-        <p>수치는 경험치 %가 아닌 효율 비교 지수입니다. 하루1소재 Lv.281 수치를 기준으로 레벨별 경험치 감소율을 반영했습니다. 추가 경험치 50%와 소경축비는 기준값입니다.</p>
+        <p>수치는 경험치 %가 아닌 효율 비교 지수입니다. 몬스터파크는 계산 시작일과 에테리온 5·6레벨 선택, 코어 총합 20 적용일을 반영합니다. 추가 경험치 50%와 소경축비는 기준값입니다.</p>
       </section>
     </section>}
 
