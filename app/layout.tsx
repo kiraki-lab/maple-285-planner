@@ -3,15 +3,8 @@ import "./globals.css";
 
 export const dynamic = "force-static";
 
-const siteBase = new URL(
-  process.env.GITHUB_PAGES === "true"
-    ? "https://kiraki-lab.github.io/maple-285-planner/"
-    : "https://maple-285-planner.nms070.chatgpt.site/",
-);
-const ogImage = new URL(
-  process.env.GITHUB_PAGES === "true" ? "/maple-285-planner/og.png" : "/og.png",
-  siteBase,
-);
+const siteBase = new URL("https://kiraki-lab.github.io/maple-285-planner/");
+const ogImage = new URL("og.png", siteBase);
 
 export const metadata: Metadata = {
   metadataBase: siteBase,
