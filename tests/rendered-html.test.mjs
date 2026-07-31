@@ -82,7 +82,7 @@ test("keeps the 285 calculator primary and moves supporting content into tabs", 
   assert.doesNotMatch(page, /일일 사냥 경험치/);
   assert.doesNotMatch(page, /SPECTER_BLAST_END|specter|mpNow|dailyNow|epicNow|mpPatch|dailyPatch|epicPatch|afterPatch|patchDate|challengerPassCapForDate|7\/22|패치 전|패치 후/);
   assert.match(layout, /285 플래너/);
-  assert.match(layout, /\/og\.png/);
+  assert.match(layout, /new URL\("og\.png", siteBase\)/);
   assert.match(css, /@media \(max-width: 720px\)/);
   assert.match(css, /\.efficiency-values small \{ font-size: 11px/);
   assert.match(css, /\.leftover-note \{[^}]*font-size: 13px/);
