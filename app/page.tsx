@@ -123,6 +123,8 @@ type Simulation = {
   leftovers: Leftovers;
   leftoverSources: string[];
   shopMaplePoints: number;
+  shopBluePurchased: number;
+  shopMechPurchased: number;
   monsterParkMaplePoints: number;
   maplePoints: number;
   scheduleLabel: string;
@@ -137,8 +139,8 @@ type Simulation = {
   horizonDays: number;
   endReason: "reached" | "horizon" | "no-growth";
 };
-type PullPlan = { pullWeeks: number; targetClearWeeks: number; result: Simulation; feasible: boolean; strategy: PullStrategy; shopBlueWeeks: number; shopMechWeeks: number; scheduleIndex: number };
-type StrategyCandidate = { result: Simulation; shopBlueWeeks: number; shopMechWeeks: number; scheduleIndex: number };
+type PullPlan = { pullWeeks: number; targetClearWeeks: number; result: Simulation; feasible: boolean; strategy: PullStrategy; shopBlueCount: number; shopMechCount: number; scheduleIndex: number };
+type StrategyCandidate = { result: Simulation; shopBlueCount: number; shopMechCount: number; scheduleIndex: number };
 type Planning = {
   sunday: Simulation;
   free: Simulation;
@@ -277,6 +279,36 @@ const ULTIMA_ATTENDANCE_START = "2026-06-18";
 const ULTIMA_ATTENDANCE_MAX = 60;
 const SHOP_WEEK_STARTS = ["2026-07-23", "2026-07-30", "2026-08-06", "2026-08-13"];
 const SHOP_EVENT_END = "2026-08-19";
+const SHOP_WEEKLY_ITEM_LIMIT = 2;
+const SHOP_BLUE_UNIT_PRICE = 7_000;
+const SHOP_MECH_UNIT_PRICE = 10_000;
+export const distributeShopPurchaseCount = (requestedCount: number, availableWeekCount: number) => {
+  let remaining = Math.max(0, Math.min(Math.floor(requestedCount), Math.max(0, Math.floor(availableWeekCount)) * SHOP_WEEKLY_ITEM_LIMIT));
+  return Array.from({ length: Math.max(0, Math.floor(availableWeekCount)) }, () => {
+    const count = Math.min(SHOP_WEEKLY_ITEM_LIMIT, remaining);
+    remaining -= count;
+    return count;
+  });
+};
+const singleShopPurchaseLabel = (label: string, count: number) => {
+  const distribution = distributeShopPurchaseCount(count, Math.ceil(Math.max(0, count) / SHOP_WEEKLY_ITEM_LIMIT)).filter(Boolean);
+  return count > 0 ? `${label} ${count}개 · ${distribution.length}주(${distribution.join("+")})` : "";
+};
+export const shopPurchasePlanLabel = (shopBlueCount: number, shopMechCount: number) => {
+  const blueCount = Math.max(0, Math.floor(shopBlueCount));
+  const mechCount = Math.max(0, Math.floor(shopMechCount));
+  if (blueCount === 1 && mechCount === 1) return "메카 1개 + 블루 1개";
+  return [singleShopPurchaseLabel("메카", mechCount), singleShopPurchaseLabel("블루", blueCount)].filter(Boolean).join(" · ") || "메포샵 미구매";
+};
+export const shopPurchasePairsForAvailableCount = (availableShopItemCount: number): Record<PullStrategy, [number, number][]> => {
+  const counts = Array.from({ length: Math.max(0, Math.floor(availableShopItemCount)) }, (_, index) => index + 1);
+  return {
+    monsterPark: [[0, 0]],
+    blue: counts.map((count): [number, number] => [count, 0]),
+    mech: counts.map((count): [number, number] => [0, count]),
+    both: counts.flatMap(blueCount => counts.map((mechCount): [number, number] => [blueCount, mechCount])),
+  };
+};
 const formatMP = (value: number) => `${Math.round(value).toLocaleString("ko-KR")} 메포`;
 const formatSignedMP = (value: number) => `${value > 0 ? "+" : ""}${formatMP(value)}`;
 const eok = (value: number) => `${(value / 100000000).toLocaleString("ko-KR", { maximumFractionDigits: 2 })}억`;
@@ -370,12 +402,12 @@ const defaults = createDefaultSettings();
 const paidStrategyIds = PAID_STRATEGY_PRIORITY as readonly Exclude<PullStrategy, "both">[];
 const paidStrategyCopy: Record<Exclude<PullStrategy, "both">, { label: string; caption: string }> = {
   monsterPark: { label: "평일 몬파", caption: "기본 2판 이후 유료 5판 우선" },
-  mech: { label: "메카베리 구매", caption: "주당 2장 · 10,000 메포" },
-  blue: { label: "블루베리 구매", caption: "주당 2장 · 7,000 메포" },
+  mech: { label: "메카베리 구매", caption: "1개 10,000 메포 · 주당 최대 2개" },
+  blue: { label: "블루베리 구매", caption: "1개 7,000 메포 · 주당 최대 2개" },
 };
 const pullStrategies: { id: PullStrategy; label: string; caption: string }[] = [
   ...paidStrategyIds.map(id => ({ id, ...paidStrategyCopy[id] })),
-  { id: "both", label: "농장 둘 다", caption: "주당 4장 · 17,000 메포" },
+  { id: "both", label: "농장 둘 다", caption: "개별 구매 · 주당 각각 최대 2개" },
 ];
 
 const viewTabs: { id: ViewTab; label: string; description: string }[] = [
@@ -742,7 +774,7 @@ function simulatePre280(s: Settings): Pre280Simulation {
   };
 }
 
-function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number; deferMomentumMech?: boolean; shopBlueWeeks?: number; shopMechWeeks?: number } = {}): Simulation {
+function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number; deferMomentumMech?: boolean; shopBlueCount?: number; shopMechCount?: number } = {}): Simulation {
   const start = parseDate(s.start);
   const targetLevel = s.targetLevel === 290 ? 290 : 285;
   const horizonDays = targetLevel === 290 ? 730 : 120;
@@ -846,16 +878,20 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
   }
 
   const availableShopWeeks = availableShopWeeksForStart(start);
-  const shopBlueWeeks = Math.max(0, Math.min(availableShopWeeks.length, Math.floor(schedule.shopBlueWeeks ?? (s.shopBlue ? availableShopWeeks.length : 0))));
-  const shopMechWeeks = Math.max(0, Math.min(availableShopWeeks.length, Math.floor(schedule.shopMechWeeks ?? (s.shopMech ? availableShopWeeks.length : 0))));
-  if (shopBlueWeeks || shopMechWeeks) {
+  const availableShopItemCount = availableShopWeeks.length * SHOP_WEEKLY_ITEM_LIMIT;
+  const shopBlueCount = Math.max(0, Math.min(availableShopItemCount, Math.floor(schedule.shopBlueCount ?? (s.shopBlue ? availableShopItemCount : 0))));
+  const shopMechCount = Math.max(0, Math.min(availableShopItemCount, Math.floor(schedule.shopMechCount ?? (s.shopMech ? availableShopItemCount : 0))));
+  const shopBlueDistribution = distributeShopPurchaseCount(shopBlueCount, availableShopWeeks.length);
+  const shopMechDistribution = distributeShopPurchaseCount(shopMechCount, availableShopWeeks.length);
+  if (shopBlueCount || shopMechCount) {
     availableShopWeeks.forEach(({ weekStart, originalIndex }, index) => {
-      const buyBlue = index < shopBlueWeeks;
-      const buyMech = index < shopMechWeeks;
-      if (!buyBlue && !buyMech) return;
+      const buyBlueCount = shopBlueDistribution[index];
+      const buyMechCount = shopMechDistribution[index];
+      if (!buyBlueCount && !buyMechCount) return;
+      const purchaseLabel = [buyMechCount ? `메카 ${buyMechCount}개` : "", buyBlueCount ? `블루 ${buyBlueCount}개` : ""].filter(Boolean).join(" · ");
       addReward(weekStart < start ? start : weekStart, {
-        label: `메포샵 ${originalIndex + 1}주차`, blue: buyBlue ? 2 : 0, mech: buyMech ? 2 : 0,
-        maplePoints: (buyBlue ? 7000 : 0) + (buyMech ? 10000 : 0), optionalPurchase: true,
+        label: `메포샵 ${originalIndex + 1}주차 · ${purchaseLabel}`, blue: buyBlueCount, mech: buyMechCount,
+        maplePoints: buyBlueCount * SHOP_BLUE_UNIT_PRICE + buyMechCount * SHOP_MECH_UNIT_PRICE, optionalPurchase: true,
       });
     });
   }
@@ -920,6 +956,8 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
   let leftoverSourcesAt285: string[] = [];
   let specialSupplySavedAt285: number | null = null;
   let shopMaplePoints = 0;
+  let shopBluePurchased = 0;
+  let shopMechPurchased = 0;
   let monsterParkMaplePoints = 0;
   let dailyDaysApplied = 0;
   let sundaysSeen = 0;
@@ -948,7 +986,11 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
     const date = addDays(start, day); const key = iso(date); const events: string[] = [];
     (rewardDays.get(key) || []).forEach(reward => {
       if (reward.optionalPurchase && level >= targetLevel) return;
-      if (reward.optionalPurchase) reward.purchased = true;
+      if (reward.optionalPurchase) {
+        reward.purchased = true;
+        shopBluePurchased += Math.max(0, Math.floor(Number(reward.blue || 0)));
+        shopMechPurchased += Math.max(0, Math.floor(Number(reward.mech || 0)));
+      }
       shopMaplePoints += reward.maplePoints || 0;
       const r = reward.remaining!;
       if ((reward.blue || 0) > 0) r.blue -= applyItems("blue", r.blue);
@@ -1037,7 +1079,7 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
   }
   const finalProgress = rows[rows.length - 1]?.progress ?? startingProgress;
   const endReason: Simulation["endReason"] = reached ? "reached" : finalProgress <= startingProgress + 1e-12 ? "no-growth" : "horizon";
-  return { start, startLevel: s.level, startExp: s.exp, rows, reached, reach285At, leftoversAt285, leftoverSourcesAt285, specialSupplySavedAt285, leftovers, leftoverSources, shopMaplePoints, monsterParkMaplePoints, maplePoints: shopMaplePoints + monsterParkMaplePoints, scheduleLabel, sevenUntil, specialSundayCount, momentumMechLevel, momentumMechDeadline, dailyDaysApplied, ultimaCountAtReach, specialSupplySaved, specialSupplyUsed, horizonDays, endReason };
+  return { start, startLevel: s.level, startExp: s.exp, rows, reached, reach285At, leftoversAt285, leftoverSourcesAt285, specialSupplySavedAt285, leftovers, leftoverSources, shopMaplePoints, shopBluePurchased, shopMechPurchased, monsterParkMaplePoints, maplePoints: shopMaplePoints + monsterParkMaplePoints, scheduleLabel, sevenUntil, specialSundayCount, momentumMechLevel, momentumMechDeadline, dailyDaysApplied, ultimaCountAtReach, specialSupplySaved, specialSupplyUsed, horizonDays, endReason };
 }
 
 function weekStartThursday(date: Date) { return addDays(date, -((dayOfWeek(date) + 3) % 7)); }
@@ -1056,26 +1098,26 @@ function* buildPlanningSteps(settings: Settings): Generator<number, Planning, vo
   const free = simulate(strategySettings, { fixedRuns: 2 }); yield ++completed;
   const allSeven = simulate(strategySettings, { fixedRuns: 7 }); yield ++completed;
   if (s.targetLevel === 290) {
-    const availableWeeks = availableShopWeeksForStart(start).length;
-    const makePlan = (strategy: PullStrategy, result: Simulation, shopBlueWeeks = 0, shopMechWeeks = 0): PullPlan => ({
+    const availableShopCount = availableShopWeeksForStart(start).length * SHOP_WEEKLY_ITEM_LIMIT;
+    const makePlan = (strategy: PullStrategy, result: Simulation): PullPlan => ({
       pullWeeks: 0,
       targetClearWeeks: 0,
       result,
       feasible: Boolean(result.reached),
       strategy,
-      shopBlueWeeks,
-      shopMechWeeks,
+      shopBlueCount: result.shopBluePurchased,
+      shopMechCount: result.shopMechPurchased,
       scheduleIndex: 0,
     });
     const basePlan = makePlan("monsterPark", free);
-    const blueResult = simulate(strategySettings, { fixedRuns: 2, shopBlueWeeks: availableWeeks }); yield ++completed;
-    const mechResult = simulate(strategySettings, { fixedRuns: 2, shopMechWeeks: availableWeeks }); yield ++completed;
-    const bothResult = simulate(strategySettings, { fixedRuns: 2, shopBlueWeeks: availableWeeks, shopMechWeeks: availableWeeks }); yield ++completed;
+    const blueResult = simulate(strategySettings, { fixedRuns: 2, shopBlueCount: availableShopCount }); yield ++completed;
+    const mechResult = simulate(strategySettings, { fixedRuns: 2, shopMechCount: availableShopCount }); yield ++completed;
+    const bothResult = simulate(strategySettings, { fixedRuns: 2, shopBlueCount: availableShopCount, shopMechCount: availableShopCount }); yield ++completed;
     const strategyPlans: Record<PullStrategy, PullPlan[]> = {
       monsterPark: [basePlan],
-      blue: [makePlan("blue", blueResult, availableWeeks, 0)],
-      mech: [makePlan("mech", mechResult, 0, availableWeeks)],
-      both: [makePlan("both", bothResult, availableWeeks, availableWeeks)],
+      blue: [makePlan("blue", blueResult)],
+      mech: [makePlan("mech", mechResult)],
+      both: [makePlan("both", bothResult)],
     };
     const candidates = pullStrategies.map(({ id }) => strategyPlans[id][0]).filter(plan => plan.feasible);
     const recommended = candidates.filter((candidate, candidateIndex) => !candidates.some((other, otherIndex) => {
@@ -1087,27 +1129,24 @@ function* buildPlanningSteps(settings: Settings): Generator<number, Planning, vo
     const recommendedPlansByWeek = [recommended.length ? recommended : [basePlan]];
     return { sunday, free, allSeven, strategyPlans, recommendedPlansByWeek, bestPlansByWeek: [basePlan], basePlan, maxPullWeeks: 0, deadline };
   }
-  const pairsByStrategy: Record<PullStrategy, [number, number][]> = {
-    monsterPark: [[0, 0]],
-    blue: [1, 2, 3, 4].map((weeks): [number, number] => [weeks, 0]),
-    mech: [1, 2, 3, 4].map((weeks): [number, number] => [0, weeks]),
-    both: [1, 2, 3, 4].map((weeks): [number, number] => [weeks, weeks]),
-  };
-  const candidateCache = new Map<string, StrategyCandidate>();
   const availableShopWeekCount = availableShopWeeksForStart(start).length;
-  candidateCache.set("0:0:0", { result: sunday, shopBlueWeeks: 0, shopMechWeeks: 0, scheduleIndex: 0 });
-  candidateCache.set("0:0:64", { result: allSeven, shopBlueWeeks: 0, shopMechWeeks: 0, scheduleIndex: 64 });
-  const candidateAt = function* (shopBlueWeeks: number, shopMechWeeks: number, scheduleIndex: number): Generator<number, StrategyCandidate, void> {
-    const effectiveShopBlueWeeks = Math.min(shopBlueWeeks, availableShopWeekCount);
-    const effectiveShopMechWeeks = Math.min(shopMechWeeks, availableShopWeekCount);
-    const key = `${effectiveShopBlueWeeks}:${effectiveShopMechWeeks}:${scheduleIndex}`;
+  const availableShopItemCount = availableShopWeekCount * SHOP_WEEKLY_ITEM_LIMIT;
+  const pairsByStrategy = shopPurchasePairsForAvailableCount(availableShopItemCount);
+  const candidateCache = new Map<string, StrategyCandidate>();
+  candidateCache.set("0:0:0", { result: sunday, shopBlueCount: 0, shopMechCount: 0, scheduleIndex: 0 });
+  candidateCache.set("0:0:64", { result: allSeven, shopBlueCount: 0, shopMechCount: 0, scheduleIndex: 64 });
+  const candidateAt = function* (shopBlueCount: number, shopMechCount: number, scheduleIndex: number): Generator<number, StrategyCandidate, void> {
+    const effectiveShopBlueCount = Math.min(shopBlueCount, availableShopItemCount);
+    const effectiveShopMechCount = Math.min(shopMechCount, availableShopItemCount);
+    const key = `${effectiveShopBlueCount}:${effectiveShopMechCount}:${scheduleIndex}`;
     const cached = candidateCache.get(key);
     if (cached) return cached;
     const schedule = scheduleIndex === 64 ? { fixedRuns: 7 } : { sevenUntil: addDays(start, scheduleIndex - 1) };
+    const result = simulate(strategySettings, { ...schedule, shopBlueCount: effectiveShopBlueCount, shopMechCount: effectiveShopMechCount });
     const candidate = {
-      result: simulate(strategySettings, { ...schedule, shopBlueWeeks: effectiveShopBlueWeeks, shopMechWeeks: effectiveShopMechWeeks }),
-      shopBlueWeeks: effectiveShopBlueWeeks,
-      shopMechWeeks: effectiveShopMechWeeks,
+      result,
+      shopBlueCount: result.shopBluePurchased,
+      shopMechCount: result.shopMechPurchased,
       scheduleIndex,
     };
     candidateCache.set(key, candidate);
@@ -1117,38 +1156,38 @@ function* buildPlanningSteps(settings: Settings): Generator<number, Planning, vo
   const meetsTarget = (candidate: StrategyCandidate, targetClearWeeks: number) => Boolean(
     candidate.result.reached && candidate.result.reached <= deadline && mayrinClearWeeks(candidate.result.reached) >= targetClearWeeks,
   );
-  const leastCostCandidate = function* (shopBlueWeeks: number, shopMechWeeks: number, targetClearWeeks: number, minimumScheduleIndex = 0): Generator<number, StrategyCandidate | null, void> {
-    if (!meetsTarget(yield* candidateAt(shopBlueWeeks, shopMechWeeks, 64), targetClearWeeks)) return null;
+  const leastCostCandidate = function* (shopBlueCount: number, shopMechCount: number, targetClearWeeks: number, minimumScheduleIndex = 0): Generator<number, StrategyCandidate | null, void> {
+    if (!meetsTarget(yield* candidateAt(shopBlueCount, shopMechCount, 64), targetClearWeeks)) return null;
     let low = Math.max(0, Math.min(64, minimumScheduleIndex));
     let high = 64;
     while (low < high) {
       const middle = Math.floor((low + high) / 2);
-      if (meetsTarget(yield* candidateAt(shopBlueWeeks, shopMechWeeks, middle), targetClearWeeks)) high = middle;
+      if (meetsTarget(yield* candidateAt(shopBlueCount, shopMechCount, middle), targetClearWeeks)) high = middle;
       else low = middle + 1;
     }
-    return yield* candidateAt(shopBlueWeeks, shopMechWeeks, low);
+    return yield* candidateAt(shopBlueCount, shopMechCount, low);
   };
   const baselineClearWeeks = Math.max(1, mayrinClearWeeks(sunday.reached));
-  const maximumClearWeeks = mayrinClearWeeks((yield* candidateAt(4, 4, 64)).result.reached);
+  const maximumClearWeeks = mayrinClearWeeks((yield* candidateAt(availableShopItemCount, availableShopItemCount, 64)).result.reached);
   const maxPullWeeks = Math.max(0, maximumClearWeeks - baselineClearWeeks);
   const pickPlan = function* (strategy: PullStrategy, pullWeeks: number, monsterParkPlan?: PullPlan): Generator<number, PullPlan, void> {
     const targetClearWeeks = baselineClearWeeks + pullWeeks;
     const pairs = pullWeeks === 0 ? pairsByStrategy.monsterPark : pairsByStrategy[strategy];
     const minimumScheduleIndex = strategy === "monsterPark" ? 0 : monsterParkPlan?.scheduleIndex ?? 0;
     const eligible: StrategyCandidate[] = [];
-    for (const [shopBlueWeeks, shopMechWeeks] of pairs) {
-      const candidate = yield* leastCostCandidate(shopBlueWeeks, shopMechWeeks, targetClearWeeks, minimumScheduleIndex);
+    for (const [shopBlueCount, shopMechCount] of pairs) {
+      const candidate = yield* leastCostCandidate(shopBlueCount, shopMechCount, targetClearWeeks, minimumScheduleIndex);
       if (!candidate) continue;
       if (strategy === "monsterPark" || !monsterParkPlan?.feasible) eligible.push(candidate);
     }
     eligible.sort((a, b) => a.result.maplePoints - b.result.maplePoints || a.result.shopMaplePoints - b.result.shopMaplePoints || a.result.monsterParkMaplePoints - b.result.monsterParkMaplePoints);
     const fallbacks: StrategyCandidate[] = [];
-    for (const [shopBlueWeeks, shopMechWeeks] of pairs) fallbacks.push(yield* candidateAt(shopBlueWeeks, shopMechWeeks, 64));
+    for (const [shopBlueCount, shopMechCount] of pairs) fallbacks.push(yield* candidateAt(shopBlueCount, shopMechCount, 64));
     fallbacks.sort((a, b) => (a.result.reached?.getTime() ?? Infinity) - (b.result.reached?.getTime() ?? Infinity));
-    const chosen = eligible[0] || fallbacks[0] || { result: allSeven, shopBlueWeeks: 0, shopMechWeeks: 0 };
+    const chosen = eligible[0] || fallbacks[0] || { result: allSeven, shopBlueCount: 0, shopMechCount: 0 };
     return {
       pullWeeks, targetClearWeeks, result: chosen.result, strategy,
-      shopBlueWeeks: chosen.shopBlueWeeks, shopMechWeeks: chosen.shopMechWeeks,
+      shopBlueCount: chosen.shopBlueCount, shopMechCount: chosen.shopMechCount,
       scheduleIndex: chosen.scheduleIndex,
       feasible: eligible.length > 0,
     };
@@ -1460,7 +1499,7 @@ export default function Home() {
           <article className="hero-card"><div className="card-label">일요일만 7판</div><strong>{longDate(calc.sunday.reached)}</strong><span>{calc.sunday.scheduleLabel}</span><div className="card-meta"><b>{formatMP(calc.sunday.maplePoints)}</b><em>평일 2판 · 일요일 추가 5판</em></div></article>
           <article className="hero-card verdict"><div className="card-label">매일 7판 비교</div><strong>{longDate(calc.allSeven.reached)}</strong><span>{calc.allSeven.scheduleLabel}</span><div className="card-meta"><b>{formatMP(calc.allSeven.maplePoints)}</b><em>가장 빠른 고정 경로</em></div></article>
         </> : <>
-          <article className="hero-card primary"><div className="card-label">{calc.effectivePullWeeks ? `${calc.effectivePullWeeks}주 당김 · ${selectedStrategy.label}` : "마감만 맞추기"}</div><strong>{longDate(r.reached)}</strong><span>{r.scheduleLabel}</span><div className="card-meta"><b>{formatMP(r.maplePoints)}</b><em>몬파 {formatMP(r.monsterParkMaplePoints)} · 상점 {formatMP(r.shopMaplePoints)}</em></div></article>
+          <article className="hero-card primary"><div className="card-label">{calc.effectivePullWeeks ? `${calc.effectivePullWeeks}주 당김 · ${selectedStrategy.label}` : "마감만 맞추기"}</div><strong>{longDate(r.reached)}</strong><span>{r.scheduleLabel}</span><div className="card-meta"><b>{formatMP(r.maplePoints)}</b><em>몬파 {formatMP(r.monsterParkMaplePoints)} · 상점 {formatMP(r.shopMaplePoints)}{r.shopMaplePoints > 0 ? ` · ${shopPurchasePlanLabel(r.shopBluePurchased, r.shopMechPurchased)}` : ""}</em></div></article>
           <article className="hero-card"><div className="card-label">0주 · 마감 기준</div><strong>{longDate(calc.basePlan.result.reached)}</strong><span>{calc.basePlan.result.scheduleLabel}</span><div className="card-meta"><b>{formatMP(calc.basePlan.result.maplePoints)}</b><em>상점 없이 9월 16일 달성</em></div></article>
           <article className="hero-card verdict"><div className="card-label">{calc.effectivePullWeeks ? `${calc.effectivePullWeeks}주 총손익 · 0주 대비` : "마감 확보 손익"}</div><strong className={primaryRoiNetValue >= 0 ? "positive" : "negative"}>{primaryRoiNetValue >= 0 ? "+" : ""}{eok(primaryRoiNetValue)}</strong><span>{calc.effectivePullWeeks ? `누적 회수율 ${primaryRoiRecoveryRate.toFixed(1)}%` : "마감은 필수조건 · 손익과 분리"}</span><div className="card-meta"><b>{primaryRoiHardWeeks}회 추가</b><em>보상 {eok(primaryRoiRecoveredValue)}</em></div></article>
         </>}
@@ -1594,7 +1633,7 @@ export default function Home() {
         </div>
         <div className="strategy-choice">
           <div className="strategy-choice-head"><span>경로 선택</span><h3>{calc.effectivePullWeeks ? `${calc.effectivePullWeeks}주 당김 경로` : "마감 기준 경로"}</h3><p>같은 도달일에는 메포가 적은 경로만 표시합니다.</p></div>
-          <div className="strategy-choice-grid">{calc.recommendedPlansByWeek[calc.effectivePullWeeks].map((plan, index) => { const strategy = pullStrategies.find(item => item.id === plan.strategy)!; const active = plan.strategy === calc.selectedPlan.strategy; const recommended = plan.strategy === calc.bestRoiStrategy; return <button key={strategy.id} className={`${active ? "active" : ""} ${recommended ? "recommended" : ""}`} onClick={() => selectCalculatedRoute({ pullStrategy: strategy.id })}><div><span>{recommended ? "추천 · 순손익 최고" : index === 0 ? "메포 최저" : "더 빠른 선택"}</span><i>{active ? "선택됨" : "선택"}</i></div><h4>{strategy.label}</h4><p>{strategy.caption}</p><strong>{shortDate(plan.result.reached)}</strong><dl><div><dt>총액</dt><dd>{formatMP(plan.result.maplePoints)}</dd></div><div><dt>몬파</dt><dd>{formatMP(plan.result.monsterParkMaplePoints)}</dd></div><div><dt>상점</dt><dd>{formatMP(plan.result.shopMaplePoints)}</dd></div></dl><small>{calc.effectivePullWeeks ? `블루 ${plan.shopBlueWeeks}주 · 메카 ${plan.shopMechWeeks}주 구매 계획` : "0주에서는 농장 미구매"}</small></button>; })}</div>
+          <div className="strategy-choice-grid">{calc.recommendedPlansByWeek[calc.effectivePullWeeks].map((plan, index) => { const strategy = pullStrategies.find(item => item.id === plan.strategy)!; const active = plan.strategy === calc.selectedPlan.strategy; const recommended = plan.strategy === calc.bestRoiStrategy; return <button key={strategy.id} className={`${active ? "active" : ""} ${recommended ? "recommended" : ""}`} onClick={() => selectCalculatedRoute({ pullStrategy: strategy.id })}><div><span>{recommended ? "추천 · 순손익 최고" : index === 0 ? "메포 최저" : "더 빠른 선택"}</span><i>{active ? "선택됨" : "선택"}</i></div><h4>{strategy.label}</h4><p>{strategy.caption}</p><strong>{shortDate(plan.result.reached)}</strong><dl><div><dt>총액</dt><dd>{formatMP(plan.result.maplePoints)}</dd></div><div><dt>몬파</dt><dd>{formatMP(plan.result.monsterParkMaplePoints)}</dd></div><div><dt>상점</dt><dd>{formatMP(plan.result.shopMaplePoints)}</dd></div></dl><small>{calc.effectivePullWeeks ? shopPurchasePlanLabel(plan.shopBlueCount, plan.shopMechCount) : "0주에서는 농장 미구매"}</small></button>; })}</div>
         </div></>}
         <ProgressChart selected={r} sunday={calc.sunday} free={calc.free} targetLevel={targetLevel} />
         {targetLevel === 290 ? <div className="route-grid">
@@ -1602,7 +1641,7 @@ export default function Home() {
           <article className="route-card baseline"><div><div className="route-card-label"><span>일요일 비교</span><i>{calc.sunday.reached ? "도달" : "미도달"}</i></div><h3>평일 2판 · 일요일 7판</h3><p>일요일 추가 5판만 결제</p></div><strong>{shortDate(calc.sunday.reached)}</strong><dl><div><dt>총 비용</dt><dd>{formatMP(calc.sunday.maplePoints)}</dd></div><div><dt>몬파</dt><dd>{formatMP(calc.sunday.monsterParkMaplePoints)}</dd></div></dl></article>
           <article className="route-card free-route"><div><div className="route-card-label"><span>속도 비교</span><i>{calc.allSeven.reached ? "도달" : "미도달"}</i></div><h3>매일 7판</h3><p>매일 유료 추가 5판</p></div><strong>{shortDate(calc.allSeven.reached)}</strong><dl><div><dt>총 비용</dt><dd>{formatMP(calc.allSeven.maplePoints)}</dd></div><div><dt>몬파</dt><dd>{formatMP(calc.allSeven.monsterParkMaplePoints)}</dd></div></dl></article>
         </div> : <div className={`route-grid ${calc.effectivePullWeeks === 0 ? "two" : ""}`}>
-          <article className="route-card chosen"><div><div className="route-card-label"><span>선택 경로 · {calc.effectivePullWeeks}주</span><i>{calc.selectedPlan.strategy === calc.bestRoiStrategy ? "추천 · 순손익 최고" : "선택됨"}</i></div><h3>{selectedRouteTitle}</h3><p>{calc.effectivePullWeeks === 0 ? "9월 16일 마감 기준" : `${calc.effectivePullWeeks}주 당김 기준`}</p></div><strong>{shortDate(r.reached)}</strong><dl><div><dt>총 비용</dt><dd>{formatMP(r.maplePoints)}</dd></div><div><dt>메포샵</dt><dd>{formatMP(r.shopMaplePoints)}</dd></div><div><dt>하드</dt><dd>{calc.selectedHardWeeks}회</dd></div></dl></article>
+          <article className="route-card chosen"><div><div className="route-card-label"><span>선택 경로 · {calc.effectivePullWeeks}주</span><i>{calc.selectedPlan.strategy === calc.bestRoiStrategy ? "추천 · 순손익 최고" : "선택됨"}</i></div><h3>{selectedRouteTitle}</h3><p>{calc.effectivePullWeeks === 0 ? "9월 16일 마감 기준" : `${calc.effectivePullWeeks}주 당김 기준`}{r.shopMaplePoints > 0 ? ` · 상점 ${formatMP(r.shopMaplePoints)} · ${shopPurchasePlanLabel(r.shopBluePurchased, r.shopMechPurchased)}` : " · 메포샵 미구매"}</p></div><strong>{shortDate(r.reached)}</strong><dl><div><dt>총 비용</dt><dd>{formatMP(r.maplePoints)}</dd></div><div><dt>메포샵</dt><dd>{formatMP(r.shopMaplePoints)}</dd></div><div><dt>하드</dt><dd>{calc.selectedHardWeeks}회</dd></div></dl></article>
           {calc.effectivePullWeeks > 0 && <article className="route-card baseline"><div><div className="route-card-label"><span>0주 비교 기준</span><i>추가 당김 없음</i></div><h3>{calc.basePlan.result.scheduleLabel}</h3><p>선택 경로의 비용·하드 횟수를 비교하는 기준입니다.</p></div><strong>{shortDate(calc.basePlan.result.reached)}</strong><dl><div><dt>총 비용</dt><dd>{formatMP(calc.basePlan.result.maplePoints)}</dd></div><div><dt>하드</dt><dd>{calc.baseHardWeeks}회</dd></div></dl></article>}
           <article className="route-card free-route"><div><div className="route-card-label"><span>추가 메포 0 비교</span><i>무료 기준</i></div><h3>매일 2판</h3><p>일요일 추가 5판도 하지 않는 비교 경로입니다.</p></div><strong>{shortDate(calc.free.reached)}</strong><dl><div><dt>추가 메포</dt><dd>0 메포</dd></div><div><dt>9/16 마감</dt><dd>{calc.free.reached && calc.free.reached <= calc.deadline ? "통과" : "실패"}</dd></div></dl></article>
         </div>}

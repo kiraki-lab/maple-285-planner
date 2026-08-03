@@ -136,7 +136,8 @@ test("keeps verified calculator constants visible in source", async () => {
   assert.match(page, /paidMonsterParkMaplePoints\(dailyRuns\)/);
   assert.match(page, /pullWeeks: 0/);
   assert.match(page, /pullStrategy: "monsterPark"/);
-  assert.match(page, /shopBlueWeeks/);
+  assert.match(page, /shopBlueCount/);
+  assert.doesNotMatch(page, /shopBlueWeeks|shopMechWeeks/);
   assert.match(page, /shopMech: false, shopBlue: false/);
   assert.match(page, /preLevel: 270/);
   assert.match(page, /pre280Data/);
@@ -312,7 +313,7 @@ test("ignores Ultima shop EXP rewards that are already past", async () => {
   assert.equal(scheduledShopExp.rows.some(row => row.key === "2026-07-30" && row.events.includes("울티마 스쿼드 상점 EXP 5,000장 (예상)")), true);
 });
 
-test("buys the first still-open Maple Point shop week on the calculation start date", async () => {
+test("buys one Blueberry on the first still-open Maple Point shop week", async () => {
   const manifest = JSON.parse(await readFile(new URL("dist/client/.vite/manifest.json", root), "utf8"));
   const pageModuleUrl = new URL(`dist/client/${manifest["app/page.tsx"].file}`, root);
   const pageModule = await import(`${pageModuleUrl.href}?shop-week-regression`);
@@ -332,11 +333,73 @@ test("buys the first still-open Maple Point shop week on the calculation start d
     extreme: false,
     epic: false,
   };
-  const result = pageModule.simulate(settings, { fixedRuns: 0, shopBlueWeeks: 1 });
+  const result = pageModule.simulate(settings, { fixedRuns: 0, shopBlueCount: 1 });
 
   assert.equal(result.shopMaplePoints, 7000);
+  assert.equal(result.shopBluePurchased, 1);
   assert.equal(result.rows[0].key, "2026-07-27");
-  assert.equal(result.rows[0].events.includes("메포샵 1주차"), true);
+  assert.equal(result.rows[0].events.some(event => event.startsWith("메포샵 1주차 · 블루 1개")), true);
+});
+
+test("prices, grants, and distributes Maple Point shop items by exact count", async () => {
+  const pageModule = await importBuiltPage("shop-item-counts");
+  const page = await readFile(new URL("app/page.tsx", root), "utf8");
+  const settings = {
+    ...pageModule.createDefaultSettings("2026-07-27"),
+    level: 280,
+    exp: 0,
+    challengerPassLevel: 30,
+    momentumPassLevel: 10,
+    apology: false,
+    shardEvent: false,
+    ultima: false,
+    specialSupply: false,
+    todayDaily: false,
+    weeklyOpen: false,
+    grandis: false,
+    extreme: false,
+    epic: false,
+  };
+  const oneEach = pageModule.simulate(settings, { fixedRuns: 0, shopBlueCount: 1, shopMechCount: 1 });
+  const twoEach = pageModule.simulate(settings, { fixedRuns: 0, shopBlueCount: 2, shopMechCount: 2 });
+  const threeMech = pageModule.simulate(settings, { fixedRuns: 0, shopMechCount: 3 });
+
+  assert.equal(oneEach.shopMaplePoints, 17_000);
+  assert.equal(oneEach.shopBluePurchased, 1);
+  assert.equal(oneEach.shopMechPurchased, 1);
+  assert.equal(twoEach.shopMaplePoints, 34_000);
+  assert.equal(twoEach.shopBluePurchased, 2);
+  assert.equal(twoEach.shopMechPurchased, 2);
+  assert.ok(Math.abs((twoEach.rows[0].progress - 280) - (oneEach.rows[0].progress - 280) * 2) < 1e-10);
+
+  assert.equal(threeMech.shopMaplePoints, 30_000);
+  assert.equal(threeMech.shopMechPurchased, 3);
+  assert.deepEqual(pageModule.distributeShopPurchaseCount(3, 4), [2, 1, 0, 0]);
+  assert.deepEqual(pageModule.distributeShopPurchaseCount(9, 4), [2, 2, 2, 2]);
+  assert.equal(pageModule.distributeShopPurchaseCount(9, 4).every(count => count <= 2), true);
+  assert.equal(threeMech.rows[0].events.some(event => event.includes("메카 2개")), true);
+  assert.equal(threeMech.rows.find(row => row.key === "2026-07-30").events.some(event => event.includes("메카 1개")), true);
+  assert.equal(pageModule.shopPurchasePlanLabel(1, 1), "메카 1개 + 블루 1개");
+  assert.equal(pageModule.shopPurchasePlanLabel(0, 3), "메카 3개 · 2주(2+1)");
+  const mixedPairs = pageModule.shopPurchasePairsForAvailableCount(4).both;
+  assert.equal(mixedPairs.length, 16);
+  assert.equal(mixedPairs.some(([blueCount, mechCount]) => blueCount === 1 && mechCount === 2), true);
+  assert.match(page, /SHOP_BLUE_UNIT_PRICE = 7_000/);
+  assert.match(page, /SHOP_MECH_UNIT_PRICE = 10_000/);
+  assert.match(page, /availableShopCount = availableShopWeeksForStart\(start\)\.length \* SHOP_WEEKLY_ITEM_LIMIT/);
+  assert.match(page, /shopPurchasePairsForAvailableCount\(availableShopItemCount\)/);
+  assert.match(page, /candidateAt\(availableShopItemCount, availableShopItemCount, 64\)/);
+  assert.match(page, /shopPurchasePlanLabel\(plan\.shopBlueCount, plan\.shopMechCount\)/);
+  assert.match(page, /개별 구매 · 주당 각각 최대 2개/);
+  assert.doesNotMatch(page, /caption: "메카 1개 \+ 블루 1개 · 17,000 메포"/);
+  assert.equal((page.match(/shopPurchasePlanLabel\(r\.shopBluePurchased, r\.shopMechPurchased\)/g) || []).length, 2);
+  const heroCardStart = page.indexOf('<article className="hero-card primary"><div className="card-label">{calc.effectivePullWeeks');
+  const heroCardEnd = page.indexOf("</article>", heroCardStart);
+  const chosenRouteStart = page.indexOf('<article className="route-card chosen"><div><div className="route-card-label"><span>선택 경로');
+  const chosenRouteEnd = page.indexOf("</article>", chosenRouteStart);
+  assert.match(page.slice(heroCardStart, heroCardEnd), /shopPurchasePlanLabel\(r\.shopBluePurchased, r\.shopMechPurchased\)/);
+  assert.match(page.slice(chosenRouteStart, chosenRouteEnd), /shopPurchasePlanLabel\(r\.shopBluePurchased, r\.shopMechPurchased\)/);
+  assert.doesNotMatch(page, /candidateAt\(4, 4, 64\)|shopBlueWeeks|shopMechWeeks|주당 2장|주당 4장/);
 });
 
 test("starts Thursday Ultima attendance from the new week without overwriting manual input", async () => {
@@ -534,7 +597,7 @@ test("requires the Monster Park schedule before shop candidates", async () => {
   const page = await readFile(new URL("app/page.tsx", root), "utf8");
 
   assert.match(page, /minimumScheduleIndex = strategy === "monsterPark" \? 0 : monsterParkPlan\?\.scheduleIndex \?\? 0/);
-  assert.match(page, /leastCostCandidate\(shopBlueWeeks, shopMechWeeks, targetClearWeeks, minimumScheduleIndex\)/);
+  assert.match(page, /leastCostCandidate\(shopBlueCount, shopMechCount, targetClearWeeks, minimumScheduleIndex\)/);
   assert.match(page, /strategy === "monsterPark" \|\| !monsterParkPlan\?\.feasible/);
   assert.match(page, /strategyPlans\.monsterPark\[pullWeeks\]\?\.feasible \? strategyPlans\.monsterPark\[pullWeeks\]/);
   assert.match(page, /strategyPlans\.monsterPark\[effectivePullWeeks\]\?\.feasible \? "monsterPark" : roiWinner/);
