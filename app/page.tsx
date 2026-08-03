@@ -15,14 +15,17 @@ export const dynamic = "force-static";
 type PullStrategy = "monsterPark" | "blue" | "mech" | "both";
 type ViewTab = "calculator" | "pre280" | "efficiency" | "passes";
 type Settings = {
+  targetLevel: 285 | 290;
   level: number;
   exp: number;
   start: string;
+  carcionUnlockDate: string;
   pullWeeks: number;
   pullStrategy: PullStrategy;
   specialSundayCount: number;
   specialSupply: boolean;
   specialSupplySaved: number;
+  specialSupplyExpPerCharge: number;
   challengerPassLevel: number;
   momentumPassLevel: number;
   preLevel: number;
@@ -113,6 +116,10 @@ type Simulation = {
   startExp: number;
   rows: Row[];
   reached: Date | null;
+  reach285At: Date | null;
+  leftoversAt285: Leftovers | null;
+  leftoverSourcesAt285: string[];
+  specialSupplySavedAt285: number | null;
   leftovers: Leftovers;
   leftoverSources: string[];
   shopMaplePoints: number;
@@ -127,6 +134,8 @@ type Simulation = {
   ultimaCountAtReach: number;
   specialSupplySaved: number;
   specialSupplyUsed: number;
+  horizonDays: number;
+  endReason: "reached" | "horizon" | "no-growth";
 };
 type PullPlan = { pullWeeks: number; targetClearWeeks: number; result: Simulation; feasible: boolean; strategy: PullStrategy; shopBlueWeeks: number; shopMechWeeks: number; scheduleIndex: number };
 type StrategyCandidate = { result: Simulation; shopBlueWeeks: number; shopMechWeeks: number; scheduleIndex: number };
@@ -163,18 +172,103 @@ const efficiency: Record<number, Record<string, number>> = {
   282: { grandis: 0.3188, mp7: 1.8431, extreme: 2.2077, epic: 2.6183, adv100: 0.19479, sauna: 0.7896, blue: 5.3568, mech: 8.2281 },
   283: { grandis: 0.2898, mp7: 1.6758, extreme: 2.0339, epic: 2.412, adv100: 0.17946, sauna: 0.7274, blue: 4.8699, mech: 7.5803 },
   284: { grandis: 0.2635, mp7: 1.5232, extreme: 1.8708, epic: 2.2187, adv100: 0.16507, sauna: 0.6691, blue: 4.4271, mech: 6.9727 },
+  285: { grandis: 0.176289, mp7: 1.097479, extreme: 1.041135, epic: 1.234826, adv100: 0.091865, sauna: 0.372361, blue: 2.1917, mech: 5.1738 },
+  286: { grandis: 0.160261, mp7: 0.997699, extreme: 0.957506, epic: 1.135514, adv100: 0.084485, sauna: 0.342455, blue: 1.9924, mech: 4.758 },
+  287: { grandis: 0.145693, mp7: 0.907005, extreme: 0.881783, epic: 1.045763, adv100: 0.077804, sauna: 0.315365, blue: 1.8113, mech: 4.382 },
+  288: { grandis: 0.132448, mp7: 0.824550, extreme: 0.811982, epic: 0.962927, adv100: 0.071645, sauna: 0.290402, blue: 1.6466, mech: 4.035 },
+  289: { grandis: 0.120408, mp7: 0.749593, extreme: 0.746554, epic: 0.885408, adv100: 0.065873, sauna: 0.266999, blue: 1.4969, mech: 3.710 },
 };
 
 const emptyLeftovers = (): Leftovers => ({ blue: 0, mech: 0, sauna: 0, adv: 0, potion269: 0, potion279: 0, coupon3x: 0, coupon4x: 0 });
 const itemTypes = Object.keys(emptyLeftovers()) as ItemType[];
-const parseDate = (value: string) => { const [y, m, d] = value.split("-").map(Number); return new Date(y, m - 1, d); };
-const iso = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-const shortDate = (date: Date | null) => date ? `${date.getMonth() + 1}/${date.getDate()}` : "미도달";
-const longDate = (date: Date | null) => date ? `${date.getMonth() + 1}월 ${date.getDate()}일` : "120일 이후";
-const addDays = (date: Date, days: number) => { const next = new Date(date); next.setDate(next.getDate() + days); return next; };
-const req = (level: number) => Math.pow(1.1, level - 280);
-const LEVEL_280_REQUIRED_EXP = 33_647_601_750_165;
-const SPECIAL_SUPPLY_EXP_PER_CHARGE = 77_024_335_674;
+const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+const parseDate = (value: string) => { const [y, m, d] = value.split("-").map(Number); return new Date(Date.UTC(y, m - 1, d) - KST_OFFSET_MS); };
+const kstView = (date: Date) => new Date(date.getTime() + KST_OFFSET_MS);
+const iso = (date: Date) => { const value = kstView(date); return `${value.getUTCFullYear()}-${String(value.getUTCMonth() + 1).padStart(2, "0")}-${String(value.getUTCDate()).padStart(2, "0")}`; };
+export const simulationDateKey = (date: Date) => iso(date);
+const shortDate = (date: Date | null) => { if (!date) return "미도달"; const value = kstView(date); return `${value.getUTCMonth() + 1}/${value.getUTCDate()}`; };
+const longDate = (date: Date | null) => { if (!date) return "계산 범위 내 미도달"; const value = kstView(date); return `${value.getUTCMonth() + 1}월 ${value.getUTCDate()}일`; };
+const addDays = (date: Date, days: number) => new Date(date.getTime() + days * 86400000);
+const dayOfWeek = (date: Date) => kstView(date).getUTCDay();
+export const REQUIRED_EXP: Record<number, bigint> = {
+  280: 33_647_601_750_165n,
+  281: 37_012_361_925_181n,
+  282: 40_713_598_117_699n,
+  283: 44_784_957_929_468n,
+  284: 49_263_453_722_414n,
+  285: 99_512_176_519_276n,
+  286: 109_463_394_171_203n,
+  287: 120_409_733_588_323n,
+  288: 132_450_706_947_155n,
+  289: 145_695_777_641_870n,
+  290: 294_305_470_836_577n,
+  291: 323_736_017_920_234n,
+  292: 356_109_619_712_257n,
+  293: 391_720_581_683_482n,
+  294: 430_892_639_851_830n,
+  295: 870_403_132_500_696n,
+};
+const LEVEL_280_REQUIRED_EXP = Number(REQUIRED_EXP[280]);
+const req = (level: number) => Number(REQUIRED_EXP[level]) / LEVEL_280_REQUIRED_EXP;
+const rawToNormalized = (raw: number) => raw / LEVEL_280_REQUIRED_EXP;
+const GRANDIS_DAILY_WITHOUT_CARCION = 129_794_096_544;
+const GRANDIS_DAILY_WITH_CARCION = 175_429_319_424;
+const ARTERIA_MONSTER_PARK_PER_RUN = 107_204_000_000;
+const CARCION_MONSTER_PARK_PER_RUN = 156_017_856_000;
+const TALLAHART_MONSTER_PARK_PER_RUN = 218_575_316_000;
+const WEEKLY_CONTENT_RAW: Record<number, { extreme: number; epic: number; sauna: number; adv1000: number }> = {
+  285: { extreme: 1_036_056_075_000, epic: 1_228_800_000_000, sauna: 370_542_408_480, adv1000: 914_168_000_000 },
+  286: { extreme: 1_048_127_520_000, epic: 1_243_000_000_000, sauna: 374_859_725_040, adv1000: 924_819_000_000 },
+  287: { extreme: 1_061_756_505_000, epic: 1_259_200_000_000, sauna: 379_734_091_200, adv1000: 936_844_000_000 },
+  288: { extreme: 1_075_469_130_000, epic: 1_275_400_000_000, sauna: 384_638_371_200, adv1000: 948_944_000_000 },
+  289: { extreme: 1_087_699_695_000, epic: 1_290_000_000_000, sauna: 389_012_597_280, adv1000: 959_736_000_000 },
+  290: { extreme: 1_222_296_090_000, epic: 1_449_600_000_000, sauna: 437_150_602_080, adv1000: 1_078_497_000_000 },
+};
+export const monsterParkRawForLevel = (level: number, carcionActive = true, tallahartActive = false) =>
+  level >= 290 && tallahartActive ? TALLAHART_MONSTER_PARK_PER_RUN : level >= 285 && carcionActive ? CARCION_MONSTER_PARK_PER_RUN : ARTERIA_MONSTER_PARK_PER_RUN;
+export const grandisDailyRawForLevel = (level: number, carcionActive = true) => level >= 285 && carcionActive ? GRANDIS_DAILY_WITH_CARCION : GRANDIS_DAILY_WITHOUT_CARCION;
+export const contentUnlockedOn = (date: Date, unlockDate: string, level: number, minimumLevel: number) =>
+  level >= minimumLevel && Boolean(unlockDate && date >= parseDate(unlockDate));
+[285, 286, 287, 288, 289].forEach(level => {
+  const required = Number(REQUIRED_EXP[level]);
+  Object.assign(efficiency[level], {
+    grandis: GRANDIS_DAILY_WITH_CARCION / required * 100,
+    mp7: CARCION_MONSTER_PARK_PER_RUN * 7 / required * 100,
+    extreme: WEEKLY_CONTENT_RAW[level].extreme / required * 100,
+    epic: WEEKLY_CONTENT_RAW[level].epic / required * 100,
+    adv100: WEEKLY_CONTENT_RAW[level].adv1000 / 10 / required * 100,
+    sauna: WEEKLY_CONTENT_RAW[level].sauna / required * 100,
+  });
+});
+efficiency[290] = {
+  grandis: GRANDIS_DAILY_WITH_CARCION / Number(REQUIRED_EXP[290]) * 100,
+  mp7: TALLAHART_MONSTER_PARK_PER_RUN * 7 / Number(REQUIRED_EXP[290]) * 100,
+  extreme: WEEKLY_CONTENT_RAW[290].extreme / Number(REQUIRED_EXP[290]) * 100,
+  epic: WEEKLY_CONTENT_RAW[290].epic / Number(REQUIRED_EXP[290]) * 100,
+  adv100: WEEKLY_CONTENT_RAW[290].adv1000 / 10 / Number(REQUIRED_EXP[290]) * 100,
+  sauna: WEEKLY_CONTENT_RAW[290].sauna / Number(REQUIRED_EXP[290]) * 100,
+  blue: 0.7411,
+  mech: 2.2359,
+};
+export const POST_290_EFFICIENCY_RAW: Record<number, { sauna: number; adv100: number; blue: number; mech: number; epic: number; monsterParkPerRun: number }> = {
+  291: { sauna: 442_047_471_120, adv100: 107_849_700_000, blue: 2_180_965_564_800, mech: 6_653_978_073_600, epic: 1_465_800_000_000, monsterParkPerRun: 218_575_316_000 },
+  292: { sauna: 447_592_430_880, adv100: 107_849_700_000, blue: 2_180_965_564_800, mech: 6_737_444_313_600, epic: 1_484_200_000_000, monsterParkPerRun: 218_575_316_000 },
+  293: { sauna: 453_170_678_400, adv100: 107_849_700_000, blue: 2_180_965_564_800, mech: 6_821_411_625_600, epic: 1_502_800_000_000, monsterParkPerRun: 218_575_316_000 },
+  294: { sauna: 458_142_355_440, adv100: 107_849_700_000, blue: 2_180_965_564_800, mech: 6_896_248_444_800, epic: 1_519_200_000_000, monsterParkPerRun: 218_575_316_000 },
+  295: { sauna: 514_661_664_000, adv100: 107_849_700_000, blue: 2_180_965_564_800, mech: 7_747_012_416_000, epic: 1_519_200_000_000, monsterParkPerRun: 218_575_316_000 },
+};
+Object.entries(POST_290_EFFICIENCY_RAW).forEach(([levelValue, raw]) => {
+  const level = Number(levelValue);
+  const required = Number(REQUIRED_EXP[level]);
+  efficiency[level] = {
+    mp7: raw.monsterParkPerRun * 7 / required * 100,
+    epic: raw.epic / required * 100,
+    adv100: raw.adv100 / required * 100,
+    sauna: raw.sauna / required * 100,
+    blue: raw.blue / required * 100,
+    mech: raw.mech / required * 100,
+  };
+});
 const SPECIAL_SUPPLY_BATCH_SIZE = 5;
 const SPECIAL_SUPPLY_START = "2026-07-23";
 const SPECIAL_SUPPLY_END = "2026-08-19";
@@ -233,11 +327,11 @@ const ultimaProgressBefore = (start: string) => {
   let count = 0;
   let week = 0;
   while (date < target) {
-    if (date.getDay() === 4) week = 0;
+    if (dayOfWeek(date) === 4) week = 0;
     if (count < ULTIMA_ATTENDANCE_MAX && week < 5) { count += 1; week += 1; }
     date = addDays(date, 1);
   }
-  if (target.getDay() === 4) week = 0;
+  if (dayOfWeek(target) === 4) week = 0;
   return { count, week };
 };
 const availableShopWeeksForStart = (start: Date) => {
@@ -251,8 +345,8 @@ const availableShopWeeksForStart = (start: Date) => {
 const createDefaultSettings = (start = SSR_DEFAULT_START): Settings => {
   const ultimaProgress = ultimaProgressBefore(start);
   return ({
-  level: 280, exp: 87.39, start, pullWeeks: 0, pullStrategy: "monsterPark", specialSundayCount: 1,
-  specialSupply: false, specialSupplySaved: 0,
+  targetLevel: 285, level: 280, exp: 87.39, start, carcionUnlockDate: start, pullWeeks: 0, pullStrategy: "monsterPark", specialSundayCount: 1,
+  specialSupply: false, specialSupplySaved: 0, specialSupplyExpPerCharge: 0,
   challengerPassLevel: 30, momentumPassLevel: 0,
   preLevel: 270, preExp: 0, prePassLevel: 30, preUnclaimed: false,
   preUseBlue: true, preUseSauna: true, preUseAdv: true, preUsePotion: true,
@@ -285,7 +379,7 @@ const pullStrategies: { id: PullStrategy; label: string; caption: string }[] = [
 ];
 
 const viewTabs: { id: ViewTab; label: string; description: string }[] = [
-  { id: "calculator", label: "285 계산", description: "달성일·몬파·메포" },
+  { id: "calculator", label: "285·290 계산", description: "달성일·몬파·메포" },
   { id: "pre280", label: "260→280", description: "버닝 비욘드" },
   { id: "efficiency", label: "경험치 효율", description: "레벨별 비교" },
   { id: "passes", label: "패스 보상", description: "전체 보상표" },
@@ -319,7 +413,7 @@ const momentumRewardForLevel = (level: number, prime: boolean, deferMech: boolea
 });
 
 const nextThursdayAfter = (date: Date) => {
-  const days = (4 - date.getDay() + 7) % 7;
+  const days = (4 - dayOfWeek(date) + 7) % 7;
   return addDays(date, days || 7);
 };
 const dateReached = (date: Date, value: string) => Boolean(value && date >= parseDate(value));
@@ -337,34 +431,70 @@ const eterionBonusesForDate = (s: Settings, date: Date) => {
   };
 };
 
-type EfficiencyBenchmark = { id: string; label: string; base: number; raw?: (level: number) => number; monsterParkSundayBonus?: number };
+type EfficiencyBenchmark = {
+  id: string;
+  label: string;
+  iconSrc: string;
+  tone: string;
+  base: number;
+  minimumLevel?: number;
+  costMultiplier?: (level: number) => number;
+  raw?: (level: number) => number;
+  monsterParkSundayBonus?: number;
+};
+export const EFFICIENCY_LEVEL_MIN = 260;
+export const EFFICIENCY_LEVEL_MAX = 295;
+export const epicDungeonEfficiencyCostMultiplier = (level: number) => level < 270 ? 5 / 3 : level < 280 ? 5 / 4 : 1;
+export const epicDungeonIconForLevel = (level: number) => level < 270
+  ? "/efficiency-icons/high-mountain.png"
+  : level < 280
+    ? "/efficiency-icons/angler-company.png"
+    : "/efficiency-icons/nightmare-paradise.png";
 const LEGACY_MONSTER_PARK_BONUS_PERCENT = 86;
 export const adjustMonsterParkEfficiencyForBonus = (legacyScore: number, sundayBonus: number, monsterParkBonusPercent: number) =>
   legacyScore * (1 + monsterParkBonusPercent / 100 + sundayBonus) / (1 + LEGACY_MONSTER_PARK_BONUS_PERCENT / 100 + sundayBonus);
 const momentumRaw = (level: number) => efficiency[level].mech * 11 + efficiency[level].sauna * 1.5 + efficiency[level].adv100 * 95;
 const efficiencyBenchmarks: EfficiencyBenchmark[] = [
-  { id: "extra50", label: "추가 경험치 50%", base: 1139.8 },
-  { id: "mpSpecial", label: "몬스터파크 · 스페셜 선데이 추가 5판", base: 820.1, raw: level => paidMonsterParkExperience(efficiency[level].mp7) * 4, monsterParkSundayBonus: 3 },
-  { id: "momentum", label: "프라임 모멘텀 패스", base: 566.5, raw: momentumRaw },
-  { id: "epic01", label: "악몽선경 · 0→1단계", base: 466.9, raw: level => efficiency[level].epic * 4 },
-  { id: "mpSunday", label: "몬스터파크 · 선데이 추가 5판", base: 398.2, raw: level => paidMonsterParkExperience(efficiency[level].mp7) * 1.5, monsterParkSundayBonus: 0.5 },
-  { id: "mpNormal", label: "몬스터파크 · 일반 추가 5판", base: 313.9, raw: level => paidMonsterParkExperience(efficiency[level].mp7), monsterParkSundayBonus: 0 },
-  { id: "mech", label: "메카베리 농장", base: 312.6, raw: level => efficiency[level].mech },
-  { id: "blue", label: "블루베리 농장", base: 294.3, raw: level => efficiency[level].blue },
-  { id: "smallExpPotion", label: "소경축비", base: 175.4 },
-  { id: "epic12", label: "악몽선경 · 1→2단계", base: 118.7, raw: level => efficiency[level].epic },
-  { id: "sauna", label: "VIP 사우나", base: 100, raw: level => efficiency[level].sauna },
+  { id: "extra50", label: "추가 경험치 50%", iconSrc: "/efficiency-icons/extra-exp-50.png", tone: "lime", base: 1139.8 },
+  { id: "mpSpecial", label: "몬스터파크 · 스페셜 선데이 추가 5판", iconSrc: "/efficiency-icons/monster-park.png", tone: "gold", base: 820.1, raw: level => paidMonsterParkExperience(efficiency[level].mp7) * 4, monsterParkSundayBonus: 3 },
+  { id: "momentum", label: "프라임 모멘텀 패스", iconSrc: "/efficiency-icons/prime-momentum-pass.png", tone: "violet", base: 566.5, minimumLevel: 280, raw: momentumRaw },
+  { id: "epic01", label: "악몽선경 · 0→1단계", iconSrc: "/efficiency-icons/nightmare-paradise.png", tone: "indigo", base: 466.9, costMultiplier: epicDungeonEfficiencyCostMultiplier, raw: level => efficiency[level].epic * 4 },
+  { id: "mpSunday", label: "몬스터파크 · 선데이 추가 5판", iconSrc: "/efficiency-icons/monster-park.png", tone: "pink", base: 398.2, raw: level => paidMonsterParkExperience(efficiency[level].mp7) * 1.5, monsterParkSundayBonus: 0.5 },
+  { id: "mpNormal", label: "몬스터파크 · 일반 추가 5판", iconSrc: "/efficiency-icons/monster-park.png", tone: "blue", base: 313.9, raw: level => paidMonsterParkExperience(efficiency[level].mp7), monsterParkSundayBonus: 0 },
+  { id: "mech", label: "메카베리 농장", iconSrc: "/efficiency-icons/mekaberry.png", tone: "amber", base: 312.6, minimumLevel: 280, raw: level => efficiency[level].mech },
+  { id: "blue", label: "블루베리 농장", iconSrc: "/efficiency-icons/blueberry.png", tone: "cyan", base: 294.3, raw: level => efficiency[level].blue },
+  { id: "smallExpPotion", label: "소경축비", iconSrc: "/efficiency-icons/small-exp-potion.png", tone: "mint", base: 175.4 },
+  { id: "epic12", label: "악몽선경 · 1→2단계", iconSrc: "/efficiency-icons/nightmare-paradise.png", tone: "slate", base: 118.7, costMultiplier: epicDungeonEfficiencyCostMultiplier, raw: level => efficiency[level].epic },
+  { id: "sauna", label: "VIP 사우나", iconSrc: "/efficiency-icons/vip-sauna.png", tone: "rose", base: 100, raw: level => efficiency[level].sauna },
 ];
+export const epicDungeonLabelForLevel = (level: number, stage: "01" | "12") => {
+  const dungeon = level < 270 ? "하이마운틴" : level < 280 ? "앵글러 컴퍼니" : "악몽선경";
+  return `${dungeon} · ${stage === "01" ? "0→1단계" : "1→2단계"}`;
+};
+const efficiencyLabelForLevel = (source: EfficiencyBenchmark, level: number) => {
+  if (source.id !== "epic01" && source.id !== "epic12") return source.label;
+  return epicDungeonLabelForLevel(level, source.id === "epic01" ? "01" : "12");
+};
+const efficiencyIconForLevel = (source: EfficiencyBenchmark, level: number) => source.id === "epic01" || source.id === "epic12"
+  ? epicDungeonIconForLevel(level)
+  : source.iconSrc;
+export const availableEfficiencySourceIdsForLevel = (level: number) => efficiencyBenchmarks
+  .filter(source => level >= (source.minimumLevel ?? EFFICIENCY_LEVEL_MIN))
+  .map(source => source.id);
 const relativeEfficiencyScore = (source: EfficiencyBenchmark, level: number, monsterParkBonusPercent = LEGACY_MONSTER_PARK_BONUS_PERCENT) => {
   if (!source.raw) return source.base;
   const sourceChange = source.raw(level) / source.raw(281);
   const saunaChange = efficiency[level].sauna / efficiency[281].sauna;
-  const legacyScore = source.base * sourceChange / saunaChange;
+  const legacyScore = source.base * sourceChange / saunaChange * (source.costMultiplier?.(level) ?? 1);
   return source.monsterParkSundayBonus === undefined
     ? legacyScore
     : adjustMonsterParkEfficiencyForBonus(legacyScore, source.monsterParkSundayBonus, monsterParkBonusPercent);
 };
 export const efficiencyScoreById = (sourceId: string, level: number, monsterParkBonusPercent = LEGACY_MONSTER_PARK_BONUS_PERCENT) => relativeEfficiencyScore(efficiencyBenchmarks.find(source => source.id === sourceId)!, level, monsterParkBonusPercent);
+export const rankedEfficiencySourceIdsForLevel = (level: number, monsterParkBonusPercent = LEGACY_MONSTER_PARK_BONUS_PERCENT) => efficiencyBenchmarks
+  .filter(source => level >= (source.minimumLevel ?? EFFICIENCY_LEVEL_MIN))
+  .sort((a, b) => relativeEfficiencyScore(b, level, monsterParkBonusPercent) - relativeEfficiencyScore(a, level, monsterParkBonusPercent))
+  .map(source => source.id);
 const paidEfficiencySourceId: Record<Exclude<PullStrategy, "both">, string> = { monsterPark: "mpNormal", mech: "mech", blue: "blue" };
 export const paidEfficiencyScore = (strategy: Exclude<PullStrategy, "both">, level: number, monsterParkBonusPercent = LEGACY_MONSTER_PARK_BONUS_PERCENT) => efficiencyScoreById(paidEfficiencySourceId[strategy], level, monsterParkBonusPercent);
 
@@ -422,6 +552,21 @@ const pre280MonsterParkRawPerRun = (level: number) => {
   if (level >= 265) return 44_435_000_000;
   return 37_475_000_000;
 };
+
+Object.keys(pre280Content).map(Number).forEach(level => {
+  const data = pre280Data[level];
+  const content = pre280Content[level];
+  efficiency[level] = {
+    grandis: content.daily,
+    mp7: pre280MonsterParkRawPerRun(level) * 7 / data.required * 100,
+    extreme: content.extreme,
+    epic: content.epic,
+    adv100: data.adv1000 / 10,
+    sauna: data.sauna,
+    blue: data.blue,
+    mech: 0,
+  };
+});
 
 function simulatePre280(s: Settings): Pre280Simulation {
   let level = Math.max(260, Math.min(279, Math.floor(s.preLevel)));
@@ -519,7 +664,7 @@ function simulatePre280(s: Settings): Pre280Simulation {
       rewardDate = rewardDate.getTime() === start.getTime() ? nextThursdayAfter(start) : addDays(rewardDate, 7);
     }
 
-    const weeklyDate = (day === 0 && s.preWeeklyOpen) || (day > 0 && date.getDay() === 4);
+    const weeklyDate = (day === 0 && s.preWeeklyOpen) || (day > 0 && dayOfWeek(date) === 4);
     if (s.preWeeklyContent && weeklyDate && level < 280) {
       const bonuses = bonusesForDate(date);
       applyCurrentPercent(pre280Content[level].extreme * (1 + bonuses.mp / 100));
@@ -534,7 +679,7 @@ function simulatePre280(s: Settings): Pre280Simulation {
       const bonuses = bonusesForDate(date);
       const runs = Math.max(0, Math.min(7, Math.floor(s.preMonsterParkRuns)));
       if (runs > 0) {
-        const isSunday = date.getDay() === 0;
+        const isSunday = dayOfWeek(date) === 0;
         const isSpecialSunday = isSunday && sundaysSeen < Math.max(0, Math.floor(s.preSpecialSundayCount));
         if (isSunday) sundaysSeen += 1;
         const sundayBonus = isSpecialSunday ? 3 : isSunday ? 0.5 : 0;
@@ -599,8 +744,11 @@ function simulatePre280(s: Settings): Pre280Simulation {
 
 function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number; deferMomentumMech?: boolean; shopBlueWeeks?: number; shopMechWeeks?: number } = {}): Simulation {
   const start = parseDate(s.start);
-  let level = Math.max(280, Math.min(284, s.level));
+  const targetLevel = s.targetLevel === 290 ? 290 : 285;
+  const horizonDays = targetLevel === 290 ? 730 : 120;
+  let level = Math.max(280, Math.min(targetLevel - 1, s.level));
   let xp = req(level) * Math.max(0, Math.min(99.999, s.exp)) / 100;
+  const carcionActive = (date: Date, currentLevel = level) => contentUnlockedOn(date, s.carcionUnlockDate, currentLevel, 285);
   const selectedCutoff = addDays(start, -1);
   const sevenUntil = schedule.sevenUntil ?? selectedCutoff;
   const fixedRuns = schedule.fixedRuns == null ? null : Math.max(0, Math.min(7, schedule.fixedRuns));
@@ -609,12 +757,12 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
   const specialSupplyEnd = parseDate(SPECIAL_SUPPLY_END);
   let specialSupplySaved = s.specialSupply ? Math.max(0, Math.min(SPECIAL_SUPPLY_BATCH_SIZE, Math.floor(s.specialSupplySaved))) : 0;
   let specialSupplyUsed = 0;
-  const runsForDate = (date: Date) => fixedRuns == null ? (date.getDay() === 0 ? 7 : date <= sevenUntil ? 7 : 2) : fixedRuns;
+  const runsForDate = (date: Date) => fixedRuns == null ? (dayOfWeek(date) === 0 ? 7 : date <= sevenUntil ? 7 : 2) : fixedRuns;
   const scheduleLabel = fixedRuns == null
     ? sevenUntil < start ? "평일 2판 · 일요일 7판" : `${shortDate(sevenUntil)}까지 7판 · 이후 평일 2판`
     : `매일 ${fixedRuns}판`;
   const deferMomentumMech = schedule.deferMomentumMech ?? s.deferMomentumMech;
-  const momentumMechLevel = Math.max(280, Math.min(284, s.momentumMechLevel));
+  const momentumMechLevel = Math.max(280, Math.min(targetLevel - 1, s.momentumMechLevel));
   const momentumMechDeadline = s.momentumMechDeadline ? parseDate(s.momentumMechDeadline) : parseDate("2026-08-12");
   const rows: Row[] = [];
   const rewardDays = new Map<string, Reward[]>();
@@ -684,7 +832,7 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
     for (let day = 0; day < 120 && ultimaLastScheduled < 60; day += 1) {
       const date = addDays(start, day);
       if (date > ultimaEnd) break;
-      if (day > 0 && date.getDay() === 4) weekUsed = 0;
+      if (day > 0 && dayOfWeek(date) === 4) weekUsed = 0;
       if ((day === 0 && !s.ultimaStart) || weekUsed >= 5) continue;
       ultimaLastScheduled += 1;
       weekUsed += 1;
@@ -716,22 +864,22 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
   const applyRaw = (initialRaw: number) => {
     let raw = initialRaw;
     let guard = 0;
-    while (raw > 0.000000000001 && level < 285 && guard < 8) {
+    while (raw > 0.000000000001 && level < targetLevel && guard < 16) {
       guard += 1;
       const remaining = req(level) - xp;
       if (remaining <= 0.000000000001) { level += 1; xp = 0; continue; }
       if (raw + 0.000000000001 < remaining) { xp += raw; raw = 0; } else { raw = Math.max(0, raw - remaining); level += 1; xp = 0; }
     }
   };
-  const applyPercent = (percent: number) => { if (level < 285 && efficiency[level]) applyRaw(req(level) * percent / 100); };
+  const applyPercent = (percent: number) => { if (level < targetLevel && efficiency[level]) applyRaw(req(level) * percent / 100); };
   const applyItems = (type: "blue" | "mech" | "sauna" | "adv", count: number) => {
     let remaining = type === "sauna" ? Math.max(0, Number(count || 0)) : Math.max(0, Math.floor(count || 0));
     let used = 0;
     if (type === "sauna") {
       let guard = 0;
-      while (remaining > 0.0000001 && level < 285 && guard < 8) {
+      while (remaining > 0.0000001 && level < targetLevel && guard < 16) {
         guard += 1;
-        const rawPerHour = req(level) * efficiency[level].sauna / 100;
+        const rawPerHour = level >= 285 ? rawToNormalized(WEEKLY_CONTENT_RAW[level].sauna) : req(level) * efficiency[level].sauna / 100;
         const required = req(level) - xp;
         if (required <= 0.000000000001) { level += 1; xp = 0; continue; }
         const hours = Math.min(remaining, required / rawPerHour);
@@ -742,9 +890,9 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
     }
     if (type === "adv") {
       let guard = 0;
-      while (remaining > 0 && level < 285 && guard < 8) {
+      while (remaining > 0 && level < targetLevel && guard < 16) {
         guard += 1;
-        const rawPerCoupon = req(level) * efficiency[level].adv100 / 10000;
+        const rawPerCoupon = level >= 285 ? rawToNormalized(WEEKLY_CONTENT_RAW[level].adv1000) / 1000 : req(level) * efficiency[level].adv100 / 10000;
         const required = Math.max(0, req(level) - xp);
         const couponBatch = Math.min(remaining, Math.max(1, Math.ceil(required / rawPerCoupon)));
         applyRaw(rawPerCoupon * couponBatch);
@@ -753,7 +901,7 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
       }
       return used;
     }
-    while (remaining > 0 && level < 285) {
+    while (remaining > 0 && level < targetLevel) {
       const percent = type === "adv" ? efficiency[level].adv100 / 100 : efficiency[level][type];
       applyPercent(percent); remaining -= 1; used += 1;
     }
@@ -762,19 +910,44 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
   const applyGrowthPotion = (type: "potion269" | "potion279", count: number) => {
     let remaining = Math.max(0, Math.floor(count || 0)); let used = 0;
     const raw = type === "potion279" ? 0.49505 : 0.072458;
-    while (remaining > 0 && level < 285) { applyRaw(raw); remaining -= 1; used += 1; }
+    while (remaining > 0 && level < targetLevel) { applyRaw(raw); remaining -= 1; used += 1; }
     return used;
   };
 
   let reached: Date | null = null;
+  let reach285At: Date | null = null;
+  let leftoversAt285: Leftovers | null = null;
+  let leftoverSourcesAt285: string[] = [];
+  let specialSupplySavedAt285: number | null = null;
   let shopMaplePoints = 0;
   let monsterParkMaplePoints = 0;
   let dailyDaysApplied = 0;
   let sundaysSeen = 0;
-  for (let day = 0; day < 120 && level < 285; day += 1) {
+  const currentLeftovers = (cutoff: Date | null) => {
+    const leftovers = emptyLeftovers();
+    const sources: string[] = [];
+    rewardDays.forEach(rewards => rewards.forEach(reward => {
+      if (reward.optionalPurchase && !reward.purchased) return;
+      if (reward.attendanceReward && cutoff && (reward.date || "") > iso(cutoff)) return;
+      if (reward.remaining && itemTypes.some(type => reward.remaining![type] > 0)) sources.push(reward.sourceLabel || reward.label);
+      if (reward.remaining) itemTypes.forEach(type => { leftovers[type] += reward.remaining![type] || 0; });
+    }));
+    return { leftovers, sources: [...new Set(sources)] };
+  };
+  const capture285 = (date: Date) => {
+    if (reach285At || level < 285) return;
+    reach285At = date;
+    const snapshot = currentLeftovers(date);
+    leftoversAt285 = snapshot.leftovers;
+    leftoverSourcesAt285 = snapshot.sources;
+    specialSupplySavedAt285 = specialSupplySaved;
+  };
+  capture285(start);
+  const startingProgress = level + xp / req(level);
+  for (let day = 0; day < horizonDays && level < targetLevel; day += 1) {
     const date = addDays(start, day); const key = iso(date); const events: string[] = [];
     (rewardDays.get(key) || []).forEach(reward => {
-      if (reward.optionalPurchase && level >= 285) return;
+      if (reward.optionalPurchase && level >= targetLevel) return;
       if (reward.optionalPurchase) reward.purchased = true;
       shopMaplePoints += reward.maplePoints || 0;
       const r = reward.remaining!;
@@ -784,6 +957,7 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
       if ((reward.potion269 || 0) > 0) r.potion269 -= applyGrowthPotion("potion269", r.potion269);
       if ((reward.potion279 || 0) > 0) r.potion279 -= applyGrowthPotion("potion279", r.potion279);
       if ((reward.adv || 0) > 0) r.adv -= applyItems("adv", r.adv);
+      capture285(date);
       const notableAttendance = reward.attendanceReward && (reward.sauna || reward.adv || reward.potion269 || reward.potion279);
       if ((!reward.attendanceReward && (reward.label !== "현재 보유분" || itemTypes.some(type => Number(reward[type] || 0) > 0))) || notableAttendance) events.push(reward.label);
     });
@@ -791,70 +965,82 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
     if (s.specialSupply && date >= specialSupplyStart && date <= specialSupplyEnd) {
       // 시작일 보유 횟수에는 그날 충전분이 포함된 것으로 보고, 다음 날부터 하루 1회만 더합니다.
       if (date.getTime() !== start.getTime()) specialSupplySaved = Math.min(SPECIAL_SUPPLY_BATCH_SIZE, specialSupplySaved + 1);
-      if (specialSupplySaved >= SPECIAL_SUPPLY_BATCH_SIZE && level < 285) {
-        applyRaw(SPECIAL_SUPPLY_EXP_PER_CHARGE * SPECIAL_SUPPLY_BATCH_SIZE / LEVEL_280_REQUIRED_EXP);
+      if (specialSupplySaved >= SPECIAL_SUPPLY_BATCH_SIZE && level < targetLevel && s.specialSupplyExpPerCharge > 0) {
+        applyRaw(rawToNormalized(s.specialSupplyExpPerCharge * SPECIAL_SUPPLY_BATCH_SIZE));
         specialSupplyUsed += SPECIAL_SUPPLY_BATCH_SIZE;
         specialSupplySaved = 0;
         events.push("특수 물자 5회 · 4배 쿠폰");
+        capture285(date);
       }
     }
 
-    const thursday = date.getDay() === 4;
+    const thursday = dayOfWeek(date) === 4;
     if ((thursday && day > 0) || (day === 0 && s.weeklyOpen)) {
       const eterion = eterionBonusesForDate(s, date);
-      if (s.extreme && level < 285) applyPercent(efficiency[level].extreme * (1 + eterion.mp / 100));
-      if (s.epic && level < 285) {
-        applyPercent(efficiency[level].epic * (s.epicMult + eterion.epic / 100));
+      if (s.extreme && level < targetLevel) {
+        if (level >= 285) applyRaw(rawToNormalized(WEEKLY_CONTENT_RAW[level].extreme) * (1 + eterion.mp / 100));
+        else applyPercent(efficiency[level].extreme * (1 + eterion.mp / 100));
       }
+      if (s.epic && level < targetLevel) {
+        if (level >= 285) applyRaw(rawToNormalized(WEEKLY_CONTENT_RAW[level].epic) * (s.epicMult + eterion.epic / 100));
+        else applyPercent(efficiency[level].epic * (s.epicMult + eterion.epic / 100));
+      }
+      capture285(date);
       events.push("익몬 · 악몽선경");
     }
 
-    if (level < 285 && (day > 0 || s.todayDaily)) {
+    if (level < targetLevel && (day > 0 || s.todayDaily)) {
       dailyDaysApplied += 1;
       const dailyRuns = runsForDate(date);
       monsterParkMaplePoints += paidMonsterParkMaplePoints(dailyRuns);
       const eterion = eterionBonusesForDate(s, date);
-      const isSunday = date.getDay() === 0;
+      const isSunday = dayOfWeek(date) === 0;
       const isSpecialSunday = isSunday && sundaysSeen < specialSundayCount;
       if (isSunday) sundaysSeen += 1;
-      applyPercent(monsterParkExperiencePercent({
-        baseSevenRunPercent: efficiency[level].mp7,
-        runs: dailyRuns,
-        contentBonusPercent: eterion.mp,
-        sundayKind: isSpecialSunday ? "special" : isSunday ? "normal" : "none",
-      }));
-      if (s.grandis && level < 285) applyPercent(efficiency[level].grandis * (1 + eterion.daily / 100));
+      const sundayBonus = isSpecialSunday ? 3 : isSunday ? 0.5 : 0;
+      if (level >= 285) applyRaw(rawToNormalized(monsterParkRawForLevel(level, carcionActive(date)) * dailyRuns) * (1 + eterion.mp / 100 + sundayBonus));
+      else applyPercent(monsterParkExperiencePercent({
+          baseSevenRunPercent: efficiency[level].mp7,
+          runs: dailyRuns,
+          contentBonusPercent: eterion.mp,
+          sundayKind: isSpecialSunday ? "special" : isSunday ? "normal" : "none",
+        }));
+      if (s.grandis && level < targetLevel) {
+        if (level >= 285) applyRaw(rawToNormalized(grandisDailyRawForLevel(level, carcionActive(date))) * (1 + eterion.daily / 100));
+        else applyPercent(efficiency[level].grandis * (1 + eterion.daily / 100));
+      }
+      capture285(date);
     }
 
-    if (deferMomentumMech && level < 285 && (level >= momentumMechLevel || date >= momentumMechDeadline)) {
+    if (deferMomentumMech && level < targetLevel && (level >= momentumMechLevel || date >= momentumMechDeadline)) {
       rewardDays.forEach(rewards => rewards.forEach(reward => {
-        if (!reward.deferMech || (reward.date || "") > key || !reward.remaining || reward.remaining.mech <= 0 || level >= 285) return;
+        if (!reward.deferMech || (reward.date || "") > key || !reward.remaining || reward.remaining.mech <= 0 || level >= targetLevel) return;
         reward.remaining.mech -= applyItems("mech", reward.remaining.mech);
         events.push(`${reward.label} 메카베리 사용`);
       }));
+      capture285(date);
     }
 
-    const progress = level >= 285 ? 285 : level + xp / req(level);
-    rows.push({ date, key, level, exp: level >= 285 ? 0 : xp / req(level) * 100, progress, events });
-    if (level >= 285) reached = date;
+    const progress = level >= targetLevel ? targetLevel : level + xp / req(level);
+    rows.push({ date, key, level, exp: level >= targetLevel ? 0 : xp / req(level) * 100, progress, events });
+    capture285(date);
+    if (level >= targetLevel) reached = date;
   }
 
-  const leftovers = emptyLeftovers(); const leftoverSources: string[] = [];
-  rewardDays.forEach(rewards => rewards.forEach(reward => {
-    if (reward.optionalPurchase && !reward.purchased) return;
-    if (reward.attendanceReward && reached && (reward.date || "") > iso(reached)) return;
-    if (reward.remaining && itemTypes.some(type => reward.remaining![type] > 0)) leftoverSources.push(reward.sourceLabel || reward.label);
-    if (reward.remaining) itemTypes.forEach(type => { leftovers[type] += reward.remaining![type] || 0; });
-  }));
+  const finalInventory = currentLeftovers(reached);
+  const leftovers = finalInventory.leftovers;
+  const leftoverSources = finalInventory.sources;
   let ultimaCountAtReach = Math.max(0, Math.min(60, Math.floor(s.ultimaCount)));
   if (s.ultima) {
     const reachKey = reached ? iso(reached) : "9999-12-31";
     rewardDays.forEach(rewards => rewards.forEach(reward => { if (reward.attendanceReward && (reward.date || "") <= reachKey) ultimaCountAtReach = Math.max(ultimaCountAtReach, reward.attendanceCount || 0); }));
   }
-  return { start, startLevel: s.level, startExp: s.exp, rows, reached, leftovers, leftoverSources: [...new Set(leftoverSources)], shopMaplePoints, monsterParkMaplePoints, maplePoints: shopMaplePoints + monsterParkMaplePoints, scheduleLabel, sevenUntil, specialSundayCount, momentumMechLevel, momentumMechDeadline, dailyDaysApplied, ultimaCountAtReach, specialSupplySaved, specialSupplyUsed };
+  const finalProgress = rows[rows.length - 1]?.progress ?? startingProgress;
+  const endReason: Simulation["endReason"] = reached ? "reached" : finalProgress <= startingProgress + 1e-12 ? "no-growth" : "horizon";
+  return { start, startLevel: s.level, startExp: s.exp, rows, reached, reach285At, leftoversAt285, leftoverSourcesAt285, specialSupplySavedAt285, leftovers, leftoverSources, shopMaplePoints, monsterParkMaplePoints, maplePoints: shopMaplePoints + monsterParkMaplePoints, scheduleLabel, sevenUntil, specialSundayCount, momentumMechLevel, momentumMechDeadline, dailyDaysApplied, ultimaCountAtReach, specialSupplySaved, specialSupplyUsed, horizonDays, endReason };
 }
 
-function weekStartThursday(date: Date) { const result = new Date(date); result.setDate(result.getDate() - ((result.getDay() + 3) % 7)); result.setHours(0, 0, 0, 0); return result; }
+function weekStartThursday(date: Date) { return addDays(date, -((dayOfWeek(date) + 3) % 7)); }
 function mayrinClearWeeks(reached: Date | null) {
   const end = parseDate("2026-09-16"); if (!reached || reached > end) return 0;
   return Math.floor((weekStartThursday(end).getTime() - weekStartThursday(reached).getTime()) / 604800000) + 1;
@@ -869,6 +1055,38 @@ function* buildPlanningSteps(settings: Settings): Generator<number, Planning, vo
   const sunday = simulate(strategySettings, { sevenUntil: addDays(start, -1) }); yield ++completed;
   const free = simulate(strategySettings, { fixedRuns: 2 }); yield ++completed;
   const allSeven = simulate(strategySettings, { fixedRuns: 7 }); yield ++completed;
+  if (s.targetLevel === 290) {
+    const availableWeeks = availableShopWeeksForStart(start).length;
+    const makePlan = (strategy: PullStrategy, result: Simulation, shopBlueWeeks = 0, shopMechWeeks = 0): PullPlan => ({
+      pullWeeks: 0,
+      targetClearWeeks: 0,
+      result,
+      feasible: Boolean(result.reached),
+      strategy,
+      shopBlueWeeks,
+      shopMechWeeks,
+      scheduleIndex: 0,
+    });
+    const basePlan = makePlan("monsterPark", free);
+    const blueResult = simulate(strategySettings, { fixedRuns: 2, shopBlueWeeks: availableWeeks }); yield ++completed;
+    const mechResult = simulate(strategySettings, { fixedRuns: 2, shopMechWeeks: availableWeeks }); yield ++completed;
+    const bothResult = simulate(strategySettings, { fixedRuns: 2, shopBlueWeeks: availableWeeks, shopMechWeeks: availableWeeks }); yield ++completed;
+    const strategyPlans: Record<PullStrategy, PullPlan[]> = {
+      monsterPark: [basePlan],
+      blue: [makePlan("blue", blueResult, availableWeeks, 0)],
+      mech: [makePlan("mech", mechResult, 0, availableWeeks)],
+      both: [makePlan("both", bothResult, availableWeeks, availableWeeks)],
+    };
+    const candidates = pullStrategies.map(({ id }) => strategyPlans[id][0]).filter(plan => plan.feasible);
+    const recommended = candidates.filter((candidate, candidateIndex) => !candidates.some((other, otherIndex) => {
+      const candidateTime = candidate.result.reached?.getTime() ?? Infinity;
+      const otherTime = other.result.reached?.getTime() ?? Infinity;
+      return other.result.maplePoints <= candidate.result.maplePoints && otherTime <= candidateTime
+        && (other.result.maplePoints < candidate.result.maplePoints || otherTime < candidateTime || otherIndex < candidateIndex);
+    }));
+    const recommendedPlansByWeek = [recommended.length ? recommended : [basePlan]];
+    return { sunday, free, allSeven, strategyPlans, recommendedPlansByWeek, bestPlansByWeek: [basePlan], basePlan, maxPullWeeks: 0, deadline };
+  }
   const pairsByStrategy: Record<PullStrategy, [number, number][]> = {
     monsterPark: [[0, 0]],
     blue: [1, 2, 3, 4].map((weeks): [number, number] => [weeks, 0]),
@@ -994,7 +1212,17 @@ async function runPlanningInChunks(settings: Settings, onProgress: (completed: n
 }
 
 const defaultPlanning = runPlanningImmediately(defaults);
-export { createDefaultSettings, defaults, eterionBonusesForDate, localDateInputValue, runPlanningImmediately, simulate, ultimaProgressBefore };
+export { createDefaultSettings, defaults, eterionBonusesForDate, localDateInputValue, runPlanningImmediately, simulate, ultimaProgressBefore, WEEKLY_CONTENT_RAW };
+
+export const selectedPlanForSettings = (planning: Planning, settings: Settings) => {
+  const effectivePullWeeks = Math.min(Math.max(0, Math.floor(settings.pullWeeks)), planning.maxPullWeeks);
+  if (settings.targetLevel === 290) return planning.basePlan;
+  const requestedPlan = planning.strategyPlans[settings.pullStrategy][effectivePullWeeks];
+  const recommendedPlans = planning.recommendedPlansByWeek[effectivePullWeeks] || [];
+  return requestedPlan?.feasible && recommendedPlans.some(plan => plan.strategy === requestedPlan.strategy)
+    ? requestedPlan
+    : planning.bestPlansByWeek[effectivePullWeeks] || planning.basePlan;
+};
 
 function InputField({ label, value, onChange, type = "number", min, max, step, disabled }: { label: string; value: string | number; onChange: (value: string) => void; type?: "number" | "date"; min?: number; max?: number; step?: number; disabled?: boolean }) {
   return <label className="field"><span>{label}</span><input type={type} value={value} onChange={e => onChange(e.target.value)} min={min} max={max} step={step} disabled={disabled} /></label>;
@@ -1006,18 +1234,18 @@ function Core6Choice({ title, before, after, checked, onChange }: { title: strin
   return <div className={`core6-choice ${checked ? "active" : ""}`}><div><b>{title}</b><small>{before}% <span>→</span> {after}%</small></div><Toggle label="6레벨" accessibleLabel={`${title} 코어 6레벨`} checked={checked} onChange={onChange} /></div>;
 }
 
-function ProgressChart({ selected, sunday, free }: { selected: Simulation; sunday: Simulation; free: Simulation }) {
+function ProgressChart({ selected, sunday, free, targetLevel }: { selected: Simulation; sunday: Simulation; free: Simulation; targetLevel: 285 | 290 }) {
   const width = 900, height = 340, margin = { left: 44, right: 28, top: 32, bottom: 42 };
   const count = Math.max(1, selected.rows.length - 1, sunday.rows.length - 1, free.rows.length - 1);
   const x = (index: number) => margin.left + index / count * (width - margin.left - margin.right);
-  const y = (progress: number) => margin.top + (285 - progress) / 5 * (height - margin.top - margin.bottom);
+  const y = (progress: number) => margin.top + (targetLevel - progress) / (targetLevel - 280) * (height - margin.top - margin.bottom);
   const path = (rows: Row[]) => rows.map((row, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(row.progress).toFixed(1)}`).join(" ");
   const longest = [selected.rows, sunday.rows, free.rows].sort((a, b) => b.length - a.length)[0];
   const tickEvery = Math.max(1, Math.ceil(longest.length / 6));
   return <div className="chart-wrap">
     <div className="chart-legend"><span className="legend selected">선택 경로</span><span className="legend sunday">일요일 7판</span><span className="legend free">매일 2판</span></div>
-    <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="세 경로의 285레벨 도달 진행 비교">
-      {[280, 281, 282, 283, 284, 285].map(level => <g key={level}><line x1={margin.left} x2={width - margin.right} y1={y(level)} y2={y(level)} className="grid-line" /><text x={margin.left - 10} y={y(level) + 4} textAnchor="end" className="axis-label">{level}</text></g>)}
+    <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`세 경로의 ${targetLevel}레벨 도달 진행 비교`}>
+      {Array.from({ length: targetLevel - 279 }, (_, index) => index + 280).map(level => <g key={level}><line x1={margin.left} x2={width - margin.right} y1={y(level)} y2={y(level)} className="grid-line" /><text x={margin.left - 10} y={y(level) + 4} textAnchor="end" className="axis-label">{level}</text></g>)}
       {longest.map((row, index) => (index % tickEvery === 0 || index === longest.length - 1) ? <text key={row.key} x={x(index)} y={height - 12} textAnchor="middle" className="axis-label">{shortDate(row.date)}</text> : null)}
       <path d={path(free.rows)} className="chart-line free" /><path d={path(sunday.rows)} className="chart-line sunday" /><path d={path(selected.rows)} className="chart-line selected" />
       {[selected, sunday, free].map((result, index) => { const row = result.rows[result.rows.length - 1]; return row ? <circle key={index} cx={x(result.rows.length - 1)} cy={y(row.progress)} r="5" className={["dot selected", "dot sunday", "dot free"][index]} /> : null; })}
@@ -1035,6 +1263,8 @@ export default function Home() {
   const localDefaultsApplied = useRef(false);
   const [preApplied, setPreApplied] = useState(false);
   const [activeTab, setActiveTab] = useState<ViewTab>("calculator");
+  const [efficiencyLevel, setEfficiencyLevel] = useState(280);
+  const [efficiencyLevelInput, setEfficiencyLevelInput] = useState("280");
   useEffect(() => {
     if (localDefaultsApplied.current) return;
     localDefaultsApplied.current = true;
@@ -1047,6 +1277,21 @@ export default function Home() {
     if (pre280SettingKeys.includes(key)) setPreApplied(false);
     setS(current => ({ ...current, [key]: value }));
   };
+  const updateEfficiencyLevelInput = (value: string) => {
+    setEfficiencyLevelInput(value);
+    const nextLevel = Number(value);
+    if (Number.isInteger(nextLevel) && nextLevel >= EFFICIENCY_LEVEL_MIN && nextLevel <= EFFICIENCY_LEVEL_MAX) {
+      setEfficiencyLevel(nextLevel);
+    }
+  };
+  const normalizeEfficiencyLevelInput = () => {
+    const parsed = Number(efficiencyLevelInput);
+    const nextLevel = Number.isFinite(parsed)
+      ? Math.max(EFFICIENCY_LEVEL_MIN, Math.min(EFFICIENCY_LEVEL_MAX, Math.round(parsed)))
+      : efficiencyLevel;
+    setEfficiencyLevel(nextLevel);
+    setEfficiencyLevelInput(String(nextLevel));
+  };
   const pre280Key = selectedSettingsKey(s, pre280SettingKeys);
   const pre280Settings = useMemo(() => s, [pre280Key]);
   const pre280 = useMemo(() => simulatePre280(pre280Settings), [pre280Settings]);
@@ -1054,16 +1299,18 @@ export default function Home() {
     const s = calculatedSettings;
     const { sunday, free, allSeven, strategyPlans, recommendedPlansByWeek, bestPlansByWeek, basePlan, maxPullWeeks, deadline } = planning;
     const effectivePullWeeks = Math.min(Math.max(0, Math.floor(s.pullWeeks)), maxPullWeeks);
-    const requestedPlan = strategyPlans[s.pullStrategy][effectivePullWeeks];
     const recommendedPlans = recommendedPlansByWeek[effectivePullWeeks] || [];
-    const selectedPlan = requestedPlan?.feasible && recommendedPlans.some(plan => plan.strategy === requestedPlan.strategy) ? requestedPlan : bestPlansByWeek[effectivePullWeeks] || basePlan;
+    const selectedPlan = selectedPlanForSettings(planning, s);
     const previousPlan = effectivePullWeeks > 1 ? strategyPlans[selectedPlan.strategy][effectivePullWeeks - 1] : basePlan;
     const selected = selectedPlan.result;
     const hardValue = Math.max(0, s.mayrinMesoGap) * 100000000 + Math.max(0, s.mayrinNormalFrag) * Math.max(0, s.fragPrice) * 10000;
     const reset = s.postReset ? 1 : 0;
-    const selectedHardWeeks = mayrinClearWeeks(selected.reached) + (selected.reached ? reset : 0);
-    const baseHardWeeks = mayrinClearWeeks(basePlan.result.reached) + (basePlan.result.reached ? reset : 0);
-    const previousHardWeeks = mayrinClearWeeks(previousPlan.result.reached) + (previousPlan.result.reached ? reset : 0);
+    const selectedMayrinDate = selected.reach285At || selected.reached;
+    const baseMayrinDate = basePlan.result.reach285At || basePlan.result.reached;
+    const previousMayrinDate = previousPlan.result.reach285At || previousPlan.result.reached;
+    const selectedHardWeeks = mayrinClearWeeks(selectedMayrinDate) + (selectedMayrinDate ? reset : 0);
+    const baseHardWeeks = mayrinClearWeeks(baseMayrinDate) + (baseMayrinDate ? reset : 0);
+    const previousHardWeeks = mayrinClearWeeks(previousMayrinDate) + (previousMayrinDate ? reset : 0);
     const roi = calculateMayrinRoi({
       selectedMaplePoints: selected.maplePoints,
       baselineMaplePoints: basePlan.result.maplePoints,
@@ -1089,7 +1336,8 @@ export default function Home() {
     const cumulativeNetValue = roi.cumulative.netValue;
     const cumulativeRecoveryRate = roi.cumulative.recoveryRate;
     const recommendedRoiPlans = recommendedPlansByWeek[effectivePullWeeks].map(plan => {
-      const hardWeeks = mayrinClearWeeks(plan.result.reached) + (plan.result.reached ? reset : 0);
+      const mayrinDate = plan.result.reach285At || plan.result.reached;
+      const hardWeeks = mayrinClearWeeks(mayrinDate) + (mayrinDate ? reset : 0);
       const gainedHardWeeks = Math.max(0, hardWeeks - baseHardWeeks);
       const extraMaplePoints = plan.result.maplePoints - basePlan.result.maplePoints;
       const costValue = extraMaplePoints / Math.max(1, s.mpPerEok) * 100000000;
@@ -1163,6 +1411,7 @@ export default function Home() {
     setActiveTab("calculator");
   };
   const r = calc.selected;
+  const targetLevel = calculatedSettings.targetLevel;
   const pullDays = r.reached && calc.basePlan.result.reached ? Math.max(0, Math.round((calc.basePlan.result.reached.getTime() - r.reached.getTime()) / 86400000)) : 0;
   const recommendedPrefix = r.sevenUntil < r.start ? "평일 2판 · 일요일 7판" : `${shortDate(r.sevenUntil)}까지만 평일 7판`;
   const selectedStrategy = pullStrategies.find(strategy => strategy.id === calc.selectedPlan.strategy) || pullStrategies[0];
@@ -1172,19 +1421,25 @@ export default function Home() {
   const primaryRoiRecoveredValue = calc.effectivePullWeeks ? calc.cumulativeRecoveredValue : calc.marginalRecoveredValue;
   const primaryRoiRecoveryRate = calc.effectivePullWeeks ? calc.cumulativeRecoveryRate : calc.marginalRecoveryRate;
   const momentumLeft = r.leftoverSources.some(source => source.includes("모멘텀 패스"));
-  const leftoverRows: [string, string][] = [
-    ["상급 EXP 교환권", `${r.leftovers.adv.toLocaleString("ko-KR")}장`], ["VIP 사우나", `${r.leftovers.sauna.toLocaleString("ko-KR", { maximumFractionDigits: 2 })}시간`],
-    ["블루베리 농장", `${r.leftovers.blue.toLocaleString("ko-KR")}장`], ["메카베리 농장", `${r.leftovers.mech.toLocaleString("ko-KR")}장`],
-    ["성장의 비약 200~269", `${r.leftovers.potion269.toLocaleString("ko-KR")}개`], ["성장의 비약 200~279", `${r.leftovers.potion279.toLocaleString("ko-KR")}개`],
-    ["3배 쿠폰 · 30분", `${r.leftovers.coupon3x.toLocaleString("ko-KR")}개`], ["4배 쿠폰 · 30분", `${r.leftovers.coupon4x.toLocaleString("ko-KR")}개`],
-    ["특수 물자 저장", calculatedSettings.specialSupply ? `${r.specialSupplySaved.toLocaleString("ko-KR")}회` : "계산 제외"],
+  const leftoverRowsFor = (leftovers: Leftovers, specialSupplySaved: number): [string, string][] => [
+    ["상급 EXP 교환권", `${leftovers.adv.toLocaleString("ko-KR")}장`], ["VIP 사우나", `${leftovers.sauna.toLocaleString("ko-KR", { maximumFractionDigits: 2 })}시간`],
+    ["블루베리 농장", `${leftovers.blue.toLocaleString("ko-KR")}장`], ["메카베리 농장", `${leftovers.mech.toLocaleString("ko-KR")}장`],
+    ["성장의 비약 200~269", `${leftovers.potion269.toLocaleString("ko-KR")}개`], ["성장의 비약 200~279", `${leftovers.potion279.toLocaleString("ko-KR")}개`],
+    ["3배 쿠폰 · 30분", `${leftovers.coupon3x.toLocaleString("ko-KR")}개`], ["4배 쿠폰 · 30분", `${leftovers.coupon4x.toLocaleString("ko-KR")}개`],
+    ["특수 물자 저장", calculatedSettings.specialSupply ? `${specialSupplySaved.toLocaleString("ko-KR")}회` : "계산 제외"],
   ];
-  const efficiencyLevels = [280, 281, 282, 283, 284];
+  const leftoverRows = leftoverRowsFor(r.leftovers, r.specialSupplySaved);
+  const milestoneLeftoverRows = r.leftoversAt285 ? leftoverRowsFor(r.leftoversAt285, r.specialSupplySavedAt285 || 0) : [];
   const efficiencyStartDate = parseDate(s.start);
   const efficiencyMonsterParkBonus = eterionBonusesForDate(s, efficiencyStartDate).mp;
   const efficiencyCoreLevel = s.mpCore6Enabled && dateReached(efficiencyStartDate, s.mpCore6Date) ? 6 : 5;
   const efficiencyCore20Applied = dateReached(efficiencyStartDate, s.core20Date);
-  const efficiencyRanking = [...efficiencyBenchmarks].sort((a, b) => relativeEfficiencyScore(b, s.level, efficiencyMonsterParkBonus) - relativeEfficiencyScore(a, s.level, efficiencyMonsterParkBonus));
+  const efficiencyLevelAvailable = Boolean(efficiency[efficiencyLevel]);
+  const efficiencyRanking = efficiencyLevelAvailable
+    ? efficiencyBenchmarks
+      .filter(source => efficiencyLevel >= (source.minimumLevel ?? EFFICIENCY_LEVEL_MIN))
+      .sort((a, b) => relativeEfficiencyScore(b, efficiencyLevel, efficiencyMonsterParkBonus) - relativeEfficiencyScore(a, efficiencyLevel, efficiencyMonsterParkBonus))
+    : [];
   const preLevelData = pre280Data[Math.max(260, Math.min(279, Math.floor(s.preLevel)))];
   const preUsedLabel = (used: Pre280Inventory) => [
     used.blue ? `블루 ${used.blue}` : "",
@@ -1194,17 +1449,25 @@ export default function Home() {
   ].filter(Boolean).join(" · ") || "콘텐츠 누적";
 
   return <main>
-    <header className="topbar"><a className="brand" href="#top" aria-label="285 계산기 홈"><span className="brand-mark">M</span><span>285 CALCULATOR</span></a><span className="topbar-status">CHALLENGERS WORLD</span></header>
+    <header className="topbar"><a className="brand" href="#top" aria-label="285·290 계산기 홈"><span className="brand-mark">M</span><span>285·290 CALCULATOR</span></a><span className="topbar-status">CHALLENGERS WORLD</span></header>
     <section className="hero" id="top">
-      <div className="eyebrow"><span /> CHALLENGERS 285 CALCULATOR</div>
-      <h1>285, 언제 찍을까?</h1>
-      <p>현재 레벨과 보유 보상을 입력하면 285 달성일, 필요한 몬파 횟수와 메포를 계산합니다.</p>
+      <div className="eyebrow"><span /> CHALLENGERS {targetLevel} CALCULATOR</div>
+      <h1>{targetLevel}, 언제 찍을까?</h1>
+      <p>현재 레벨과 보유 보상을 입력하면 {targetLevel} 달성일, 필요한 몬파 횟수와 메포를 계산합니다.</p>
       <div className="hero-grid">
-        <article className="hero-card primary"><div className="card-label">{calc.effectivePullWeeks ? `${calc.effectivePullWeeks}주 당김 · ${selectedStrategy.label}` : "마감만 맞추기"}</div><strong>{longDate(r.reached)}</strong><span>{r.scheduleLabel}</span><div className="card-meta"><b>{formatMP(r.maplePoints)}</b><em>몬파 {formatMP(r.monsterParkMaplePoints)} · 상점 {formatMP(r.shopMaplePoints)}</em></div></article>
-        <article className="hero-card"><div className="card-label">0주 · 마감 기준</div><strong>{longDate(calc.basePlan.result.reached)}</strong><span>{calc.basePlan.result.scheduleLabel}</span><div className="card-meta"><b>{formatMP(calc.basePlan.result.maplePoints)}</b><em>상점 없이 9월 16일 달성</em></div></article>
-        <article className="hero-card verdict"><div className="card-label">{calc.effectivePullWeeks ? `${calc.effectivePullWeeks}주 총손익 · 0주 대비` : "마감 확보 손익"}</div><strong className={primaryRoiNetValue >= 0 ? "positive" : "negative"}>{primaryRoiNetValue >= 0 ? "+" : ""}{eok(primaryRoiNetValue)}</strong><span>{calc.effectivePullWeeks ? `누적 회수율 ${primaryRoiRecoveryRate.toFixed(1)}%` : "마감은 필수조건 · 손익과 분리"}</span><div className="card-meta"><b>{primaryRoiHardWeeks}회 추가</b><em>보상 {eok(primaryRoiRecoveredValue)}</em></div></article>
+        {targetLevel === 290 ? <>
+          <article className="hero-card primary"><div className="card-label">장기 기준 · 추가 메포 0</div><strong>{longDate(calc.free.reached)}</strong><span>매일 2판</span><div className="card-meta"><b>0 메포</b><em>730일 안전 상한</em></div></article>
+          <article className="hero-card"><div className="card-label">일요일만 7판</div><strong>{longDate(calc.sunday.reached)}</strong><span>{calc.sunday.scheduleLabel}</span><div className="card-meta"><b>{formatMP(calc.sunday.maplePoints)}</b><em>평일 2판 · 일요일 추가 5판</em></div></article>
+          <article className="hero-card verdict"><div className="card-label">매일 7판 비교</div><strong>{longDate(calc.allSeven.reached)}</strong><span>{calc.allSeven.scheduleLabel}</span><div className="card-meta"><b>{formatMP(calc.allSeven.maplePoints)}</b><em>가장 빠른 고정 경로</em></div></article>
+        </> : <>
+          <article className="hero-card primary"><div className="card-label">{calc.effectivePullWeeks ? `${calc.effectivePullWeeks}주 당김 · ${selectedStrategy.label}` : "마감만 맞추기"}</div><strong>{longDate(r.reached)}</strong><span>{r.scheduleLabel}</span><div className="card-meta"><b>{formatMP(r.maplePoints)}</b><em>몬파 {formatMP(r.monsterParkMaplePoints)} · 상점 {formatMP(r.shopMaplePoints)}</em></div></article>
+          <article className="hero-card"><div className="card-label">0주 · 마감 기준</div><strong>{longDate(calc.basePlan.result.reached)}</strong><span>{calc.basePlan.result.scheduleLabel}</span><div className="card-meta"><b>{formatMP(calc.basePlan.result.maplePoints)}</b><em>상점 없이 9월 16일 달성</em></div></article>
+          <article className="hero-card verdict"><div className="card-label">{calc.effectivePullWeeks ? `${calc.effectivePullWeeks}주 총손익 · 0주 대비` : "마감 확보 손익"}</div><strong className={primaryRoiNetValue >= 0 ? "positive" : "negative"}>{primaryRoiNetValue >= 0 ? "+" : ""}{eok(primaryRoiNetValue)}</strong><span>{calc.effectivePullWeeks ? `누적 회수율 ${primaryRoiRecoveryRate.toFixed(1)}%` : "마감은 필수조건 · 손익과 분리"}</span><div className="card-meta"><b>{primaryRoiHardWeeks}회 추가</b><em>보상 {eok(primaryRoiRecoveredValue)}</em></div></article>
+        </>}
       </div>
-      <div className={`hero-note ${calc.deadlineMet ? "" : "deadline-fail"}`}><span className="pulse" /><p><b>{calc.selectedPlan.strategy === calc.bestRoiStrategy ? "추천 · 순손익 최고" : calc.selectedPlan.strategy === calc.bestPlansByWeek[calc.effectivePullWeeks]?.strategy ? "메포 최저" : "더 빠른 선택"}</b> {selectedStrategy.id === "monsterPark" ? recommendedPrefix : `${selectedStrategy.label} · ${recommendedPrefix}`} → {shortDate(r.reached)} · 총 {formatMP(r.maplePoints)} · {pullDays ? `마감 경로보다 ${pullDays}일 빠름` : "9월 16일 마감 기준"}</p></div>
+      {targetLevel === 290
+        ? <div className={`hero-note ${r.reached ? "" : "deadline-fail"}`}><span className="pulse" /><p><b>{r.reached ? "장기 290 경로 비교" : "계산 범위 내 미도달"}</b> 9월 16일은 이벤트 보상 마감으로만 반영하고, 290 도달일은 이후 성장까지 최대 730일 계산합니다.</p></div>
+        : <div className={`hero-note ${calc.deadlineMet ? "" : "deadline-fail"}`}><span className="pulse" /><p><b>{calc.selectedPlan.strategy === calc.bestRoiStrategy ? "추천 · 순손익 최고" : calc.selectedPlan.strategy === calc.bestPlansByWeek[calc.effectivePullWeeks]?.strategy ? "메포 최저" : "더 빠른 선택"}</b> {selectedStrategy.id === "monsterPark" ? recommendedPrefix : `${selectedStrategy.label} · ${recommendedPrefix}`} → {shortDate(r.reached)} · 총 {formatMP(r.maplePoints)} · {pullDays ? `마감 경로보다 ${pullDays}일 빠름` : "9월 16일 마감 기준"}</p></div>}
     </section>
 
     <nav className="view-tabs" role="tablist" aria-label="계산기 화면 선택">
@@ -1259,7 +1522,7 @@ export default function Home() {
           </div>
           <div className="pre-bottom">
             <div><span>280 도달 뒤 남는 보상</span><b>블루 {pre280.inventory.blue} · 사우나 {pre280.inventory.sauna.toFixed(1)}h · 상급 {pre280.inventory.adv.toLocaleString("ko-KR")} · 비약 {pre280.inventory.potion279}</b></div>
-            <button onClick={connectPre280} disabled={!pre280.reached || preApplied}>{preApplied ? "280→285 연결 완료" : pre280.reached ? "280→285 계산기에 연결" : "9/16까지 280 미도달"}</button>
+            <button onClick={connectPre280} disabled={!pre280.reached || preApplied}>{preApplied ? `280→${s.targetLevel} 연결 완료` : pre280.reached ? `280→${s.targetLevel} 계산기에 연결` : "9/16까지 280 미도달"}</button>
           </div>
           <p className="pre-disclaimer">일퀘·익몬·에픽던전은 메이플로드, 몬스터파크 지역별 경험치는 하루1소재 기준입니다. 레벨에 맞는 최고 입장 지역과 버닝 비욘드 +2레벨, 285 탭의 에테리온 콘텐츠 보정을 함께 적용합니다.</p>
         </div>
@@ -1268,11 +1531,13 @@ export default function Home() {
 
     {activeTab === "calculator" && <><section className="calculator-shell main-calculator tab-panel" id="calculator-panel" role="tabpanel" aria-labelledby="calculator-tab">
       <aside className="controls">
-        <div className="section-heading"><span>입력</span><div><p>현재 캐릭터</p><h2>285 계산 조건</h2></div></div>
+        <div className="section-heading"><span>입력</span><div><p>현재 캐릭터</p><h2>{s.targetLevel} 계산 조건</h2></div></div>
         <div className="field-grid compact">
-          <label className="field"><span>현재 레벨</span><select value={s.level} onChange={e => set("level", Number(e.target.value))}>{[280, 281, 282, 283, 284].map(level => <option key={level}>{level}</option>)}</select></label>
+          <label className="field"><span>목표 레벨</span><select value={s.targetLevel} onChange={e => set("targetLevel", Number(e.target.value) as 285 | 290)}><option value={285}>285</option><option value={290}>290</option></select></label>
+          <label className="field"><span>현재 레벨</span><select value={Math.min(s.level, s.targetLevel - 1)} onChange={e => set("level", Number(e.target.value))}>{Array.from({ length: s.targetLevel - 280 }, (_, index) => index + 280).map(level => <option key={level}>{level}</option>)}</select></label>
           <InputField label="현재 경험치 %" value={s.exp} min={0} max={99.999} step={0.001} onChange={v => set("exp", Number(v))} />
           <InputField label="계산 시작일" value={s.start} type="date" onChange={v => set("start", v)} />
+          <InputField label="카르시온 콘텐츠 해금일" value={s.carcionUnlockDate} type="date" onChange={v => set("carcionUnlockDate", v)} />
           <InputField label="스페셜 선데이 몬파 횟수" value={s.specialSundayCount} min={0} max={12} step={1} onChange={v => set("specialSundayCount", Number(v))} />
           <InputField label="챌섭 EXP 패스 현재 레벨" value={s.challengerPassLevel} min={0} max={30} step={1} onChange={v => set("challengerPassLevel", Number(v))} />
           <InputField label="모멘텀 패스 현재 레벨" value={s.momentumPassLevel} min={0} max={10} step={1} onChange={v => set("momentumPassLevel", Number(v))} />
@@ -1289,10 +1554,10 @@ export default function Home() {
         <div className="quick-toggles"><Toggle label="오늘 일퀘·몬파 미완료" checked={s.todayDaily} onChange={v => set("todayDaily", v)} /><Toggle label="이번 주 챌섭 5레벨 미완료" checked={s.challengerUnclaimed} onChange={v => set("challengerUnclaimed", v)} /></div>
         <details><summary>패스 · 이벤트 설정 <span>12</span></summary><div className="detail-body">
           <Toggle label="챌린저스 EXP 패스" checked={s.challengerExp} onChange={v => set("challengerExp", v)} /><Toggle label="프라임 모멘텀 패스" checked={s.momentumPrime} onChange={v => set("momentumPrime", v)} /><Toggle label="모멘텀 메카베리 모아쓰기" checked={s.deferMomentumMech} onChange={v => set("deferMomentumMech", v)} />
-          <div className="field-grid compact inset"><label className="field"><span>메카베리 사용 레벨</span><select value={s.momentumMechLevel} disabled={!s.deferMomentumMech} onChange={e => set("momentumMechLevel", Number(e.target.value))}>{[280, 281, 282, 283, 284].map(level => <option key={level}>{level}</option>)}</select></label><InputField label="최종 사용일" value={s.momentumMechDeadline} type="date" disabled={!s.deferMomentumMech} onChange={v => set("momentumMechDeadline", v)} /></div>
+          <div className="field-grid compact inset"><label className="field"><span>메카베리 사용 레벨</span><select value={Math.min(s.momentumMechLevel, s.targetLevel - 1)} disabled={!s.deferMomentumMech} onChange={e => set("momentumMechLevel", Number(e.target.value))}>{Array.from({ length: s.targetLevel - 280 }, (_, index) => index + 280).map(level => <option key={level}>{level}</option>)}</select></label><InputField label="최종 사용일" value={s.momentumMechDeadline} type="date" disabled={!s.deferMomentumMech} onChange={v => set("momentumMechDeadline", v)} /></div>
           <Toggle label="특수 물자 지원 · 4배 쿠폰 몰아쓰기" checked={s.specialSupply} onChange={v => set("specialSupply", v)} />
-          <div className="field-grid compact inset supply-input"><InputField label="시작일 보유 · 당일 충전 포함" value={s.specialSupplySaved} min={0} max={5} step={1} disabled={!s.specialSupply} onChange={v => set("specialSupplySaved", Number(v))} /><div className="supply-rule"><b>5회 저장 시 자동 사용</b><span>7/23~8/19 · 하루 1회 · 1회당 2,500마리</span></div></div>
-          <div className="supply-warning"><b>러프값</b><p>280+ 몬스터 사냥터에서 4배 쿠폰 사용 기준 1회 77,024,335,674 EXP, 5회 385,121,678,370 EXP로 계산합니다.</p><small>5회 사용은 총 12,500마리 처치 가정 · 4배 쿠폰 보유·소모량은 차감하지 않음<br />커뮤니티 테섭 1표본 가정 · 등급 상승 미반영 · 실제값 변동 가능</small></div>
+          <div className="field-grid compact inset supply-input"><InputField label="시작일 보유 · 당일 충전 포함" value={s.specialSupplySaved} min={0} max={5} step={1} disabled={!s.specialSupply} onChange={v => set("specialSupplySaved", Number(v))} /><InputField label="실측 1회 경험치" value={s.specialSupplyExpPerCharge} min={0} step={1} disabled={!s.specialSupply} onChange={v => set("specialSupplyExpPerCharge", Number(v))} /></div>
+          <div className="supply-warning"><b>직접 입력</b><p>공식 고정 경험치가 없어 입력값이 없으면 0으로 계산합니다.</p><small>5회 저장 시 입력한 1회 경험치의 5배 적용 · 농장과 달리 임의 추정값을 자동 사용하지 않음</small></div>
           <Toggle label="7월 NOW 보상" checked={s.apology} onChange={v => set("apology", v)} /><Toggle label="울티마 스쿼드 상점 EXP 5,000장 (예상)" checked={s.shardEvent} onChange={v => set("shardEvent", v)} /><Toggle label="울티마 작전 일지" checked={s.ultima} onChange={v => set("ultima", v)} />
           <div className="callout-mini">현재 패스 레벨까지 받은 보상은 현재 경험치에 포함된 것으로 보고 제외합니다. 챌섭은 최대 30레벨이며 주 5레벨씩 계산합니다. 모멘텀은 주차별 2→3→3→2레벨로 진행합니다.</div>
           <div className="callout-mini shop-priority">평일 몬파는 기본 2판 뒤 유료 추가 5판을 먼저 적용합니다. 농장은 몬파만으로 다음 하드 주차를 못 당길 때만 비교하며, 같은 도달 주차에서는 더 적은 메포 경로를 추천합니다.</div>
@@ -1308,7 +1573,7 @@ export default function Home() {
           <span>{isCalculating ? `전략 비교 중 · ${calculationSteps.toLocaleString("ko-KR")}개 확인` : hasPendingChanges ? "입력값이 변경되었습니다" : "현재 입력값으로 계산 완료"}</span>
           {isCalculating && <div className="calculation-progress" aria-hidden="true"><i /></div>}
           <div className="calculate-actions">
-            <button type="button" onClick={calculate} disabled={!hasPendingChanges || isCalculating}>{isCalculating ? "계산 중…" : hasPendingChanges ? "285 도달일 계산하기" : "계산 완료"}</button>
+            <button type="button" onClick={calculate} disabled={!hasPendingChanges || isCalculating}>{isCalculating ? "계산 중…" : hasPendingChanges ? `${s.targetLevel} 도달일 계산하기` : "계산 완료"}</button>
             {isCalculating && <button type="button" className="cancel-calculation" onClick={cancelCalculation}>계산 취소</button>}
           </div>
           {isCalculating && <small>계산을 짧게 나눠 실행하므로 화면과 스크롤은 계속 사용할 수 있습니다.</small>}
@@ -1316,10 +1581,13 @@ export default function Home() {
       </aside>
 
       <div className="results" aria-busy={isCalculating}>
-        <div className="section-heading"><span>결과</span><div><p>선택한 조건</p><h2>285 도달 경로</h2></div>{isCalculating ? <output className="calculation-status" aria-live="polite">계산 중 · 화면 사용 가능</output> : hasPendingChanges && <output className="calculation-status pending" aria-live="polite">입력값 변경됨</output>}<button className="reset" onClick={resetCalculator}>기본값 복원</button></div>
-        <div className="pull-selector">
-          <div className="pull-selector-head"><div><span>목표 주차</span><h3>285 도달 시점</h3></div><b className={calc.deadlineMet ? "deadline-ok" : "deadline-bad"}>{calc.deadlineMet ? "9/16 이전 달성" : "9/16 달성 불가"}</b></div>
-          <div className="pull-buttons" role="group" aria-label="285 달성 주차 당기기">
+        <div className="section-heading"><span>결과</span><div><p>선택한 조건</p><h2>{targetLevel} 도달 경로</h2></div>{isCalculating ? <output className="calculation-status" aria-live="polite">계산 중 · 화면 사용 가능</output> : hasPendingChanges && <output className="calculation-status pending" aria-live="polite">입력값 변경됨</output>}<button className="reset" onClick={resetCalculator}>기본값 복원</button></div>
+        {targetLevel === 290 ? <div className="pull-selector long-range-selector">
+          <div className="pull-selector-head"><div><span>장기 계산</span><h3>290 도달 경로 비교</h3></div><b className={r.reached ? "deadline-ok" : "deadline-bad"}>{r.reached ? "도달일 계산 완료" : r.endReason === "no-growth" ? "성장 콘텐츠 없음" : "730일 내 미도달"}</b></div>
+          <p>무료 2판, 일요일만 7판, 매일 7판을 같은 입력으로 비교합니다. 9월 16일은 패스·이벤트 보상의 마감일이며 290 도달 제한일이 아닙니다.</p>
+        </div> : <><div className="pull-selector">
+          <div className="pull-selector-head"><div><span>목표 주차</span><h3>{targetLevel} 도달 시점</h3></div><b className={calc.deadlineMet ? "deadline-ok" : "deadline-bad"}>{calc.deadlineMet ? "9/16 이전 달성" : "9/16 달성 불가"}</b></div>
+          <div className="pull-buttons" role="group" aria-label={`${targetLevel} 달성 주차 당기기`}>
             {calc.bestPlansByWeek.map((bestPlan) => <button key={bestPlan.pullWeeks} className={bestPlan.pullWeeks === calc.effectivePullWeeks ? "active" : ""} onClick={() => selectCalculatedRoute({ pullWeeks: bestPlan.pullWeeks, pullStrategy: bestPlan.strategy })} disabled={!bestPlan.feasible}><span>{bestPlan.pullWeeks ? `${bestPlan.pullWeeks}주 당김` : "마감만"}</span><strong>{shortDate(bestPlan.result.reached)}</strong><small>최저 {formatMP(bestPlan.result.maplePoints)}</small></button>)}
           </div>
           <p>주차를 선택하면 해당 날짜를 맞추는 최소 비용 경로를 계산합니다.</p>
@@ -1327,27 +1595,38 @@ export default function Home() {
         <div className="strategy-choice">
           <div className="strategy-choice-head"><span>경로 선택</span><h3>{calc.effectivePullWeeks ? `${calc.effectivePullWeeks}주 당김 경로` : "마감 기준 경로"}</h3><p>같은 도달일에는 메포가 적은 경로만 표시합니다.</p></div>
           <div className="strategy-choice-grid">{calc.recommendedPlansByWeek[calc.effectivePullWeeks].map((plan, index) => { const strategy = pullStrategies.find(item => item.id === plan.strategy)!; const active = plan.strategy === calc.selectedPlan.strategy; const recommended = plan.strategy === calc.bestRoiStrategy; return <button key={strategy.id} className={`${active ? "active" : ""} ${recommended ? "recommended" : ""}`} onClick={() => selectCalculatedRoute({ pullStrategy: strategy.id })}><div><span>{recommended ? "추천 · 순손익 최고" : index === 0 ? "메포 최저" : "더 빠른 선택"}</span><i>{active ? "선택됨" : "선택"}</i></div><h4>{strategy.label}</h4><p>{strategy.caption}</p><strong>{shortDate(plan.result.reached)}</strong><dl><div><dt>총액</dt><dd>{formatMP(plan.result.maplePoints)}</dd></div><div><dt>몬파</dt><dd>{formatMP(plan.result.monsterParkMaplePoints)}</dd></div><div><dt>상점</dt><dd>{formatMP(plan.result.shopMaplePoints)}</dd></div></dl><small>{calc.effectivePullWeeks ? `블루 ${plan.shopBlueWeeks}주 · 메카 ${plan.shopMechWeeks}주 구매 계획` : "0주에서는 농장 미구매"}</small></button>; })}</div>
-        </div>
-        <ProgressChart selected={r} sunday={calc.sunday} free={calc.free} />
-        <div className={`route-grid ${calc.effectivePullWeeks === 0 ? "two" : ""}`}>
+        </div></>}
+        <ProgressChart selected={r} sunday={calc.sunday} free={calc.free} targetLevel={targetLevel} />
+        {targetLevel === 290 ? <div className="route-grid">
+          <article className="route-card chosen"><div><div className="route-card-label"><span>비용 0 기준</span><i>{calc.free.reached ? "도달" : "미도달"}</i></div><h3>매일 2판</h3><p>추가 메포 없이 계산</p></div><strong>{shortDate(calc.free.reached)}</strong><dl><div><dt>총 비용</dt><dd>0 메포</dd></div><div><dt>계산 상태</dt><dd>{calc.free.endReason === "reached" ? "완료" : "미도달"}</dd></div></dl></article>
+          <article className="route-card baseline"><div><div className="route-card-label"><span>일요일 비교</span><i>{calc.sunday.reached ? "도달" : "미도달"}</i></div><h3>평일 2판 · 일요일 7판</h3><p>일요일 추가 5판만 결제</p></div><strong>{shortDate(calc.sunday.reached)}</strong><dl><div><dt>총 비용</dt><dd>{formatMP(calc.sunday.maplePoints)}</dd></div><div><dt>몬파</dt><dd>{formatMP(calc.sunday.monsterParkMaplePoints)}</dd></div></dl></article>
+          <article className="route-card free-route"><div><div className="route-card-label"><span>속도 비교</span><i>{calc.allSeven.reached ? "도달" : "미도달"}</i></div><h3>매일 7판</h3><p>매일 유료 추가 5판</p></div><strong>{shortDate(calc.allSeven.reached)}</strong><dl><div><dt>총 비용</dt><dd>{formatMP(calc.allSeven.maplePoints)}</dd></div><div><dt>몬파</dt><dd>{formatMP(calc.allSeven.monsterParkMaplePoints)}</dd></div></dl></article>
+        </div> : <div className={`route-grid ${calc.effectivePullWeeks === 0 ? "two" : ""}`}>
           <article className="route-card chosen"><div><div className="route-card-label"><span>선택 경로 · {calc.effectivePullWeeks}주</span><i>{calc.selectedPlan.strategy === calc.bestRoiStrategy ? "추천 · 순손익 최고" : "선택됨"}</i></div><h3>{selectedRouteTitle}</h3><p>{calc.effectivePullWeeks === 0 ? "9월 16일 마감 기준" : `${calc.effectivePullWeeks}주 당김 기준`}</p></div><strong>{shortDate(r.reached)}</strong><dl><div><dt>총 비용</dt><dd>{formatMP(r.maplePoints)}</dd></div><div><dt>메포샵</dt><dd>{formatMP(r.shopMaplePoints)}</dd></div><div><dt>하드</dt><dd>{calc.selectedHardWeeks}회</dd></div></dl></article>
           {calc.effectivePullWeeks > 0 && <article className="route-card baseline"><div><div className="route-card-label"><span>0주 비교 기준</span><i>추가 당김 없음</i></div><h3>{calc.basePlan.result.scheduleLabel}</h3><p>선택 경로의 비용·하드 횟수를 비교하는 기준입니다.</p></div><strong>{shortDate(calc.basePlan.result.reached)}</strong><dl><div><dt>총 비용</dt><dd>{formatMP(calc.basePlan.result.maplePoints)}</dd></div><div><dt>하드</dt><dd>{calc.baseHardWeeks}회</dd></div></dl></article>}
           <article className="route-card free-route"><div><div className="route-card-label"><span>추가 메포 0 비교</span><i>무료 기준</i></div><h3>매일 2판</h3><p>일요일 추가 5판도 하지 않는 비교 경로입니다.</p></div><strong>{shortDate(calc.free.reached)}</strong><dl><div><dt>추가 메포</dt><dd>0 메포</dd></div><div><dt>9/16 마감</dt><dd>{calc.free.reached && calc.free.reached <= calc.deadline ? "통과" : "실패"}</dd></div></dl></article>
-        </div>
-        <div className="decision-card">
+        </div>}
+        {targetLevel === 285 && <><div className="decision-card">
           <div className="decision-top"><div><span>HARD MAYRIN ROI · {calc.effectivePullWeeks ? `0주 대비 · ${selectedStrategy.label}` : "DEADLINE"}</span><h3>{calc.effectivePullWeeks ? `${calc.effectivePullWeeks}주 당김 총손익` : "9월 16일 마감 확보 비용"}</h3></div><strong className={primaryRoiNetValue >= 0 ? "positive" : "negative"}>{primaryRoiNetValue >= 0 ? "+" : ""}{eok(primaryRoiNetValue)} 메소</strong></div>
           <div className="roi-grid"><div><span>{calc.effectivePullWeeks ? "0주 대비 추가 메포" : "추가 메포 0 대비"}</span><b>{formatMP(calc.effectivePullWeeks ? calc.cumulativeMP : calc.marginalMP)}</b><small>{calc.effectivePullWeeks ? `0주 ${formatMP(calc.basePlan.result.maplePoints)} → ${calc.effectivePullWeeks}주 ${formatMP(r.maplePoints)}` : `몬파 ${formatSignedMP(calc.marginalMonsterParkMP)} · 상점 ${formatSignedMP(calc.marginalShopMP)}`}</small></div><div><span>{calc.effectivePullWeeks ? "0주 대비 하드 추가" : "하드 추가 횟수"}</span><b>{primaryRoiHardWeeks}회</b><small>노말→하드 가치 {eok(calc.hardValue)}</small></div><div><span>{calc.effectivePullWeeks ? "0주 대비 누적 회수" : "마감 경로 회수"}</span><b>{eok(primaryRoiRecoveredValue)}</b><small>비용 {eok(calc.effectivePullWeeks ? calc.cumulativeCostValue : calc.marginalCostValue)} · 회수율 {primaryRoiRecoveryRate.toFixed(1)}%</small></div></div>
           {calc.effectivePullWeeks > 0 && <div className="cumulative-roi"><span>직전 {calc.effectivePullWeeks - 1}주 경로 대비</span><b>{calc.marginalMP === 0 ? `직전 ${calc.effectivePullWeeks - 1}주 경로와 같은 비용` : `메포 ${formatSignedMP(calc.marginalMP)}`} · 하드 +{calc.marginalGainedHardWeeks}회 · 단계 손익 <em className={calc.marginalNetValue >= 0 ? "positive" : "negative"}>{calc.marginalNetValue >= 0 ? "+" : ""}{eok(calc.marginalNetValue)}</em></b></div>}
-          <p>{calc.effectivePullWeeks ? `0주 비교 기준부터 선택한 ${calc.effectivePullWeeks}주 경로까지 누적한 비용과 하드 추가 횟수입니다. 직전 단계 증분은 위 보조 줄에서 따로 확인할 수 있습니다.` : "9월 16일 285는 필수조건으로 보고, 0주에서는 상점 구매 없이 마감을 맞추는 최소 몬파 비용만 표시합니다."} 이미 돌린 몬파 7판은 현재 경험치에 들어간 매몰비용입니다.</p>
+          <p>{calc.effectivePullWeeks ? `0주 비교 기준부터 선택한 ${calc.effectivePullWeeks}주 경로까지 누적한 비용과 하드 추가 횟수입니다. 직전 단계 증분은 위 보조 줄에서 따로 확인할 수 있습니다.` : `9월 16일 ${targetLevel} 목표를 기준으로 상점 구매 없이 마감을 맞추는 최소 몬파 비용을 표시합니다.`} 하드 메이린 횟수는 {targetLevel === 290 ? "중간 285 도달일" : "285 도달일"} 기준입니다.</p>
         </div>
         <details className="value-settings"><summary>메이린 가치·환율 수정</summary><div className="field-grid"><InputField label="노말→하드 결정석 차이 · 억" value={s.mayrinMesoGap} step={0.1} onChange={v => set("mayrinMesoGap", Number(v))} /><InputField label="노말 조각 예상량" value={s.mayrinNormalFrag} onChange={v => set("mayrinNormalFrag", Number(v))} /><InputField label="조각 1개 · 만 메소" value={s.fragPrice} step={10} onChange={v => set("fragPrice", Number(v))} /><InputField label="메소 1억당 메포" value={s.mpPerEok} step={100} onChange={v => set("mpPerEok", Number(v))} /></div><Toggle label="9/17 초기화 후 추가 1회 가정" checked={s.postReset} onChange={v => set("postReset", v)} /></details>
+        </>}
       </div>
     </section>
 
-    <section className="rewards-section main-leftovers">
-      <div className="section-heading light"><span>잔여</span><div><p>{shortDate(r.reached)} 기준</p><h2>285 달성 후 남는 보상</h2></div></div>
+    {targetLevel === 290 && <section className="rewards-section main-leftovers milestone-leftovers">
+      <div className="section-heading light"><span>285</span><div><p>{shortDate(r.reach285At)} 마일스톤</p><h2>285 도달 시점 남는 보상</h2></div></div>
+      <div className="leftover-grid">{milestoneLeftoverRows.map(([label, value]) => <article key={label}><span>{label}</span><strong>{value}</strong></article>)}</div>
+      <p className="leftover-note">{r.startLevel >= 285 ? "이미 285 이상에서 시작해 계산 시작일 기준 보유·예정 보상을 표시합니다." : "290 계산과 별도로 실제 285 도달일과 당시 패스·이벤트 잔여를 보존합니다."}</p>
+    </section>}
+
+    <section className={`rewards-section main-leftovers ${targetLevel === 290 ? "final-leftovers" : ""}`}>
+      <div className="section-heading light"><span>잔여</span><div><p>{r.reached ? `${shortDate(r.reached)} 기준` : `${r.horizonDays}일 계산 종료 기준`}</p><h2>{r.reached ? `${targetLevel} 달성 후 남는 보상` : "계산 종료 시점 남는 보상"}</h2></div></div>
       <div className="leftover-grid">{leftoverRows.map(([label, value]) => <article key={label}><span>{label}</span><strong>{value}</strong></article>)}</div>
-      <p className="leftover-note">{momentumLeft ? "모멘텀 패스 4주차 보상은 285 달성 후 수령합니다." : "모멘텀 패스 4주차 보상까지 사용한 결과입니다."} {calculatedSettings.specialSupply ? `특수 물자는 계산 중 ${r.specialSupplyUsed.toLocaleString("ko-KR")}회 사용했고, 도달 시점 저장 잔여를 표시했습니다.` : "특수 물자는 계산에서 제외했습니다."}</p>
+      <p className="leftover-note">{momentumLeft ? `모멘텀 패스 4주차 보상은 ${targetLevel} 달성 후 수령합니다.` : "모멘텀 패스 4주차 보상까지 사용한 결과입니다."} {calculatedSettings.specialSupply ? calculatedSettings.specialSupplyExpPerCharge > 0 ? `특수 물자는 계산 중 ${r.specialSupplyUsed.toLocaleString("ko-KR")}회 사용했습니다.` : "특수 물자 실측값이 없어 경험치 0으로 계산했습니다." : "특수 물자는 계산에서 제외했습니다."}</p>
     </section>
 
     <section className="mech-summary" aria-label="메카베리 사용 시점"><span>메카베리 모아쓰기</span><strong>{calculatedSettings.deferMomentumMech ? `Lv.${r.momentumMechLevel} 또는 ${shortDate(r.momentumMechDeadline)}부터 사용` : "즉시 사용"}</strong></section>
@@ -1380,14 +1659,28 @@ export default function Home() {
       </section>
 
       <section className="efficiency-panel full-efficiency-table">
-        <div className="efficiency-head"><div><span>LV.{s.level} · VIP 사우나 100 기준 · 현재 몬파 +{efficiencyMonsterParkBonus}%</span><h3>Lv.280~284 전체 효율표</h3></div><b>비교 지수</b></div>
-        <div className="efficiency-list">
-          {efficiencyRanking.map((source, index) => <div className={`efficiency-row ${index < 3 ? "top" : ""}`} key={source.id}>
-            <strong>{index + 1}</strong><div className="efficiency-name"><b>{source.label}</b>{index === 0 && <small>현재 레벨 최고</small>}</div>
-            <div className="efficiency-values">{efficiencyLevels.map(level => <span className={level === s.level ? "active" : ""} key={level}><small>Lv.{level}</small><b>{relativeEfficiencyScore(source, level, efficiencyMonsterParkBonus).toFixed(1)}</b></span>)}</div>
-          </div>)}
+        <div className="efficiency-head">
+          <div><span>LV.{efficiencyLevel} · VIP 사우나 100 기준 · 현재 몬파 +{efficiencyMonsterParkBonus}%</span><h3>Lv.260~295 경험치 효율표</h3></div>
+          <label className="efficiency-level-picker" htmlFor="efficiency-level-input">
+            <span>보고 싶은 레벨</span>
+            <div className="efficiency-level-control"><b>Lv.</b><input id="efficiency-level-input" type="number" min={EFFICIENCY_LEVEL_MIN} max={EFFICIENCY_LEVEL_MAX} step="1" list="efficiency-level-options" value={efficiencyLevelInput} inputMode="numeric" aria-describedby="efficiency-level-help" onChange={event => updateEfficiencyLevelInput(event.target.value)} onBlur={normalizeEfficiencyLevelInput} onKeyDown={event => { if (event.key === "Enter") event.currentTarget.blur(); }} /></div>
+            <datalist id="efficiency-level-options">{Array.from({ length: EFFICIENCY_LEVEL_MAX - EFFICIENCY_LEVEL_MIN + 1 }, (_, index) => EFFICIENCY_LEVEL_MIN + index).map(level => <option value={level} key={level}>Lv.{level}</option>)}</datalist>
+            <small id="efficiency-level-help">260~295 · 선택 또는 직접 입력</small>
+          </label>
         </div>
-        <p>수치는 경험치 %가 아닌 효율 비교 지수입니다. 몬스터파크는 계산 시작일과 에테리온 5·6레벨 선택, 코어 총합 20 적용일을 반영합니다. 추가 경험치 50%와 소경축비는 기준값입니다.</p>
+        <div className="efficiency-list">
+          {efficiencyRanking.map((source, index) => <div className={`efficiency-row ${index < 3 ? "top" : ""}`} data-source={source.id} key={source.id}>
+            <strong>{index + 1}</strong>
+            <span className={`efficiency-icon tone-${source.tone}`} aria-hidden="true">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={efficiencyIconForLevel(source, efficiencyLevel)} alt="" aria-hidden="true" />
+            </span>
+            <div className="efficiency-name"><b>{efficiencyLabelForLevel(source, efficiencyLevel)}</b>{index === 0 && <small>Lv.{efficiencyLevel} 최고 효율</small>}</div>
+            <div className="efficiency-values"><span className="active"><small>효율 지수{efficiencyLevel >= 285 && (source.id === "blue" || source.id === "mech") ? " · 근사" : ""}</small><b>{relativeEfficiencyScore(source, efficiencyLevel, efficiencyMonsterParkBonus).toFixed(1)}%</b></span></div>
+          </div>)}
+          {!efficiencyLevelAvailable && <div className="efficiency-empty" role="status"><b>Lv.{efficiencyLevel} 수치를 확인 중입니다.</b><span>검증값이 없는 레벨은 앞뒤 레벨로 보간하지 않습니다.</span></div>}
+        </div>
+        <p>수치는 획득 경험치가 아니라 VIP 사우나를 100으로 둔 효율 비교 지수입니다. 몬스터파크는 계산 시작일과 에테리온 5·6레벨 선택, 코어 총합 20 적용일을 반영합니다. Lv.260~279는 해당 레벨의 하이마운틴·앵글러 컴퍼니와 몬파 구간값을 사용하며, 모멘텀 패스와 메카베리는 Lv.280부터 표시합니다. Lv.285~295 농장은 하루1소재 공개 퍼센트 기반 근사값입니다.</p>
       </section>
     </section>}
 
@@ -1396,6 +1689,6 @@ export default function Home() {
       <div className="pass-grid"><article><div className="table-title"><span>CHALLENGERS · 현재 {s.challengerPassLevel}레벨</span><h3>챌린저스 EXP 패스</h3></div><table><thead><tr><th>레벨 구간</th><th>일반</th><th>EXP 패스 포함</th></tr></thead><tbody><tr><td>1~10</td><td>-</td><td>블루베리 6 · 사우나 2시간 · 상급 EXP 2,000</td></tr><tr><td>11~20</td><td>-</td><td>블루베리 6 · 사우나 2시간 · 상급 EXP 2,000</td></tr><tr><td>21~25</td><td>상급 EXP 100</td><td>블루베리 3 · 사우나 1시간 · 상급 EXP 1,100</td></tr><tr><td>26~30</td><td>상급 EXP 2,100</td><td>블루베리 2 · 사우나 1시간 · 상급 EXP 3,100 · 비약 1</td></tr><tr className="total"><td>1~30 합계</td><td>상급 EXP 2,200</td><td>블루베리 17 · 사우나 6시간 · 상급 EXP 8,200 · 비약 1</td></tr></tbody></table></article><article><div className="table-title"><span>MOMENTUM · 현재 {s.momentumPassLevel}레벨</span><h3>모멘텀 패스</h3></div><table><thead><tr><th>레벨 구간</th><th>프라임 핵심 보상</th></tr></thead><tbody><tr><td>1~2</td><td>메카베리 2 · 사우나 30분 · 4배 쿠폰 2</td></tr><tr><td>3~5</td><td>메카베리 2 · 사우나 30분 · 상급 EXP 3,100 · 4배 2</td></tr><tr><td>6~8</td><td>메카베리 3 · 사우나 30분 · 상급 EXP 3,100 · 4배 2</td></tr><tr><td>9~10</td><td>메카베리 4 · 상급 EXP 3,300</td></tr><tr className="total"><td>1~10 합계</td><td>메카베리 11 · 사우나 1.5시간 · 상급 EXP 9,500</td></tr></tbody></table></article></div>
     </section>}
 
-    <footer><div className="brand"><span className="brand-mark">M</span><span>285 CALCULATOR</span></div><p>경험치 기준 · 하루1소재 · 메이플로드 · 2026.07.27 확인</p><div className="source-links"><a href="https://haru1sojae.kr/table" target="_blank" rel="noreferrer">하루1소재</a><a href="https://mapleroad.kr/utils/exp_calculator" target="_blank" rel="noreferrer">메이플로드</a><a href="https://maplestory.nexon.com/testworld/news/all/188" target="_blank" rel="noreferrer">테스트월드</a></div></footer>
+    <footer><div className="brand"><span className="brand-mark">M</span><span>285·290 CALCULATOR</span></div><p>경험치 기준 · 하루1소재 · 메이플로드 · 2026.08.03 확인</p><div className="source-links"><a href="https://haru1sojae.kr/table" target="_blank" rel="noreferrer">하루1소재</a><a href="https://mapleroad.kr/utils/exp_calculator" target="_blank" rel="noreferrer">메이플로드</a><a href="https://maplestory.nexon.com/testworld/news/all/188" target="_blank" rel="noreferrer">테스트월드</a></div></footer>
   </main>;
 }

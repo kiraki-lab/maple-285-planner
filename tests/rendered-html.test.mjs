@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
@@ -15,7 +16,13 @@ import {
 
 const root = new URL("../", import.meta.url);
 
-test("keeps the 285 calculator primary and moves supporting content into tabs", async () => {
+const importBuiltPage = async tag => {
+  const manifest = JSON.parse(await readFile(new URL("dist/client/.vite/manifest.json", root), "utf8"));
+  const pageModuleUrl = new URL(`dist/client/${manifest["app/page.tsx"].file}`, root);
+  return import(`${pageModuleUrl.href}?${tag}-${Date.now()}`);
+};
+
+test("keeps the 285 calculator primary, adds 290, and moves supporting content into tabs", async () => {
   const [page, layout, css, packageJson] = await Promise.all([
     readFile(new URL("app/page.tsx", root), "utf8"),
     readFile(new URL("app/layout.tsx", root), "utf8"),
@@ -26,7 +33,7 @@ test("keeps the 285 calculator primary and moves supporting content into tabs", 
   assert.match(page, /type ViewTab = "calculator" \| "pre280" \| "efficiency" \| "passes"/);
   assert.match(page, /useState<ViewTab>\("calculator"\)/);
   assert.match(page, /role="tablist"/);
-  assert.match(page, /label: "285 계산"/);
+  assert.match(page, /label: "285·290 계산"/);
   assert.match(page, /label: "260→280"/);
   assert.match(page, /label: "경험치 효율"/);
   assert.match(page, /label: "패스 보상"/);
@@ -42,13 +49,13 @@ test("keeps the 285 calculator primary and moves supporting content into tabs", 
   assert.match(page, /requestAnimationFrame/);
   assert.match(page, /rawPerCoupon/);
   assert.match(page, /couponBatch/);
-  assert.match(page, /guard < 8/);
-  assert.match(page, /285 도달일 계산하기/);
+  assert.match(page, /guard < 16/);
+  assert.match(page, /\$\{s\.targetLevel\} 도달일 계산하기/);
   assert.match(page, /계산 취소/);
   assert.match(page, /화면 사용 가능/);
   assert.match(page, /입력값 변경됨/);
-  assert.match(page, /285 계산 조건/);
-  assert.match(page, /285 달성 후 남는 보상/);
+  assert.match(page, /목표 레벨/);
+  assert.match(page, /285 도달 시점 남는 보상/);
   assert.match(page, /메카베리 모아쓰기/);
   assert.match(page, /패스 보상표/);
   assert.ok(page.indexOf("main-leftovers") > page.indexOf("main-calculator"));
@@ -65,11 +72,10 @@ test("keeps the 285 calculator primary and moves supporting content into tabs", 
   assert.match(page, /모멘텀 패스 현재 레벨/);
   assert.match(page, /특수 물자 지원 · 4배 쿠폰 몰아쓰기/);
   assert.match(page, /시작일 보유 · 당일 충전 포함/);
-  assert.match(page, /5회 저장 시 자동 사용/);
-  assert.match(page, /커뮤니티 테섭 1표본 가정 · 등급 상승 미반영 · 실제값 변동 가능/);
-  assert.match(page, /5회 사용은 총 12,500마리 처치 가정/);
-  assert.match(page, /4배 쿠폰 보유·소모량은 차감하지 않음/);
-  assert.match(page, /285 달성 후 남는 보상/);
+  assert.match(page, /실측 1회 경험치/);
+  assert.match(page, /입력값이 없으면 0으로 계산/);
+  assert.doesNotMatch(page, /77,024,335,674/);
+  assert.match(page, /\{targetLevel\} 달성 후 남는 보상/);
   assert.match(page, /\["특수 물자 저장", calculatedSettings\.specialSupply/);
   assert.match(page, /에테리온 코어 6레벨/);
   assert.match(page, /Core6Choice title="일일 퀘스트"/);
@@ -152,15 +158,14 @@ test("keeps verified calculator constants visible in source", async () => {
   assert.match(page, /ownedPotion279/);
   assert.match(page, /SPECIAL_SUPPLY_START = "2026-07-23"/);
   assert.match(page, /SPECIAL_SUPPLY_END = "2026-08-19"/);
-  assert.match(page, /SPECIAL_SUPPLY_EXP_PER_CHARGE = 77_024_335_674/);
+  assert.doesNotMatch(page, /SPECIAL_SUPPLY_EXP_PER_CHARGE/);
   assert.match(page, /SPECIAL_SUPPLY_BATCH_SIZE = 5/);
   assert.match(page, /MOMENTUM_PASS_START = "2026-07-23"/);
   assert.match(page, /specialSupply: false, specialSupplySaved: 0/);
-  assert.match(page, /SPECIAL_SUPPLY_EXP_PER_CHARGE \* SPECIAL_SUPPLY_BATCH_SIZE \/ LEVEL_280_REQUIRED_EXP/);
-  assert.match(page, /1회 77,024,335,674 EXP, 5회 385,121,678,370 EXP/);
+  assert.match(page, /specialSupplyExpPerCharge \* SPECIAL_SUPPLY_BATCH_SIZE/);
   assert.doesNotMatch(page, /38[_ ,]?512[_ ,]?167[_ ,]?837\s*[×x*]\s*4/);
   assert.match(page, /울티마 스쿼드 상점 EXP 5,000장 \(예상\)/);
-  assert.match(page, /2026\.07\.27 확인/);
+  assert.match(page, /2026\.08\.03 확인/);
 });
 
 test("uses the browser-local date and Challenger EXP Pass level 30 for defaults", async () => {
@@ -407,7 +412,122 @@ test("recalculates Lv.280 Monster Park efficiency for Eterion core levels 5 and 
 
   const page = await readFile(new URL("app/page.tsx", root), "utf8");
   assert.match(page, /eterionBonusesForDate\(s, efficiencyStartDate\)\.mp/);
-  assert.match(page, /relativeEfficiencyScore\(source, level, efficiencyMonsterParkBonus\)/);
+  assert.match(page, /relativeEfficiencyScore\(source, efficiencyLevel, efficiencyMonsterParkBonus\)/);
+});
+
+test("offers a typed level picker and single-level icon ranking from 260 through 295", async () => {
+  const [page, css] = await Promise.all([
+    readFile(new URL("app/page.tsx", root), "utf8"),
+    readFile(new URL("app/globals.css", root), "utf8"),
+  ]);
+
+  assert.match(page, /const \[efficiencyLevel, setEfficiencyLevel\] = useState\(280\)/);
+  assert.match(page, /const \[efficiencyLevelInput, setEfficiencyLevelInput\] = useState\("280"\)/);
+  assert.match(page, /id="efficiency-level-input" type="number"/);
+  assert.match(page, /list="efficiency-level-options"/);
+  assert.match(page, /EFFICIENCY_LEVEL_MIN = 260/);
+  assert.match(page, /EFFICIENCY_LEVEL_MAX = 295/);
+  assert.match(page, /260~295 · 선택 또는 직접 입력/);
+  assert.match(page, /<img src=\{efficiencyIconForLevel\(source, efficiencyLevel\)\} alt="" aria-hidden="true" \/>/);
+  assert.match(page, /data-source=\{source\.id\}/);
+  assert.match(page, /검증값이 없는 레벨은 앞뒤 레벨로 보간하지 않습니다/);
+  assert.doesNotMatch(page, /const efficiencyLevels = \[/);
+  assert.match(css, /\.efficiency-icon \{/);
+  assert.match(css, /\.efficiency-row \{[^}]*grid-template-columns: 34px 42px minmax\(0, 1fr\)/);
+  assert.match(css, /@media \(max-width: 430px\)[\s\S]*?\.efficiency-values \{ grid-column: 3/);
+});
+
+test("bundles the verified Haru1Sojae PNG icons locally without runtime hotlinks", async () => {
+  const page = await readFile(new URL("app/page.tsx", root), "utf8");
+  const icons = [
+    "extra-exp-50.png",
+    "monster-park.png",
+    "prime-momentum-pass.png",
+    "high-mountain.png",
+    "angler-company.png",
+    "nightmare-paradise.png",
+    "mekaberry.png",
+    "blueberry.png",
+    "small-exp-potion.png",
+    "vip-sauna.png",
+  ];
+  const pngSignature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  const expectedHashes = {
+    "high-mountain.png": "80B1E360D79A488E6C1D6C78B7730D3D25B0E3CBCEB845312D53BCAD0C726C1A",
+    "angler-company.png": "A1E21E4FFFEDDF2286D328524F9109AE4AA3D1349CEADD1B2A436076D713E8A8",
+  };
+
+  for (const icon of icons) {
+    assert.match(page, new RegExp(`/efficiency-icons/${icon.replaceAll(".", "\\.")}`));
+    const asset = await readFile(new URL(`public/efficiency-icons/${icon}`, root));
+    assert.equal(asset.subarray(0, 8).equals(pngSignature), true, `${icon} must remain a PNG`);
+    if (expectedHashes[icon]) assert.equal(createHash("sha256").update(asset).digest("hex").toUpperCase(), expectedHashes[icon]);
+  }
+  assert.doesNotMatch(page, /https:\/\/haru1sojae\.kr\/icons\//);
+});
+
+test("reuses verified boundary data and hides level-280-only rewards below 280", async () => {
+  const pageModule = await importBuiltPage("efficiency-level-boundaries");
+
+  assert.equal(pageModule.EFFICIENCY_LEVEL_MIN, 260);
+  assert.equal(pageModule.EFFICIENCY_LEVEL_MAX, 295);
+  for (const level of [260, 279]) {
+    const ids = pageModule.availableEfficiencySourceIdsForLevel(level);
+    assert.equal(ids.includes("momentum"), false);
+    assert.equal(ids.includes("mech"), false);
+    assert.ok(Number.isFinite(pageModule.efficiencyScoreById("mpNormal", level, 95)));
+    assert.equal(Number(pageModule.efficiencyScoreById("sauna", level).toFixed(8)), 100);
+  }
+  for (const level of [280, 290, 291, 295]) {
+    const ids = pageModule.availableEfficiencySourceIdsForLevel(level);
+    assert.equal(ids.includes("momentum"), true);
+    assert.equal(ids.includes("mech"), true);
+    assert.ok(Number.isFinite(pageModule.efficiencyScoreById("mpNormal", level, 95)));
+    assert.equal(Number(pageModule.efficiencyScoreById("sauna", level).toFixed(8)), 100);
+  }
+});
+
+test("applies Epic Dungeon cost and icon boundaries at levels 260, 270, and 280", async () => {
+  const pageModule = await importBuiltPage("efficiency-epic-boundaries");
+  const page = await readFile(new URL("app/page.tsx", root), "utf8");
+
+  assert.equal(pageModule.epicDungeonEfficiencyCostMultiplier(260), 5 / 3);
+  assert.equal(pageModule.epicDungeonEfficiencyCostMultiplier(269), 5 / 3);
+  assert.equal(pageModule.epicDungeonEfficiencyCostMultiplier(270), 5 / 4);
+  assert.equal(pageModule.epicDungeonEfficiencyCostMultiplier(279), 5 / 4);
+  assert.equal(pageModule.epicDungeonEfficiencyCostMultiplier(280), 1);
+  assert.equal(pageModule.epicDungeonEfficiencyCostMultiplier(295), 1);
+  assert.equal(pageModule.epicDungeonIconForLevel(260), "/efficiency-icons/high-mountain.png");
+  assert.equal(pageModule.epicDungeonIconForLevel(270), "/efficiency-icons/angler-company.png");
+  assert.equal(pageModule.epicDungeonIconForLevel(280), "/efficiency-icons/nightmare-paradise.png");
+  assert.equal(pageModule.epicDungeonLabelForLevel(260, "01"), "하이마운틴 · 0→1단계");
+  assert.equal(pageModule.epicDungeonLabelForLevel(260, "12"), "하이마운틴 · 1→2단계");
+  assert.doesNotMatch(page, /높은 산/);
+
+  const epic260 = pageModule.efficiencyScoreById("epic01", 260, 95);
+  const sunday260 = pageModule.efficiencyScoreById("mpSunday", 260, 95);
+  assert.ok(Math.abs(epic260 - 389.031098) < 0.001);
+  assert.ok(epic260 > sunday260);
+  assert.ok(pageModule.rankedEfficiencySourceIdsForLevel(260, 95).indexOf("epic01") < pageModule.rankedEfficiencySourceIdsForLevel(260, 95).indexOf("mpSunday"));
+});
+
+test("uses exact post-290 ledgers and preserves the 294-to-295 ranking break", async () => {
+  const pageModule = await importBuiltPage("efficiency-post-290-ledgers");
+
+  assert.equal(pageModule.REQUIRED_EXP[291], 323_736_017_920_234n);
+  assert.equal(pageModule.REQUIRED_EXP[295], 870_403_132_500_696n);
+  assert.equal(pageModule.POST_290_EFFICIENCY_RAW[291].sauna, 442_047_471_120);
+  assert.equal(pageModule.POST_290_EFFICIENCY_RAW[294].epic, 1_519_200_000_000);
+  assert.equal(pageModule.POST_290_EFFICIENCY_RAW[295].mech, 7_747_012_416_000);
+  assert.equal(pageModule.POST_290_EFFICIENCY_RAW[295].monsterParkPerRun, 218_575_316_000);
+  assert.ok(Number.isFinite(pageModule.efficiencyScoreById("mpNormal", 291, 95)));
+  assert.notEqual(pageModule.efficiencyScoreById("mpNormal", 290, 95), pageModule.efficiencyScoreById("mpNormal", 291, 95));
+
+  const level294 = pageModule.rankedEfficiencySourceIdsForLevel(294, 95);
+  const level295 = pageModule.rankedEfficiencySourceIdsForLevel(295, 95);
+  assert.ok(level294.indexOf("epic01") < level294.indexOf("mech"));
+  assert.ok(level295.indexOf("mech") < level295.indexOf("epic01"));
+  assert.notDeepEqual(level294, level295);
 });
 
 test("requires the Monster Park schedule before shop candidates", async () => {
@@ -445,7 +565,7 @@ test("recommends paid weekday Monster Park for the reported Lv.282 case", async 
   assert.equal(recommended[0].scheduleIndex, 10);
   assert.equal(recommended[0].result.shopMaplePoints, 0);
   assert.equal(recommended[0].result.monsterParkMaplePoints, 36_000);
-  assert.equal(recommended[0].result.reached.toISOString().slice(0, 10), "2026-08-18");
+  assert.equal(pageModule.simulationDateKey(recommended[0].result.reached), "2026-08-19");
 });
 
 test("carries the full growth-potion overflow into level 280 with Burning Beyond", () => {
@@ -515,4 +635,196 @@ test("labels cumulative ROI as the main result and keeps the prior step secondar
   assert.match(page, /0주 대비 누적 회수/);
   assert.match(page, /직전 \{calc\.effectivePullWeeks - 1\}주 경로 대비/);
   assert.match(page, /직전 \$\{calc\.effectivePullWeeks - 1\}주 경로와 같은 비용/);
+});
+
+test("keeps the approved A-C fixtures unchanged in target 285 mode", async () => {
+  const pageModule = await importBuiltPage("target-285-fixtures");
+  const fixtures = [
+    {
+      settings: pageModule.createDefaultSettings("2026-07-27"),
+      reached: "2026-09-08",
+      maplePoints: 18_000,
+      leftovers: { blue: 0, mech: 0, sauna: 0, adv: 0, potion269: 0, potion279: 0, coupon3x: 93, coupon4x: 10 },
+    },
+    {
+      settings: { ...pageModule.createDefaultSettings("2026-08-03"), level: 280, exp: 0 },
+      reached: "2026-09-17",
+      maplePoints: 135_000,
+      leftovers: { blue: 0, mech: 0, sauna: 0, adv: 0, potion269: 0, potion279: 0, coupon3x: 78, coupon4x: 10 },
+    },
+    {
+      settings: { ...pageModule.createDefaultSettings("2026-08-03"), level: 284, exp: 50 },
+      reached: "2026-08-06",
+      maplePoints: 0,
+      leftovers: { blue: 0, mech: 3, sauna: 1, adv: 6200, potion269: 0, potion279: 0, coupon3x: 6, coupon4x: 10 },
+    },
+  ];
+
+  for (const fixture of fixtures) {
+    assert.equal(fixture.settings.targetLevel, 285);
+    const result = pageModule.runPlanningImmediately(fixture.settings).basePlan.result;
+    assert.equal(pageModule.simulationDateKey(result.reached), fixture.reached);
+    assert.equal(result.rows.at(-1).key, fixture.reached);
+    assert.equal(result.maplePoints, fixture.maplePoints);
+    assert.equal(result.shopMaplePoints, 0);
+    assert.deepEqual(result.leftovers, fixture.leftovers);
+  }
+});
+
+test("uses the verified 285-290 integer ledgers and additive multipliers", async () => {
+  const pageModule = await importBuiltPage("integer-ledgers");
+  const cumulative = [285, 286, 287, 288, 289].reduce((sum, level) => sum + pageModule.REQUIRED_EXP[level], 0n);
+
+  assert.equal(pageModule.REQUIRED_EXP[285], 99_512_176_519_276n);
+  assert.equal(pageModule.REQUIRED_EXP[289], 145_695_777_641_870n);
+  assert.equal(cumulative, 607_531_788_867_827n);
+  assert.equal(pageModule.monsterParkRawForLevel(285, true) * 7, 1_092_124_992_000);
+  assert.equal(pageModule.monsterParkRawForLevel(290, true, true) * 7, 1_530_027_212_000);
+  assert.equal(pageModule.WEEKLY_CONTENT_RAW[285].epic * 5, 6_144_000_000_000);
+  assert.equal(pageModule.WEEKLY_CONTENT_RAW[285].epic * (5 + 0.5), 6_758_400_000_000);
+  assert.equal(pageModule.monsterParkRawForLevel(285, true) * (1 + 0.5 + 0.2), 265_230_355_200);
+  assert.equal(pageModule.WEEKLY_CONTENT_RAW[290].adv1000, 1_078_497_000_000);
+});
+
+test("switches Carcion content on its unlock date and otherwise falls back to Arteria", async () => {
+  const pageModule = await importBuiltPage("carcion-boundary");
+  const before = new Date(2026, 7, 9);
+  const unlock = new Date(2026, 7, 10);
+
+  assert.equal(pageModule.contentUnlockedOn(before, "2026-08-10", 285, 285), false);
+  assert.equal(pageModule.contentUnlockedOn(unlock, "2026-08-10", 285, 285), true);
+  assert.equal(pageModule.monsterParkRawForLevel(285, false), 107_204_000_000);
+  assert.equal(pageModule.monsterParkRawForLevel(285, true), 156_017_856_000);
+  assert.equal(pageModule.grandisDailyRawForLevel(285, false), 129_794_096_544);
+  assert.equal(pageModule.grandisDailyRawForLevel(285, true), 175_429_319_424);
+});
+
+test("preserves a 285 milestone snapshot in target 290 mode", async () => {
+  const pageModule = await importBuiltPage("target-290-milestone");
+  const settings = {
+    ...pageModule.createDefaultSettings("2026-08-03"),
+    targetLevel: 290,
+    level: 289,
+    exp: 99.999,
+    carcionUnlockDate: "2026-08-03",
+    challengerPassLevel: 30,
+    momentumPassLevel: 10,
+    apology: false,
+    shardEvent: false,
+    ultima: false,
+    specialSupply: false,
+  };
+  const result = pageModule.simulate(settings, { fixedRuns: 0 });
+
+  assert.equal(pageModule.simulationDateKey(result.reach285At), "2026-08-03");
+  assert.ok(result.reached);
+  assert.ok(result.leftoversAt285);
+  assert.notEqual(result.leftoversAt285, result.leftovers);
+  assert.deepEqual(result.leftoversAt285, { blue: 0, mech: 0, sauna: 0, adv: 0, potion269: 0, potion279: 0, coupon3x: 0, coupon4x: 0 });
+});
+
+test("does not auto-apply Special Supply EXP without direct input", async () => {
+  const pageModule = await importBuiltPage("special-supply-zero");
+  const common = {
+    ...pageModule.createDefaultSettings("2026-08-03"),
+    level: 284,
+    exp: 0,
+    challengerPassLevel: 30,
+    momentumPassLevel: 10,
+    apology: false,
+    shardEvent: false,
+    ultima: false,
+    weeklyOpen: false,
+    todayDaily: false,
+    grandis: false,
+    extreme: false,
+    epic: false,
+    ownedBlue: 0,
+    ownedMech: 0,
+    ownedSauna: 0,
+    ownedAdv: 0,
+    specialSupplySaved: 5,
+    specialSupplyExpPerCharge: 0,
+  };
+  const excluded = pageModule.simulate({ ...common, specialSupply: false }, { fixedRuns: 0 });
+  const includedWithoutValue = pageModule.simulate({ ...common, specialSupply: true }, { fixedRuns: 0 });
+
+  assert.equal(includedWithoutValue.specialSupplyUsed, 0);
+  assert.equal(includedWithoutValue.rows.at(-1).progress, excluded.rows.at(-1).progress);
+});
+
+test("keeps the target round-trip inputs in source instead of clamping state", async () => {
+  const page = await readFile(new URL("app/page.tsx", root), "utf8");
+
+  assert.match(page, /targetLevel: 285 \| 290/);
+  assert.match(page, /value=\{Math\.min\(s\.level, s\.targetLevel - 1\)\}/);
+  assert.doesNotMatch(page, /set\("level", 284\)/);
+  assert.match(page, /Lv\.285~295 농장은 하루1소재 공개 퍼센트 기반 근사값/);
+  assert.match(page, /challengerLevel < 30/);
+});
+
+test("computes real long-range 290 dates without the 285 deadline optimizer", async () => {
+  const pageModule = await importBuiltPage("target-290-long-range");
+  const settings = {
+    ...pageModule.createDefaultSettings("2026-08-03"),
+    targetLevel: 290,
+    level: 285,
+    exp: 0,
+    carcionUnlockDate: "2026-08-03",
+  };
+  const planning = pageModule.runPlanningImmediately(settings);
+
+  assert.equal(pageModule.simulationDateKey(planning.free.reached), "2027-02-26");
+  assert.equal(pageModule.simulationDateKey(planning.sunday.reached), "2027-02-07");
+  assert.equal(pageModule.simulationDateKey(planning.allSeven.reached), "2026-12-10");
+  assert.equal(planning.free.rows.at(-1).key, pageModule.simulationDateKey(planning.free.reached));
+  assert.equal(planning.sunday.rows.at(-1).key, pageModule.simulationDateKey(planning.sunday.reached));
+  assert.equal(planning.allSeven.rows.at(-1).key, pageModule.simulationDateKey(planning.allSeven.reached));
+  assert.ok(planning.free.rows.length <= 730);
+  assert.ok(planning.sunday.rows.length <= 730);
+  assert.ok(planning.allSeven.rows.length <= 730);
+  assert.equal(planning.free.endReason, "reached");
+  assert.equal(planning.sunday.endReason, "reached");
+  assert.equal(planning.allSeven.endReason, "reached");
+  assert.equal(planning.maxPullWeeks, 0);
+  assert.equal(planning.basePlan.feasible, true);
+  assert.ok(planning.recommendedPlansByWeek[0].length > 0);
+  assert.ok(planning.bestPlansByWeek[0]);
+});
+
+test("pins hidden 290 selection to the visible free route while preserving the 285 strategy input", async () => {
+  const pageModule = await importBuiltPage("target-round-trip-selection");
+
+  for (const pullStrategy of ["blue", "mech", "both"]) {
+    const target290 = {
+      ...pageModule.createDefaultSettings("2026-08-03"),
+      targetLevel: 290,
+      level: 285,
+      exp: 0,
+      carcionUnlockDate: "2026-08-03",
+      pullStrategy,
+    };
+    const planning290 = pageModule.runPlanningImmediately(target290);
+    const selected290 = pageModule.selectedPlanForSettings(planning290, target290);
+
+    assert.equal(selected290, planning290.basePlan);
+    assert.equal(selected290.result, planning290.free);
+    assert.equal(selected290.result.scheduleLabel, "매일 2판");
+    assert.equal(target290.pullStrategy, pullStrategy);
+
+    const returnedTo285 = { ...target290, targetLevel: 285 };
+    assert.equal(returnedTo285.pullStrategy, pullStrategy);
+  }
+});
+
+test("keeps the target 285 simulation on the 120-day fast horizon", async () => {
+  const pageModule = await importBuiltPage("target-285-fast-horizon");
+  const started = performance.now();
+  const planning = pageModule.runPlanningImmediately(pageModule.createDefaultSettings("2026-07-27"));
+  const elapsed = performance.now() - started;
+
+  assert.equal(planning.basePlan.result.horizonDays, 120);
+  assert.ok(planning.basePlan.result.rows.length <= 120);
+  assert.equal(pageModule.simulationDateKey(planning.basePlan.result.reached), "2026-09-08");
+  assert.ok(elapsed < 2_000, `target 285 planning took ${elapsed.toFixed(1)}ms`);
 });
