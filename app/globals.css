@@ -163,6 +163,13 @@ main { overflow: hidden; }
 .supply-warning p { margin: 5px 0 3px; color: #423b25; font-size: 12px; font-weight: 700; line-height: 1.55; }
 .supply-warning small { color: #756b4a; font-size: 11px; line-height: 1.5; }
 .quick-toggles { margin-top: 18px; padding: 12px 0; border-top: 1px solid var(--soft-line); border-bottom: 1px solid var(--soft-line); }
+.quick-choice-grid { margin: 18px 0 8px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+.quick-choice { min-width: 0; min-height: 56px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; border: 1px solid #dedbe5; border-radius: 14px; color: #5b5763; background: #f7f5f9; cursor: pointer; transition: border-color .2s, color .2s, background .2s, box-shadow .2s; }
+.quick-choice span { min-width: 0; font-size: 12px; font-weight: 850; line-height: 1.25; text-align: left; }
+.quick-choice b { padding: 4px 7px; flex: 0 0 auto; border-radius: 999px; color: #7c7785; background: #e7e4ea; font-size: 10px; letter-spacing: .04em; }
+.quick-choice.active { border-color: rgba(115,87,255,.48); color: #33266e; background: #f0edff; box-shadow: 0 7px 16px rgba(85,62,190,.09); }
+.quick-choice.active b { color: white; background: var(--purple); }
+.quick-choice:focus-visible { outline: 3px solid rgba(115,87,255,.24); outline-offset: 2px; }
 .core6-picker { width: 100%; min-width: 0; max-width: 100%; margin: 18px 0 14px; padding: 16px; border: 1px solid rgba(115,87,255,.24); border-radius: 18px; background: linear-gradient(145deg, #f7f4ff, #eeebff); box-shadow: 0 12px 28px rgba(85,62,190,.08); }
 .core6-picker-head { margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
 .core6-picker-head > span { padding: 5px 8px; border-radius: 8px; color: white; background: var(--purple); font-size: 11px; font-weight: 900; letter-spacing: .08em; }
@@ -485,6 +492,9 @@ footer p { margin: 0; color: #65636c; font-size: 12px; text-align: center; }
 
 @media (max-width: 430px) {
   .field-grid, .field-grid.compact { grid-template-columns: 1fr; }
+  .quick-choice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+  .quick-choice { min-height: 52px; padding: 9px 10px; }
+  .quick-choice span { font-size: 11px; }
   .core6-picker { padding: 14px; }
   .core6-choice { padding: 10px; gap: 8px; }
   .core6-choice .toggle-row > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

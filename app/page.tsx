@@ -27,6 +27,8 @@ type Settings = {
   specialSupplySaved: number;
   specialSupplyExpPerCharge: number;
   challengerPassLevel: number;
+  momentumPass1Enabled: boolean;
+  momentumPass2Enabled: boolean;
   momentumPass1Level: number;
   momentumPass2Level: number;
   preLevel: number;
@@ -387,7 +389,7 @@ const createDefaultSettings = (start = SSR_DEFAULT_START): Settings => {
   return ({
   targetLevel: 285, level: 280, exp: 87.39, start, pullWeeks: 0, pullStrategy: "monsterPark", specialSundayCount: 1, paidMonsterPark: true,
   specialSupply: false, specialSupplySaved: 0, specialSupplyExpPerCharge: 0,
-  challengerPassLevel: 30, momentumPass1Level: 0, momentumPass2Level: 0,
+  challengerPassLevel: 30, momentumPass1Enabled: true, momentumPass2Enabled: true, momentumPass1Level: 0, momentumPass2Level: 0,
   preLevel: 270, preExp: 0, prePassLevel: 30, preUnclaimed: false,
   preUseBlue: true, preUseSauna: true, preUseAdv: true, preUsePotion: true,
   preMonsterParkRuns: 2, preSpecialSundayCount: 1, preDailyQuests: true, preWeeklyContent: true,
@@ -406,6 +408,11 @@ const createDefaultSettings = (start = SSR_DEFAULT_START): Settings => {
   });
 };
 const defaults = createDefaultSettings();
+export const core6MasterPatch = (enabled: boolean): Pick<Settings, "dailyCore6Enabled" | "mpCore6Enabled" | "epicCore6Enabled"> => ({
+  dailyCore6Enabled: enabled,
+  mpCore6Enabled: enabled,
+  epicCore6Enabled: enabled,
+});
 
 const paidStrategyIds = PAID_STRATEGY_PRIORITY as readonly Exclude<PullStrategy, "both">[];
 const paidStrategyCopy: Record<Exclude<PullStrategy, "both">, { label: string; caption: string }> = {
@@ -863,8 +870,8 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
       weekIndex += 1;
     }
   };
-  scheduleMomentumSeason(1, s.momentumPass1Level, s.momentumPrime1, MOMENTUM_PASS_1_START, MOMENTUM_PASS_1_END);
-  scheduleMomentumSeason(2, s.momentumPass2Level, s.momentumPrime2, MOMENTUM_PASS_2_START, MOMENTUM_PASS_2_END);
+  if (s.momentumPass1Enabled) scheduleMomentumSeason(1, s.momentumPass1Level, s.momentumPrime1, MOMENTUM_PASS_1_START, MOMENTUM_PASS_1_END);
+  if (s.momentumPass2Enabled) scheduleMomentumSeason(2, s.momentumPass2Level, s.momentumPrime2, MOMENTUM_PASS_2_START, MOMENTUM_PASS_2_END);
   if (s.apology) addReward(start, { label: "7월 NOW 보상", mech: 1, sauna: 2, coupon4x: 4 });
   if (s.shardEvent && s.shardDate) {
     const shardRewardDate = parseDate(s.shardDate);
@@ -1290,6 +1297,9 @@ function InputField({ label, value, onChange, type = "number", min, max, step, d
 function Toggle({ label, checked, onChange, disabled, accessibleLabel }: { label: string; checked: boolean; onChange: (value: boolean) => void; disabled?: boolean; accessibleLabel?: string }) {
   return <label className={`toggle-row ${disabled ? "is-disabled" : ""}`}><span>{label}</span><input type="checkbox" aria-label={accessibleLabel} checked={checked} onChange={e => onChange(e.target.checked)} disabled={disabled} /><i aria-hidden="true" /></label>;
 }
+function QuickChoice({ label, checked, onChange }: { label: string; checked: boolean; onChange: (value: boolean) => void }) {
+  return <button type="button" className={`quick-choice ${checked ? "active" : ""}`} aria-pressed={checked} onClick={() => onChange(!checked)}><span>{label}</span><b>{checked ? "ON" : "OFF"}</b></button>;
+}
 function Core6Choice({ title, before, after, checked, onChange }: { title: string; before: number; after: number; checked: boolean; onChange: (value: boolean) => void }) {
   return <div className={`core6-choice ${checked ? "active" : ""}`}><div><b>{title}</b><small>{before}% <span>→</span> {after}%</small></div><Toggle label="6레벨" accessibleLabel={`${title} 코어 6레벨`} checked={checked} onChange={onChange} /></div>;
 }
@@ -1337,6 +1347,8 @@ export default function Home() {
     if (pre280SettingKeys.includes(key)) setPreApplied(false);
     setS(current => ({ ...current, [key]: value }));
   };
+  const core6MasterEnabled = s.dailyCore6Enabled && s.mpCore6Enabled && s.epicCore6Enabled;
+  const setCore6Master = (enabled: boolean) => setS(current => ({ ...current, ...core6MasterPatch(enabled) }));
   const updateEfficiencyLevelInput = (value: string) => {
     setEfficiencyLevelInput(value);
     const nextLevel = Number(value);
@@ -1508,12 +1520,12 @@ export default function Home() {
     used.potion279 ? `비약 ${used.potion279}` : "",
   ].filter(Boolean).join(" · ") || "콘텐츠 누적";
   const forecastProgress = `Lv.${r.finalLevel} ${r.finalExp.toFixed(3)}%`;
-  const primeCount = Number(calculatedSettings.momentumPrime1) + Number(calculatedSettings.momentumPrime2);
+  const primeCount = Number(calculatedSettings.momentumPass1Enabled && calculatedSettings.momentumPrime1) + Number(calculatedSettings.momentumPass2Enabled && calculatedSettings.momentumPrime2);
   const primeCash = primeCount * 49_800;
   const forecastInputSummary = [
     calculatedSettings.paidMonsterPark ? "유료 몬파 추가 5판 ON" : "유료 몬파 추가 5판 OFF · 매일 기본 2판",
-    `모멘텀 1차 Lv.${calculatedSettings.momentumPass1Level} ${calculatedSettings.momentumPrime1 ? "프라임 ON" : "프라임 OFF"}`,
-    `모멘텀 2차 Lv.${calculatedSettings.momentumPass2Level} ${calculatedSettings.momentumPrime2 ? "프라임 ON" : "프라임 OFF"}`,
+    calculatedSettings.momentumPass1Enabled ? `모멘텀 1차 Lv.${calculatedSettings.momentumPass1Level} ${calculatedSettings.momentumPrime1 ? "프라임 ON" : "프라임 OFF"}` : "모멘텀 1차 참여 OFF",
+    calculatedSettings.momentumPass2Enabled ? `모멘텀 2차 Lv.${calculatedSettings.momentumPass2Level} ${calculatedSettings.momentumPrime2 ? "프라임 ON" : "프라임 OFF"}` : "모멘텀 2차 참여 OFF",
     `프라임 ${primeCash.toLocaleString("ko-KR")} 넥슨캐시`,
     calculatedSettings.shopBlue || calculatedSettings.shopMech ? `메포샵 ${calculatedSettings.shopBlue ? "블루 " : ""}${calculatedSettings.shopMech ? "메카" : ""}`.trim() : "메포샵 미구매",
   ].join(" · ");
@@ -1527,8 +1539,8 @@ export default function Home() {
       <div className="hero-grid">
         {targetLevel === 290 ? <>
           <article className="hero-card primary"><div className="card-label">9/16 시즌 종료 예상</div><strong>{forecastProgress}</strong><span>보상 몰아주면 여기까지</span><div className="card-meta"><b>{formatMP(r.maplePoints)}</b><em>몬파·메포샵 합계</em></div></article>
-          <article className="hero-card"><div className="card-label">모멘텀 1차 · 7/23~8/19</div><strong>{calculatedSettings.momentumPrime1 ? "프라임 ON" : "일반 보상"}</strong><span>현재 Lv.{calculatedSettings.momentumPass1Level}</span><div className="card-meta"><b>{calculatedSettings.momentumPrime1 ? "49,800 넥슨캐시" : "추가 결제 없음"}</b><em>프라임 별도 구매</em></div></article>
-          <article className="hero-card verdict"><div className="card-label">모멘텀 2차 · 8/20~9/16</div><strong>{calculatedSettings.momentumPrime2 ? "프라임 ON" : "일반 보상"}</strong><span>현재 Lv.{calculatedSettings.momentumPass2Level}</span><div className="card-meta"><b>{calculatedSettings.momentumPrime2 ? "49,800 넥슨캐시" : "추가 결제 없음"}</b><em>1차와 별도 구매</em></div></article>
+          <article className="hero-card"><div className="card-label">모멘텀 1차 · 7/23~8/19</div><strong>{!calculatedSettings.momentumPass1Enabled ? "참여 OFF" : calculatedSettings.momentumPrime1 ? "프라임 ON" : "일반 보상"}</strong><span>{calculatedSettings.momentumPass1Enabled ? `현재 Lv.${calculatedSettings.momentumPass1Level}` : "보상 계산 제외"}</span><div className="card-meta"><b>{calculatedSettings.momentumPass1Enabled && calculatedSettings.momentumPrime1 ? "49,800 넥슨캐시" : "추가 결제 없음"}</b><em>프라임 별도 구매</em></div></article>
+          <article className="hero-card verdict"><div className="card-label">모멘텀 2차 · 8/20~9/16</div><strong>{!calculatedSettings.momentumPass2Enabled ? "참여 OFF" : calculatedSettings.momentumPrime2 ? "프라임 ON" : "일반 보상"}</strong><span>{calculatedSettings.momentumPass2Enabled ? `현재 Lv.${calculatedSettings.momentumPass2Level}` : "보상 계산 제외"}</span><div className="card-meta"><b>{calculatedSettings.momentumPass2Enabled && calculatedSettings.momentumPrime2 ? "49,800 넥슨캐시" : "추가 결제 없음"}</b><em>1차와 별도 구매</em></div></article>
         </> : <>
           <article className="hero-card primary"><div className="card-label">{calc.effectivePullWeeks ? `${calc.effectivePullWeeks}주 당김 · ${selectedStrategy.label}` : "마감만 맞추기"}</div><strong>{longDate(r.reached)}</strong><span>{r.scheduleLabel}</span><div className="card-meta"><b>{formatMP(r.maplePoints)}</b><em>몬파 {formatMP(r.monsterParkMaplePoints)} · 상점 {formatMP(r.shopMaplePoints)}{r.shopMaplePoints > 0 ? ` · ${shopPurchasePlanLabel(r.shopBluePurchased, r.shopMechPurchased)}` : ""}</em></div></article>
           <article className="hero-card"><div className="card-label">0주 · 마감 기준</div><strong>{longDate(calc.basePlan.result.reached)}</strong><span>{calc.basePlan.result.scheduleLabel}</span><div className="card-meta"><b>{formatMP(calc.basePlan.result.maplePoints)}</b><em>상점 없이 9월 16일 달성</em></div></article>
@@ -1607,25 +1619,19 @@ export default function Home() {
           <label className="field"><span>현재 레벨</span><select value={Math.min(s.level, s.targetLevel === 290 ? 295 : 284)} onChange={e => set("level", Number(e.target.value))}>{Array.from({ length: s.targetLevel === 290 ? 16 : 5 }, (_, index) => index + 280).map(level => <option key={level}>{level}</option>)}</select></label>
           <InputField label="현재 경험치 %" value={s.exp} min={0} max={99.999} step={0.001} onChange={v => set("exp", Number(v))} />
           <InputField label="계산 시작일" value={s.start} type="date" onChange={v => set("start", v)} />
-          <InputField label="스페셜 선데이 몬파 횟수" value={s.specialSundayCount} min={0} max={12} step={1} disabled={!s.paidMonsterPark} onChange={v => set("specialSundayCount", Number(v))} />
           <InputField label="챌섭 EXP 패스 현재 레벨" value={s.challengerPassLevel} min={0} max={30} step={1} onChange={v => set("challengerPassLevel", Number(v))} />
-          <InputField label="모멘텀 1차 현재 레벨" value={s.momentumPass1Level} min={0} max={10} step={1} onChange={v => set("momentumPass1Level", Number(v))} />
-          <InputField label="모멘텀 2차 현재 레벨" value={s.momentumPass2Level} min={0} max={10} step={1} onChange={v => set("momentumPass2Level", Number(v))} />
         </div>
-        <div className="callout-mini"><Toggle label="유료 몬파 추가 5판" checked={s.paidMonsterPark} onChange={v => set("paidMonsterPark", v)} />OFF면 매일 기본 2판만, ON이면 스페셜 선데이를 포함해 유료 5판을 계산합니다.</div>
-        <section className="core6-picker" aria-labelledby="core6-picker-title">
-          <div className="core6-picker-head"><span>선택</span><div><h3 id="core6-picker-title">에테리온 코어 6레벨</h3><p>올린 코어만 따로 켜 주세요.</p></div></div>
-          <div className="core6-picker-grid">
-            <Core6Choice title="일일 퀘스트" before={s.dailyCore5} after={s.dailyCore6} checked={s.dailyCore6Enabled} onChange={v => set("dailyCore6Enabled", v)} />
-            <Core6Choice title="몬스터파크" before={s.mpCore5} after={s.mpCore6} checked={s.mpCore6Enabled} onChange={v => set("mpCore6Enabled", v)} />
-            <Core6Choice title="에픽 던전" before={s.epicCore5} after={s.epicCore6} checked={s.epicCore6Enabled} onChange={v => set("epicCore6Enabled", v)} />
-          </div>
-        </section>
-        <div className="callout-mini">스페셜 선데이는 입력한 횟수만큼 가까운 일요일부터 기본 몬파 경험치 +300%(총 4배)로 적용합니다.</div>
-        <div className="quick-toggles"><Toggle label="오늘 일퀘·몬파 미완료" checked={s.todayDaily} onChange={v => set("todayDaily", v)} /><Toggle label="이번 주 챌섭 5레벨 미완료" checked={s.challengerUnclaimed} onChange={v => set("challengerUnclaimed", v)} /></div>
+        <div className="quick-choice-grid" role="group" aria-label="빠른 계산 선택">
+          <QuickChoice label="1차 패스" checked={s.momentumPass1Enabled} onChange={v => set("momentumPass1Enabled", v)} />
+          <QuickChoice label="2차 패스" checked={s.momentumPass2Enabled} onChange={v => set("momentumPass2Enabled", v)} />
+          <QuickChoice label="추가 몬파" checked={s.paidMonsterPark} onChange={v => set("paidMonsterPark", v)} />
+          <QuickChoice label="코어 6레벨 일괄" checked={core6MasterEnabled} onChange={setCore6Master} />
+        </div>
         <details><summary>패스 · 이벤트 설정 <span>12</span></summary><div className="detail-body">
-          <Toggle label="챌린저스 EXP 패스" checked={s.challengerExp} onChange={v => set("challengerExp", v)} /><Toggle label="모멘텀 1차 프라임 · 49,800 넥슨캐시" checked={s.momentumPrime1} onChange={v => set("momentumPrime1", v)} /><Toggle label="모멘텀 2차 프라임 · 49,800 넥슨캐시" checked={s.momentumPrime2} onChange={v => set("momentumPrime2", v)} /><Toggle label="모멘텀 메카베리 모아쓰기" checked={s.deferMomentumMech} onChange={v => set("deferMomentumMech", v)} />
-          <div className="callout-mini">프라임은 회차별 별도 구매입니다. 두 패스 모두 ON이면 총 99,600 넥슨캐시이며 메포 합계에는 섞지 않습니다.</div>
+          <div className="quick-toggles"><Toggle label="오늘 일퀘·몬파 미완료" checked={s.todayDaily} onChange={v => set("todayDaily", v)} /><Toggle label="이번 주 챌섭 5레벨 미완료" checked={s.challengerUnclaimed} onChange={v => set("challengerUnclaimed", v)} /></div>
+          <div className="field-grid compact inset"><InputField label="스페셜 선데이 몬파 횟수" value={s.specialSundayCount} min={0} max={12} step={1} disabled={!s.paidMonsterPark} onChange={v => set("specialSundayCount", Number(v))} /><InputField label="모멘텀 1차 현재 레벨" value={s.momentumPass1Level} min={0} max={10} step={1} disabled={!s.momentumPass1Enabled} onChange={v => set("momentumPass1Level", Number(v))} /><InputField label="모멘텀 2차 현재 레벨" value={s.momentumPass2Level} min={0} max={10} step={1} disabled={!s.momentumPass2Enabled} onChange={v => set("momentumPass2Level", Number(v))} /></div>
+          <Toggle label="챌린저스 EXP 패스" checked={s.challengerExp} onChange={v => set("challengerExp", v)} /><Toggle label="모멘텀 1차 프라임 · 49,800 넥슨캐시" checked={s.momentumPrime1} disabled={!s.momentumPass1Enabled} onChange={v => set("momentumPrime1", v)} /><Toggle label="모멘텀 2차 프라임 · 49,800 넥슨캐시" checked={s.momentumPrime2} disabled={!s.momentumPass2Enabled} onChange={v => set("momentumPrime2", v)} /><Toggle label="모멘텀 메카베리 모아쓰기" checked={s.deferMomentumMech} onChange={v => set("deferMomentumMech", v)} />
+          <div className="callout-mini">프라임은 회차별 별도 구매입니다. 두 패스와 두 프라임을 모두 ON하면 총 99,600 넥슨캐시이며 메포 합계에는 섞지 않습니다.</div>
           <div className="field-grid compact inset"><label className="field"><span>메카베리 사용 레벨</span><select value={Math.min(s.momentumMechLevel, s.targetLevel === 290 ? 295 : 284)} disabled={!s.deferMomentumMech} onChange={e => set("momentumMechLevel", Number(e.target.value))}>{Array.from({ length: s.targetLevel === 290 ? 16 : 5 }, (_, index) => index + 280).map(level => <option key={level}>{level}</option>)}</select></label><InputField label="최종 사용일" value={s.momentumMechDeadline} type="date" disabled={!s.deferMomentumMech} onChange={v => set("momentumMechDeadline", v)} /></div>
           <Toggle label="특수 물자 지원 · 4배 쿠폰 몰아쓰기" checked={s.specialSupply} onChange={v => set("specialSupply", v)} />
           <div className="field-grid compact inset supply-input"><InputField label="시작일 보유 · 당일 충전 포함" value={s.specialSupplySaved} min={0} max={5} step={1} disabled={!s.specialSupply} onChange={v => set("specialSupplySaved", Number(v))} /><InputField label="실측 1회 경험치" value={s.specialSupplyExpPerCharge} min={0} step={1} disabled={!s.specialSupply} onChange={v => set("specialSupplyExpPerCharge", Number(v))} /></div>
@@ -1635,7 +1641,15 @@ export default function Home() {
           <div className="callout-mini shop-priority">평일 몬파는 기본 2판 뒤 유료 추가 5판을 먼저 적용합니다. 농장은 몬파만으로 다음 하드 주차를 못 당길 때만 비교하며, 같은 도달 주차에서는 더 적은 메포 경로를 추천합니다.</div>
         </div></details>
         <details><summary>에테리온 · 콘텐츠 보정 <span>21</span></summary><div className="detail-body">
-          <div className="callout-mini">위 선택 영역에서 켠 콘텐츠만 해당 6레벨 달성일부터 적용합니다. 코어 총합 보너스는 각 코어 레벨과 별도로 더합니다.</div>
+          <section className="core6-picker" aria-labelledby="core6-picker-title">
+            <div className="core6-picker-head"><span>세부 선택</span><div><h3 id="core6-picker-title">에테리온 코어 6레벨</h3><p>일괄 선택 뒤 콘텐츠별로 다시 조정할 수 있습니다.</p></div></div>
+            <div className="core6-picker-grid">
+              <Core6Choice title="일일 퀘스트" before={s.dailyCore5} after={s.dailyCore6} checked={s.dailyCore6Enabled} onChange={v => set("dailyCore6Enabled", v)} />
+              <Core6Choice title="몬스터파크" before={s.mpCore5} after={s.mpCore6} checked={s.mpCore6Enabled} onChange={v => set("mpCore6Enabled", v)} />
+              <Core6Choice title="에픽 던전" before={s.epicCore5} after={s.epicCore6} checked={s.epicCore6Enabled} onChange={v => set("epicCore6Enabled", v)} />
+            </div>
+          </section>
+          <div className="callout-mini">켠 콘텐츠만 해당 6레벨 달성일부터 적용합니다. 코어 총합 보너스는 각 코어 레벨과 별도로 더합니다.</div>
           <div className="field-grid compact"><InputField label="몬파 5레벨 %" value={s.mpCore5} onChange={v => set("mpCore5", Number(v))} /><InputField label="코어 총합 20 달성일" value={s.core20Date} type="date" onChange={v => set("core20Date", v)} /><InputField label="총합 20 몬파 추가 %" value={s.core20Bonus} onChange={v => set("core20Bonus", Number(v))} /><InputField label="몬파 6레벨 달성일" value={s.mpCore6Date} type="date" disabled={!s.mpCore6Enabled} onChange={v => set("mpCore6Date", v)} /><InputField label="몬파 6레벨 %" value={s.mpCore6} disabled={!s.mpCore6Enabled} onChange={v => set("mpCore6", Number(v))} /><InputField label="일퀘 5레벨 %" value={s.dailyCore5} onChange={v => set("dailyCore5", Number(v))} /><InputField label="일퀘 6레벨 달성일" value={s.dailyCore6Date} type="date" disabled={!s.dailyCore6Enabled} onChange={v => set("dailyCore6Date", v)} /><InputField label="일퀘 6레벨 %" value={s.dailyCore6} disabled={!s.dailyCore6Enabled} onChange={v => set("dailyCore6", Number(v))} /></div>
           <Toggle label="이번 주 익몬·악몽선경 미완료" checked={s.weeklyOpen} onChange={v => set("weeklyOpen", v)} /><Toggle label="그란디스 일퀘" checked={s.grandis} onChange={v => set("grandis", v)} /><Toggle label="익스트림 몬스터파크" checked={s.extreme} onChange={v => set("extreme", v)} /><Toggle label="악몽선경 1단계" checked={s.epic} onChange={v => set("epic", v)} />
           <div className="field-grid compact"><label className="field"><span>악몽선경 보상 배수</span><select value={s.epicMult} onChange={e => set("epicMult", Number(e.target.value))}><option value={1}>기본</option><option value={5}>4배 추가</option><option value={9}>8배 추가</option></select></label><InputField label="에픽 5레벨 %" value={s.epicCore5} onChange={v => set("epicCore5", Number(v))} /><InputField label="코어 총합 25 달성일" value={s.core25Date} type="date" onChange={v => set("core25Date", v)} /><InputField label="총합 25 에픽 추가 %" value={s.core25Bonus} onChange={v => set("core25Bonus", Number(v))} /><InputField label="에픽 아티팩트 활성일" value={s.epicArtifactDate} type="date" onChange={v => set("epicArtifactDate", v)} /><InputField label="아티팩트 후 5레벨 %" value={s.epicArtifact} onChange={v => set("epicArtifact", Number(v))} /><InputField label="에픽 6레벨 달성일" value={s.epicCore6Date} type="date" disabled={!s.epicCore6Enabled} onChange={v => set("epicCore6Date", v)} /><InputField label="6레벨 · 아티팩트 전 %" value={s.epicCore6} disabled={!s.epicCore6Enabled} onChange={v => set("epicCore6", Number(v))} /><InputField label="6레벨 · 아티팩트 후 %" value={s.epicCore6Artifact} disabled={!s.epicCore6Enabled} onChange={v => set("epicCore6Artifact", Number(v))} /></div>
@@ -1671,8 +1685,8 @@ export default function Home() {
         {targetLevel === 285 && <ProgressChart selected={r} sunday={calc.sunday} free={calc.free} targetLevel={targetLevel} />}
         {targetLevel === 290 ? <div className="route-grid">
           <article className="route-card chosen"><div><div className="route-card-label"><span>9/16 예상</span><i>계산 완료</i></div><h3>{calculatedSettings.paidMonsterPark ? "유료 몬파 추가 5판 ON" : "유료 몬파 추가 5판 OFF"}</h3><p>{calculatedSettings.paidMonsterPark ? "매일 7판 · 스페셜 선데이 적용" : "매일 기본 2판만 적용"}</p></div><strong>{forecastProgress}</strong><dl><div><dt>메포 합계</dt><dd>{formatMP(r.maplePoints)}</dd></div><div><dt>프라임</dt><dd>{primeCash.toLocaleString("ko-KR")} 넥슨캐시</dd></div></dl></article>
-          <article className="route-card baseline"><div><div className="route-card-label"><span>모멘텀 1차</span><i>{calculatedSettings.momentumPrime1 ? "프라임 ON" : "일반"}</i></div><h3>7/23~8/19</h3><p>현재 패스 Lv.{calculatedSettings.momentumPass1Level}</p></div><strong>{calculatedSettings.momentumPrime1 ? "49,800 캐시" : "무료"}</strong><dl><div><dt>일반 보상</dt><dd>항상 반영</dd></div><div><dt>프라임</dt><dd>추가 보상만</dd></div></dl></article>
-          <article className="route-card free-route"><div><div className="route-card-label"><span>모멘텀 2차</span><i>{calculatedSettings.momentumPrime2 ? "프라임 ON" : "일반"}</i></div><h3>8/20~9/16</h3><p>현재 패스 Lv.{calculatedSettings.momentumPass2Level}</p></div><strong>{calculatedSettings.momentumPrime2 ? "49,800 캐시" : "무료"}</strong><dl><div><dt>일반 보상</dt><dd>항상 반영</dd></div><div><dt>프라임</dt><dd>추가 보상만</dd></div></dl></article>
+          <article className="route-card baseline"><div><div className="route-card-label"><span>모멘텀 1차</span><i>{!calculatedSettings.momentumPass1Enabled ? "참여 OFF" : calculatedSettings.momentumPrime1 ? "프라임 ON" : "일반"}</i></div><h3>7/23~8/19</h3><p>{calculatedSettings.momentumPass1Enabled ? `현재 패스 Lv.${calculatedSettings.momentumPass1Level}` : "보상 계산 제외"}</p></div><strong>{calculatedSettings.momentumPass1Enabled && calculatedSettings.momentumPrime1 ? "49,800 캐시" : "무료"}</strong><dl><div><dt>일반 보상</dt><dd>{calculatedSettings.momentumPass1Enabled ? "반영" : "제외"}</dd></div><div><dt>프라임</dt><dd>{calculatedSettings.momentumPass1Enabled ? "추가 보상만" : "0"}</dd></div></dl></article>
+          <article className="route-card free-route"><div><div className="route-card-label"><span>모멘텀 2차</span><i>{!calculatedSettings.momentumPass2Enabled ? "참여 OFF" : calculatedSettings.momentumPrime2 ? "프라임 ON" : "일반"}</i></div><h3>8/20~9/16</h3><p>{calculatedSettings.momentumPass2Enabled ? `현재 패스 Lv.${calculatedSettings.momentumPass2Level}` : "보상 계산 제외"}</p></div><strong>{calculatedSettings.momentumPass2Enabled && calculatedSettings.momentumPrime2 ? "49,800 캐시" : "무료"}</strong><dl><div><dt>일반 보상</dt><dd>{calculatedSettings.momentumPass2Enabled ? "반영" : "제외"}</dd></div><div><dt>프라임</dt><dd>{calculatedSettings.momentumPass2Enabled ? "추가 보상만" : "0"}</dd></div></dl></article>
         </div> : <div className={`route-grid ${calc.effectivePullWeeks === 0 ? "two" : ""}`}>
           <article className="route-card chosen"><div><div className="route-card-label"><span>선택 경로 · {calc.effectivePullWeeks}주</span><i>{calc.selectedPlan.strategy === calc.bestRoiStrategy ? "추천 · 순손익 최고" : "선택됨"}</i></div><h3>{selectedRouteTitle}</h3><p>{calc.effectivePullWeeks === 0 ? "9월 16일 마감 기준" : `${calc.effectivePullWeeks}주 당김 기준`}{r.shopMaplePoints > 0 ? ` · 상점 ${formatMP(r.shopMaplePoints)} · ${shopPurchasePlanLabel(r.shopBluePurchased, r.shopMechPurchased)}` : " · 메포샵 미구매"}</p></div><strong>{shortDate(r.reached)}</strong><dl><div><dt>총 비용</dt><dd>{formatMP(r.maplePoints)}</dd></div><div><dt>메포샵</dt><dd>{formatMP(r.shopMaplePoints)}</dd></div><div><dt>하드</dt><dd>{calc.selectedHardWeeks}회</dd></div></dl></article>
           {calc.effectivePullWeeks > 0 && <article className="route-card baseline"><div><div className="route-card-label"><span>0주 비교 기준</span><i>추가 당김 없음</i></div><h3>{calc.basePlan.result.scheduleLabel}</h3><p>선택 경로의 비용·하드 횟수를 비교하는 기준입니다.</p></div><strong>{shortDate(calc.basePlan.result.reached)}</strong><dl><div><dt>총 비용</dt><dd>{formatMP(calc.basePlan.result.maplePoints)}</dd></div><div><dt>하드</dt><dd>{calc.baseHardWeeks}회</dd></div></dl></article>}
@@ -1758,7 +1772,7 @@ export default function Home() {
 
     {activeTab === "passes" && <section className="rewards-section passes-panel tab-panel" id="passes-panel" role="tabpanel" aria-labelledby="passes-tab">
       <div className="section-heading light"><span>표</span><div><p>현재 패스 레벨 입력 가능</p><h2>패스 보상표</h2></div></div>
-      <div className="pass-grid"><article><div className="table-title"><span>CHALLENGERS · 현재 {s.challengerPassLevel}레벨</span><h3>챌린저스 EXP 패스</h3></div><table><thead><tr><th>레벨 구간</th><th>일반</th><th>EXP 패스 포함</th></tr></thead><tbody><tr><td>1~10</td><td>-</td><td>블루베리 6 · 사우나 2시간 · 상급 EXP 2,000</td></tr><tr><td>11~20</td><td>-</td><td>블루베리 6 · 사우나 2시간 · 상급 EXP 2,000</td></tr><tr><td>21~25</td><td>상급 EXP 100</td><td>블루베리 3 · 사우나 1시간 · 상급 EXP 1,100</td></tr><tr><td>26~30</td><td>상급 EXP 2,100</td><td>블루베리 2 · 사우나 1시간 · 상급 EXP 3,100 · 비약 1</td></tr><tr className="total"><td>1~30 합계</td><td>상급 EXP 2,200</td><td>블루베리 17 · 사우나 6시간 · 상급 EXP 8,200 · 비약 1</td></tr></tbody></table></article><article><div className="table-title"><span>MOMENTUM · 1차 Lv.{s.momentumPass1Level} · 2차 Lv.{s.momentumPass2Level}</span><h3>모멘텀 패스 1·2차</h3></div><table><thead><tr><th>회차별 합계</th><th>보상</th></tr></thead><tbody><tr><td>일반</td><td>메카베리 1 · 사우나 1.5시간 · 상급 EXP 500</td></tr><tr><td>프라임 추가</td><td>메카베리 10 · 상급 EXP 9,000 · 4배 쿠폰 6</td></tr><tr className="total"><td>프라임 포함</td><td>메카베리 11 · 사우나 1.5시간 · 상급 EXP 9,500 · 4배 쿠폰 6</td></tr><tr><td>기간</td><td>1차 7/23~8/19 · 2차 8/20~9/16</td></tr><tr><td>가격</td><td>각 49,800 넥슨캐시 · 별도 구매</td></tr></tbody></table></article></div>
+      <div className="pass-grid"><article><div className="table-title"><span>CHALLENGERS · 현재 {s.challengerPassLevel}레벨</span><h3>챌린저스 EXP 패스</h3></div><table><thead><tr><th>레벨 구간</th><th>일반</th><th>EXP 패스 포함</th></tr></thead><tbody><tr><td>1~10</td><td>-</td><td>블루베리 6 · 사우나 2시간 · 상급 EXP 2,000</td></tr><tr><td>11~20</td><td>-</td><td>블루베리 6 · 사우나 2시간 · 상급 EXP 2,000</td></tr><tr><td>21~25</td><td>상급 EXP 100</td><td>블루베리 3 · 사우나 1시간 · 상급 EXP 1,100</td></tr><tr><td>26~30</td><td>상급 EXP 2,100</td><td>블루베리 2 · 사우나 1시간 · 상급 EXP 3,100 · 비약 1</td></tr><tr className="total"><td>1~30 합계</td><td>상급 EXP 2,200</td><td>블루베리 17 · 사우나 6시간 · 상급 EXP 8,200 · 비약 1</td></tr></tbody></table></article><article><div className="table-title"><span>MOMENTUM · 1차 {s.momentumPass1Enabled ? `Lv.${s.momentumPass1Level}` : "OFF"} · 2차 {s.momentumPass2Enabled ? `Lv.${s.momentumPass2Level}` : "OFF"}</span><h3>모멘텀 패스 1·2차</h3></div><table><thead><tr><th>회차별 합계</th><th>보상</th></tr></thead><tbody><tr><td>현재 선택</td><td>1차 {s.momentumPass1Enabled ? "반영" : "제외"} · 2차 {s.momentumPass2Enabled ? "반영" : "제외"}</td></tr><tr><td>일반</td><td>메카베리 1 · 사우나 1.5시간 · 상급 EXP 500</td></tr><tr><td>프라임 추가</td><td>메카베리 10 · 상급 EXP 9,000 · 4배 쿠폰 6</td></tr><tr className="total"><td>프라임 포함</td><td>메카베리 11 · 사우나 1.5시간 · 상급 EXP 9,500 · 4배 쿠폰 6</td></tr><tr><td>기간</td><td>1차 7/23~8/19 · 2차 8/20~9/16</td></tr><tr><td>가격</td><td>각 49,800 넥슨캐시 · 별도 구매</td></tr></tbody></table></article></div>
     </section>}
 
     <footer><div className="brand"><span className="brand-mark">M</span><span>285·290 CALCULATOR</span></div><p>경험치 기준 · 하루1소재 · 메이플로드 · 2026.08.03 확인</p><div className="source-links"><a href="https://haru1sojae.kr/table" target="_blank" rel="noreferrer">하루1소재</a><a href="https://mapleroad.kr/utils/exp_calculator" target="_blank" rel="noreferrer">메이플로드</a><a href="https://maplestory.nexon.com/testworld/news/all/188" target="_blank" rel="noreferrer">테스트월드</a></div></footer>

@@ -67,7 +67,7 @@ test("keeps the 285 calculator primary, adds 290, and moves supporting content i
   assert.doesNotMatch(page, /메카베리는 늦게 쓸수록 세다/);
   assert.match(page, /recommendedPlansByWeek/);
   assert.match(page, /스페셜 선데이 몬파 횟수/);
-  assert.match(page, /기본 몬파 경험치 \+300%\(총 4배\)/);
+  assert.doesNotMatch(page, /기본 몬파 경험치 \+300%\(총 4배\)/);
   assert.match(page, /label: "소경축비"/);
   assert.match(page, /챌섭 EXP 패스 현재 레벨/);
   assert.match(page, /모멘텀 1차 현재 레벨/);
@@ -85,8 +85,19 @@ test("keeps the 285 calculator primary, adds 290, and moves supporting content i
   assert.match(page, /Core6Choice title="에픽 던전"/);
   assert.match(page, /aria-label=\{accessibleLabel\}/);
   assert.match(page, /accessibleLabel=\{`\$\{title\} 코어 6레벨`\}/);
-  assert.ok(page.indexOf("core6-picker") > page.indexOf("모멘텀 2차 현재 레벨"));
-  assert.ok(page.indexOf("core6-picker") < page.indexOf("<details><summary>패스 · 이벤트 설정"));
+  const quickChoiceStart = page.indexOf('className="quick-choice-grid"');
+  const passDetailsStart = page.indexOf("<details><summary>패스 · 이벤트 설정");
+  const eterionDetailsStart = page.indexOf("<details><summary>에테리온 · 콘텐츠 보정");
+  assert.ok(quickChoiceStart > 0 && quickChoiceStart < passDetailsStart);
+  assert.ok(page.indexOf("모멘텀 2차 현재 레벨") > passDetailsStart && page.indexOf("모멘텀 2차 현재 레벨") < eterionDetailsStart);
+  assert.ok(page.indexOf("core6-picker", eterionDetailsStart) > eterionDetailsStart);
+  assert.match(page, /QuickChoice label="1차 패스"/);
+  assert.match(page, /QuickChoice label="2차 패스"/);
+  assert.match(page, /QuickChoice label="추가 몬파"/);
+  assert.match(page, /QuickChoice label="코어 6레벨 일괄"/);
+  assert.match(page, /disabled=\{!s\.momentumPass1Enabled\}/);
+  assert.match(page, /disabled=\{!s\.momentumPass2Enabled\}/);
+  assert.doesNotMatch(page, /OFF면 매일 기본 2판만/);
   assert.doesNotMatch(page, /일일 사냥 경험치/);
   assert.doesNotMatch(page, /SPECTER_BLAST_END|specter|mpNow|dailyNow|epicNow|mpPatch|dailyPatch|epicPatch|afterPatch|patchDate|challengerPassCapForDate|7\/22|패치 전|패치 후/);
   assert.match(layout, /285 플래너/);
@@ -97,6 +108,8 @@ test("keeps the 285 calculator primary, adds 290, and moves supporting content i
   assert.match(css, /\.calculate-bar \{/);
   assert.match(css, /\.core6-picker \{/);
   assert.match(css, /\.core6-choice\.active \{/);
+  assert.match(css, /\.quick-choice-grid \{[^}]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(css, /\.quick-choice\.active \{/);
   assert.match(css, /\.controls, \.results \{[^}]*min-width: 0/);
   assert.match(css, /\.core6-picker \{[^}]*width: 100%;[^}]*min-width: 0;[^}]*max-width: 100%/);
   assert.match(css, /\.core6-picker-grid \{[^}]*min-width: 0;[^}]*grid-template-columns: minmax\(0, 1fr\)/);
@@ -129,6 +142,7 @@ test("keeps verified calculator constants visible in source", async () => {
   assert.match(page, /prePassLevel: 30, preUnclaimed: false/);
   assert.match(page, /challengerUnclaimed: false/);
   assert.match(page, /momentumPass1Level: 0, momentumPass2Level: 0/);
+  assert.match(page, /momentumPass1Enabled: true, momentumPass2Enabled: true/);
   assert.match(page, /shardDate: "2026-07-30"/);
   assert.match(page, /shardAdv: 5000/);
   assert.match(page, /core20Date: "2026-07-23"/);
@@ -944,8 +958,79 @@ test("shows both Prime prices as 99,600 Nexon Cash without adding them to Maple 
   const page = await readFile(new URL("app/page.tsx", root), "utf8");
   assert.match(page, /모멘텀 1차 프라임 · 49,800 넥슨캐시/);
   assert.match(page, /모멘텀 2차 프라임 · 49,800 넥슨캐시/);
-  assert.match(page, /두 패스 모두 ON이면 총 99,600 넥슨캐시/);
+  assert.match(page, /두 패스와 두 프라임을 모두 ON하면 총 99,600 넥슨캐시/);
   assert.match(page, /메포 합계에는 섞지 않습니다/);
+});
+
+test("excludes each disabled Momentum season including its normal and Prime rewards", async () => {
+  const pageModule = await importBuiltPage("momentum-season-enabled");
+  const common = {
+    ...pageModule.createDefaultSettings("2026-07-23"),
+    targetLevel: 290,
+    level: 295,
+    exp: 99.999,
+    paidMonsterPark: false,
+    challengerPassLevel: 30,
+    momentumPass1Level: 0,
+    momentumPass2Level: 0,
+    momentumPrime1: true,
+    momentumPrime2: true,
+    apology: false,
+    shardEvent: false,
+    ultima: false,
+    specialSupply: false,
+    todayDaily: false,
+    weeklyOpen: false,
+    grandis: false,
+    extreme: false,
+    epic: false,
+  };
+  const run = (momentumPass1Enabled, momentumPass2Enabled) => pageModule.simulate({ ...common, momentumPass1Enabled, momentumPass2Enabled }, { fixedRuns: 0 });
+  const both = run(true, true);
+  const onlyFirst = run(true, false);
+  const onlySecond = run(false, true);
+  const neither = run(false, false);
+  const passRewards = result => ({ mech: result.leftovers.mech, sauna: result.leftovers.sauna, adv: result.leftovers.adv, coupon4x: result.leftovers.coupon4x });
+
+  assert.deepEqual(passRewards(both), { mech: 22, sauna: 3, adv: 19000, coupon4x: 12 });
+  assert.deepEqual(passRewards(onlyFirst), { mech: 11, sauna: 1.5, adv: 9500, coupon4x: 6 });
+  assert.deepEqual(passRewards(onlySecond), { mech: 11, sauna: 1.5, adv: 9500, coupon4x: 6 });
+  assert.deepEqual(passRewards(neither), { mech: 0, sauna: 0, adv: 0, coupon4x: 0 });
+});
+
+test("sets all three Eterion core toggles with the master patch", async () => {
+  const pageModule = await importBuiltPage("core6-master");
+  assert.deepEqual(pageModule.core6MasterPatch(true), { dailyCore6Enabled: true, mpCore6Enabled: true, epicCore6Enabled: true });
+  assert.deepEqual(pageModule.core6MasterPatch(false), { dailyCore6Enabled: false, mpCore6Enabled: false, epicCore6Enabled: false });
+});
+
+test("keeps paid Monster Park off at the free two-run baseline", async () => {
+  const pageModule = await importBuiltPage("paid-monster-park-quick-toggle");
+  const common = {
+    ...pageModule.createDefaultSettings("2026-09-16"),
+    targetLevel: 290,
+    level: 280,
+    exp: 0,
+    momentumPass1Enabled: false,
+    momentumPass2Enabled: false,
+    challengerPassLevel: 30,
+    apology: false,
+    shardEvent: false,
+    ultima: false,
+    specialSupply: false,
+    weeklyOpen: false,
+    grandis: false,
+    extreme: false,
+    epic: false,
+    todayDaily: true,
+  };
+  const free = pageModule.simulate({ ...common, paidMonsterPark: false }, { fixedRuns: 7 });
+  const paid = pageModule.simulate({ ...common, paidMonsterPark: true }, { fixedRuns: 7 });
+
+  assert.equal(free.scheduleLabel, "매일 기본 2판");
+  assert.equal(free.monsterParkMaplePoints, 0);
+  assert.equal(paid.monsterParkMaplePoints, 3000);
+  assert.ok(paid.rows.at(-1).progress > free.rows.at(-1).progress);
 });
 
 test("pins the 9/16 forecast selection while preserving the 285 strategy input", async () => {
