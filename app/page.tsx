@@ -22,11 +22,13 @@ type Settings = {
   pullWeeks: number;
   pullStrategy: PullStrategy;
   specialSundayCount: number;
+  paidMonsterPark: boolean;
   specialSupply: boolean;
   specialSupplySaved: number;
   specialSupplyExpPerCharge: number;
   challengerPassLevel: number;
-  momentumPassLevel: number;
+  momentumPass1Level: number;
+  momentumPass2Level: number;
   preLevel: number;
   preExp: number;
   prePassLevel: number;
@@ -50,7 +52,8 @@ type Settings = {
   postReset: boolean;
   challengerUnclaimed: boolean;
   challengerExp: boolean;
-  momentumPrime: boolean;
+  momentumPrime1: boolean;
+  momentumPrime2: boolean;
   deferMomentumMech: boolean;
   dailyCore6Enabled: boolean;
   dailyCore6Date: string;
@@ -136,6 +139,8 @@ type Simulation = {
   specialSupplySaved: number;
   specialSupplyUsed: number;
   horizonDays: number;
+  finalLevel: number;
+  finalExp: number;
   endReason: "reached" | "horizon" | "no-growth";
 };
 type PullPlan = { pullWeeks: number; targetClearWeeks: number; result: Simulation; feasible: boolean; strategy: PullStrategy; shopBlueCount: number; shopMechCount: number; scheduleIndex: number };
@@ -274,7 +279,10 @@ Object.entries(POST_290_EFFICIENCY_RAW).forEach(([levelValue, raw]) => {
 const SPECIAL_SUPPLY_BATCH_SIZE = 5;
 const SPECIAL_SUPPLY_START = "2026-07-23";
 const SPECIAL_SUPPLY_END = "2026-08-19";
-const MOMENTUM_PASS_START = "2026-07-23";
+const MOMENTUM_PASS_1_START = "2026-07-23";
+const MOMENTUM_PASS_1_END = "2026-08-19";
+const MOMENTUM_PASS_2_START = "2026-08-20";
+const MOMENTUM_PASS_2_END = "2026-09-16";
 const ULTIMA_ATTENDANCE_START = "2026-06-18";
 const ULTIMA_ATTENDANCE_MAX = 60;
 const SHOP_WEEK_STARTS = ["2026-07-23", "2026-07-30", "2026-08-06", "2026-08-13"];
@@ -377,16 +385,16 @@ const availableShopWeeksForStart = (start: Date) => {
 const createDefaultSettings = (start = SSR_DEFAULT_START): Settings => {
   const ultimaProgress = ultimaProgressBefore(start);
   return ({
-  targetLevel: 285, level: 280, exp: 87.39, start, pullWeeks: 0, pullStrategy: "monsterPark", specialSundayCount: 1,
+  targetLevel: 285, level: 280, exp: 87.39, start, pullWeeks: 0, pullStrategy: "monsterPark", specialSundayCount: 1, paidMonsterPark: true,
   specialSupply: false, specialSupplySaved: 0, specialSupplyExpPerCharge: 0,
-  challengerPassLevel: 30, momentumPassLevel: 0,
+  challengerPassLevel: 30, momentumPass1Level: 0, momentumPass2Level: 0,
   preLevel: 270, preExp: 0, prePassLevel: 30, preUnclaimed: false,
   preUseBlue: true, preUseSauna: true, preUseAdv: true, preUsePotion: true,
   preMonsterParkRuns: 2, preSpecialSundayCount: 1, preDailyQuests: true, preWeeklyContent: true,
   preTodayDaily: true, preWeeklyOpen: true,
   momentumMechLevel: 284, momentumMechDeadline: "2026-08-12", mayrinMesoGap: 3, mayrinNormalFrag: 30,
   fragPrice: 640, mpPerEok: 2500, postReset: true, challengerUnclaimed: false, challengerExp: true,
-  momentumPrime: true, deferMomentumMech: true,
+  momentumPrime1: true, momentumPrime2: false, deferMomentumMech: true,
   dailyCore6Enabled: false, dailyCore6Date: "2026-07-27", mpCore6Enabled: false, mpCore6Date: "2026-07-27", epicCore6Enabled: false, epicCore6Date: "2026-07-27",
   apology: true, shardEvent: true, ultima: true, shopMech: false, shopBlue: false, mpCore5: 90,
   core20Date: "2026-07-23", core20Bonus: 5, mpCore6: 95,
@@ -776,21 +784,24 @@ function simulatePre280(s: Settings): Pre280Simulation {
 
 function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number; deferMomentumMech?: boolean; shopBlueCount?: number; shopMechCount?: number } = {}): Simulation {
   const start = parseDate(s.start);
-  const targetLevel = s.targetLevel === 290 ? 290 : 285;
-  const horizonDays = targetLevel === 290 ? 730 : 120;
+  const forecastMode = s.targetLevel === 290;
+  const forecastEnd = parseDate("2026-09-16");
+  const targetLevel = forecastMode ? 296 : 285;
+  const horizonDays = forecastMode ? Math.max(0, Math.floor((forecastEnd.getTime() - start.getTime()) / 86400000) + 1) : 120;
   let level = Math.max(280, Math.min(targetLevel - 1, s.level));
   let xp = req(level) * Math.max(0, Math.min(99.999, s.exp)) / 100;
   const carcionActive = (date: Date, currentLevel = level) => carcionContentActive(date, s.start, currentLevel);
   const selectedCutoff = addDays(start, -1);
   const sevenUntil = schedule.sevenUntil ?? selectedCutoff;
-  const fixedRuns = schedule.fixedRuns == null ? null : Math.max(0, Math.min(7, schedule.fixedRuns));
+  const requestedFixedRuns = schedule.fixedRuns == null ? null : Math.max(0, Math.min(7, schedule.fixedRuns));
+  const fixedRuns = s.paidMonsterPark ? requestedFixedRuns : 2;
   const specialSundayCount = Math.max(0, Math.min(12, Math.floor(s.specialSundayCount)));
   const specialSupplyStart = parseDate(SPECIAL_SUPPLY_START);
   const specialSupplyEnd = parseDate(SPECIAL_SUPPLY_END);
   let specialSupplySaved = s.specialSupply ? Math.max(0, Math.min(SPECIAL_SUPPLY_BATCH_SIZE, Math.floor(s.specialSupplySaved))) : 0;
   let specialSupplyUsed = 0;
   const runsForDate = (date: Date) => fixedRuns == null ? (dayOfWeek(date) === 0 ? 7 : date <= sevenUntil ? 7 : 2) : fixedRuns;
-  const scheduleLabel = fixedRuns == null
+  const scheduleLabel = !s.paidMonsterPark ? "매일 기본 2판" : fixedRuns == null
     ? sevenUntil < start ? "평일 2판 · 일요일 7판" : `${shortDate(sevenUntil)}까지 7판 · 이후 평일 2판`
     : `매일 ${fixedRuns}판`;
   const deferMomentumMech = schedule.deferMomentumMech ?? s.deferMomentumMech;
@@ -828,28 +839,32 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
     challengerDate = challengerDate.getTime() === start.getTime() ? nextThursdayAfter(start) : addDays(challengerDate, 7);
   }
 
-  let momentumLevel = Math.max(0, Math.min(10, Math.floor(s.momentumPassLevel)));
-  const momentumStart = parseDate(MOMENTUM_PASS_START);
-  let momentumDate = start <= momentumStart ? momentumStart : start;
-  const momentumEnd = parseDate("2026-08-19");
-  const momentumWeeklyLevels = [2, 3, 3, 2];
-  let momentumWeekIndex = 0;
-  while (momentumLevel < 10 && momentumDate <= momentumEnd) {
-    const from = momentumLevel + 1;
-    const to = Math.min(10, momentumLevel + momentumWeeklyLevels[Math.min(momentumWeekIndex, momentumWeeklyLevels.length - 1)]);
-    const batch: Reward = { label: `모멘텀 패스 ${from}~${to}레벨`, deferMech: deferMomentumMech };
-    for (let passLevel = from; passLevel <= to; passLevel += 1) {
-      const reward = momentumRewardForLevel(passLevel, s.momentumPrime, deferMomentumMech);
-      batch.mech = Number(batch.mech || 0) + Number(reward.mech || 0);
-      batch.sauna = Number(batch.sauna || 0) + Number(reward.sauna || 0);
-      batch.adv = Number(batch.adv || 0) + Number(reward.adv || 0);
-      batch.coupon4x = Number(batch.coupon4x || 0) + Number(reward.coupon4x || 0);
+  const scheduleMomentumSeason = (season: 1 | 2, currentLevel: number, prime: boolean, startValue: string, endValue: string) => {
+    let momentumLevel = Math.max(0, Math.min(10, Math.floor(currentLevel)));
+    const momentumStart = parseDate(startValue);
+    const momentumEnd = parseDate(endValue);
+    let rewardDate = start <= momentumStart ? momentumStart : start;
+    const weeklyLevels = [2, 3, 3, 2];
+    let weekIndex = 0;
+    while (momentumLevel < 10 && rewardDate <= momentumEnd) {
+      const from = momentumLevel + 1;
+      const to = Math.min(10, momentumLevel + weeklyLevels[Math.min(weekIndex, weeklyLevels.length - 1)]);
+      const batch: Reward = { label: `모멘텀 ${season}차 ${from}~${to}레벨`, deferMech: deferMomentumMech };
+      for (let passLevel = from; passLevel <= to; passLevel += 1) {
+        const reward = momentumRewardForLevel(passLevel, prime, deferMomentumMech);
+        batch.mech = Number(batch.mech || 0) + Number(reward.mech || 0);
+        batch.sauna = Number(batch.sauna || 0) + Number(reward.sauna || 0);
+        batch.adv = Number(batch.adv || 0) + Number(reward.adv || 0);
+        batch.coupon4x = Number(batch.coupon4x || 0) + Number(reward.coupon4x || 0);
+      }
+      addReward(rewardDate, batch);
+      momentumLevel = to;
+      rewardDate = rewardDate.getTime() === start.getTime() ? nextThursdayAfter(start) : addDays(rewardDate, 7);
+      weekIndex += 1;
     }
-    addReward(momentumDate, batch);
-    momentumLevel = to;
-    momentumDate = momentumDate.getTime() === start.getTime() ? nextThursdayAfter(start) : addDays(momentumDate, 7);
-    momentumWeekIndex += 1;
-  }
+  };
+  scheduleMomentumSeason(1, s.momentumPass1Level, s.momentumPrime1, MOMENTUM_PASS_1_START, MOMENTUM_PASS_1_END);
+  scheduleMomentumSeason(2, s.momentumPass2Level, s.momentumPrime2, MOMENTUM_PASS_2_START, MOMENTUM_PASS_2_END);
   if (s.apology) addReward(start, { label: "7월 NOW 보상", mech: 1, sauna: 2, coupon4x: 4 });
   if (s.shardEvent && s.shardDate) {
     const shardRewardDate = parseDate(s.shardDate);
@@ -897,11 +912,18 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
   }
   addReward(start, { label: "현재 보유분", blue: s.ownedBlue, mech: s.ownedMech, sauna: s.ownedSauna, adv: s.ownedAdv, potion279: s.ownedPotion279 });
 
+  const forecastCapExp = () => req(295) * 0.99999;
+  const atForecastCap = () => forecastMode && level >= 295 && xp >= forecastCapExp() - 1e-12;
   const applyRaw = (initialRaw: number) => {
     let raw = initialRaw;
     let guard = 0;
-    while (raw > 0.000000000001 && level < targetLevel && guard < 16) {
+    while (raw > 0.000000000001 && level < targetLevel && !atForecastCap() && guard < 16) {
       guard += 1;
+      if (forecastMode && level === 295) {
+        xp = Math.min(forecastCapExp(), xp + raw);
+        raw = 0;
+        continue;
+      }
       const remaining = req(level) - xp;
       if (remaining <= 0.000000000001) { level += 1; xp = 0; continue; }
       if (raw + 0.000000000001 < remaining) { xp += raw; raw = 0; } else { raw = Math.max(0, raw - remaining); level += 1; xp = 0; }
@@ -913,9 +935,11 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
     let used = 0;
     if (type === "sauna") {
       let guard = 0;
-      while (remaining > 0.0000001 && level < targetLevel && guard < 16) {
+      while (remaining > 0.0000001 && level < targetLevel && !atForecastCap() && guard < 16) {
         guard += 1;
-        const rawPerHour = level >= 285 ? rawToNormalized(WEEKLY_CONTENT_RAW[level].sauna) : req(level) * efficiency[level].sauna / 100;
+        const rawPerHour = level >= 291
+          ? rawToNormalized(POST_290_EFFICIENCY_RAW[level].sauna)
+          : level >= 285 ? rawToNormalized(WEEKLY_CONTENT_RAW[level].sauna) : req(level) * efficiency[level].sauna / 100;
         const required = req(level) - xp;
         if (required <= 0.000000000001) { level += 1; xp = 0; continue; }
         const hours = Math.min(remaining, required / rawPerHour);
@@ -926,9 +950,11 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
     }
     if (type === "adv") {
       let guard = 0;
-      while (remaining > 0 && level < targetLevel && guard < 16) {
+      while (remaining > 0 && level < targetLevel && !atForecastCap() && guard < 16) {
         guard += 1;
-        const rawPerCoupon = level >= 285 ? rawToNormalized(WEEKLY_CONTENT_RAW[level].adv1000) / 1000 : req(level) * efficiency[level].adv100 / 10000;
+        const rawPerCoupon = level >= 291
+          ? rawToNormalized(POST_290_EFFICIENCY_RAW[level].adv100) / 100
+          : level >= 285 ? rawToNormalized(WEEKLY_CONTENT_RAW[level].adv1000) / 1000 : req(level) * efficiency[level].adv100 / 10000;
         const required = Math.max(0, req(level) - xp);
         const couponBatch = Math.min(remaining, Math.max(1, Math.ceil(required / rawPerCoupon)));
         applyRaw(rawPerCoupon * couponBatch);
@@ -937,7 +963,7 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
       }
       return used;
     }
-    while (remaining > 0 && level < targetLevel) {
+    while (remaining > 0 && level < targetLevel && !atForecastCap()) {
       const percent = type === "adv" ? efficiency[level].adv100 / 100 : efficiency[level][type];
       applyPercent(percent); remaining -= 1; used += 1;
     }
@@ -946,7 +972,7 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
   const applyGrowthPotion = (type: "potion269" | "potion279", count: number) => {
     let remaining = Math.max(0, Math.floor(count || 0)); let used = 0;
     const raw = type === "potion279" ? 0.49505 : 0.072458;
-    while (remaining > 0 && level < targetLevel) { applyRaw(raw); remaining -= 1; used += 1; }
+    while (remaining > 0 && level < targetLevel && !atForecastCap()) { applyRaw(raw); remaining -= 1; used += 1; }
     return used;
   };
 
@@ -982,10 +1008,10 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
   };
   capture285(start);
   const startingProgress = level + xp / req(level);
-  for (let day = 0; day < horizonDays && level < targetLevel; day += 1) {
+  for (let day = 0; day < horizonDays && (forecastMode || level < targetLevel); day += 1) {
     const date = addDays(start, day); const key = iso(date); const events: string[] = [];
     (rewardDays.get(key) || []).forEach(reward => {
-      if (reward.optionalPurchase && level >= targetLevel) return;
+      if (reward.optionalPurchase && (level >= targetLevel || atForecastCap())) return;
       if (reward.optionalPurchase) {
         reward.purchased = true;
         shopBluePurchased += Math.max(0, Math.floor(Number(reward.blue || 0)));
@@ -1007,7 +1033,7 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
     if (s.specialSupply && date >= specialSupplyStart && date <= specialSupplyEnd) {
       // 시작일 보유 횟수에는 그날 충전분이 포함된 것으로 보고, 다음 날부터 하루 1회만 더합니다.
       if (date.getTime() !== start.getTime()) specialSupplySaved = Math.min(SPECIAL_SUPPLY_BATCH_SIZE, specialSupplySaved + 1);
-      if (specialSupplySaved >= SPECIAL_SUPPLY_BATCH_SIZE && level < targetLevel && s.specialSupplyExpPerCharge > 0) {
+      if (specialSupplySaved >= SPECIAL_SUPPLY_BATCH_SIZE && level < targetLevel && !atForecastCap() && s.specialSupplyExpPerCharge > 0) {
         applyRaw(rawToNormalized(s.specialSupplyExpPerCharge * SPECIAL_SUPPLY_BATCH_SIZE));
         specialSupplyUsed += SPECIAL_SUPPLY_BATCH_SIZE;
         specialSupplySaved = 0;
@@ -1020,18 +1046,20 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
     if ((thursday && day > 0) || (day === 0 && s.weeklyOpen)) {
       const eterion = eterionBonusesForDate(s, date);
       if (s.extreme && level < targetLevel) {
-        if (level >= 285) applyRaw(rawToNormalized(WEEKLY_CONTENT_RAW[level].extreme) * (1 + eterion.mp / 100));
-        else applyPercent(efficiency[level].extreme * (1 + eterion.mp / 100));
+        if (level >= 285 && level <= 290) applyRaw(rawToNormalized(WEEKLY_CONTENT_RAW[level].extreme) * (1 + eterion.mp / 100));
+        else if (level >= 291) applyRaw(rawToNormalized(WEEKLY_CONTENT_RAW[290].extreme) * (1 + eterion.mp / 100));
+        else if (level < 285) applyPercent(efficiency[level].extreme * (1 + eterion.mp / 100));
       }
       if (s.epic && level < targetLevel) {
-        if (level >= 285) applyRaw(rawToNormalized(WEEKLY_CONTENT_RAW[level].epic) * (s.epicMult + eterion.epic / 100));
+        if (level >= 291) applyRaw(rawToNormalized(POST_290_EFFICIENCY_RAW[level].epic) * (s.epicMult + eterion.epic / 100));
+        else if (level >= 285) applyRaw(rawToNormalized(WEEKLY_CONTENT_RAW[level].epic) * (s.epicMult + eterion.epic / 100));
         else applyPercent(efficiency[level].epic * (s.epicMult + eterion.epic / 100));
       }
       capture285(date);
       events.push("익몬 · 악몽선경");
     }
 
-    if (level < targetLevel && (day > 0 || s.todayDaily)) {
+    if (level < targetLevel && !atForecastCap() && (day > 0 || s.todayDaily)) {
       dailyDaysApplied += 1;
       const dailyRuns = runsForDate(date);
       monsterParkMaplePoints += paidMonsterParkMaplePoints(dailyRuns);
@@ -1040,7 +1068,8 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
       const isSpecialSunday = isSunday && sundaysSeen < specialSundayCount;
       if (isSunday) sundaysSeen += 1;
       const sundayBonus = isSpecialSunday ? 3 : isSunday ? 0.5 : 0;
-      if (level >= 285) applyRaw(rawToNormalized(monsterParkRawForLevel(level, carcionActive(date)) * dailyRuns) * (1 + eterion.mp / 100 + sundayBonus));
+      if (level >= 291) applyRaw(rawToNormalized(POST_290_EFFICIENCY_RAW[level].monsterParkPerRun * dailyRuns) * (1 + eterion.mp / 100 + sundayBonus));
+      else if (level >= 285) applyRaw(rawToNormalized(monsterParkRawForLevel(level, carcionActive(date)) * dailyRuns) * (1 + eterion.mp / 100 + sundayBonus));
       else applyPercent(monsterParkExperiencePercent({
           baseSevenRunPercent: efficiency[level].mp7,
           runs: dailyRuns,
@@ -1048,13 +1077,14 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
           sundayKind: isSpecialSunday ? "special" : isSunday ? "normal" : "none",
         }));
       if (s.grandis && level < targetLevel) {
-        if (level >= 285) applyRaw(rawToNormalized(grandisDailyRawForLevel(level, carcionActive(date))) * (1 + eterion.daily / 100));
+        if (level >= 291) applyRaw(rawToNormalized(GRANDIS_DAILY_WITH_CARCION) * (1 + eterion.daily / 100));
+        else if (level >= 285) applyRaw(rawToNormalized(grandisDailyRawForLevel(level, carcionActive(date))) * (1 + eterion.daily / 100));
         else applyPercent(efficiency[level].grandis * (1 + eterion.daily / 100));
       }
       capture285(date);
     }
 
-    if (deferMomentumMech && level < targetLevel && (level >= momentumMechLevel || date >= momentumMechDeadline)) {
+    if (deferMomentumMech && level < targetLevel && !atForecastCap() && (level >= momentumMechLevel || date >= momentumMechDeadline)) {
       rewardDays.forEach(rewards => rewards.forEach(reward => {
         if (!reward.deferMech || (reward.date || "") > key || !reward.remaining || reward.remaining.mech <= 0 || level >= targetLevel) return;
         reward.remaining.mech -= applyItems("mech", reward.remaining.mech);
@@ -1066,7 +1096,7 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
     const progress = level >= targetLevel ? targetLevel : level + xp / req(level);
     rows.push({ date, key, level, exp: level >= targetLevel ? 0 : xp / req(level) * 100, progress, events });
     capture285(date);
-    if (level >= targetLevel) reached = date;
+    if (!forecastMode && level >= targetLevel) reached = date;
   }
 
   const finalInventory = currentLeftovers(reached);
@@ -1079,7 +1109,8 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
   }
   const finalProgress = rows[rows.length - 1]?.progress ?? startingProgress;
   const endReason: Simulation["endReason"] = reached ? "reached" : finalProgress <= startingProgress + 1e-12 ? "no-growth" : "horizon";
-  return { start, startLevel: s.level, startExp: s.exp, rows, reached, reach285At, leftoversAt285, leftoverSourcesAt285, specialSupplySavedAt285, leftovers, leftoverSources, shopMaplePoints, shopBluePurchased, shopMechPurchased, monsterParkMaplePoints, maplePoints: shopMaplePoints + monsterParkMaplePoints, scheduleLabel, sevenUntil, specialSundayCount, momentumMechLevel, momentumMechDeadline, dailyDaysApplied, ultimaCountAtReach, specialSupplySaved, specialSupplyUsed, horizonDays, endReason };
+  const finalRow = rows[rows.length - 1];
+  return { start, startLevel: s.level, startExp: s.exp, rows, reached, reach285At, leftoversAt285, leftoverSourcesAt285, specialSupplySavedAt285, leftovers, leftoverSources, shopMaplePoints, shopBluePurchased, shopMechPurchased, monsterParkMaplePoints, maplePoints: shopMaplePoints + monsterParkMaplePoints, scheduleLabel, sevenUntil, specialSundayCount, momentumMechLevel, momentumMechDeadline, dailyDaysApplied, ultimaCountAtReach, specialSupplySaved, specialSupplyUsed, horizonDays, finalLevel: finalRow?.level ?? level, finalExp: finalRow?.exp ?? (xp / req(level) * 100), endReason };
 }
 
 function weekStartThursday(date: Date) { return addDays(date, -((dayOfWeek(date) + 3) % 7)); }
@@ -1098,35 +1129,25 @@ function* buildPlanningSteps(settings: Settings): Generator<number, Planning, vo
   const free = simulate(strategySettings, { fixedRuns: 2 }); yield ++completed;
   const allSeven = simulate(strategySettings, { fixedRuns: 7 }); yield ++completed;
   if (s.targetLevel === 290) {
-    const availableShopCount = availableShopWeeksForStart(start).length * SHOP_WEEKLY_ITEM_LIMIT;
+    const forecast = simulate(s, { fixedRuns: s.paidMonsterPark ? 7 : 2 }); yield ++completed;
     const makePlan = (strategy: PullStrategy, result: Simulation): PullPlan => ({
       pullWeeks: 0,
       targetClearWeeks: 0,
       result,
-      feasible: Boolean(result.reached),
+      feasible: true,
       strategy,
       shopBlueCount: result.shopBluePurchased,
       shopMechCount: result.shopMechPurchased,
       scheduleIndex: 0,
     });
-    const basePlan = makePlan("monsterPark", free);
-    const blueResult = simulate(strategySettings, { fixedRuns: 2, shopBlueCount: availableShopCount }); yield ++completed;
-    const mechResult = simulate(strategySettings, { fixedRuns: 2, shopMechCount: availableShopCount }); yield ++completed;
-    const bothResult = simulate(strategySettings, { fixedRuns: 2, shopBlueCount: availableShopCount, shopMechCount: availableShopCount }); yield ++completed;
+    const basePlan = makePlan("monsterPark", forecast);
     const strategyPlans: Record<PullStrategy, PullPlan[]> = {
       monsterPark: [basePlan],
-      blue: [makePlan("blue", blueResult)],
-      mech: [makePlan("mech", mechResult)],
-      both: [makePlan("both", bothResult)],
+      blue: [{ ...basePlan, strategy: "blue" }],
+      mech: [{ ...basePlan, strategy: "mech" }],
+      both: [{ ...basePlan, strategy: "both" }],
     };
-    const candidates = pullStrategies.map(({ id }) => strategyPlans[id][0]).filter(plan => plan.feasible);
-    const recommended = candidates.filter((candidate, candidateIndex) => !candidates.some((other, otherIndex) => {
-      const candidateTime = candidate.result.reached?.getTime() ?? Infinity;
-      const otherTime = other.result.reached?.getTime() ?? Infinity;
-      return other.result.maplePoints <= candidate.result.maplePoints && otherTime <= candidateTime
-        && (other.result.maplePoints < candidate.result.maplePoints || otherTime < candidateTime || otherIndex < candidateIndex);
-    }));
-    const recommendedPlansByWeek = [recommended.length ? recommended : [basePlan]];
+    const recommendedPlansByWeek = [[basePlan]];
     return { sunday, free, allSeven, strategyPlans, recommendedPlansByWeek, bestPlansByWeek: [basePlan], basePlan, maxPullWeeks: 0, deadline };
   }
   const availableShopWeekCount = availableShopWeeksForStart(start).length;
@@ -1251,7 +1272,7 @@ async function runPlanningInChunks(settings: Settings, onProgress: (completed: n
 }
 
 const defaultPlanning = runPlanningImmediately(defaults);
-export { createDefaultSettings, defaults, eterionBonusesForDate, localDateInputValue, runPlanningImmediately, simulate, ultimaProgressBefore, WEEKLY_CONTENT_RAW };
+export { createDefaultSettings, defaults, eterionBonusesForDate, localDateInputValue, momentumRewardForLevel, runPlanningImmediately, simulate, ultimaProgressBefore, WEEKLY_CONTENT_RAW };
 
 export const selectedPlanForSettings = (planning: Planning, settings: Settings) => {
   const effectivePullWeeks = Math.min(Math.max(0, Math.floor(settings.pullWeeks)), planning.maxPullWeeks);
@@ -1486,18 +1507,28 @@ export default function Home() {
     used.adv ? `상급 ${used.adv.toLocaleString("ko-KR")}` : "",
     used.potion279 ? `비약 ${used.potion279}` : "",
   ].filter(Boolean).join(" · ") || "콘텐츠 누적";
+  const forecastProgress = `Lv.${r.finalLevel} ${r.finalExp.toFixed(3)}%`;
+  const primeCount = Number(calculatedSettings.momentumPrime1) + Number(calculatedSettings.momentumPrime2);
+  const primeCash = primeCount * 49_800;
+  const forecastInputSummary = [
+    calculatedSettings.paidMonsterPark ? "유료 몬파 추가 5판 ON" : "유료 몬파 추가 5판 OFF · 매일 기본 2판",
+    `모멘텀 1차 Lv.${calculatedSettings.momentumPass1Level} ${calculatedSettings.momentumPrime1 ? "프라임 ON" : "프라임 OFF"}`,
+    `모멘텀 2차 Lv.${calculatedSettings.momentumPass2Level} ${calculatedSettings.momentumPrime2 ? "프라임 ON" : "프라임 OFF"}`,
+    `프라임 ${primeCash.toLocaleString("ko-KR")} 넥슨캐시`,
+    calculatedSettings.shopBlue || calculatedSettings.shopMech ? `메포샵 ${calculatedSettings.shopBlue ? "블루 " : ""}${calculatedSettings.shopMech ? "메카" : ""}`.trim() : "메포샵 미구매",
+  ].join(" · ");
 
   return <main>
     <header className="topbar"><a className="brand" href="#top" aria-label="285·290 계산기 홈"><span className="brand-mark">M</span><span>285·290 CALCULATOR</span></a><span className="topbar-status">CHALLENGERS WORLD</span></header>
     <section className="hero" id="top">
       <div className="eyebrow"><span /> CHALLENGERS {targetLevel} CALCULATOR</div>
-      <h1>{targetLevel}, 언제 찍을까?</h1>
-      <p>현재 레벨과 보유 보상을 입력하면 {targetLevel} 달성일, 필요한 몬파 횟수와 메포를 계산합니다.</p>
+      <h1>{targetLevel === 290 ? "9월 16일, 어디까지 갈까?" : `${targetLevel}, 언제 찍을까?`}</h1>
+      <p>{targetLevel === 290 ? "두 차례 모멘텀 패스와 선택한 콘텐츠를 모두 몰아줬을 때 시즌 종료 레벨을 계산합니다." : `현재 레벨과 보유 보상을 입력하면 ${targetLevel} 달성일, 필요한 몬파 횟수와 메포를 계산합니다.`}</p>
       <div className="hero-grid">
         {targetLevel === 290 ? <>
-          <article className="hero-card primary"><div className="card-label">장기 기준 · 추가 메포 0</div><strong>{longDate(calc.free.reached)}</strong><span>매일 2판</span><div className="card-meta"><b>0 메포</b><em>730일 안전 상한</em></div></article>
-          <article className="hero-card"><div className="card-label">일요일만 7판</div><strong>{longDate(calc.sunday.reached)}</strong><span>{calc.sunday.scheduleLabel}</span><div className="card-meta"><b>{formatMP(calc.sunday.maplePoints)}</b><em>평일 2판 · 일요일 추가 5판</em></div></article>
-          <article className="hero-card verdict"><div className="card-label">매일 7판 비교</div><strong>{longDate(calc.allSeven.reached)}</strong><span>{calc.allSeven.scheduleLabel}</span><div className="card-meta"><b>{formatMP(calc.allSeven.maplePoints)}</b><em>가장 빠른 고정 경로</em></div></article>
+          <article className="hero-card primary"><div className="card-label">9/16 시즌 종료 예상</div><strong>{forecastProgress}</strong><span>보상 몰아주면 여기까지</span><div className="card-meta"><b>{formatMP(r.maplePoints)}</b><em>몬파·메포샵 합계</em></div></article>
+          <article className="hero-card"><div className="card-label">모멘텀 1차 · 7/23~8/19</div><strong>{calculatedSettings.momentumPrime1 ? "프라임 ON" : "일반 보상"}</strong><span>현재 Lv.{calculatedSettings.momentumPass1Level}</span><div className="card-meta"><b>{calculatedSettings.momentumPrime1 ? "49,800 넥슨캐시" : "추가 결제 없음"}</b><em>프라임 별도 구매</em></div></article>
+          <article className="hero-card verdict"><div className="card-label">모멘텀 2차 · 8/20~9/16</div><strong>{calculatedSettings.momentumPrime2 ? "프라임 ON" : "일반 보상"}</strong><span>현재 Lv.{calculatedSettings.momentumPass2Level}</span><div className="card-meta"><b>{calculatedSettings.momentumPrime2 ? "49,800 넥슨캐시" : "추가 결제 없음"}</b><em>1차와 별도 구매</em></div></article>
         </> : <>
           <article className="hero-card primary"><div className="card-label">{calc.effectivePullWeeks ? `${calc.effectivePullWeeks}주 당김 · ${selectedStrategy.label}` : "마감만 맞추기"}</div><strong>{longDate(r.reached)}</strong><span>{r.scheduleLabel}</span><div className="card-meta"><b>{formatMP(r.maplePoints)}</b><em>몬파 {formatMP(r.monsterParkMaplePoints)} · 상점 {formatMP(r.shopMaplePoints)}{r.shopMaplePoints > 0 ? ` · ${shopPurchasePlanLabel(r.shopBluePurchased, r.shopMechPurchased)}` : ""}</em></div></article>
           <article className="hero-card"><div className="card-label">0주 · 마감 기준</div><strong>{longDate(calc.basePlan.result.reached)}</strong><span>{calc.basePlan.result.scheduleLabel}</span><div className="card-meta"><b>{formatMP(calc.basePlan.result.maplePoints)}</b><em>상점 없이 9월 16일 달성</em></div></article>
@@ -1505,7 +1536,7 @@ export default function Home() {
         </>}
       </div>
       {targetLevel === 290
-        ? <div className={`hero-note ${r.reached ? "" : "deadline-fail"}`}><span className="pulse" /><p><b>{r.reached ? "장기 290 경로 비교" : "계산 범위 내 미도달"}</b> 9월 16일은 이벤트 보상 마감으로만 반영하고, 290 도달일은 이후 성장까지 최대 730일 계산합니다.</p></div>
+        ? <div className="hero-note"><span className="pulse" /><p><b>9/16 종료 시점 예상</b> {forecastInputSummary}</p></div>
         : <div className={`hero-note ${calc.deadlineMet ? "" : "deadline-fail"}`}><span className="pulse" /><p><b>{calc.selectedPlan.strategy === calc.bestRoiStrategy ? "추천 · 순손익 최고" : calc.selectedPlan.strategy === calc.bestPlansByWeek[calc.effectivePullWeeks]?.strategy ? "메포 최저" : "더 빠른 선택"}</b> {selectedStrategy.id === "monsterPark" ? recommendedPrefix : `${selectedStrategy.label} · ${recommendedPrefix}`} → {shortDate(r.reached)} · 총 {formatMP(r.maplePoints)} · {pullDays ? `마감 경로보다 ${pullDays}일 빠름` : "9월 16일 마감 기준"}</p></div>}
     </section>
 
@@ -1572,14 +1603,16 @@ export default function Home() {
       <aside className="controls">
         <div className="section-heading"><span>입력</span><div><p>현재 캐릭터</p><h2>{s.targetLevel} 계산 조건</h2></div></div>
         <div className="field-grid compact">
-          <label className="field"><span>목표 레벨</span><select value={s.targetLevel} onChange={e => set("targetLevel", Number(e.target.value) as 285 | 290)}><option value={285}>285</option><option value={290}>290</option></select></label>
-          <label className="field"><span>현재 레벨</span><select value={Math.min(s.level, s.targetLevel - 1)} onChange={e => set("level", Number(e.target.value))}>{Array.from({ length: s.targetLevel - 280 }, (_, index) => index + 280).map(level => <option key={level}>{level}</option>)}</select></label>
+          <label className="field"><span>계산 모드</span><select value={s.targetLevel} onChange={e => set("targetLevel", Number(e.target.value) as 285 | 290)}><option value={285}>285 도달일</option><option value={290}>9/16 종료 예상</option></select></label>
+          <label className="field"><span>현재 레벨</span><select value={Math.min(s.level, s.targetLevel === 290 ? 295 : 284)} onChange={e => set("level", Number(e.target.value))}>{Array.from({ length: s.targetLevel === 290 ? 16 : 5 }, (_, index) => index + 280).map(level => <option key={level}>{level}</option>)}</select></label>
           <InputField label="현재 경험치 %" value={s.exp} min={0} max={99.999} step={0.001} onChange={v => set("exp", Number(v))} />
           <InputField label="계산 시작일" value={s.start} type="date" onChange={v => set("start", v)} />
-          <InputField label="스페셜 선데이 몬파 횟수" value={s.specialSundayCount} min={0} max={12} step={1} onChange={v => set("specialSundayCount", Number(v))} />
+          <InputField label="스페셜 선데이 몬파 횟수" value={s.specialSundayCount} min={0} max={12} step={1} disabled={!s.paidMonsterPark} onChange={v => set("specialSundayCount", Number(v))} />
           <InputField label="챌섭 EXP 패스 현재 레벨" value={s.challengerPassLevel} min={0} max={30} step={1} onChange={v => set("challengerPassLevel", Number(v))} />
-          <InputField label="모멘텀 패스 현재 레벨" value={s.momentumPassLevel} min={0} max={10} step={1} onChange={v => set("momentumPassLevel", Number(v))} />
+          <InputField label="모멘텀 1차 현재 레벨" value={s.momentumPass1Level} min={0} max={10} step={1} onChange={v => set("momentumPass1Level", Number(v))} />
+          <InputField label="모멘텀 2차 현재 레벨" value={s.momentumPass2Level} min={0} max={10} step={1} onChange={v => set("momentumPass2Level", Number(v))} />
         </div>
+        <div className="callout-mini"><Toggle label="유료 몬파 추가 5판" checked={s.paidMonsterPark} onChange={v => set("paidMonsterPark", v)} />OFF면 매일 기본 2판만, ON이면 스페셜 선데이를 포함해 유료 5판을 계산합니다.</div>
         <section className="core6-picker" aria-labelledby="core6-picker-title">
           <div className="core6-picker-head"><span>선택</span><div><h3 id="core6-picker-title">에테리온 코어 6레벨</h3><p>올린 코어만 따로 켜 주세요.</p></div></div>
           <div className="core6-picker-grid">
@@ -1591,8 +1624,9 @@ export default function Home() {
         <div className="callout-mini">스페셜 선데이는 입력한 횟수만큼 가까운 일요일부터 기본 몬파 경험치 +300%(총 4배)로 적용합니다.</div>
         <div className="quick-toggles"><Toggle label="오늘 일퀘·몬파 미완료" checked={s.todayDaily} onChange={v => set("todayDaily", v)} /><Toggle label="이번 주 챌섭 5레벨 미완료" checked={s.challengerUnclaimed} onChange={v => set("challengerUnclaimed", v)} /></div>
         <details><summary>패스 · 이벤트 설정 <span>12</span></summary><div className="detail-body">
-          <Toggle label="챌린저스 EXP 패스" checked={s.challengerExp} onChange={v => set("challengerExp", v)} /><Toggle label="프라임 모멘텀 패스" checked={s.momentumPrime} onChange={v => set("momentumPrime", v)} /><Toggle label="모멘텀 메카베리 모아쓰기" checked={s.deferMomentumMech} onChange={v => set("deferMomentumMech", v)} />
-          <div className="field-grid compact inset"><label className="field"><span>메카베리 사용 레벨</span><select value={Math.min(s.momentumMechLevel, s.targetLevel - 1)} disabled={!s.deferMomentumMech} onChange={e => set("momentumMechLevel", Number(e.target.value))}>{Array.from({ length: s.targetLevel - 280 }, (_, index) => index + 280).map(level => <option key={level}>{level}</option>)}</select></label><InputField label="최종 사용일" value={s.momentumMechDeadline} type="date" disabled={!s.deferMomentumMech} onChange={v => set("momentumMechDeadline", v)} /></div>
+          <Toggle label="챌린저스 EXP 패스" checked={s.challengerExp} onChange={v => set("challengerExp", v)} /><Toggle label="모멘텀 1차 프라임 · 49,800 넥슨캐시" checked={s.momentumPrime1} onChange={v => set("momentumPrime1", v)} /><Toggle label="모멘텀 2차 프라임 · 49,800 넥슨캐시" checked={s.momentumPrime2} onChange={v => set("momentumPrime2", v)} /><Toggle label="모멘텀 메카베리 모아쓰기" checked={s.deferMomentumMech} onChange={v => set("deferMomentumMech", v)} />
+          <div className="callout-mini">프라임은 회차별 별도 구매입니다. 두 패스 모두 ON이면 총 99,600 넥슨캐시이며 메포 합계에는 섞지 않습니다.</div>
+          <div className="field-grid compact inset"><label className="field"><span>메카베리 사용 레벨</span><select value={Math.min(s.momentumMechLevel, s.targetLevel === 290 ? 295 : 284)} disabled={!s.deferMomentumMech} onChange={e => set("momentumMechLevel", Number(e.target.value))}>{Array.from({ length: s.targetLevel === 290 ? 16 : 5 }, (_, index) => index + 280).map(level => <option key={level}>{level}</option>)}</select></label><InputField label="최종 사용일" value={s.momentumMechDeadline} type="date" disabled={!s.deferMomentumMech} onChange={v => set("momentumMechDeadline", v)} /></div>
           <Toggle label="특수 물자 지원 · 4배 쿠폰 몰아쓰기" checked={s.specialSupply} onChange={v => set("specialSupply", v)} />
           <div className="field-grid compact inset supply-input"><InputField label="시작일 보유 · 당일 충전 포함" value={s.specialSupplySaved} min={0} max={5} step={1} disabled={!s.specialSupply} onChange={v => set("specialSupplySaved", Number(v))} /><InputField label="실측 1회 경험치" value={s.specialSupplyExpPerCharge} min={0} step={1} disabled={!s.specialSupply} onChange={v => set("specialSupplyExpPerCharge", Number(v))} /></div>
           <div className="supply-warning"><b>직접 입력</b><p>공식 고정 경험치가 없어 입력값이 없으면 0으로 계산합니다.</p><small>5회 저장 시 입력한 1회 경험치의 5배 적용 · 농장과 달리 임의 추정값을 자동 사용하지 않음</small></div>
@@ -1611,7 +1645,7 @@ export default function Home() {
           <span>{isCalculating ? `전략 비교 중 · ${calculationSteps.toLocaleString("ko-KR")}개 확인` : hasPendingChanges ? "입력값이 변경되었습니다" : "현재 입력값으로 계산 완료"}</span>
           {isCalculating && <div className="calculation-progress" aria-hidden="true"><i /></div>}
           <div className="calculate-actions">
-            <button type="button" onClick={calculate} disabled={!hasPendingChanges || isCalculating}>{isCalculating ? "계산 중…" : hasPendingChanges ? `${s.targetLevel} 도달일 계산하기` : "계산 완료"}</button>
+            <button type="button" onClick={calculate} disabled={!hasPendingChanges || isCalculating}>{isCalculating ? "계산 중…" : hasPendingChanges ? s.targetLevel === 290 ? "9/16 예상 계산하기" : `${s.targetLevel} 도달일 계산하기` : "계산 완료"}</button>
             {isCalculating && <button type="button" className="cancel-calculation" onClick={cancelCalculation}>계산 취소</button>}
           </div>
           {isCalculating && <small>계산을 짧게 나눠 실행하므로 화면과 스크롤은 계속 사용할 수 있습니다.</small>}
@@ -1619,10 +1653,10 @@ export default function Home() {
       </aside>
 
       <div className="results" aria-busy={isCalculating}>
-        <div className="section-heading"><span>결과</span><div><p>선택한 조건</p><h2>{targetLevel} 도달 경로</h2></div>{isCalculating ? <output className="calculation-status" aria-live="polite">계산 중 · 화면 사용 가능</output> : hasPendingChanges && <output className="calculation-status pending" aria-live="polite">입력값 변경됨</output>}<button className="reset" onClick={resetCalculator}>기본값 복원</button></div>
+        <div className="section-heading"><span>결과</span><div><p>선택한 조건</p><h2>{targetLevel === 290 ? "9/16 종료 예상" : `${targetLevel} 도달 경로`}</h2></div>{isCalculating ? <output className="calculation-status" aria-live="polite">계산 중 · 화면 사용 가능</output> : hasPendingChanges && <output className="calculation-status pending" aria-live="polite">입력값 변경됨</output>}<button className="reset" onClick={resetCalculator}>기본값 복원</button></div>
         {targetLevel === 290 ? <div className="pull-selector long-range-selector">
-          <div className="pull-selector-head"><div><span>장기 계산</span><h3>290 도달 경로 비교</h3></div><b className={r.reached ? "deadline-ok" : "deadline-bad"}>{r.reached ? "도달일 계산 완료" : r.endReason === "no-growth" ? "성장 콘텐츠 없음" : "730일 내 미도달"}</b></div>
-          <p>무료 2판, 일요일만 7판, 매일 7판을 같은 입력으로 비교합니다. 9월 16일은 패스·이벤트 보상의 마감일이며 290 도달 제한일이 아닙니다.</p>
+          <div className="pull-selector-head"><div><span>마감 예측</span><h3>보상 몰아주면 {forecastProgress}</h3></div><b className="deadline-ok">2026년 9월 16일</b></div>
+          <p>{forecastInputSummary}</p>
         </div> : <><div className="pull-selector">
           <div className="pull-selector-head"><div><span>목표 주차</span><h3>{targetLevel} 도달 시점</h3></div><b className={calc.deadlineMet ? "deadline-ok" : "deadline-bad"}>{calc.deadlineMet ? "9/16 이전 달성" : "9/16 달성 불가"}</b></div>
           <div className="pull-buttons" role="group" aria-label={`${targetLevel} 달성 주차 당기기`}>
@@ -1634,11 +1668,11 @@ export default function Home() {
           <div className="strategy-choice-head"><span>경로 선택</span><h3>{calc.effectivePullWeeks ? `${calc.effectivePullWeeks}주 당김 경로` : "마감 기준 경로"}</h3><p>같은 도달일에는 메포가 적은 경로만 표시합니다.</p></div>
           <div className="strategy-choice-grid">{calc.recommendedPlansByWeek[calc.effectivePullWeeks].map((plan, index) => { const strategy = pullStrategies.find(item => item.id === plan.strategy)!; const active = plan.strategy === calc.selectedPlan.strategy; const recommended = plan.strategy === calc.bestRoiStrategy; return <button key={strategy.id} className={`${active ? "active" : ""} ${recommended ? "recommended" : ""}`} onClick={() => selectCalculatedRoute({ pullStrategy: strategy.id })}><div><span>{recommended ? "추천 · 순손익 최고" : index === 0 ? "메포 최저" : "더 빠른 선택"}</span><i>{active ? "선택됨" : "선택"}</i></div><h4>{strategy.label}</h4><p>{strategy.caption}</p><strong>{shortDate(plan.result.reached)}</strong><dl><div><dt>총액</dt><dd>{formatMP(plan.result.maplePoints)}</dd></div><div><dt>몬파</dt><dd>{formatMP(plan.result.monsterParkMaplePoints)}</dd></div><div><dt>상점</dt><dd>{formatMP(plan.result.shopMaplePoints)}</dd></div></dl><small>{calc.effectivePullWeeks ? shopPurchasePlanLabel(plan.shopBlueCount, plan.shopMechCount) : "0주에서는 농장 미구매"}</small></button>; })}</div>
         </div></>}
-        <ProgressChart selected={r} sunday={calc.sunday} free={calc.free} targetLevel={targetLevel} />
+        {targetLevel === 285 && <ProgressChart selected={r} sunday={calc.sunday} free={calc.free} targetLevel={targetLevel} />}
         {targetLevel === 290 ? <div className="route-grid">
-          <article className="route-card chosen"><div><div className="route-card-label"><span>비용 0 기준</span><i>{calc.free.reached ? "도달" : "미도달"}</i></div><h3>매일 2판</h3><p>추가 메포 없이 계산</p></div><strong>{shortDate(calc.free.reached)}</strong><dl><div><dt>총 비용</dt><dd>0 메포</dd></div><div><dt>계산 상태</dt><dd>{calc.free.endReason === "reached" ? "완료" : "미도달"}</dd></div></dl></article>
-          <article className="route-card baseline"><div><div className="route-card-label"><span>일요일 비교</span><i>{calc.sunday.reached ? "도달" : "미도달"}</i></div><h3>평일 2판 · 일요일 7판</h3><p>일요일 추가 5판만 결제</p></div><strong>{shortDate(calc.sunday.reached)}</strong><dl><div><dt>총 비용</dt><dd>{formatMP(calc.sunday.maplePoints)}</dd></div><div><dt>몬파</dt><dd>{formatMP(calc.sunday.monsterParkMaplePoints)}</dd></div></dl></article>
-          <article className="route-card free-route"><div><div className="route-card-label"><span>속도 비교</span><i>{calc.allSeven.reached ? "도달" : "미도달"}</i></div><h3>매일 7판</h3><p>매일 유료 추가 5판</p></div><strong>{shortDate(calc.allSeven.reached)}</strong><dl><div><dt>총 비용</dt><dd>{formatMP(calc.allSeven.maplePoints)}</dd></div><div><dt>몬파</dt><dd>{formatMP(calc.allSeven.monsterParkMaplePoints)}</dd></div></dl></article>
+          <article className="route-card chosen"><div><div className="route-card-label"><span>9/16 예상</span><i>계산 완료</i></div><h3>{calculatedSettings.paidMonsterPark ? "유료 몬파 추가 5판 ON" : "유료 몬파 추가 5판 OFF"}</h3><p>{calculatedSettings.paidMonsterPark ? "매일 7판 · 스페셜 선데이 적용" : "매일 기본 2판만 적용"}</p></div><strong>{forecastProgress}</strong><dl><div><dt>메포 합계</dt><dd>{formatMP(r.maplePoints)}</dd></div><div><dt>프라임</dt><dd>{primeCash.toLocaleString("ko-KR")} 넥슨캐시</dd></div></dl></article>
+          <article className="route-card baseline"><div><div className="route-card-label"><span>모멘텀 1차</span><i>{calculatedSettings.momentumPrime1 ? "프라임 ON" : "일반"}</i></div><h3>7/23~8/19</h3><p>현재 패스 Lv.{calculatedSettings.momentumPass1Level}</p></div><strong>{calculatedSettings.momentumPrime1 ? "49,800 캐시" : "무료"}</strong><dl><div><dt>일반 보상</dt><dd>항상 반영</dd></div><div><dt>프라임</dt><dd>추가 보상만</dd></div></dl></article>
+          <article className="route-card free-route"><div><div className="route-card-label"><span>모멘텀 2차</span><i>{calculatedSettings.momentumPrime2 ? "프라임 ON" : "일반"}</i></div><h3>8/20~9/16</h3><p>현재 패스 Lv.{calculatedSettings.momentumPass2Level}</p></div><strong>{calculatedSettings.momentumPrime2 ? "49,800 캐시" : "무료"}</strong><dl><div><dt>일반 보상</dt><dd>항상 반영</dd></div><div><dt>프라임</dt><dd>추가 보상만</dd></div></dl></article>
         </div> : <div className={`route-grid ${calc.effectivePullWeeks === 0 ? "two" : ""}`}>
           <article className="route-card chosen"><div><div className="route-card-label"><span>선택 경로 · {calc.effectivePullWeeks}주</span><i>{calc.selectedPlan.strategy === calc.bestRoiStrategy ? "추천 · 순손익 최고" : "선택됨"}</i></div><h3>{selectedRouteTitle}</h3><p>{calc.effectivePullWeeks === 0 ? "9월 16일 마감 기준" : `${calc.effectivePullWeeks}주 당김 기준`}{r.shopMaplePoints > 0 ? ` · 상점 ${formatMP(r.shopMaplePoints)} · ${shopPurchasePlanLabel(r.shopBluePurchased, r.shopMechPurchased)}` : " · 메포샵 미구매"}</p></div><strong>{shortDate(r.reached)}</strong><dl><div><dt>총 비용</dt><dd>{formatMP(r.maplePoints)}</dd></div><div><dt>메포샵</dt><dd>{formatMP(r.shopMaplePoints)}</dd></div><div><dt>하드</dt><dd>{calc.selectedHardWeeks}회</dd></div></dl></article>
           {calc.effectivePullWeeks > 0 && <article className="route-card baseline"><div><div className="route-card-label"><span>0주 비교 기준</span><i>추가 당김 없음</i></div><h3>{calc.basePlan.result.scheduleLabel}</h3><p>선택 경로의 비용·하드 횟수를 비교하는 기준입니다.</p></div><strong>{shortDate(calc.basePlan.result.reached)}</strong><dl><div><dt>총 비용</dt><dd>{formatMP(calc.basePlan.result.maplePoints)}</dd></div><div><dt>하드</dt><dd>{calc.baseHardWeeks}회</dd></div></dl></article>}
@@ -1658,11 +1692,11 @@ export default function Home() {
     {targetLevel === 290 && <section className="rewards-section main-leftovers milestone-leftovers">
       <div className="section-heading light"><span>285</span><div><p>{shortDate(r.reach285At)} 마일스톤</p><h2>285 도달 시점 남는 보상</h2></div></div>
       <div className="leftover-grid">{milestoneLeftoverRows.map(([label, value]) => <article key={label}><span>{label}</span><strong>{value}</strong></article>)}</div>
-      <p className="leftover-note">{r.startLevel >= 285 ? "이미 285 이상에서 시작해 계산 시작일 기준 보유·예정 보상을 표시합니다." : "290 계산과 별도로 실제 285 도달일과 당시 패스·이벤트 잔여를 보존합니다."}</p>
+      <p className="leftover-note">{r.startLevel >= 285 ? "이미 285 이상에서 시작해 계산 시작일 기준 보유·예정 보상을 표시합니다." : "9/16 예측 중 실제 285 도달일과 당시 패스·이벤트 잔여를 보존합니다."}</p>
     </section>}
 
     <section className={`rewards-section main-leftovers ${targetLevel === 290 ? "final-leftovers" : ""}`}>
-      <div className="section-heading light"><span>잔여</span><div><p>{r.reached ? `${shortDate(r.reached)} 기준` : `${r.horizonDays}일 계산 종료 기준`}</p><h2>{r.reached ? `${targetLevel} 달성 후 남는 보상` : "계산 종료 시점 남는 보상"}</h2></div></div>
+      <div className="section-heading light"><span>잔여</span><div><p>{targetLevel === 290 ? "9/16 시즌 종료 기준" : r.reached ? `${shortDate(r.reached)} 기준` : `${r.horizonDays}일 계산 종료 기준`}</p><h2>{targetLevel === 290 ? "9/16에 남는 보상" : r.reached ? `${targetLevel} 달성 후 남는 보상` : "계산 종료 시점 남는 보상"}</h2></div></div>
       <div className="leftover-grid">{leftoverRows.map(([label, value]) => <article key={label}><span>{label}</span><strong>{value}</strong></article>)}</div>
       <p className="leftover-note">{momentumLeft ? `모멘텀 패스 4주차 보상은 ${targetLevel} 달성 후 수령합니다.` : "모멘텀 패스 4주차 보상까지 사용한 결과입니다."} {calculatedSettings.specialSupply ? calculatedSettings.specialSupplyExpPerCharge > 0 ? `특수 물자는 계산 중 ${r.specialSupplyUsed.toLocaleString("ko-KR")}회 사용했습니다.` : "특수 물자 실측값이 없어 경험치 0으로 계산했습니다." : "특수 물자는 계산에서 제외했습니다."}</p>
     </section>
@@ -1724,7 +1758,7 @@ export default function Home() {
 
     {activeTab === "passes" && <section className="rewards-section passes-panel tab-panel" id="passes-panel" role="tabpanel" aria-labelledby="passes-tab">
       <div className="section-heading light"><span>표</span><div><p>현재 패스 레벨 입력 가능</p><h2>패스 보상표</h2></div></div>
-      <div className="pass-grid"><article><div className="table-title"><span>CHALLENGERS · 현재 {s.challengerPassLevel}레벨</span><h3>챌린저스 EXP 패스</h3></div><table><thead><tr><th>레벨 구간</th><th>일반</th><th>EXP 패스 포함</th></tr></thead><tbody><tr><td>1~10</td><td>-</td><td>블루베리 6 · 사우나 2시간 · 상급 EXP 2,000</td></tr><tr><td>11~20</td><td>-</td><td>블루베리 6 · 사우나 2시간 · 상급 EXP 2,000</td></tr><tr><td>21~25</td><td>상급 EXP 100</td><td>블루베리 3 · 사우나 1시간 · 상급 EXP 1,100</td></tr><tr><td>26~30</td><td>상급 EXP 2,100</td><td>블루베리 2 · 사우나 1시간 · 상급 EXP 3,100 · 비약 1</td></tr><tr className="total"><td>1~30 합계</td><td>상급 EXP 2,200</td><td>블루베리 17 · 사우나 6시간 · 상급 EXP 8,200 · 비약 1</td></tr></tbody></table></article><article><div className="table-title"><span>MOMENTUM · 현재 {s.momentumPassLevel}레벨</span><h3>모멘텀 패스</h3></div><table><thead><tr><th>레벨 구간</th><th>프라임 핵심 보상</th></tr></thead><tbody><tr><td>1~2</td><td>메카베리 2 · 사우나 30분 · 4배 쿠폰 2</td></tr><tr><td>3~5</td><td>메카베리 2 · 사우나 30분 · 상급 EXP 3,100 · 4배 2</td></tr><tr><td>6~8</td><td>메카베리 3 · 사우나 30분 · 상급 EXP 3,100 · 4배 2</td></tr><tr><td>9~10</td><td>메카베리 4 · 상급 EXP 3,300</td></tr><tr className="total"><td>1~10 합계</td><td>메카베리 11 · 사우나 1.5시간 · 상급 EXP 9,500</td></tr></tbody></table></article></div>
+      <div className="pass-grid"><article><div className="table-title"><span>CHALLENGERS · 현재 {s.challengerPassLevel}레벨</span><h3>챌린저스 EXP 패스</h3></div><table><thead><tr><th>레벨 구간</th><th>일반</th><th>EXP 패스 포함</th></tr></thead><tbody><tr><td>1~10</td><td>-</td><td>블루베리 6 · 사우나 2시간 · 상급 EXP 2,000</td></tr><tr><td>11~20</td><td>-</td><td>블루베리 6 · 사우나 2시간 · 상급 EXP 2,000</td></tr><tr><td>21~25</td><td>상급 EXP 100</td><td>블루베리 3 · 사우나 1시간 · 상급 EXP 1,100</td></tr><tr><td>26~30</td><td>상급 EXP 2,100</td><td>블루베리 2 · 사우나 1시간 · 상급 EXP 3,100 · 비약 1</td></tr><tr className="total"><td>1~30 합계</td><td>상급 EXP 2,200</td><td>블루베리 17 · 사우나 6시간 · 상급 EXP 8,200 · 비약 1</td></tr></tbody></table></article><article><div className="table-title"><span>MOMENTUM · 1차 Lv.{s.momentumPass1Level} · 2차 Lv.{s.momentumPass2Level}</span><h3>모멘텀 패스 1·2차</h3></div><table><thead><tr><th>회차별 합계</th><th>보상</th></tr></thead><tbody><tr><td>일반</td><td>메카베리 1 · 사우나 1.5시간 · 상급 EXP 500</td></tr><tr><td>프라임 추가</td><td>메카베리 10 · 상급 EXP 9,000 · 4배 쿠폰 6</td></tr><tr className="total"><td>프라임 포함</td><td>메카베리 11 · 사우나 1.5시간 · 상급 EXP 9,500 · 4배 쿠폰 6</td></tr><tr><td>기간</td><td>1차 7/23~8/19 · 2차 8/20~9/16</td></tr><tr><td>가격</td><td>각 49,800 넥슨캐시 · 별도 구매</td></tr></tbody></table></article></div>
     </section>}
 
     <footer><div className="brand"><span className="brand-mark">M</span><span>285·290 CALCULATOR</span></div><p>경험치 기준 · 하루1소재 · 메이플로드 · 2026.08.03 확인</p><div className="source-links"><a href="https://haru1sojae.kr/table" target="_blank" rel="noreferrer">하루1소재</a><a href="https://mapleroad.kr/utils/exp_calculator" target="_blank" rel="noreferrer">메이플로드</a><a href="https://maplestory.nexon.com/testworld/news/all/188" target="_blank" rel="noreferrer">테스트월드</a></div></footer>

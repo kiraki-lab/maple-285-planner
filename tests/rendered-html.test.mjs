@@ -54,7 +54,8 @@ test("keeps the 285 calculator primary, adds 290, and moves supporting content i
   assert.match(page, /계산 취소/);
   assert.match(page, /화면 사용 가능/);
   assert.match(page, /입력값 변경됨/);
-  assert.match(page, /목표 레벨/);
+  assert.match(page, /285 도달일/);
+  assert.match(page, /9\/16 종료 예상/);
   assert.match(page, /285 도달 시점 남는 보상/);
   assert.match(page, /메카베리 모아쓰기/);
   assert.match(page, /패스 보상표/);
@@ -69,7 +70,8 @@ test("keeps the 285 calculator primary, adds 290, and moves supporting content i
   assert.match(page, /기본 몬파 경험치 \+300%\(총 4배\)/);
   assert.match(page, /label: "소경축비"/);
   assert.match(page, /챌섭 EXP 패스 현재 레벨/);
-  assert.match(page, /모멘텀 패스 현재 레벨/);
+  assert.match(page, /모멘텀 1차 현재 레벨/);
+  assert.match(page, /모멘텀 2차 현재 레벨/);
   assert.match(page, /특수 물자 지원 · 4배 쿠폰 몰아쓰기/);
   assert.match(page, /시작일 보유 · 당일 충전 포함/);
   assert.match(page, /실측 1회 경험치/);
@@ -83,7 +85,7 @@ test("keeps the 285 calculator primary, adds 290, and moves supporting content i
   assert.match(page, /Core6Choice title="에픽 던전"/);
   assert.match(page, /aria-label=\{accessibleLabel\}/);
   assert.match(page, /accessibleLabel=\{`\$\{title\} 코어 6레벨`\}/);
-  assert.ok(page.indexOf("core6-picker") > page.indexOf("모멘텀 패스 현재 레벨"));
+  assert.ok(page.indexOf("core6-picker") > page.indexOf("모멘텀 2차 현재 레벨"));
   assert.ok(page.indexOf("core6-picker") < page.indexOf("<details><summary>패스 · 이벤트 설정"));
   assert.doesNotMatch(page, /일일 사냥 경험치/);
   assert.doesNotMatch(page, /SPECTER_BLAST_END|specter|mpNow|dailyNow|epicNow|mpPatch|dailyPatch|epicPatch|afterPatch|patchDate|challengerPassCapForDate|7\/22|패치 전|패치 후/);
@@ -126,7 +128,7 @@ test("keeps verified calculator constants visible in source", async () => {
   assert.match(page, /challengerPassLevel: 30/);
   assert.match(page, /prePassLevel: 30, preUnclaimed: false/);
   assert.match(page, /challengerUnclaimed: false/);
-  assert.match(page, /momentumPassLevel: 0/);
+  assert.match(page, /momentumPass1Level: 0, momentumPass2Level: 0/);
   assert.match(page, /shardDate: "2026-07-30"/);
   assert.match(page, /shardAdv: 5000/);
   assert.match(page, /core20Date: "2026-07-23"/);
@@ -161,7 +163,8 @@ test("keeps verified calculator constants visible in source", async () => {
   assert.match(page, /SPECIAL_SUPPLY_END = "2026-08-19"/);
   assert.doesNotMatch(page, /SPECIAL_SUPPLY_EXP_PER_CHARGE/);
   assert.match(page, /SPECIAL_SUPPLY_BATCH_SIZE = 5/);
-  assert.match(page, /MOMENTUM_PASS_START = "2026-07-23"/);
+  assert.match(page, /MOMENTUM_PASS_1_START = "2026-07-23"/);
+  assert.match(page, /MOMENTUM_PASS_2_START = "2026-08-20"/);
   assert.match(page, /specialSupply: false, specialSupplySaved: 0/);
   assert.match(page, /specialSupplyExpPerCharge \* SPECIAL_SUPPLY_BATCH_SIZE/);
   assert.doesNotMatch(page, /38[_ ,]?512[_ ,]?167[_ ,]?837\s*[×x*]\s*4/);
@@ -240,7 +243,8 @@ test("uses the Epic Dungeon level 6 core in Nightmare Paradise stage 1", async (
     level: 284,
     exp: 0,
     challengerPassLevel: 30,
-    momentumPassLevel: 10,
+    momentumPass1Level: 10,
+    momentumPass2Level: 10,
     apology: false,
     shardEvent: false,
     ultima: false,
@@ -286,7 +290,8 @@ test("ignores Ultima shop EXP rewards that are already past", async () => {
     level: 284,
     exp: 0,
     challengerPassLevel: 30,
-    momentumPassLevel: 10,
+    momentumPass1Level: 10,
+    momentumPass2Level: 10,
     apology: false,
     ultima: false,
     specialSupply: false,
@@ -322,7 +327,8 @@ test("buys one Blueberry on the first still-open Maple Point shop week", async (
     level: 280,
     exp: 0,
     challengerPassLevel: 30,
-    momentumPassLevel: 10,
+    momentumPass1Level: 10,
+    momentumPass2Level: 10,
     apology: false,
     shardEvent: false,
     ultima: false,
@@ -349,7 +355,8 @@ test("prices, grants, and distributes Maple Point shop items by exact count", as
     level: 280,
     exp: 0,
     challengerPassLevel: 30,
-    momentumPassLevel: 10,
+    momentumPass1Level: 10,
+    momentumPass2Level: 10,
     apology: false,
     shardEvent: false,
     ultima: false,
@@ -386,7 +393,7 @@ test("prices, grants, and distributes Maple Point shop items by exact count", as
   assert.equal(mixedPairs.some(([blueCount, mechCount]) => blueCount === 1 && mechCount === 2), true);
   assert.match(page, /SHOP_BLUE_UNIT_PRICE = 7_000/);
   assert.match(page, /SHOP_MECH_UNIT_PRICE = 10_000/);
-  assert.match(page, /availableShopCount = availableShopWeeksForStart\(start\)\.length \* SHOP_WEEKLY_ITEM_LIMIT/);
+  assert.match(page, /availableShopItemCount = availableShopWeeks\.length \* SHOP_WEEKLY_ITEM_LIMIT/);
   assert.match(page, /shopPurchasePairsForAvailableCount\(availableShopItemCount\)/);
   assert.match(page, /candidateAt\(availableShopItemCount, availableShopItemCount, 64\)/);
   assert.match(page, /shopPurchasePlanLabel\(plan\.shopBlueCount, plan\.shopMechCount\)/);
@@ -411,7 +418,8 @@ test("starts Thursday Ultima attendance from the new week without overwriting ma
     level: 284,
     exp: 99.999,
     challengerPassLevel: 30,
-    momentumPassLevel: 10,
+    momentumPass1Level: 10,
+    momentumPass2Level: 10,
     apology: false,
     shardEvent: false,
     specialSupply: false,
@@ -616,7 +624,8 @@ test("recommends paid weekday Monster Park for the reported Lv.282 case", async 
     start: "2026-07-27",
     specialSundayCount: 0,
     challengerPassLevel: 30,
-    momentumPassLevel: 0,
+    momentumPass1Level: 0,
+    momentumPass2Level: 0,
     pullWeeks: 1,
   };
   const planning = pageModule.runPlanningImmediately(settings);
@@ -705,9 +714,9 @@ test("keeps the approved A-C fixtures unchanged in target 285 mode", async () =>
   const fixtures = [
     {
       settings: pageModule.createDefaultSettings("2026-07-27"),
-      reached: "2026-09-08",
+      reached: "2026-09-07",
       maplePoints: 18_000,
-      leftovers: { blue: 0, mech: 0, sauna: 0, adv: 0, potion269: 0, potion279: 0, coupon3x: 93, coupon4x: 10 },
+      leftovers: { blue: 0, mech: 0, sauna: 0, adv: 300, potion269: 0, potion279: 0, coupon3x: 93, coupon4x: 10 },
     },
     {
       settings: { ...pageModule.createDefaultSettings("2026-08-03"), level: 280, exp: 0 },
@@ -719,7 +728,7 @@ test("keeps the approved A-C fixtures unchanged in target 285 mode", async () =>
       settings: { ...pageModule.createDefaultSettings("2026-08-03"), level: 284, exp: 50 },
       reached: "2026-08-06",
       maplePoints: 0,
-      leftovers: { blue: 0, mech: 3, sauna: 1, adv: 6200, potion269: 0, potion279: 0, coupon3x: 6, coupon4x: 10 },
+      leftovers: { blue: 0, mech: 4, sauna: 2.5, adv: 6700, potion269: 0, potion279: 0, coupon3x: 6, coupon4x: 10 },
     },
   ];
 
@@ -772,7 +781,8 @@ test("uses the calculation start date as the automatic Carcion boundary", async 
     level: 285,
     exp: 0,
     challengerPassLevel: 30,
-    momentumPassLevel: 10,
+    momentumPass1Level: 10,
+    momentumPass2Level: 10,
     apology: false,
     shardEvent: false,
     ultima: false,
@@ -801,7 +811,8 @@ test("preserves a 285 milestone snapshot in target 290 mode", async () => {
     level: 289,
     exp: 99.999,
     challengerPassLevel: 30,
-    momentumPassLevel: 10,
+    momentumPass1Level: 10,
+    momentumPass2Level: 10,
     apology: false,
     shardEvent: false,
     ultima: false,
@@ -810,7 +821,10 @@ test("preserves a 285 milestone snapshot in target 290 mode", async () => {
   const result = pageModule.simulate(settings, { fixedRuns: 0 });
 
   assert.equal(pageModule.simulationDateKey(result.reach285At), "2026-08-03");
-  assert.ok(result.reached);
+  assert.equal(result.reached, null);
+  assert.equal(result.rows.at(-1).key, "2026-09-16");
+  assert.equal(result.finalLevel, 290);
+  assert.ok(Math.abs(result.finalExp - 33.0732093437634) < 1e-10);
   assert.ok(result.leftoversAt285);
   assert.notEqual(result.leftoversAt285, result.leftovers);
   assert.deepEqual(result.leftoversAt285, { blue: 0, mech: 0, sauna: 0, adv: 0, potion269: 0, potion279: 0, coupon3x: 0, coupon4x: 0 });
@@ -823,7 +837,8 @@ test("does not auto-apply Special Supply EXP without direct input", async () => 
     level: 284,
     exp: 0,
     challengerPassLevel: 30,
-    momentumPassLevel: 10,
+    momentumPass1Level: 10,
+    momentumPass2Level: 10,
     apology: false,
     shardEvent: false,
     ultima: false,
@@ -850,41 +865,90 @@ test("keeps the target round-trip inputs in source instead of clamping state", a
   const page = await readFile(new URL("app/page.tsx", root), "utf8");
 
   assert.match(page, /targetLevel: 285 \| 290/);
-  assert.match(page, /value=\{Math\.min\(s\.level, s\.targetLevel - 1\)\}/);
+  assert.match(page, /value=\{Math\.min\(s\.level, s\.targetLevel === 290 \? 295 : 284\)\}/);
   assert.doesNotMatch(page, /set\("level", 284\)/);
   assert.match(page, /Lv\.285~295 농장은 하루1소재 공개 퍼센트 기반 근사값/);
   assert.match(page, /challengerLevel < 30/);
 });
 
-test("computes real long-range 290 dates without the 285 deadline optimizer", async () => {
-  const pageModule = await importBuiltPage("target-290-long-range");
+test("forecasts the final level and EXP at the September 16 deadline", async () => {
+  const pageModule = await importBuiltPage("target-290-deadline");
   const settings = {
     ...pageModule.createDefaultSettings("2026-08-03"),
     targetLevel: 290,
     level: 285,
     exp: 0,
+    paidMonsterPark: false,
   };
   const planning = pageModule.runPlanningImmediately(settings);
 
-  assert.equal(pageModule.simulationDateKey(planning.free.reached), "2027-02-26");
-  assert.equal(pageModule.simulationDateKey(planning.sunday.reached), "2027-02-07");
-  assert.equal(pageModule.simulationDateKey(planning.allSeven.reached), "2026-12-10");
-  assert.equal(planning.free.rows.at(-1).key, pageModule.simulationDateKey(planning.free.reached));
-  assert.equal(planning.sunday.rows.at(-1).key, pageModule.simulationDateKey(planning.sunday.reached));
-  assert.equal(planning.allSeven.rows.at(-1).key, pageModule.simulationDateKey(planning.allSeven.reached));
-  assert.ok(planning.free.rows.length <= 730);
-  assert.ok(planning.sunday.rows.length <= 730);
-  assert.ok(planning.allSeven.rows.length <= 730);
-  assert.equal(planning.free.endReason, "reached");
-  assert.equal(planning.sunday.endReason, "reached");
-  assert.equal(planning.allSeven.endReason, "reached");
+  assert.equal(planning.basePlan.result.rows.at(-1).key, "2026-09-16");
+  assert.equal(planning.basePlan.result.finalLevel, 286);
+  assert.ok(Math.abs(planning.basePlan.result.finalExp - 86.66382688092085) < 1e-10);
+  assert.equal(planning.basePlan.result.monsterParkMaplePoints, 0);
+  assert.equal(planning.basePlan.result.reached, null);
+  assert.equal(planning.basePlan.result.endReason, "horizon");
   assert.equal(planning.maxPullWeeks, 0);
   assert.equal(planning.basePlan.feasible, true);
   assert.ok(planning.recommendedPlansByWeek[0].length > 0);
   assert.ok(planning.bestPlansByWeek[0]);
 });
 
-test("pins hidden 290 selection to the visible free route while preserving the 285 strategy input", async () => {
+test("caps the September 16 forecast at Lv.295 99.999%", async () => {
+  const pageModule = await importBuiltPage("target-295-cap");
+  const settings = {
+    ...pageModule.createDefaultSettings("2026-09-16"),
+    targetLevel: 290,
+    level: 295,
+    exp: 99.999,
+    paidMonsterPark: false,
+    challengerPassLevel: 30,
+    momentumPass1Level: 10,
+    momentumPass2Level: 10,
+    apology: false,
+    shardEvent: false,
+    ultima: false,
+    specialSupply: false,
+    weeklyOpen: false,
+    grandis: false,
+    extreme: false,
+    epic: false,
+    todayDaily: true,
+  };
+  const result = pageModule.simulate(settings, { fixedRuns: 7 });
+
+  assert.equal(result.rows.at(-1).key, "2026-09-16");
+  assert.equal(result.finalLevel, 295);
+  assert.ok(Math.abs(result.finalExp - 99.999) < 1e-10);
+  assert.equal(result.monsterParkMaplePoints, 0);
+  assert.ok(result.rows.at(-1).progress < 296);
+});
+
+test("keeps the two Momentum Prime purchases independent and adds only Prime rewards", async () => {
+  const pageModule = await importBuiltPage("momentum-two-primes");
+  const totals = prime => Array.from({ length: 10 }, (_, index) => pageModule.momentumRewardForLevel(index + 1, prime, false))
+    .reduce((sum, reward) => ({
+      mech: sum.mech + Number(reward.mech || 0),
+      adv: sum.adv + Number(reward.adv || 0),
+      coupon4x: sum.coupon4x + Number(reward.coupon4x || 0),
+    }), { mech: 0, adv: 0, coupon4x: 0 });
+  const normal = totals(false);
+  const prime = totals(true);
+
+  assert.deepEqual(normal, { mech: 1, adv: 500, coupon4x: 0 });
+  assert.deepEqual(prime, { mech: 11, adv: 9500, coupon4x: 6 });
+  assert.deepEqual({ mech: prime.mech - normal.mech, adv: prime.adv - normal.adv, coupon4x: prime.coupon4x - normal.coupon4x }, { mech: 10, adv: 9000, coupon4x: 6 });
+});
+
+test("shows both Prime prices as 99,600 Nexon Cash without adding them to Maple Points", async () => {
+  const page = await readFile(new URL("app/page.tsx", root), "utf8");
+  assert.match(page, /모멘텀 1차 프라임 · 49,800 넥슨캐시/);
+  assert.match(page, /모멘텀 2차 프라임 · 49,800 넥슨캐시/);
+  assert.match(page, /두 패스 모두 ON이면 총 99,600 넥슨캐시/);
+  assert.match(page, /메포 합계에는 섞지 않습니다/);
+});
+
+test("pins the 9/16 forecast selection while preserving the 285 strategy input", async () => {
   const pageModule = await importBuiltPage("target-round-trip-selection");
 
   for (const pullStrategy of ["blue", "mech", "both"]) {
@@ -894,13 +958,15 @@ test("pins hidden 290 selection to the visible free route while preserving the 2
       level: 285,
       exp: 0,
       pullStrategy,
+      paidMonsterPark: false,
     };
     const planning290 = pageModule.runPlanningImmediately(target290);
     const selected290 = pageModule.selectedPlanForSettings(planning290, target290);
 
     assert.equal(selected290, planning290.basePlan);
-    assert.equal(selected290.result, planning290.free);
-    assert.equal(selected290.result.scheduleLabel, "매일 2판");
+    assert.equal(selected290.result, planning290.basePlan.result);
+    assert.equal(selected290.result.scheduleLabel, "매일 기본 2판");
+    assert.equal(selected290.result.rows.at(-1).key, "2026-09-16");
     assert.equal(target290.pullStrategy, pullStrategy);
 
     const returnedTo285 = { ...target290, targetLevel: 285 };
@@ -916,6 +982,6 @@ test("keeps the target 285 simulation on the 120-day fast horizon", async () => 
 
   assert.equal(planning.basePlan.result.horizonDays, 120);
   assert.ok(planning.basePlan.result.rows.length <= 120);
-  assert.equal(pageModule.simulationDateKey(planning.basePlan.result.reached), "2026-09-08");
+  assert.equal(pageModule.simulationDateKey(planning.basePlan.result.reached), "2026-09-07");
   assert.ok(elapsed < 2_000, `target 285 planning took ${elapsed.toFixed(1)}ms`);
 });
