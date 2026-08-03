@@ -19,7 +19,6 @@ type Settings = {
   level: number;
   exp: number;
   start: string;
-  carcionUnlockDate: string;
   pullWeeks: number;
   pullStrategy: PullStrategy;
   specialSundayCount: number;
@@ -231,6 +230,7 @@ export const monsterParkRawForLevel = (level: number, carcionActive = true, tall
 export const grandisDailyRawForLevel = (level: number, carcionActive = true) => level >= 285 && carcionActive ? GRANDIS_DAILY_WITH_CARCION : GRANDIS_DAILY_WITHOUT_CARCION;
 export const contentUnlockedOn = (date: Date, unlockDate: string, level: number, minimumLevel: number) =>
   level >= minimumLevel && Boolean(unlockDate && date >= parseDate(unlockDate));
+export const carcionContentActive = (date: Date, calculationStart: string, level: number) => contentUnlockedOn(date, calculationStart, level, 285);
 [285, 286, 287, 288, 289].forEach(level => {
   const required = Number(REQUIRED_EXP[level]);
   Object.assign(efficiency[level], {
@@ -377,7 +377,7 @@ const availableShopWeeksForStart = (start: Date) => {
 const createDefaultSettings = (start = SSR_DEFAULT_START): Settings => {
   const ultimaProgress = ultimaProgressBefore(start);
   return ({
-  targetLevel: 285, level: 280, exp: 87.39, start, carcionUnlockDate: start, pullWeeks: 0, pullStrategy: "monsterPark", specialSundayCount: 1,
+  targetLevel: 285, level: 280, exp: 87.39, start, pullWeeks: 0, pullStrategy: "monsterPark", specialSundayCount: 1,
   specialSupply: false, specialSupplySaved: 0, specialSupplyExpPerCharge: 0,
   challengerPassLevel: 30, momentumPassLevel: 0,
   preLevel: 270, preExp: 0, prePassLevel: 30, preUnclaimed: false,
@@ -780,7 +780,7 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
   const horizonDays = targetLevel === 290 ? 730 : 120;
   let level = Math.max(280, Math.min(targetLevel - 1, s.level));
   let xp = req(level) * Math.max(0, Math.min(99.999, s.exp)) / 100;
-  const carcionActive = (date: Date, currentLevel = level) => contentUnlockedOn(date, s.carcionUnlockDate, currentLevel, 285);
+  const carcionActive = (date: Date, currentLevel = level) => carcionContentActive(date, s.start, currentLevel);
   const selectedCutoff = addDays(start, -1);
   const sevenUntil = schedule.sevenUntil ?? selectedCutoff;
   const fixedRuns = schedule.fixedRuns == null ? null : Math.max(0, Math.min(7, schedule.fixedRuns));
@@ -1576,7 +1576,6 @@ export default function Home() {
           <label className="field"><span>현재 레벨</span><select value={Math.min(s.level, s.targetLevel - 1)} onChange={e => set("level", Number(e.target.value))}>{Array.from({ length: s.targetLevel - 280 }, (_, index) => index + 280).map(level => <option key={level}>{level}</option>)}</select></label>
           <InputField label="현재 경험치 %" value={s.exp} min={0} max={99.999} step={0.001} onChange={v => set("exp", Number(v))} />
           <InputField label="계산 시작일" value={s.start} type="date" onChange={v => set("start", v)} />
-          <InputField label="카르시온 콘텐츠 해금일" value={s.carcionUnlockDate} type="date" onChange={v => set("carcionUnlockDate", v)} />
           <InputField label="스페셜 선데이 몬파 횟수" value={s.specialSundayCount} min={0} max={12} step={1} onChange={v => set("specialSundayCount", Number(v))} />
           <InputField label="챌섭 EXP 패스 현재 레벨" value={s.challengerPassLevel} min={0} max={30} step={1} onChange={v => set("challengerPassLevel", Number(v))} />
           <InputField label="모멘텀 패스 현재 레벨" value={s.momentumPassLevel} min={0} max={10} step={1} onChange={v => set("momentumPassLevel", Number(v))} />

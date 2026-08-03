@@ -749,17 +749,48 @@ test("uses the verified 285-290 integer ledgers and additive multipliers", async
   assert.equal(pageModule.WEEKLY_CONTENT_RAW[290].adv1000, 1_078_497_000_000);
 });
 
-test("switches Carcion content on its unlock date and otherwise falls back to Arteria", async () => {
-  const pageModule = await importBuiltPage("carcion-boundary");
-  const before = new Date(2026, 7, 9);
-  const unlock = new Date(2026, 7, 10);
+test("uses the calculation start date as the automatic Carcion boundary", async () => {
+  const pageModule = await importBuiltPage("carcion-start-boundary");
+  const page = await readFile(new URL("app/page.tsx", root), "utf8");
+  const start = new Date("2026-08-03T00:00:00+09:00");
+  const defaultsAtStart = pageModule.createDefaultSettings("2026-08-03");
 
-  assert.equal(pageModule.contentUnlockedOn(before, "2026-08-10", 285, 285), false);
-  assert.equal(pageModule.contentUnlockedOn(unlock, "2026-08-10", 285, 285), true);
+  assert.equal("carcionUnlockDate" in defaultsAtStart, false);
+  assert.doesNotMatch(page, /carcionUnlockDate|카르시온 콘텐츠 해금일/);
+  assert.match(page, /carcionContentActive\(date, s\.start, currentLevel\)/);
+  assert.equal(pageModule.carcionContentActive(start, "2026-08-03", 280), false);
+  assert.equal(pageModule.carcionContentActive(start, "2026-08-03", 285), true);
+  assert.equal(pageModule.carcionContentActive(start, "2026-08-04", 285), false);
   assert.equal(pageModule.monsterParkRawForLevel(285, false), 107_204_000_000);
   assert.equal(pageModule.monsterParkRawForLevel(285, true), 156_017_856_000);
   assert.equal(pageModule.grandisDailyRawForLevel(285, false), 129_794_096_544);
   assert.equal(pageModule.grandisDailyRawForLevel(285, true), 175_429_319_424);
+
+  const firstDaySettings = {
+    ...defaultsAtStart,
+    targetLevel: 290,
+    level: 285,
+    exp: 0,
+    challengerPassLevel: 30,
+    momentumPassLevel: 10,
+    apology: false,
+    shardEvent: false,
+    ultima: false,
+    specialSupply: false,
+    todayDaily: true,
+    weeklyOpen: false,
+    grandis: false,
+    extreme: false,
+    epic: false,
+  };
+  const firstDay = pageModule.simulate(firstDaySettings, { fixedRuns: 1 });
+  const firstDayBonuses = pageModule.eterionBonusesForDate(firstDaySettings, start);
+  const monsterParkMultiplier = 1 + firstDayBonuses.mp / 100;
+  const expectedFirstDayProgress = 285 + pageModule.monsterParkRawForLevel(285, true) * monsterParkMultiplier / Number(pageModule.REQUIRED_EXP[285]);
+  assert.ok(Math.abs(firstDay.rows[0].progress - expectedFirstDayProgress) < 1e-12);
+  const firstDayDaily = pageModule.simulate({ ...firstDaySettings, grandis: true }, { fixedRuns: 0 });
+  const expectedDailyProgress = 285 + pageModule.grandisDailyRawForLevel(285, true) * (1 + firstDayBonuses.daily / 100) / Number(pageModule.REQUIRED_EXP[285]);
+  assert.ok(Math.abs(firstDayDaily.rows[0].progress - expectedDailyProgress) < 1e-12);
 });
 
 test("preserves a 285 milestone snapshot in target 290 mode", async () => {
@@ -769,7 +800,6 @@ test("preserves a 285 milestone snapshot in target 290 mode", async () => {
     targetLevel: 290,
     level: 289,
     exp: 99.999,
-    carcionUnlockDate: "2026-08-03",
     challengerPassLevel: 30,
     momentumPassLevel: 10,
     apology: false,
@@ -833,7 +863,6 @@ test("computes real long-range 290 dates without the 285 deadline optimizer", as
     targetLevel: 290,
     level: 285,
     exp: 0,
-    carcionUnlockDate: "2026-08-03",
   };
   const planning = pageModule.runPlanningImmediately(settings);
 
@@ -864,7 +893,6 @@ test("pins hidden 290 selection to the visible free route while preserving the 2
       targetLevel: 290,
       level: 285,
       exp: 0,
-      carcionUnlockDate: "2026-08-03",
       pullStrategy,
     };
     const planning290 = pageModule.runPlanningImmediately(target290);
