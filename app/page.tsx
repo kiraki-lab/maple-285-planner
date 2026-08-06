@@ -113,7 +113,8 @@ type Reward = Partial<Leftovers> & {
   date?: string;
   remaining?: Leftovers;
 };
-type Row = { date: Date; key: string; level: number; exp: number; progress: number; events: string[] };
+type RowUsage = { blue: number; mech: number; sauna: number; adv: number; potion: number; runs: number };
+type Row = { date: Date; key: string; level: number; exp: number; progress: number; events: string[]; usage: RowUsage };
 type Simulation = {
   start: Date;
   startLevel: number;
@@ -448,7 +449,7 @@ const createDefaultSettings = (start = SSR_DEFAULT_START): Settings => {
   momentumMechLevel: 284, momentumMechDeadline: "2026-08-12", mayrinMesoGap: 3, mayrinNormalFrag: 30,
   fragPrice: 640, mpPerEok: 2500, postReset: true, challengerUnclaimed: false, challengerExp: true,
   momentumPrime1: true, momentumPrime2: true, deferMomentumMech: true,
-  dailyCore6Enabled: false, dailyCore6Date: "2026-07-27", mpCore6Enabled: false, mpCore6Date: "2026-07-27", epicCore6Enabled: false, epicCore6Date: "2026-07-27",
+  dailyCore6Enabled: true, dailyCore6Date: "2026-07-27", mpCore6Enabled: true, mpCore6Date: "2026-07-27", epicCore6Enabled: true, epicCore6Date: "2026-07-27",
   apology: true, shardEvent: true, ultima: true, shopMech: true, shopBlue: true, mpCore5: 90,
   core20Date: "2026-07-23", core20Bonus: 5, mpCore6: 95,
   dailyCore5: 95, dailyCore6: 100, shardDate: "2026-07-30", shardAdv: 5000,
@@ -1060,6 +1061,8 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
   const startingProgress = level + xp / req(level);
   for (let day = 0; day < horizonDays && (forecastMode || level < targetLevel); day += 1) {
     const date = addDays(start, day); const key = iso(date); const events: string[] = [];
+    // 계산 근거 표시용. 그날 실제로 소비한 수량을 그대로 모은다.
+    const usage: RowUsage = { blue: 0, mech: 0, sauna: 0, adv: 0, potion: 0, runs: 0 };
     (rewardDays.get(key) || []).forEach(reward => {
       if (reward.optionalPurchase && (level >= targetLevel || atForecastCap())) return;
       if (reward.optionalPurchase) {
@@ -1069,12 +1072,12 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
       }
       shopMaplePoints += reward.maplePoints || 0;
       const r = reward.remaining!;
-      if ((reward.blue || 0) > 0) r.blue -= applyItems("blue", r.blue);
-      if ((reward.mech || 0) > 0 && (!reward.deferMech || level >= momentumMechLevel || date >= momentumMechDeadline)) r.mech -= applyItems("mech", r.mech);
-      if ((reward.sauna || 0) > 0) r.sauna -= applyItems("sauna", r.sauna);
-      if ((reward.potion269 || 0) > 0) r.potion269 -= applyGrowthPotion("potion269", r.potion269);
-      if ((reward.potion279 || 0) > 0) r.potion279 -= applyGrowthPotion("potion279", r.potion279);
-      if ((reward.adv || 0) > 0) r.adv -= applyItems("adv", r.adv);
+      if ((reward.blue || 0) > 0) { const used = applyItems("blue", r.blue); r.blue -= used; usage.blue += used; }
+      if ((reward.mech || 0) > 0 && (!reward.deferMech || level >= momentumMechLevel || date >= momentumMechDeadline)) { const used = applyItems("mech", r.mech); r.mech -= used; usage.mech += used; }
+      if ((reward.sauna || 0) > 0) { const used = applyItems("sauna", r.sauna); r.sauna -= used; usage.sauna += used; }
+      if ((reward.potion269 || 0) > 0) { const used = applyGrowthPotion("potion269", r.potion269); r.potion269 -= used; usage.potion += used; }
+      if ((reward.potion279 || 0) > 0) { const used = applyGrowthPotion("potion279", r.potion279); r.potion279 -= used; usage.potion += used; }
+      if ((reward.adv || 0) > 0) { const used = applyItems("adv", r.adv); r.adv -= used; usage.adv += used; }
       capture285(date);
       const notableAttendance = reward.attendanceReward && (reward.sauna || reward.adv || reward.potion269 || reward.potion279);
       if ((!reward.attendanceReward && (reward.label !== "현재 보유분" || itemTypes.some(type => Number(reward[type] || 0) > 0))) || notableAttendance) events.push(reward.label);
@@ -1112,6 +1115,7 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
     if (level < targetLevel && !atForecastCap() && (day > 0 || s.todayDaily)) {
       dailyDaysApplied += 1;
       const dailyRuns = runsForDate(date);
+      usage.runs += dailyRuns;
       monsterParkMaplePoints += paidMonsterParkMaplePoints(dailyRuns);
       const eterion = eterionBonusesForDate(s, date);
       const isSunday = dayOfWeek(date) === 0;
@@ -1136,14 +1140,16 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
     if (deferMomentumMech && level < targetLevel && !atForecastCap() && (level >= momentumMechLevel || date >= momentumMechDeadline)) {
       rewardDays.forEach(rewards => rewards.forEach(reward => {
         if (!reward.deferMech || (reward.date || "") > key || !reward.remaining || reward.remaining.mech <= 0 || level >= targetLevel) return;
-        reward.remaining.mech -= applyItems("mech", reward.remaining.mech);
+        const usedMech = applyItems("mech", reward.remaining.mech);
+        reward.remaining.mech -= usedMech;
+        usage.mech += usedMech;
         events.push(`${reward.label} 메카베리 사용`);
       }));
       capture285(date);
     }
 
     const progress = level >= targetLevel ? targetLevel : level + xp / req(level);
-    rows.push({ date, key, level, exp: level >= targetLevel ? 0 : xp / req(level) * 100, progress, events });
+    rows.push({ date, key, level, exp: level >= targetLevel ? 0 : xp / req(level) * 100, progress, events, usage });
     capture285(date);
     if (!forecastMode && level >= targetLevel) reached = date;
   }
@@ -1582,6 +1588,27 @@ export default function Home() {
   ];
   const leftoverRows = leftoverRowsFor(r.leftovers, r.specialSupplySaved);
   const milestoneLeftoverRows = r.leftoversAt285 ? leftoverRowsFor(r.leftoversAt285, r.specialSupplySavedAt285 || 0) : [];
+  // 계산 근거: 실제로 무언가 일어난 날만 추려 앞뒤 레벨과 증가폭을 보여준다.
+  const traceRows = useMemo(() => {
+    const list: { key: string; date: Date; fromLevel: number; fromExp: number; level: number; exp: number; gain: number; labels: string[] }[] = [];
+    let previous = { level: r.startLevel, exp: r.startExp, progress: r.startLevel + r.startExp / 100 };
+    for (const row of r.rows) {
+      const labels = [...row.events];
+      if (row.usage.runs) labels.push(`몬파 ${row.usage.runs}판`);
+      if (row.usage.mech) labels.push(`메카베리 ${row.usage.mech}장`);
+      if (row.usage.blue) labels.push(`블루베리 ${row.usage.blue}장`);
+      if (row.usage.sauna) labels.push(`사우나 ${row.usage.sauna.toLocaleString("ko-KR", { maximumFractionDigits: 1 })}시간`);
+      if (row.usage.adv) labels.push(`상급 EXP ${row.usage.adv.toLocaleString("ko-KR")}장`);
+      if (row.usage.potion) labels.push(`성장의 비약 ${row.usage.potion}개`);
+      if (labels.length) list.push({ key: row.key, date: row.date, fromLevel: previous.level, fromExp: previous.exp, level: row.level, exp: row.exp, gain: (row.progress - previous.progress) * 100, labels });
+      previous = { level: row.level, exp: row.exp, progress: row.progress };
+    }
+    return list;
+  }, [r]);
+  const traceTotals = useMemo(() => r.rows.reduce((total, row) => ({
+    runs: total.runs + row.usage.runs, mech: total.mech + row.usage.mech, blue: total.blue + row.usage.blue,
+    sauna: total.sauna + row.usage.sauna, adv: total.adv + row.usage.adv, potion: total.potion + row.usage.potion,
+  }), { runs: 0, mech: 0, blue: 0, sauna: 0, adv: 0, potion: 0 }), [r]);
   const efficiencyStartDate = parseDate(s.start);
   const efficiencyMonsterParkBonus = eterionBonusesForDate(s, efficiencyStartDate).mp;
   const efficiencyCoreLevel = s.mpCore6Enabled && dateReached(efficiencyStartDate, s.mpCore6Date) ? 6 : 5;
@@ -1779,6 +1806,31 @@ export default function Home() {
           <div className="strategy-choice-grid">{calc.recommendedPlansByWeek[calc.effectivePullWeeks].map((plan, index) => { const strategy = pullStrategies.find(item => item.id === plan.strategy)!; const active = plan.strategy === calc.selectedPlan.strategy; const recommended = plan.strategy === calc.bestRoiStrategy; return <button key={strategy.id} className={`${active ? "active" : ""} ${recommended ? "recommended" : ""}`} onClick={() => selectCalculatedRoute({ pullStrategy: strategy.id })}><div><span>{recommended ? "추천 · 순손익 최고" : index === 0 ? "메포 최저" : "더 빠른 선택"}</span><i>{active ? "선택됨" : "선택"}</i></div><h4>{strategy.label}</h4><p>{strategy.caption}</p><strong>{shortDate(plan.result.reached)}</strong><dl><div><dt>총액</dt><dd>{formatMP(plan.result.maplePoints)}</dd></div><div><dt>몬파</dt><dd>{formatMP(plan.result.monsterParkMaplePoints)}</dd></div><div><dt>상점</dt><dd>{formatMP(plan.result.shopMaplePoints)}</dd></div></dl><small>{calc.effectivePullWeeks ? shopPurchasePlanLabel(plan.shopBlueCount, plan.shopMechCount) : "0주에서는 농장 미구매"}</small></button>; })}</div>
         </div></>}
         {targetLevel === 285 && <ProgressChart selected={r} sunday={calc.sunday} free={calc.free} targetLevel={targetLevel} />}
+        <section className="trace-panel">
+          <div className="trace-head">
+            <div><span>계산 근거</span><h3>날짜별 진행</h3></div>
+            <p>선택 경로에서 그날 실제로 쓴 것과 그 결과입니다. 아무 일도 없는 날은 생략했습니다.</p>
+          </div>
+          <div className="trace-totals">
+            <div><span>몬스터파크</span><b>{traceTotals.runs.toLocaleString("ko-KR")}판</b></div>
+            <div><span>메카베리</span><b>{traceTotals.mech.toLocaleString("ko-KR")}장</b></div>
+            <div><span>블루베리</span><b>{traceTotals.blue.toLocaleString("ko-KR")}장</b></div>
+            <div><span>상급 EXP</span><b>{traceTotals.adv.toLocaleString("ko-KR")}장</b></div>
+            <div><span>VIP 사우나</span><b>{traceTotals.sauna.toLocaleString("ko-KR", { maximumFractionDigits: 1 })}시간</b></div>
+            <div><span>성장의 비약</span><b>{traceTotals.potion.toLocaleString("ko-KR")}개</b></div>
+          </div>
+          <div className="pre-timeline">
+            {traceRows.length ? traceRows.map(row => <article className="pre-row" key={row.key}>
+              <time>{shortDate(row.date)}</time>
+              <div>
+                <b>{row.labels.join(" · ")}</b>
+                <span>Lv.{row.fromLevel} {row.fromExp.toFixed(2)}% → Lv.{row.level} {row.exp.toFixed(2)}%</span>
+              </div>
+              <em>+{row.gain.toFixed(2)}%p</em>
+            </article>) : <div className="pre-empty">표시할 진행 내역이 없습니다.</div>}
+          </div>
+          <p className="pre-disclaimer">증가폭은 해당 레벨 필요 경험치 기준 퍼센트입니다. 레벨이 오르면 필요 경험치가 달라지므로 날짜별 수치를 그대로 더할 수는 없습니다.</p>
+        </section>
         {targetLevel === 290 ? <div className="route-grid">
           <article className="route-card chosen"><div><div className="route-card-label"><span>9/16 예상</span><i>계산 완료</i></div><h3>{calculatedSettings.paidMonsterPark ? "유료 몬파 추가 5판 ON" : "유료 몬파 추가 5판 OFF"}</h3><p>{calculatedSettings.paidMonsterPark ? "매일 7판 · 스페셜 선데이 적용" : "매일 기본 2판만 적용"}</p></div><strong>{forecastProgress}</strong><dl><div><dt>메포 합계</dt><dd>{formatMP(r.maplePoints)}</dd></div><div><dt>프라임</dt><dd>{formatCash(primeCash)}</dd></div></dl></article>
           <article className="route-card baseline"><div><div className="route-card-label"><span>모멘텀 1차</span><i>{!calculatedSettings.momentumPass1Enabled ? "참여 OFF" : calculatedSettings.momentumPrime1 ? "프라임 ON" : "일반"}</i></div><h3>7/23~8/19</h3><p>{calculatedSettings.momentumPass1Enabled ? `현재 패스 Lv.${calculatedSettings.momentumPass1Level}` : "보상 계산 제외"}</p></div><strong>{calculatedSettings.momentumPass1Enabled && calculatedSettings.momentumPrime1 ? "49,800 캐시" : "무료"}</strong><dl><div><dt>일반 보상</dt><dd>{calculatedSettings.momentumPass1Enabled ? "반영" : "제외"}</dd></div><div><dt>프라임</dt><dd>{calculatedSettings.momentumPass1Enabled ? "추가 보상만" : "0"}</dd></div></dl></article>

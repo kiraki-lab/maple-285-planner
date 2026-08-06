@@ -138,9 +138,10 @@ test("keeps verified calculator constants visible in source", async () => {
   assert.match(page, /epicCore6: 40/);
   assert.match(page, /epicArtifact: 180/);
   assert.match(page, /epicCore6Artifact: 190/);
-  assert.match(page, /dailyCore6Enabled: false/);
-  assert.match(page, /mpCore6Enabled: false/);
-  assert.match(page, /epicCore6Enabled: false/);
+  // 풀 보상 기준: 에테리온 코어 6레벨도 기본 ON
+  assert.match(page, /dailyCore6Enabled: true/);
+  assert.match(page, /mpCore6Enabled: true/);
+  assert.match(page, /epicCore6Enabled: true/);
   assert.match(page, /SSR_DEFAULT_START = "2026-07-27"/);
   assert.match(page, /specialSundayCount: 1/);
   assert.match(page, /challengerPassLevel: 30/);
@@ -216,9 +217,9 @@ test("uses the browser-local date and Challenger EXP Pass level 30 for defaults"
   assert.equal(currentDefaults.prePassLevel, 30);
   assert.equal(currentDefaults.challengerUnclaimed, false);
   assert.equal(currentDefaults.preUnclaimed, false);
-  assert.equal(currentDefaults.dailyCore6Enabled, false);
-  assert.equal(currentDefaults.mpCore6Enabled, false);
-  assert.equal(currentDefaults.epicCore6Enabled, false);
+  assert.equal(currentDefaults.dailyCore6Enabled, true);
+  assert.equal(currentDefaults.mpCore6Enabled, true);
+  assert.equal(currentDefaults.epicCore6Enabled, true);
   assert.equal(currentDefaults.shardDate, "2026-07-30");
   assert.equal(currentDefaults.ultimaCount, 29);
   assert.equal(currentDefaults.ultimaWeek, 4);
@@ -236,6 +237,8 @@ test("applies the three Eterion level 6 cores independently by date", async () =
   const targetDate = new Date(2026, 7, 20);
   const isolated = {
     ...pageModule.createDefaultSettings("2026-08-20"),
+    // 기본값이 코어 6레벨 ON이므로 하나씩 켜 보려면 먼저 전부 끈다
+    ...pageModule.core6MasterPatch(false),
     dailyCore6Date: "2026-08-20",
     mpCore6Date: "2026-08-20",
     epicCore6Date: "2026-08-20",
@@ -691,9 +694,9 @@ test("recommends paid weekday Monster Park for the reported Lv.282 case", async 
   assert.equal(planning.maxPullWeeks, 2);
   assert.equal(planning.bestPlansByWeek[1].strategy, "monsterPark");
   assert.deepEqual(recommended.map(plan => plan.strategy), ["monsterPark"]);
-  assert.equal(recommended[0].scheduleIndex, 10);
+  assert.equal(recommended[0].scheduleIndex, 9);
   assert.equal(recommended[0].result.shopMaplePoints, 0);
-  assert.equal(recommended[0].result.monsterParkMaplePoints, 36_000);
+  assert.equal(recommended[0].result.monsterParkMaplePoints, 33_000);
   assert.equal(pageModule.simulationDateKey(recommended[0].result.reached), "2026-08-19");
 });
 
@@ -781,7 +784,7 @@ test("keeps the approved A-C fixtures unchanged in target 285 mode", async () =>
       settings: { ...pageModule.createDefaultSettings("2026-08-03"), level: 280, exp: 0 },
       reached: "2026-09-10",
       maplePoints: 15_000,
-      leftovers: { blue: 0, mech: 0, sauna: 0, adv: 0, potion269: 0, potion279: 0, coupon3x: 78, coupon4x: 12 },
+      leftovers: { blue: 0, mech: 0, sauna: 0, adv: 451, potion269: 0, potion279: 0, coupon3x: 78, coupon4x: 12 },
     },
     {
       settings: { ...pageModule.createDefaultSettings("2026-08-03"), level: 284, exp: 50 },
@@ -897,7 +900,7 @@ test("preserves a 285 milestone snapshot in target 290 mode", async () => {
   assert.equal(result.reached, null);
   assert.equal(result.rows.at(-1).key, "2026-09-16");
   assert.equal(result.finalLevel, 290);
-  assert.ok(Math.abs(result.finalExp - 63.92696770439977) < 1e-10);
+  assert.ok(Math.abs(result.finalExp - 64.61980722056909) < 1e-10);
   assert.ok(result.leftoversAt285);
   assert.notEqual(result.leftoversAt285, result.leftovers);
   assert.deepEqual(result.leftoversAt285, { blue: 0, mech: 4, sauna: 1, adv: 3100, potion269: 0, potion279: 0, coupon3x: 0, coupon4x: 0 });
@@ -957,7 +960,7 @@ test("forecasts the final level and EXP at the September 16 deadline", async () 
 
   assert.equal(planning.basePlan.result.rows.at(-1).key, "2026-09-16");
   assert.equal(planning.basePlan.result.finalLevel, 287);
-  assert.ok(Math.abs(planning.basePlan.result.finalExp - 95.48059473655137) < 1e-10);
+  assert.ok(Math.abs(planning.basePlan.result.finalExp - 97.4205680568897) < 1e-10);
   assert.equal(planning.basePlan.result.monsterParkMaplePoints, 0);
   assert.equal(planning.basePlan.result.reached, null);
   assert.equal(planning.basePlan.result.endReason, "horizon");

@@ -510,3 +510,14 @@ footer p { margin: 0; color: #65636c; font-size: 12px; text-align: center; }
 }
 
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+
+.trace-panel { margin-top: 18px; padding: 20px 22px 16px; border: 1px solid rgba(255,255,255,.12); border-radius: 18px; background: rgba(255,255,255,.04); }
+.trace-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px; }
+.trace-head span { color: var(--mint); font-size: 11px; font-weight: 900; letter-spacing: .08em; }
+.trace-head h3 { margin: 4px 0 0; font-size: 17px; }
+.trace-head p { max-width: 420px; color: rgba(255,255,255,.66); font-size: 11px; line-height: 1.6; }
+.trace-totals { margin: 14px 0 4px; display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); gap: 8px; }
+.trace-totals > div { padding: 9px 11px; display: flex; flex-direction: column; gap: 3px; border-radius: 12px; background: rgba(255,255,255,.055); }
+.trace-totals span { color: rgba(255,255,255,.62); font-size: 10px; font-weight: 750; }
+.trace-totals b { font-size: 13px; }
+@media (max-width: 760px) { .trace-panel { padding: 16px 14px 12px; } }
