@@ -219,8 +219,10 @@ export const REQUIRED_EXP: Record<number, bigint> = {
 const LEVEL_280_REQUIRED_EXP = Number(REQUIRED_EXP[280]);
 const req = (level: number) => Number(REQUIRED_EXP[level]) / LEVEL_280_REQUIRED_EXP;
 const rawToNormalized = (raw: number) => raw / LEVEL_280_REQUIRED_EXP;
-const GRANDIS_DAILY_WITHOUT_CARCION = 129_794_096_544;
-const GRANDIS_DAILY_WITH_CARCION = 175_429_319_424;
+const GRANDIS_DAILY_BASE = 129_794_096_544;
+const GRANDIS_DAILY_CARCION = 45_635_222_880;
+const GRANDIS_DAILY_TALLAHART = 89_700_000_000;
+const GRANDIS_DAILY_GEARDRAK = 105_300_000_000;
 const ARTERIA_MONSTER_PARK_PER_RUN = 107_204_000_000;
 const CARCION_MONSTER_PARK_PER_RUN = 156_017_856_000;
 const TALLAHART_MONSTER_PARK_PER_RUN = 218_575_316_000;
@@ -232,16 +234,19 @@ const WEEKLY_CONTENT_RAW: Record<number, { extreme: number; epic: number; sauna:
   289: { extreme: 1_087_699_695_000, epic: 1_290_000_000_000, sauna: 389_012_597_280, adv1000: 959_736_000_000 },
   290: { extreme: 1_222_296_090_000, epic: 1_449_600_000_000, sauna: 437_150_602_080, adv1000: 1_078_497_000_000 },
 };
-export const monsterParkRawForLevel = (level: number, carcionActive = true, tallahartActive = false) =>
+export const monsterParkRawForLevel = (level: number, carcionActive = true, tallahartActive = true) =>
   level >= 290 && tallahartActive ? TALLAHART_MONSTER_PARK_PER_RUN : level >= 285 && carcionActive ? CARCION_MONSTER_PARK_PER_RUN : ARTERIA_MONSTER_PARK_PER_RUN;
-export const grandisDailyRawForLevel = (level: number, carcionActive = true) => level >= 285 && carcionActive ? GRANDIS_DAILY_WITH_CARCION : GRANDIS_DAILY_WITHOUT_CARCION;
+export const grandisDailyRawForLevel = (level: number, carcionActive = true) => GRANDIS_DAILY_BASE
+  + (level >= 285 && carcionActive ? GRANDIS_DAILY_CARCION : 0)
+  + (level >= 290 ? GRANDIS_DAILY_TALLAHART : 0)
+  + (level >= 295 ? GRANDIS_DAILY_GEARDRAK : 0);
 export const contentUnlockedOn = (date: Date, unlockDate: string, level: number, minimumLevel: number) =>
   level >= minimumLevel && Boolean(unlockDate && date >= parseDate(unlockDate));
 export const carcionContentActive = (date: Date, calculationStart: string, level: number) => contentUnlockedOn(date, calculationStart, level, 285);
 [285, 286, 287, 288, 289].forEach(level => {
   const required = Number(REQUIRED_EXP[level]);
   Object.assign(efficiency[level], {
-    grandis: GRANDIS_DAILY_WITH_CARCION / required * 100,
+    grandis: grandisDailyRawForLevel(level) / required * 100,
     mp7: CARCION_MONSTER_PARK_PER_RUN * 7 / required * 100,
     extreme: WEEKLY_CONTENT_RAW[level].extreme / required * 100,
     epic: WEEKLY_CONTENT_RAW[level].epic / required * 100,
@@ -250,7 +255,7 @@ export const carcionContentActive = (date: Date, calculationStart: string, level
   });
 });
 efficiency[290] = {
-  grandis: GRANDIS_DAILY_WITH_CARCION / Number(REQUIRED_EXP[290]) * 100,
+  grandis: grandisDailyRawForLevel(290) / Number(REQUIRED_EXP[290]) * 100,
   mp7: TALLAHART_MONSTER_PARK_PER_RUN * 7 / Number(REQUIRED_EXP[290]) * 100,
   extreme: WEEKLY_CONTENT_RAW[290].extreme / Number(REQUIRED_EXP[290]) * 100,
   epic: WEEKLY_CONTENT_RAW[290].epic / Number(REQUIRED_EXP[290]) * 100,
@@ -259,12 +264,12 @@ efficiency[290] = {
   blue: 0.7411,
   mech: 2.2359,
 };
-export const POST_290_EFFICIENCY_RAW: Record<number, { sauna: number; adv100: number; blue: number; mech: number; epic: number; monsterParkPerRun: number }> = {
-  291: { sauna: 442_047_471_120, adv100: 107_849_700_000, blue: 2_180_965_564_800, mech: 6_653_978_073_600, epic: 1_465_800_000_000, monsterParkPerRun: 218_575_316_000 },
-  292: { sauna: 447_592_430_880, adv100: 107_849_700_000, blue: 2_180_965_564_800, mech: 6_737_444_313_600, epic: 1_484_200_000_000, monsterParkPerRun: 218_575_316_000 },
-  293: { sauna: 453_170_678_400, adv100: 107_849_700_000, blue: 2_180_965_564_800, mech: 6_821_411_625_600, epic: 1_502_800_000_000, monsterParkPerRun: 218_575_316_000 },
-  294: { sauna: 458_142_355_440, adv100: 107_849_700_000, blue: 2_180_965_564_800, mech: 6_896_248_444_800, epic: 1_519_200_000_000, monsterParkPerRun: 218_575_316_000 },
-  295: { sauna: 514_661_664_000, adv100: 107_849_700_000, blue: 2_180_965_564_800, mech: 7_747_012_416_000, epic: 1_519_200_000_000, monsterParkPerRun: 218_575_316_000 },
+export const POST_290_EFFICIENCY_RAW: Record<number, { sauna: number; adv100: number; blue: number; mech: number; epic: number; extreme: number; monsterParkPerRun: number }> = {
+  291: { sauna: 442_047_471_120, adv100: 107_849_700_000, blue: 2_180_965_564_800, mech: 6_653_978_073_600, epic: 1_465_800_000_000, extreme: 1_236_000_000_000, monsterParkPerRun: 218_575_316_000 },
+  292: { sauna: 447_592_430_880, adv100: 107_849_700_000, blue: 2_180_965_564_800, mech: 6_737_444_313_600, epic: 1_484_200_000_000, extreme: 1_251_400_000_000, monsterParkPerRun: 218_575_316_000 },
+  293: { sauna: 453_170_678_400, adv100: 107_849_700_000, blue: 2_180_965_564_800, mech: 6_821_411_625_600, epic: 1_502_800_000_000, extreme: 1_267_200_000_000, monsterParkPerRun: 218_575_316_000 },
+  294: { sauna: 458_142_355_440, adv100: 107_849_700_000, blue: 2_180_965_564_800, mech: 6_896_248_444_800, epic: 1_519_200_000_000, extreme: 1_281_100_000_000, monsterParkPerRun: 218_575_316_000 },
+  295: { sauna: 514_661_664_000, adv100: 107_849_700_000, blue: 2_180_965_564_800, mech: 7_747_012_416_000, epic: 1_519_200_000_000, extreme: 1_281_100_000_000, monsterParkPerRun: 218_575_316_000 },
 };
 Object.entries(POST_290_EFFICIENCY_RAW).forEach(([levelValue, raw]) => {
   const level = Number(levelValue);
@@ -1054,7 +1059,7 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
       const eterion = eterionBonusesForDate(s, date);
       if (s.extreme && level < targetLevel) {
         if (level >= 285 && level <= 290) applyRaw(rawToNormalized(WEEKLY_CONTENT_RAW[level].extreme) * (1 + eterion.mp / 100));
-        else if (level >= 291) applyRaw(rawToNormalized(WEEKLY_CONTENT_RAW[290].extreme) * (1 + eterion.mp / 100));
+        else if (level >= 291) applyRaw(rawToNormalized(POST_290_EFFICIENCY_RAW[level].extreme) * (1 + eterion.mp / 100));
         else if (level < 285) applyPercent(efficiency[level].extreme * (1 + eterion.mp / 100));
       }
       if (s.epic && level < targetLevel) {
@@ -1084,8 +1089,7 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
           sundayKind: isSpecialSunday ? "special" : isSunday ? "normal" : "none",
         }));
       if (s.grandis && level < targetLevel) {
-        if (level >= 291) applyRaw(rawToNormalized(GRANDIS_DAILY_WITH_CARCION) * (1 + eterion.daily / 100));
-        else if (level >= 285) applyRaw(rawToNormalized(grandisDailyRawForLevel(level, carcionActive(date))) * (1 + eterion.daily / 100));
+        if (level >= 285) applyRaw(rawToNormalized(grandisDailyRawForLevel(level, carcionActive(date))) * (1 + eterion.daily / 100));
         else applyPercent(efficiency[level].grandis * (1 + eterion.daily / 100));
       }
       capture285(date);

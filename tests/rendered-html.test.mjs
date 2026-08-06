@@ -605,6 +605,11 @@ test("uses exact post-290 ledgers and preserves the 294-to-295 ranking break", a
   assert.equal(pageModule.POST_290_EFFICIENCY_RAW[294].epic, 1_519_200_000_000);
   assert.equal(pageModule.POST_290_EFFICIENCY_RAW[295].mech, 7_747_012_416_000);
   assert.equal(pageModule.POST_290_EFFICIENCY_RAW[295].monsterParkPerRun, 218_575_316_000);
+  // 익스트림 몬파는 290 값 고정이 아니라 레벨별로 계속 오른다
+  assert.equal(pageModule.POST_290_EFFICIENCY_RAW[291].extreme, 1_236_000_000_000);
+  assert.equal(pageModule.POST_290_EFFICIENCY_RAW[292].extreme, 1_251_400_000_000);
+  assert.equal(pageModule.POST_290_EFFICIENCY_RAW[295].extreme, 1_281_100_000_000);
+  assert.ok(pageModule.POST_290_EFFICIENCY_RAW[291].extreme > pageModule.WEEKLY_CONTENT_RAW[290].extreme);
   assert.ok(Number.isFinite(pageModule.efficiencyScoreById("mpNormal", 291, 95)));
   assert.notEqual(pageModule.efficiencyScoreById("mpNormal", 290, 95), pageModule.efficiencyScoreById("mpNormal", 291, 95));
 
@@ -788,6 +793,13 @@ test("uses the calculation start date as the automatic Carcion boundary", async 
   assert.equal(pageModule.monsterParkRawForLevel(285, true), 156_017_856_000);
   assert.equal(pageModule.grandisDailyRawForLevel(285, false), 129_794_096_544);
   assert.equal(pageModule.grandisDailyRawForLevel(285, true), 175_429_319_424);
+  // Lv.290부터 탈라하트 몬파·일퀘, Lv.295부터 기어드락 일퀘가 열린다 (메이플로드 기준)
+  assert.equal(pageModule.monsterParkRawForLevel(289), 156_017_856_000);
+  assert.equal(pageModule.monsterParkRawForLevel(290), 218_575_316_000);
+  assert.equal(pageModule.grandisDailyRawForLevel(289), 175_429_319_424);
+  assert.equal(pageModule.grandisDailyRawForLevel(290), 265_129_319_424);
+  assert.equal(pageModule.grandisDailyRawForLevel(294), 265_129_319_424);
+  assert.equal(pageModule.grandisDailyRawForLevel(295), 370_429_319_424);
 
   const firstDaySettings = {
     ...defaultsAtStart,
@@ -838,7 +850,7 @@ test("preserves a 285 milestone snapshot in target 290 mode", async () => {
   assert.equal(result.reached, null);
   assert.equal(result.rows.at(-1).key, "2026-09-16");
   assert.equal(result.finalLevel, 290);
-  assert.ok(Math.abs(result.finalExp - 33.0732093437634) < 1e-10);
+  assert.ok(Math.abs(result.finalExp - 35.747700911190236) < 1e-10);
   assert.ok(result.leftoversAt285);
   assert.notEqual(result.leftoversAt285, result.leftovers);
   assert.deepEqual(result.leftoversAt285, { blue: 0, mech: 0, sauna: 0, adv: 0, potion269: 0, potion279: 0, coupon3x: 0, coupon4x: 0 });
