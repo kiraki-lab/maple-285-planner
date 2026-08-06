@@ -290,6 +290,15 @@ const MOMENTUM_PASS_1_START = "2026-07-23";
 const MOMENTUM_PASS_1_END = "2026-08-19";
 const MOMENTUM_PASS_2_START = "2026-08-20";
 const MOMENTUM_PASS_2_END = "2026-09-16";
+const MOMENTUM_WEEKLY_LEVELS = [2, 3, 3, 2];
+const MOMENTUM_MAX_LEVEL = 10;
+// 계산기는 풀 보상을 기준으로 잡고 못 받는 것만 빼는 방식이다.
+// 그래서 그 날짜까지 열린 주차는 모두 클리어한 상태가 기본값이고, 밀린 사람이 레벨을 낮춰 소거한다.
+export const momentumUnlockedLevelOn = (date: Date, passStart: string) => {
+  const elapsedWeeks = Math.floor((date.getTime() - parseDate(passStart).getTime()) / (7 * 86400000));
+  if (elapsedWeeks < 0) return 0;
+  return Math.min(MOMENTUM_MAX_LEVEL, MOMENTUM_WEEKLY_LEVELS.slice(0, elapsedWeeks + 1).reduce((sum, levels) => sum + levels, 0));
+};
 const ULTIMA_ATTENDANCE_START = "2026-06-18";
 const ULTIMA_ATTENDANCE_MAX = 60;
 const SHOP_WEEK_STARTS = ["2026-07-23", "2026-07-30", "2026-08-06", "2026-08-13"];
@@ -394,16 +403,18 @@ const createDefaultSettings = (start = SSR_DEFAULT_START): Settings => {
   return ({
   targetLevel: 285, level: 280, exp: 87.39, start, pullWeeks: 0, pullStrategy: "monsterPark", specialSundayCount: 1, paidMonsterPark: true,
   specialSupply: false, specialSupplySaved: 0, specialSupplyExpPerCharge: 0,
-  challengerPassLevel: 30, momentumPass1Enabled: true, momentumPass2Enabled: true, momentumPass1Level: 0, momentumPass2Level: 0,
+  challengerPassLevel: 30, momentumPass1Enabled: true, momentumPass2Enabled: true,
+  momentumPass1Level: momentumUnlockedLevelOn(parseDate(start), MOMENTUM_PASS_1_START),
+  momentumPass2Level: momentumUnlockedLevelOn(parseDate(start), MOMENTUM_PASS_2_START),
   preLevel: 270, preExp: 0, prePassLevel: 30, preUnclaimed: false,
   preUseBlue: true, preUseSauna: true, preUseAdv: true, preUsePotion: true,
   preMonsterParkRuns: 2, preSpecialSundayCount: 1, preDailyQuests: true, preWeeklyContent: true,
   preTodayDaily: true, preWeeklyOpen: true,
   momentumMechLevel: 284, momentumMechDeadline: "2026-08-12", mayrinMesoGap: 3, mayrinNormalFrag: 30,
   fragPrice: 640, mpPerEok: 2500, postReset: true, challengerUnclaimed: false, challengerExp: true,
-  momentumPrime1: true, momentumPrime2: false, deferMomentumMech: true,
+  momentumPrime1: true, momentumPrime2: true, deferMomentumMech: true,
   dailyCore6Enabled: false, dailyCore6Date: "2026-07-27", mpCore6Enabled: false, mpCore6Date: "2026-07-27", epicCore6Enabled: false, epicCore6Date: "2026-07-27",
-  apology: true, shardEvent: true, ultima: true, shopMech: false, shopBlue: false, mpCore5: 90,
+  apology: true, shardEvent: true, ultima: true, shopMech: true, shopBlue: true, mpCore5: 90,
   core20Date: "2026-07-23", core20Bonus: 5, mpCore6: 95,
   dailyCore5: 95, dailyCore6: 100, shardDate: "2026-07-30", shardAdv: 5000,
   ultimaCount: ultimaProgress.count, ultimaWeek: ultimaProgress.week, ultimaStart: true, grandis: true, weeklyOpen: true, todayDaily: true,
@@ -856,23 +867,25 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
     const momentumStart = parseDate(startValue);
     const momentumEnd = parseDate(endValue);
     let rewardDate = start <= momentumStart ? momentumStart : start;
-    const weeklyLevels = [2, 3, 3, 2];
-    let weekIndex = 0;
-    while (momentumLevel < 10 && rewardDate <= momentumEnd) {
-      const from = momentumLevel + 1;
-      const to = Math.min(10, momentumLevel + weeklyLevels[Math.min(weekIndex, weeklyLevels.length - 1)]);
-      const batch: Reward = { label: `모멘텀 ${season}차 ${from}~${to}레벨`, deferMech: deferMomentumMech };
-      for (let passLevel = from; passLevel <= to; passLevel += 1) {
-        const reward = momentumRewardForLevel(passLevel, prime, deferMomentumMech);
-        batch.mech = Number(batch.mech || 0) + Number(reward.mech || 0);
-        batch.sauna = Number(batch.sauna || 0) + Number(reward.sauna || 0);
-        batch.adv = Number(batch.adv || 0) + Number(reward.adv || 0);
-        batch.coupon4x = Number(batch.coupon4x || 0) + Number(reward.coupon4x || 0);
+    while (momentumLevel < MOMENTUM_MAX_LEVEL && rewardDate <= momentumEnd) {
+      // 주차는 계산 시작일이 아니라 패스 시작일 기준으로 쌓인다.
+      // 밀린 주차가 있으면 그때까지 열린 만큼 한 번에 따라잡는다.
+      const unlocked = momentumUnlockedLevelOn(rewardDate, startValue);
+      if (unlocked > momentumLevel) {
+        const from = momentumLevel + 1;
+        const to = unlocked;
+        const batch: Reward = { label: `모멘텀 ${season}차 ${from}~${to}레벨`, deferMech: deferMomentumMech };
+        for (let passLevel = from; passLevel <= to; passLevel += 1) {
+          const reward = momentumRewardForLevel(passLevel, prime, deferMomentumMech);
+          batch.mech = Number(batch.mech || 0) + Number(reward.mech || 0);
+          batch.sauna = Number(batch.sauna || 0) + Number(reward.sauna || 0);
+          batch.adv = Number(batch.adv || 0) + Number(reward.adv || 0);
+          batch.coupon4x = Number(batch.coupon4x || 0) + Number(reward.coupon4x || 0);
+        }
+        addReward(rewardDate, batch);
+        momentumLevel = to;
       }
-      addReward(rewardDate, batch);
-      momentumLevel = to;
       rewardDate = rewardDate.getTime() === start.getTime() ? nextThursdayAfter(start) : addDays(rewardDate, 7);
-      weekIndex += 1;
     }
   };
   if (s.momentumPass1Enabled) scheduleMomentumSeason(1, s.momentumPass1Level, s.momentumPrime1, MOMENTUM_PASS_1_START, MOMENTUM_PASS_1_END);
@@ -1555,26 +1568,32 @@ export default function Home() {
     used.adv ? `상급 ${used.adv.toLocaleString("ko-KR")}` : "",
     used.potion279 ? `비약 ${used.potion279}` : "",
   ].filter(Boolean).join(" · ") || "콘텐츠 누적";
-  const forecastProgress = `Lv.${r.finalLevel} ${r.finalExp.toFixed(3)}%`;
+  const forecastProgress = `Lv.${r.finalLevel} ${r.finalExp.toFixed(1)}%`;
   const primeCount = Number(calculatedSettings.momentumPass1Enabled && calculatedSettings.momentumPrime1) + Number(calculatedSettings.momentumPass2Enabled && calculatedSettings.momentumPrime2);
   const primeCash = primeCount * 49_800;
-  const forecastInputSummary = [
-    calculatedSettings.paidMonsterPark ? "유료 몬파 추가 5판 ON" : "유료 몬파 추가 5판 OFF · 매일 기본 2판",
-    calculatedSettings.momentumPass1Enabled ? `모멘텀 1차 Lv.${calculatedSettings.momentumPass1Level} ${calculatedSettings.momentumPrime1 ? "프라임 ON" : "프라임 OFF"}` : "모멘텀 1차 참여 OFF",
-    calculatedSettings.momentumPass2Enabled ? `모멘텀 2차 Lv.${calculatedSettings.momentumPass2Level} ${calculatedSettings.momentumPrime2 ? "프라임 ON" : "프라임 OFF"}` : "모멘텀 2차 참여 OFF",
-    `프라임 ${primeCash.toLocaleString("ko-KR")} 넥슨캐시`,
-    calculatedSettings.shopBlue || calculatedSettings.shopMech ? `메포샵 ${calculatedSettings.shopBlue ? "블루 " : ""}${calculatedSettings.shopMech ? "메카" : ""}`.trim() : "메포샵 미구매",
-  ].join(" · ");
+  // 풀 보상이 기준이므로 켠 것을 나열하지 않고 뺀 것만 보여준다.
+  const forecastExclusions = [
+    !calculatedSettings.momentumPass1Enabled ? "모멘텀 1차 전체" : !calculatedSettings.momentumPrime1 ? "1차 프라임" : "",
+    !calculatedSettings.momentumPass2Enabled ? "모멘텀 2차 전체" : !calculatedSettings.momentumPrime2 ? "2차 프라임" : "",
+    !calculatedSettings.paidMonsterPark ? "유료 몬파 5판" : "",
+    !calculatedSettings.shopMech && !calculatedSettings.shopBlue ? "메포샵 농장"
+      : !calculatedSettings.shopMech ? "메포샵 메카베리"
+        : !calculatedSettings.shopBlue ? "메포샵 블루베리" : "",
+    !calculatedSettings.challengerExp ? "챌섭 EXP 패스" : "",
+    !calculatedSettings.ultima ? "울티마 작전 일지" : "",
+  ].filter(Boolean);
+  const forecastBasisLabel = forecastExclusions.length ? `뺀 것 ${forecastExclusions.length}개 · ${forecastExclusions.join(" · ")}` : "보상 전부 포함";
+  const forecastCostSummary = `프라임 ${primeCash.toLocaleString("ko-KR")} 넥슨캐시 · ${formatMP(r.maplePoints)}`;
 
   return <main>
     <header className="topbar"><a className="brand" href="#top" aria-label="285·290 계산기 홈"><span className="brand-mark">M</span><span>285·290 CALCULATOR</span></a><span className="topbar-status">CHALLENGERS WORLD</span></header>
     <section className="hero" id="top">
       <div className="eyebrow"><span /> CHALLENGERS {targetLevel} CALCULATOR</div>
       <h1>{targetLevel === 290 ? "9월 16일, 어디까지 갈까?" : `${targetLevel}, 언제 찍을까?`}</h1>
-      <p>{targetLevel === 290 ? "두 차례 모멘텀 패스와 선택한 콘텐츠를 모두 몰아줬을 때 시즌 종료 레벨을 계산합니다." : `현재 레벨과 보유 보상을 입력하면 ${targetLevel} 달성일, 필요한 몬파 횟수와 메포를 계산합니다.`}</p>
+      <p>{targetLevel === 290 ? "받을 수 있는 보상을 전부 받는 것이 기준입니다. 안 받을 것만 끄면 그만큼 빠집니다." : `현재 레벨과 보유 보상을 입력하면 ${targetLevel} 달성일, 필요한 몬파 횟수와 메포를 계산합니다.`}</p>
       <div className="hero-grid">
         {targetLevel === 290 ? <>
-          <article className="hero-card primary"><div className="card-label">9/16 시즌 종료 예상</div><strong>{forecastProgress}</strong><span>보상 몰아주면 여기까지</span><div className="card-meta"><b>{formatMP(r.maplePoints)}</b><em>몬파·메포샵 합계</em></div></article>
+          <article className="hero-card primary"><div className="card-label">9/16 시즌 종료 예상</div><strong>{forecastProgress}</strong><span>{forecastBasisLabel}</span><div className="card-meta"><b>{formatMP(r.maplePoints)}</b><em>몬파·메포샵 합계</em></div></article>
           <article className="hero-card"><div className="card-label">모멘텀 1차 · 7/23~8/19</div><strong>{!calculatedSettings.momentumPass1Enabled ? "참여 OFF" : calculatedSettings.momentumPrime1 ? "프라임 ON" : "일반 보상"}</strong><span>{calculatedSettings.momentumPass1Enabled ? `현재 Lv.${calculatedSettings.momentumPass1Level}` : "보상 계산 제외"}</span><div className="card-meta"><b>{calculatedSettings.momentumPass1Enabled && calculatedSettings.momentumPrime1 ? "49,800 넥슨캐시" : "추가 결제 없음"}</b><em>프라임 별도 구매</em></div></article>
           <article className="hero-card verdict"><div className="card-label">모멘텀 2차 · 8/20~9/16</div><strong>{!calculatedSettings.momentumPass2Enabled ? "참여 OFF" : calculatedSettings.momentumPrime2 ? "프라임 ON" : "일반 보상"}</strong><span>{calculatedSettings.momentumPass2Enabled ? `현재 Lv.${calculatedSettings.momentumPass2Level}` : "보상 계산 제외"}</span><div className="card-meta"><b>{calculatedSettings.momentumPass2Enabled && calculatedSettings.momentumPrime2 ? "49,800 넥슨캐시" : "추가 결제 없음"}</b><em>1차와 별도 구매</em></div></article>
         </> : <>
@@ -1584,8 +1603,8 @@ export default function Home() {
         </>}
       </div>
       {targetLevel === 290
-        ? <div className="hero-note"><span className="pulse" /><p><b>9/16 종료 시점 예상</b> {forecastInputSummary}</p></div>
-        : <div className={`hero-note ${calc.deadlineMet ? "" : "deadline-fail"}`}><span className="pulse" /><p><b>{calc.selectedPlan.strategy === calc.bestRoiStrategy ? "추천 · 순손익 최고" : calc.selectedPlan.strategy === calc.bestPlansByWeek[calc.effectivePullWeeks]?.strategy ? "메포 최저" : "더 빠른 선택"}</b> {selectedStrategy.id === "monsterPark" ? recommendedPrefix : `${selectedStrategy.label} · ${recommendedPrefix}`} → {shortDate(r.reached)} · 총 {formatMP(r.maplePoints)} · {pullDays ? `마감 경로보다 ${pullDays}일 빠름` : "9월 16일 마감 기준"}</p></div>}
+        ? <div className="hero-note"><span className="pulse" /><p><b>9/16 종료 예상</b> {forecastBasisLabel} · {forecastCostSummary}</p></div>
+        : <div className={`hero-note ${calc.deadlineMet ? "" : "deadline-fail"}`}><span className="pulse" /><p><b>{calc.selectedPlan.strategy === calc.bestRoiStrategy ? "추천 · 순손익 최고" : calc.selectedPlan.strategy === calc.bestPlansByWeek[calc.effectivePullWeeks]?.strategy ? "메포 최저" : "더 빠른 선택"}</b> {selectedStrategy.id === "monsterPark" ? recommendedPrefix : `${selectedStrategy.label} · ${recommendedPrefix}`} → {shortDate(r.reached)} · 총 {formatMP(r.maplePoints)} · {pullDays ? `마감 경로보다 ${pullDays}일 빠름` : "9월 16일 마감 기준"} · {forecastBasisLabel}{primeCash > 0 ? ` · 프라임 ${primeCash.toLocaleString("ko-KR")} 넥슨캐시` : ""}</p></div>}
     </section>
 
     <nav className="view-tabs" role="tablist" aria-label="계산기 화면 선택">
@@ -1667,13 +1686,18 @@ export default function Home() {
           <div className="quick-toggles"><Toggle label="오늘 일퀘·몬파 미완료" checked={s.todayDaily} onChange={v => set("todayDaily", v)} /><Toggle label="이번 주 챌섭 5레벨 미완료" checked={s.challengerUnclaimed} onChange={v => set("challengerUnclaimed", v)} /></div>
           <div className="field-grid compact inset"><InputField label="스페셜 선데이 몬파 횟수" value={s.specialSundayCount} min={0} max={12} step={1} disabled={!s.paidMonsterPark} onChange={v => set("specialSundayCount", Number(v))} /><InputField label="모멘텀 1차 현재 레벨" value={s.momentumPass1Level} min={0} max={10} step={1} disabled={!s.momentumPass1Enabled} onChange={v => set("momentumPass1Level", Number(v))} /><InputField label="모멘텀 2차 현재 레벨" value={s.momentumPass2Level} min={0} max={10} step={1} disabled={!s.momentumPass2Enabled} onChange={v => set("momentumPass2Level", Number(v))} /></div>
           <Toggle label="챌린저스 EXP 패스" checked={s.challengerExp} onChange={v => set("challengerExp", v)} /><Toggle label="모멘텀 1차 프라임 · 49,800 넥슨캐시" checked={s.momentumPrime1} disabled={!s.momentumPass1Enabled} onChange={v => set("momentumPrime1", v)} /><Toggle label="모멘텀 2차 프라임 · 49,800 넥슨캐시" checked={s.momentumPrime2} disabled={!s.momentumPass2Enabled} onChange={v => set("momentumPrime2", v)} /><Toggle label="모멘텀 메카베리 모아쓰기" checked={s.deferMomentumMech} onChange={v => set("deferMomentumMech", v)} />
-          <div className="callout-mini">프라임은 회차별 별도 구매입니다. 두 패스와 두 프라임을 모두 ON하면 총 99,600 넥슨캐시이며 메포 합계에는 섞지 않습니다.</div>
+          {s.targetLevel === 290 && <>
+            <Toggle label="메포샵 메카베리 구매 · 1개 10,000 메포" checked={s.shopMech} onChange={v => set("shopMech", v)} />
+            <Toggle label="메포샵 블루베리 구매 · 1개 7,000 메포" checked={s.shopBlue} onChange={v => set("shopBlue", v)} />
+          </>}
+          <div className="callout-mini">프라임은 회차별 별도 구매입니다. 두 패스와 두 프라임을 모두 ON하면 총 99,600 넥슨캐시이며 메포 합계에는 섞지 않습니다.{s.targetLevel === 285 ? " 285 모드의 메포샵 농장은 계산기가 필요할 때만 알아서 넣습니다." : ""}</div>
           <div className="field-grid compact inset"><label className="field"><span>메카베리 사용 레벨</span><select value={Math.min(s.momentumMechLevel, s.targetLevel === 290 ? 295 : 284)} disabled={!s.deferMomentumMech} onChange={e => set("momentumMechLevel", Number(e.target.value))}>{Array.from({ length: s.targetLevel === 290 ? 16 : 5 }, (_, index) => index + 280).map(level => <option key={level}>{level}</option>)}</select></label><InputField label="최종 사용일" value={s.momentumMechDeadline} type="date" disabled={!s.deferMomentumMech} onChange={v => set("momentumMechDeadline", v)} /></div>
           <Toggle label="특수 물자 지원 · 4배 쿠폰 몰아쓰기" checked={s.specialSupply} onChange={v => set("specialSupply", v)} />
           <div className="field-grid compact inset supply-input"><InputField label="시작일 보유 · 당일 충전 포함" value={s.specialSupplySaved} min={0} max={5} step={1} disabled={!s.specialSupply} onChange={v => set("specialSupplySaved", Number(v))} /><InputField label="실측 1회 경험치" value={s.specialSupplyExpPerCharge} min={0} step={1} disabled={!s.specialSupply} onChange={v => set("specialSupplyExpPerCharge", Number(v))} /></div>
           <div className="supply-warning"><b>직접 입력</b><p>공식 고정 경험치가 없어 입력값이 없으면 0으로 계산합니다.</p><small>5회 저장 시 입력한 1회 경험치의 5배 적용 · 농장과 달리 임의 추정값을 자동 사용하지 않음</small></div>
           <Toggle label="7월 NOW 보상" checked={s.apology} onChange={v => set("apology", v)} /><Toggle label="울티마 스쿼드 상점 EXP 5,000장 (예상)" checked={s.shardEvent} onChange={v => set("shardEvent", v)} /><Toggle label="울티마 작전 일지" checked={s.ultima} onChange={v => set("ultima", v)} />
-          <div className="callout-mini">현재 패스 레벨까지 받은 보상은 현재 경험치에 포함된 것으로 보고 제외합니다. 챌섭은 최대 30레벨이며 주 5레벨씩 계산합니다. 모멘텀은 주차별 2→3→3→2레벨로 진행합니다.</div>
+          <div className="callout-mini">계산기는 <b>받을 수 있는 보상을 전부 받는 것</b>을 기준으로 잡고, 못 받는 것만 빼는 방식입니다. 모멘텀 패스 레벨 기본값은 계산 시작일까지 열린 주차(1차 {momentumUnlockedLevelOn(parseDate(s.start), MOMENTUM_PASS_1_START)}레벨 · 2차 {momentumUnlockedLevelOn(parseDate(s.start), MOMENTUM_PASS_2_START)}레벨)를 모두 클리어한 상태입니다. 밀렸으면 그만큼 낮춰 입력하세요.</div>
+          <div className="callout-mini">현재 패스 레벨까지 받은 보상은 현재 경험치에 포함된 것으로 보고 제외합니다. 챌섭은 최대 30레벨이며 주 5레벨씩 계산합니다. 모멘텀은 패스 시작일 기준 주차별 2→3→3→2레벨로 열리며, 밀린 주차는 다음 수령일에 한 번에 따라잡습니다.</div>
           <div className="callout-mini shop-priority">평일 몬파는 기본 2판 뒤 유료 추가 5판을 먼저 적용합니다. 농장은 몬파만으로 다음 하드 주차를 못 당길 때만 비교하며, 같은 도달 주차에서는 더 적은 메포 경로를 추천합니다.</div>
         </div></details>
         <details><summary>에테리온 · 콘텐츠 보정 <span>21</span></summary><div className="detail-body">
@@ -1705,8 +1729,8 @@ export default function Home() {
       <div className="results" aria-busy={isCalculating}>
         <div className="section-heading"><span>결과</span><div><p>선택한 조건</p><h2>{targetLevel === 290 ? "9/16 종료 예상" : `${targetLevel} 도달 경로`}</h2></div>{isCalculating ? <output className="calculation-status" aria-live="polite">계산 중 · 화면 사용 가능</output> : hasPendingChanges && <output className="calculation-status pending" aria-live="polite">입력값 변경됨</output>}<button className="reset" onClick={resetCalculator}>기본값 복원</button></div>
         {targetLevel === 290 ? <div className="pull-selector long-range-selector">
-          <div className="pull-selector-head"><div><span>마감 예측</span><h3>보상 몰아주면 {forecastProgress}</h3></div><b className="deadline-ok">2026년 9월 16일</b></div>
-          <p>{forecastInputSummary}</p>
+          <div className="pull-selector-head"><div><span>마감 예측</span><h3>{forecastExclusions.length ? "일부 빼면" : "보상 다 받으면"} {forecastProgress}</h3></div><b className="deadline-ok">2026년 9월 16일</b></div>
+          <p>{forecastBasisLabel} · {forecastCostSummary}</p>
         </div> : <><div className="pull-selector">
           <div className="pull-selector-head"><div><span>목표 주차</span><h3>{targetLevel} 도달 시점</h3></div><b className={calc.deadlineMet ? "deadline-ok" : "deadline-bad"}>{calc.deadlineMet ? "9/16 이전 달성" : "9/16 달성 불가"}</b></div>
           <div className="pull-buttons" role="group" aria-label={`${targetLevel} 달성 주차 당기기`}>
