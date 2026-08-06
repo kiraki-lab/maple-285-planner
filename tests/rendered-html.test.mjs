@@ -523,7 +523,7 @@ test("offers a typed level picker and single-level icon ranking from 260 through
   assert.match(page, /EFFICIENCY_LEVEL_MIN = 260/);
   assert.match(page, /EFFICIENCY_LEVEL_MAX = 295/);
   assert.match(page, /260~295 · 선택 또는 직접 입력/);
-  assert.match(page, /<img src=\{efficiencyIconForLevel\(source, efficiencyLevel\)\} alt="" aria-hidden="true" \/>/);
+  assert.match(page, /<img src=\{assetUrl\(efficiencyIconForLevel\(source, efficiencyLevel\)\)\} alt="" aria-hidden="true" \/>/);
   assert.match(page, /data-source=\{source\.id\}/);
   assert.match(page, /검증값이 없는 레벨은 앞뒤 레벨로 보간하지 않습니다/);
   assert.doesNotMatch(page, /const efficiencyLevels = \[/);
@@ -559,6 +559,14 @@ test("bundles the verified Haru1Sojae PNG icons locally without runtime hotlinks
     if (expectedHashes[icon]) assert.equal(createHash("sha256").update(asset).digest("hex").toUpperCase(), expectedHashes[icon]);
   }
   assert.doesNotMatch(page, /https:\/\/haru1sojae\.kr\/icons\//);
+
+  // GitHub Pages는 /maple-285-planner/ 하위라 절대 경로를 그대로 쓰면 404가 난다.
+  assert.match(page, /const ASSET_BASE = .*BASE_URL/);
+  assert.match(page, /<img src=\{assetUrl\(efficiencyIconForLevel\(source, efficiencyLevel\)\)\}/);
+  // BASE_URL이 빌드 시점에 치환됐는지 확인한다. Pages 빌드면 /maple-285-planner/, 아니면 /.
+  const pageBundle = await readFile(new URL(`dist/client/${JSON.parse(await readFile(new URL("dist/client/.vite/manifest.json", root), "utf8"))["app/page.tsx"].file}`, root), "utf8");
+  assert.doesNotMatch(pageBundle, /import\.meta\.env/);
+  assert.match(pageBundle, /`\/(?:maple-285-planner\/)?`\.replace/);
 });
 
 test("reuses verified boundary data and hides level-280-only rewards below 280", async () => {

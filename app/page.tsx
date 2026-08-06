@@ -541,6 +541,10 @@ const efficiencyLabelForLevel = (source: EfficiencyBenchmark, level: number) => 
 const efficiencyIconForLevel = (source: EfficiencyBenchmark, level: number) => source.id === "epic01" || source.id === "epic12"
   ? epicDungeonIconForLevel(level)
   : source.iconSrc;
+// GitHub Pages는 /maple-285-planner/ 하위에 배포된다. JSX에 문자열로 박은 절대 경로는
+// 번들러가 base를 붙여주지 않아 루트에서 404가 나므로 렌더할 때 직접 붙인다.
+const ASSET_BASE = ((import.meta as unknown as { env?: { BASE_URL?: string } }).env?.BASE_URL ?? "/").replace(/\/+$/, "");
+export const assetUrl = (path: string) => `${ASSET_BASE}${path}`;
 export const availableEfficiencySourceIdsForLevel = (level: number) => efficiencyBenchmarks
   .filter(source => level >= (source.minimumLevel ?? EFFICIENCY_LEVEL_MIN))
   .map(source => source.id);
@@ -1820,7 +1824,7 @@ export default function Home() {
             <strong>{index + 1}</strong>
             <span className={`efficiency-icon tone-${source.tone}`} aria-hidden="true">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={efficiencyIconForLevel(source, efficiencyLevel)} alt="" aria-hidden="true" />
+              <img src={assetUrl(efficiencyIconForLevel(source, efficiencyLevel))} alt="" aria-hidden="true" />
             </span>
             <div className="efficiency-name"><b>{efficiencyLabelForLevel(source, efficiencyLevel)}</b>{index === 0 && <small>Lv.{efficiencyLevel} 최고 효율</small>}</div>
             <div className="efficiency-values"><span className="active"><small>효율 지수{efficiencyLevel >= 285 && (source.id === "blue" || source.id === "mech") ? " · 근사" : ""}</small><b>{relativeEfficiencyScore(source, efficiencyLevel, efficiencyMonsterParkBonus).toFixed(1)}%</b></span></div>
