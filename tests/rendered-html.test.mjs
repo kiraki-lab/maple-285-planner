@@ -147,8 +147,12 @@ test("keeps verified calculator constants visible in source", async () => {
   assert.match(page, /prePassLevel: 30, preUnclaimed: false/);
   assert.match(page, /challengerUnclaimed: false/);
   // 풀 보상 기준: 패스 레벨 기본값은 그 날짜까지 열린 주차를 모두 클리어한 상태
-  assert.match(page, /momentumPass1Level: momentumUnlockedLevelOn\(parseDate\(start\), MOMENTUM_PASS_1_START\)/);
-  assert.match(page, /momentumPass2Level: momentumUnlockedLevelOn\(parseDate\(start\), MOMENTUM_PASS_2_START\)/);
+  assert.match(page, /const momentumPass1Level = momentumUnlockedLevelOn\(parseDate\(start\), MOMENTUM_PASS_1_START\)/);
+  assert.match(page, /const momentumPass2Level = momentumUnlockedLevelOn\(parseDate\(start\), MOMENTUM_PASS_2_START\)/);
+  // 이미 받은 패스 보상은 아직 손에 있는 것으로 본다
+  assert.match(page, /ownedMech: claimed1\.mech \+ claimed2\.mech/);
+  assert.match(page, /ownedAdv: claimed1\.adv \+ claimed2\.adv/);
+  assert.match(page, /label: "현재 보유분".*deferMech: deferMomentumMech/);
   assert.match(page, /momentumPrime1: true, momentumPrime2: true/);
   assert.match(page, /shopMech: true, shopBlue: true/);
   assert.match(page, /momentumPass1Enabled: true, momentumPass2Enabled: true/);
@@ -268,6 +272,10 @@ test("uses the Epic Dungeon level 6 core in Nightmare Paradise stage 1", async (
     challengerPassLevel: 30,
     momentumPass1Level: 10,
     momentumPass2Level: 10,
+    // 에픽던전만 비교하도록 기본 시드된 보유분을 비운다
+    ownedMech: 0,
+    ownedSauna: 0,
+    ownedAdv: 0,
     apology: false,
     shardEvent: false,
     ultima: false,
@@ -352,6 +360,10 @@ test("buys one Blueberry on the first still-open Maple Point shop week", async (
     challengerPassLevel: 30,
     momentumPass1Level: 10,
     momentumPass2Level: 10,
+    // 메포샵 품목만 세도록 기본 시드된 보유분을 비운다
+    ownedMech: 0,
+    ownedSauna: 0,
+    ownedAdv: 0,
     apology: false,
     shardEvent: false,
     ultima: false,
@@ -381,6 +393,10 @@ test("prices, grants, and distributes Maple Point shop items by exact count", as
     challengerPassLevel: 30,
     momentumPass1Level: 10,
     momentumPass2Level: 10,
+    // 메포샵 품목만 세도록 기본 시드된 보유분을 비운다
+    ownedMech: 0,
+    ownedSauna: 0,
+    ownedAdv: 0,
     apology: false,
     shardEvent: false,
     ultima: false,
@@ -663,6 +679,10 @@ test("recommends paid weekday Monster Park for the reported Lv.282 case", async 
     challengerPassLevel: 30,
     momentumPass1Level: 0,
     momentumPass2Level: 0,
+    // 패스 레벨 0과 짝을 맞춰 보유분도 비운다
+    ownedMech: 0,
+    ownedSauna: 0,
+    ownedAdv: 0,
     pullWeeks: 1,
   };
   const planning = pageModule.runPlanningImmediately(settings);
@@ -759,15 +779,15 @@ test("keeps the approved A-C fixtures unchanged in target 285 mode", async () =>
     },
     {
       settings: { ...pageModule.createDefaultSettings("2026-08-03"), level: 280, exp: 0 },
-      reached: "2026-09-15",
-      maplePoints: 27_000,
+      reached: "2026-09-10",
+      maplePoints: 15_000,
       leftovers: { blue: 0, mech: 0, sauna: 0, adv: 0, potion269: 0, potion279: 0, coupon3x: 78, coupon4x: 12 },
     },
     {
       settings: { ...pageModule.createDefaultSettings("2026-08-03"), level: 284, exp: 50 },
-      reached: "2026-08-06",
+      reached: "2026-08-03",
       maplePoints: 0,
-      leftovers: { blue: 0, mech: 15, sauna: 1.5, adv: 15329, potion269: 0, potion279: 0, coupon3x: 6, coupon4x: 12 },
+      leftovers: { blue: 0, mech: 18, sauna: 2, adv: 15900, potion269: 0, potion279: 0, coupon3x: 3, coupon4x: 12 },
     },
   ];
 
@@ -826,9 +846,13 @@ test("uses the calculation start date as the automatic Carcion boundary", async 
     targetLevel: 290,
     level: 285,
     exp: 0,
-    // 몬파만 남겨 카르시온 경계를 격리한다. 기본값은 풀 보상이라 메포샵 구매가 켜져 있다.
+    // 몬파만 남겨 카르시온 경계를 격리한다. 기본값은 풀 보상이라 메포샵 구매와
+    // 이미 받은 패스 보상이 켜져 있다.
     shopBlue: false,
     shopMech: false,
+    ownedMech: 0,
+    ownedSauna: 0,
+    ownedAdv: 0,
     challengerPassLevel: 30,
     momentumPass1Level: 10,
     momentumPass2Level: 10,
@@ -873,10 +897,10 @@ test("preserves a 285 milestone snapshot in target 290 mode", async () => {
   assert.equal(result.reached, null);
   assert.equal(result.rows.at(-1).key, "2026-09-16");
   assert.equal(result.finalLevel, 290);
-  assert.ok(Math.abs(result.finalExp - 53.698820974319084) < 1e-10);
+  assert.ok(Math.abs(result.finalExp - 63.92696770439977) < 1e-10);
   assert.ok(result.leftoversAt285);
   assert.notEqual(result.leftoversAt285, result.leftovers);
-  assert.deepEqual(result.leftoversAt285, { blue: 0, mech: 0, sauna: 0, adv: 0, potion269: 0, potion279: 0, coupon3x: 0, coupon4x: 0 });
+  assert.deepEqual(result.leftoversAt285, { blue: 0, mech: 4, sauna: 1, adv: 3100, potion269: 0, potion279: 0, coupon3x: 0, coupon4x: 0 });
 });
 
 test("does not auto-apply Special Supply EXP without direct input", async () => {
@@ -933,7 +957,7 @@ test("forecasts the final level and EXP at the September 16 deadline", async () 
 
   assert.equal(planning.basePlan.result.rows.at(-1).key, "2026-09-16");
   assert.equal(planning.basePlan.result.finalLevel, 287);
-  assert.ok(Math.abs(planning.basePlan.result.finalExp - 75.29158000738849) < 1e-10);
+  assert.ok(Math.abs(planning.basePlan.result.finalExp - 95.48059473655137) < 1e-10);
   assert.equal(planning.basePlan.result.monsterParkMaplePoints, 0);
   assert.equal(planning.basePlan.result.reached, null);
   assert.equal(planning.basePlan.result.endReason, "horizon");
@@ -1010,6 +1034,10 @@ test("excludes each disabled Momentum season including its normal and Prime rewa
     momentumPass2Level: 0,
     momentumPrime1: true,
     momentumPrime2: true,
+    // 패스 지급분만 세도록 기본 시드된 보유분을 비운다
+    ownedMech: 0,
+    ownedSauna: 0,
+    ownedAdv: 0,
     apology: false,
     shardEvent: false,
     ultima: false,

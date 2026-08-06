@@ -398,14 +398,49 @@ const availableShopWeeksForStart = (start: Date) => {
     .filter(({ weekEnd }) => weekEnd >= start);
 };
 
+const challengerBlueLevels = new Set([1, 3, 5, 6, 8, 10, 11, 13, 15, 16, 18, 20, 21, 23, 25, 26, 28]);
+const challengerSaunaLevels = new Set([2, 7, 12, 17, 22, 27]);
+const challengerExpLevels = new Set([4, 9, 14, 19, 24, 29]);
+const challengerRewardForLevel = (level: number, expPass: boolean): Omit<Reward, "label"> => ({
+  blue: expPass && challengerBlueLevels.has(level) ? 1 : 0,
+  sauna: expPass && challengerSaunaLevels.has(level) ? 1 : 0,
+  adv: (level === 22 || level === 27 ? 100 : level === 30 ? 2000 : 0) + (expPass && challengerExpLevels.has(level) ? 1000 : 0),
+  potion279: expPass && level === 30 ? 1 : 0,
+});
+
+const momentumRewardForLevel = (level: number, prime: boolean, deferMech: boolean): Omit<Reward, "label"> => ({
+  deferMech,
+  mech: (level === 1 ? 1 : 0) + (prime ? (({ 2: 1, 5: 2, 8: 3, 10: 4 } as Record<number, number>)[level] || 0) : 0),
+  sauna: [2, 5, 8].includes(level) ? 0.5 : 0,
+  adv: (({ 4: 100, 7: 100, 10: 300 } as Record<number, number>)[level] || 0) + (prime && [3, 6, 9].includes(level) ? 3000 : 0),
+  coupon4x: prime && [1, 4, 7].includes(level) ? 2 : 0,
+});
+
+// 이미 받은 패스 레벨의 보상은 아직 손에 들고 있는 것으로 본다. 특히 메카베리는
+// 계산기 스스로 284까지 모아쓰라고 안내하므로, 수령했다고 사라지면 안 된다.
+export const momentumClaimedRewards = (level: number, prime: boolean) => {
+  const claimed = { mech: 0, sauna: 0, adv: 0 };
+  for (let passLevel = 1; passLevel <= Math.max(0, Math.min(MOMENTUM_MAX_LEVEL, Math.floor(level))); passLevel += 1) {
+    const reward = momentumRewardForLevel(passLevel, prime, false);
+    claimed.mech += Number(reward.mech || 0);
+    claimed.sauna += Number(reward.sauna || 0);
+    claimed.adv += Number(reward.adv || 0);
+  }
+  return claimed;
+};
+
 const createDefaultSettings = (start = SSR_DEFAULT_START): Settings => {
   const ultimaProgress = ultimaProgressBefore(start);
+  const momentumPass1Level = momentumUnlockedLevelOn(parseDate(start), MOMENTUM_PASS_1_START);
+  const momentumPass2Level = momentumUnlockedLevelOn(parseDate(start), MOMENTUM_PASS_2_START);
+  // 이미 수령한 패스 보상은 아직 안 쓴 것으로 보고 보유 보상에 넣는다.
+  const claimed1 = momentumClaimedRewards(momentumPass1Level, true);
+  const claimed2 = momentumClaimedRewards(momentumPass2Level, true);
   return ({
   targetLevel: 285, level: 280, exp: 87.39, start, pullWeeks: 0, pullStrategy: "monsterPark", specialSundayCount: 1, paidMonsterPark: true,
   specialSupply: false, specialSupplySaved: 0, specialSupplyExpPerCharge: 0,
   challengerPassLevel: 30, momentumPass1Enabled: true, momentumPass2Enabled: true,
-  momentumPass1Level: momentumUnlockedLevelOn(parseDate(start), MOMENTUM_PASS_1_START),
-  momentumPass2Level: momentumUnlockedLevelOn(parseDate(start), MOMENTUM_PASS_2_START),
+  momentumPass1Level, momentumPass2Level,
   preLevel: 270, preExp: 0, prePassLevel: 30, preUnclaimed: false,
   preUseBlue: true, preUseSauna: true, preUseAdv: true, preUsePotion: true,
   preMonsterParkRuns: 2, preSpecialSundayCount: 1, preDailyQuests: true, preWeeklyContent: true,
@@ -420,7 +455,10 @@ const createDefaultSettings = (start = SSR_DEFAULT_START): Settings => {
   ultimaCount: ultimaProgress.count, ultimaWeek: ultimaProgress.week, ultimaStart: true, grandis: true, weeklyOpen: true, todayDaily: true,
   extreme: true, epic: true, epicMult: 5, epicCore5: 30, core25Date: "2026-08-06",
   core25Bonus: 10, epicArtifactDate: "2026-08-13", epicArtifact: 180, epicCore6: 40,
-  epicCore6Artifact: 190, ownedBlue: 0, ownedMech: 0, ownedSauna: 0, ownedAdv: 0, ownedPotion279: 0,
+  epicCore6Artifact: 190, ownedBlue: 0, ownedPotion279: 0,
+  ownedMech: claimed1.mech + claimed2.mech,
+  ownedSauna: claimed1.sauna + claimed2.sauna,
+  ownedAdv: claimed1.adv + claimed2.adv,
   });
 };
 const defaults = createDefaultSettings();
@@ -456,24 +494,6 @@ const pre280SettingKeys: (keyof Settings)[] = [
   "epicArtifact", "epicCore6", "epicCore6Artifact",
 ];
 const selectedSettingsKey = (settings: Settings, keys: (keyof Settings)[]) => JSON.stringify(keys.map(key => settings[key]));
-
-const challengerBlueLevels = new Set([1, 3, 5, 6, 8, 10, 11, 13, 15, 16, 18, 20, 21, 23, 25, 26, 28]);
-const challengerSaunaLevels = new Set([2, 7, 12, 17, 22, 27]);
-const challengerExpLevels = new Set([4, 9, 14, 19, 24, 29]);
-const challengerRewardForLevel = (level: number, expPass: boolean): Omit<Reward, "label"> => ({
-  blue: expPass && challengerBlueLevels.has(level) ? 1 : 0,
-  sauna: expPass && challengerSaunaLevels.has(level) ? 1 : 0,
-  adv: (level === 22 || level === 27 ? 100 : level === 30 ? 2000 : 0) + (expPass && challengerExpLevels.has(level) ? 1000 : 0),
-  potion279: expPass && level === 30 ? 1 : 0,
-});
-
-const momentumRewardForLevel = (level: number, prime: boolean, deferMech: boolean): Omit<Reward, "label"> => ({
-  deferMech,
-  mech: (level === 1 ? 1 : 0) + (prime ? (({ 2: 1, 5: 2, 8: 3, 10: 4 } as Record<number, number>)[level] || 0) : 0),
-  sauna: [2, 5, 8].includes(level) ? 0.5 : 0,
-  adv: (({ 4: 100, 7: 100, 10: 300 } as Record<number, number>)[level] || 0) + (prime && [3, 6, 9].includes(level) ? 3000 : 0),
-  coupon4x: prime && [1, 4, 7].includes(level) ? 2 : 0,
-});
 
 const nextThursdayAfter = (date: Date) => {
   const days = (4 - dayOfWeek(date) + 7) % 7;
@@ -939,7 +959,8 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
       });
     });
   }
-  addReward(start, { label: "현재 보유분", blue: s.ownedBlue, mech: s.ownedMech, sauna: s.ownedSauna, adv: s.ownedAdv, potion279: s.ownedPotion279 });
+  // 보유 메카베리도 모아쓰기를 따른다. 먼저 쓸 이유가 없다.
+  addReward(start, { label: "현재 보유분", blue: s.ownedBlue, mech: s.ownedMech, sauna: s.ownedSauna, adv: s.ownedAdv, potion279: s.ownedPotion279, deferMech: deferMomentumMech });
 
   const forecastCapExp = () => req(295) * 0.99999;
   const atForecastCap = () => forecastMode && level >= 295 && xp >= forecastCapExp() - 1e-12;
@@ -1402,6 +1423,12 @@ export default function Home() {
     if (pre280SettingKeys.includes(key)) setPreApplied(false);
     setS(current => ({ ...current, [key]: value }));
   };
+  // 현재 패스 레벨까지 받은 보상. 보유 토글이 이 값을 기준으로 켜고 끈다.
+  const claimedPassRewards = useMemo(() => {
+    const first = momentumClaimedRewards(s.momentumPass1Enabled ? s.momentumPass1Level : 0, s.momentumPrime1);
+    const second = momentumClaimedRewards(s.momentumPass2Enabled ? s.momentumPass2Level : 0, s.momentumPrime2);
+    return { mech: first.mech + second.mech, sauna: first.sauna + second.sauna, adv: first.adv + second.adv };
+  }, [s.momentumPass1Enabled, s.momentumPass1Level, s.momentumPrime1, s.momentumPass2Enabled, s.momentumPass2Level, s.momentumPrime2]);
   const core6MasterEnabled = s.dailyCore6Enabled && s.mpCore6Enabled && s.epicCore6Enabled;
   const setCore6Master = (enabled: boolean) => setS(current => ({ ...current, ...core6MasterPatch(enabled) }));
   const updateEfficiencyLevelInput = (value: string) => {
@@ -1691,6 +1718,10 @@ export default function Home() {
           <div className="quick-toggles"><Toggle label="오늘 일퀘·몬파 미완료" checked={s.todayDaily} onChange={v => set("todayDaily", v)} /><Toggle label="이번 주 챌섭 5레벨 미완료" checked={s.challengerUnclaimed} onChange={v => set("challengerUnclaimed", v)} /></div>
           <div className="field-grid compact inset"><InputField label="스페셜 선데이 몬파 횟수" value={s.specialSundayCount} min={0} max={12} step={1} disabled={!s.paidMonsterPark} onChange={v => set("specialSundayCount", Number(v))} /><InputField label="모멘텀 1차 현재 레벨" value={s.momentumPass1Level} min={0} max={10} step={1} disabled={!s.momentumPass1Enabled} onChange={v => set("momentumPass1Level", Number(v))} /><InputField label="모멘텀 2차 현재 레벨" value={s.momentumPass2Level} min={0} max={10} step={1} disabled={!s.momentumPass2Enabled} onChange={v => set("momentumPass2Level", Number(v))} /></div>
           <Toggle label="챌린저스 EXP 패스" checked={s.challengerExp} onChange={v => set("challengerExp", v)} /><Toggle label="모멘텀 1차 프라임 · 49,800 넥슨캐시" checked={s.momentumPrime1} disabled={!s.momentumPass1Enabled} onChange={v => set("momentumPrime1", v)} /><Toggle label="모멘텀 2차 프라임 · 49,800 넥슨캐시" checked={s.momentumPrime2} disabled={!s.momentumPass2Enabled} onChange={v => set("momentumPrime2", v)} /><Toggle label="모멘텀 메카베리 모아쓰기" checked={s.deferMomentumMech} onChange={v => set("deferMomentumMech", v)} />
+          <div className="callout-mini">이미 받은 패스 보상 중 아직 안 쓴 것만 켜 둡니다. 끄면 그만큼 빠집니다.</div>
+          <Toggle label={`받은 메카베리 ${claimedPassRewards.mech}장 보유 중`} checked={s.ownedMech > 0} onChange={v => set("ownedMech", v ? claimedPassRewards.mech : 0)} />
+          <Toggle label={`받은 상급 EXP ${claimedPassRewards.adv.toLocaleString("ko-KR")}장 보유 중`} checked={s.ownedAdv > 0} onChange={v => set("ownedAdv", v ? claimedPassRewards.adv : 0)} />
+          <Toggle label={`받은 VIP 사우나 ${claimedPassRewards.sauna}시간 보유 중`} checked={s.ownedSauna > 0} onChange={v => set("ownedSauna", v ? claimedPassRewards.sauna : 0)} />
           {s.targetLevel === 290 && <>
             <Toggle label="메포샵 메카베리 구매 · 1개 10,000 메포" checked={s.shopMech} onChange={v => set("shopMech", v)} />
             <Toggle label="메포샵 블루베리 구매 · 1개 7,000 메포" checked={s.shopBlue} onChange={v => set("shopBlue", v)} />
