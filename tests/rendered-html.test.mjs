@@ -46,7 +46,12 @@ test("keeps the 285 calculator primary, adds 290, and moves supporting content i
   assert.match(page, /calculatedSettings/);
   assert.match(page, /hasPendingChanges/);
   assert.match(page, /runPlanningInChunks/);
-  assert.match(page, /requestAnimationFrame/);
+  // 프레임 대기 대신 시간 분할 + 매크로태스크 양보, 진행 숫자는 외부 스토어로 분리
+  assert.doesNotMatch(page, /requestAnimationFrame\(/);
+  assert.match(page, /yieldToBrowser/);
+  assert.match(page, /PLANNING_SLICE_MS/);
+  assert.match(page, /useSyncExternalStore/);
+  assert.match(page, /<CalculationSteps \/>/);
   assert.match(page, /rawPerCoupon/);
   assert.match(page, /couponBatch/);
   assert.match(page, /guard < 16/);

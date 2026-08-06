@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import {
   advanceBurningBeyondExperience,
   growthPotionExperience,
@@ -1262,20 +1262,33 @@ function runPlanningImmediately(settings: Settings): Planning {
   return step.value;
 }
 
+const PLANNING_SLICE_MS = 8;
+const PROGRESS_INTERVAL_MS = 100;
+const nowMs = () => typeof performance === "object" && typeof performance.now === "function" ? performance.now() : Date.now();
+// requestAnimationFrame은 슬라이스마다 한 프레임을 통째로 기다리고 배경 탭에서는 아예 멈춘다.
+// scheduler.yield는 계속 실행을 일반 태스크보다 우선시켜 다른 작업을 굶긴다.
+// React 스케줄러와 같이 MessageChannel 매크로태스크로 양보해 페인트와 입력을 그대로 통과시킨다.
+const yieldToBrowser = () => new Promise<void>(resolve => {
+  if (typeof MessageChannel !== "function") { setTimeout(resolve, 0); return; }
+  const channel = new MessageChannel();
+  channel.port1.onmessage = () => { channel.port1.close(); resolve(); };
+  channel.port2.postMessage(null);
+});
+
 async function runPlanningInChunks(settings: Settings, onProgress: (completed: number) => void, cancelled: () => boolean): Promise<Planning | null> {
   const iterator = buildPlanningSteps(settings);
   let step = iterator.next();
-  let chunk = 0;
+  let sliceStart = nowMs();
+  let lastProgress = 0;
   while (!step.done) {
     if (cancelled()) return null;
-    onProgress(step.value);
-    chunk += 1;
-    if (chunk >= 3) {
-      chunk = 0;
-      await new Promise<void>(resolve => {
-        if (typeof requestAnimationFrame === "function") requestAnimationFrame(() => resolve());
-        else setTimeout(resolve, 0);
-      });
+    const current = nowMs();
+    // 스텝 수가 아니라 경과 시간으로 끊는다. 대부분의 입력은 한 슬라이스에서 끝난다.
+    if (current - lastProgress >= PROGRESS_INTERVAL_MS) { onProgress(step.value); lastProgress = current; }
+    if (current - sliceStart >= PLANNING_SLICE_MS) {
+      await yieldToBrowser();
+      if (cancelled()) return null;
+      sliceStart = nowMs();
     }
     step = iterator.next();
   }
@@ -1294,6 +1307,28 @@ export const selectedPlanForSettings = (planning: Planning, settings: Settings) 
     ? requestedPlan
     : planning.bestPlansByWeek[effectivePullWeeks] || planning.basePlan;
 };
+
+// 진행 숫자를 Home 상태에 두면 갱신마다 계산기 전체가 다시 그려져 입력이 밀린다.
+// 외부 스토어로 빼서 아래 숫자 노드만 다시 그린다.
+const calculationProgress = {
+  value: 0,
+  listeners: new Set<() => void>(),
+  get: () => calculationProgress.value,
+  set(next: number) {
+    if (next === calculationProgress.value) return;
+    calculationProgress.value = next;
+    calculationProgress.listeners.forEach(listener => listener());
+  },
+  subscribe(listener: () => void) {
+    calculationProgress.listeners.add(listener);
+    return () => { calculationProgress.listeners.delete(listener); };
+  },
+};
+const zeroProgress = () => 0;
+function CalculationSteps() {
+  const steps = useSyncExternalStore(calculationProgress.subscribe, calculationProgress.get, zeroProgress);
+  return <>{steps.toLocaleString("ko-KR")}</>;
+}
 
 function InputField({ label, value, onChange, type = "number", min, max, step, disabled }: { label: string; value: string | number; onChange: (value: string) => void; type?: "number" | "date"; min?: number; max?: number; step?: number; disabled?: boolean }) {
   return <label className="field"><span>{label}</span><input type={type} value={value} onChange={e => onChange(e.target.value)} min={min} max={max} step={step} disabled={disabled} /></label>;
@@ -1332,7 +1367,6 @@ export default function Home() {
   const [calculatedSettings, setCalculatedSettings] = useState<Settings>(defaults);
   const [isCalculating, setIsCalculating] = useState(false);
   const [planning, setPlanning] = useState<Planning>(defaultPlanning);
-  const [calculationSteps, setCalculationSteps] = useState(0);
   const calculationJob = useRef(0);
   const localDefaultsApplied = useRef(false);
   const [preApplied, setPreApplied] = useState(false);
@@ -1436,24 +1470,22 @@ export default function Home() {
     const job = calculationJob.current + 1;
     calculationJob.current = job;
     setIsCalculating(true);
-    setCalculationSteps(0);
+    calculationProgress.set(0);
     const nextPlanning = await runPlanningInChunks(
       nextSettings,
-      completed => {
-        if (job === calculationJob.current && (completed < 4 || completed % 8 === 0)) setCalculationSteps(completed);
-      },
+      completed => { if (job === calculationJob.current) calculationProgress.set(completed); },
       () => job !== calculationJob.current,
     );
     if (!nextPlanning || job !== calculationJob.current) return;
     setPlanning(nextPlanning);
     setCalculatedSettings(nextSettings);
-    setCalculationSteps(0);
+    calculationProgress.set(0);
     setIsCalculating(false);
   };
   const cancelCalculation = () => {
     calculationJob.current += 1;
     setIsCalculating(false);
-    setCalculationSteps(0);
+    calculationProgress.set(0);
   };
   const selectCalculatedRoute = (patch: Partial<Pick<Settings, "pullWeeks" | "pullStrategy">>) => {
     setS(current => ({ ...current, ...patch }));
@@ -1466,7 +1498,7 @@ export default function Home() {
     setCalculatedSettings(localDefaults);
     setPlanning(runPlanningImmediately(localDefaults));
     setIsCalculating(false);
-    setCalculationSteps(0);
+    calculationProgress.set(0);
     setPreApplied(false);
   };
   const connectPre280 = () => {
@@ -1660,7 +1692,7 @@ export default function Home() {
         </div></details>
         <details><summary>보유 보상 · 울티마 <span>9</span></summary><div className="detail-body"><div className="field-grid compact"><InputField label="보유 블루베리" value={s.ownedBlue} min={0} onChange={v => set("ownedBlue", Number(v))} /><InputField label="보유 메카베리" value={s.ownedMech} min={0} onChange={v => set("ownedMech", Number(v))} /><InputField label="보유 사우나 시간" value={s.ownedSauna} min={0} onChange={v => set("ownedSauna", Number(v))} /><InputField label="보유 상급 EXP" value={s.ownedAdv} min={0} onChange={v => set("ownedAdv", Number(v))} /><InputField label="보유 200~279 비약" value={s.ownedPotion279} min={0} onChange={v => set("ownedPotion279", Number(v))} /><InputField label="EXP 5,000 예상 사용일" value={s.shardDate} type="date" disabled={!s.shardEvent} onChange={v => set("shardDate", v)} /><InputField label="상급 EXP 사용량" value={s.shardAdv} disabled={!s.shardEvent} onChange={v => set("shardAdv", Number(v))} /><InputField label="울티마 누적 출석" value={s.ultimaCount} disabled={!s.ultima} onChange={v => set("ultimaCount", Number(v))} /><InputField label="이번 주 이미 출석" value={s.ultimaWeek} disabled={!s.ultima} onChange={v => set("ultimaWeek", Number(v))} /></div><Toggle label="시작일 울티마 출석 예정" checked={s.ultimaStart} disabled={!s.ultima} onChange={v => set("ultimaStart", v)} /></div></details>
         <div className={`calculate-bar ${hasPendingChanges ? "pending" : ""} ${isCalculating ? "calculating" : ""}`}>
-          <span>{isCalculating ? `전략 비교 중 · ${calculationSteps.toLocaleString("ko-KR")}개 확인` : hasPendingChanges ? "입력값이 변경되었습니다" : "현재 입력값으로 계산 완료"}</span>
+          <span>{isCalculating ? <>전략 비교 중 · <CalculationSteps />개 확인</> : hasPendingChanges ? "입력값이 변경되었습니다" : "현재 입력값으로 계산 완료"}</span>
           {isCalculating && <div className="calculation-progress" aria-hidden="true"><i /></div>}
           <div className="calculate-actions">
             <button type="button" onClick={calculate} disabled={!hasPendingChanges || isCalculating}>{isCalculating ? "계산 중…" : hasPendingChanges ? s.targetLevel === 290 ? "9/16 예상 계산하기" : `${s.targetLevel} 도달일 계산하기` : "계산 완료"}</button>
