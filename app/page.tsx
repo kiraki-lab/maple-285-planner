@@ -114,7 +114,9 @@ type Reward = Partial<Leftovers> & {
   remaining?: Leftovers;
 };
 type RowUsage = { blue: number; mech: number; sauna: number; adv: number; potion: number; runs: number };
-type Row = { date: Date; key: string; level: number; exp: number; progress: number; events: string[]; usage: RowUsage };
+type ExperienceSourceId = "monsterPark" | "grandis" | "extreme" | "epic" | "mech" | "blue" | "sauna" | "adv" | "potion" | "specialSupply";
+type ExperienceContribution = { id: ExperienceSourceId; label: string; gain: number };
+type Row = { date: Date; key: string; level: number; exp: number; progress: number; events: string[]; usage: RowUsage; contributions: ExperienceContribution[] };
 type Simulation = {
   start: Date;
   startLevel: number;
@@ -174,6 +176,21 @@ type Pre280Simulation = {
   monsterParkRuns: number;
   weeklyCount: number;
 };
+
+export function roundContributionBreakdown(contributions: ExperienceContribution[], totalGain: number) {
+  const rounded = contributions.map(contribution => ({
+    ...contribution,
+    cents: Math.floor(Math.max(0, contribution.gain) * 100 + 1e-9),
+    fraction: Math.max(0, contribution.gain) * 100 % 1,
+  }));
+  let remaining = Math.max(0, Math.round(Math.max(0, totalGain) * 100) - rounded.reduce((sum, contribution) => sum + contribution.cents, 0));
+  const byFraction = rounded.map((_, index) => index).sort((a, b) => rounded[b].fraction - rounded[a].fraction);
+  for (let index = 0; remaining > 0 && byFraction.length; index = (index + 1) % byFraction.length) {
+    rounded[byFraction[index]].cents += 1;
+    remaining -= 1;
+  }
+  return rounded.map(contribution => ({ id: contribution.id, label: contribution.label, gain: contribution.gain, roundedGain: contribution.cents / 100 }));
+}
 
 const efficiency: Record<number, Record<string, number>> = {
   280: { grandis: 0.3857, mp7: 2.2302, extreme: 2.604, epic: 3.0885, adv100: 0.22977, sauna: 0.9313, blue: 6.4818, mech: 9.7053 },
@@ -1063,6 +1080,17 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
     const date = addDays(start, day); const key = iso(date); const events: string[] = [];
     // 계산 근거 표시용. 그날 실제로 소비한 수량을 그대로 모은다.
     const usage: RowUsage = { blue: 0, mech: 0, sauna: 0, adv: 0, potion: 0, runs: 0 };
+    const contributions: ExperienceContribution[] = [];
+    const currentProgress = () => level >= targetLevel ? targetLevel : level + xp / req(level);
+    const recordContribution = (id: ExperienceSourceId, label: string, apply: () => void) => {
+      const before = currentProgress();
+      apply();
+      const gain = (currentProgress() - before) * 100;
+      if (gain <= 1e-10) return;
+      const existing = contributions.find(contribution => contribution.id === id);
+      if (existing) existing.gain += gain;
+      else contributions.push({ id, label, gain });
+    };
     (rewardDays.get(key) || []).forEach(reward => {
       if (reward.optionalPurchase && (level >= targetLevel || atForecastCap())) return;
       if (reward.optionalPurchase) {
@@ -1072,12 +1100,12 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
       }
       shopMaplePoints += reward.maplePoints || 0;
       const r = reward.remaining!;
-      if ((reward.blue || 0) > 0) { const used = applyItems("blue", r.blue); r.blue -= used; usage.blue += used; }
-      if ((reward.mech || 0) > 0 && (!reward.deferMech || level >= momentumMechLevel || date >= momentumMechDeadline)) { const used = applyItems("mech", r.mech); r.mech -= used; usage.mech += used; }
-      if ((reward.sauna || 0) > 0) { const used = applyItems("sauna", r.sauna); r.sauna -= used; usage.sauna += used; }
-      if ((reward.potion269 || 0) > 0) { const used = applyGrowthPotion("potion269", r.potion269); r.potion269 -= used; usage.potion += used; }
-      if ((reward.potion279 || 0) > 0) { const used = applyGrowthPotion("potion279", r.potion279); r.potion279 -= used; usage.potion += used; }
-      if ((reward.adv || 0) > 0) { const used = applyItems("adv", r.adv); r.adv -= used; usage.adv += used; }
+      if ((reward.blue || 0) > 0) { let used = 0; recordContribution("blue", "블루베리", () => { used = applyItems("blue", r.blue); }); r.blue -= used; usage.blue += used; }
+      if ((reward.mech || 0) > 0 && (!reward.deferMech || level >= momentumMechLevel || date >= momentumMechDeadline)) { let used = 0; recordContribution("mech", "메카베리", () => { used = applyItems("mech", r.mech); }); r.mech -= used; usage.mech += used; }
+      if ((reward.sauna || 0) > 0) { let used = 0; recordContribution("sauna", "VIP 사우나", () => { used = applyItems("sauna", r.sauna); }); r.sauna -= used; usage.sauna += used; }
+      if ((reward.potion269 || 0) > 0) { let used = 0; recordContribution("potion", "성장의 비약", () => { used = applyGrowthPotion("potion269", r.potion269); }); r.potion269 -= used; usage.potion += used; }
+      if ((reward.potion279 || 0) > 0) { let used = 0; recordContribution("potion", "성장의 비약", () => { used = applyGrowthPotion("potion279", r.potion279); }); r.potion279 -= used; usage.potion += used; }
+      if ((reward.adv || 0) > 0) { let used = 0; recordContribution("adv", "상급 EXP", () => { used = applyItems("adv", r.adv); }); r.adv -= used; usage.adv += used; }
       capture285(date);
       const notableAttendance = reward.attendanceReward && (reward.sauna || reward.adv || reward.potion269 || reward.potion279);
       if ((!reward.attendanceReward && (reward.label !== "현재 보유분" || itemTypes.some(type => Number(reward[type] || 0) > 0))) || notableAttendance) events.push(reward.label);
@@ -1087,7 +1115,7 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
       // 시작일 보유 횟수에는 그날 충전분이 포함된 것으로 보고, 다음 날부터 하루 1회만 더합니다.
       if (date.getTime() !== start.getTime()) specialSupplySaved = Math.min(SPECIAL_SUPPLY_BATCH_SIZE, specialSupplySaved + 1);
       if (specialSupplySaved >= SPECIAL_SUPPLY_BATCH_SIZE && level < targetLevel && !atForecastCap() && s.specialSupplyExpPerCharge > 0) {
-        applyRaw(rawToNormalized(s.specialSupplyExpPerCharge * SPECIAL_SUPPLY_BATCH_SIZE));
+        recordContribution("specialSupply", "특수 물자", () => applyRaw(rawToNormalized(s.specialSupplyExpPerCharge * SPECIAL_SUPPLY_BATCH_SIZE)));
         specialSupplyUsed += SPECIAL_SUPPLY_BATCH_SIZE;
         specialSupplySaved = 0;
         events.push("특수 물자 5회 · 4배 쿠폰");
@@ -1099,14 +1127,18 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
     if ((thursday && day > 0) || (day === 0 && s.weeklyOpen)) {
       const eterion = eterionBonusesForDate(s, date);
       if (s.extreme && level < targetLevel) {
-        if (level >= 285 && level <= 290) applyRaw(rawToNormalized(WEEKLY_CONTENT_RAW[level].extreme) * (1 + eterion.mp / 100));
-        else if (level >= 291) applyRaw(rawToNormalized(POST_290_EFFICIENCY_RAW[level].extreme) * (1 + eterion.mp / 100));
-        else if (level < 285) applyPercent(efficiency[level].extreme * (1 + eterion.mp / 100));
+        recordContribution("extreme", "익스트림 몬스터파크", () => {
+          if (level >= 285 && level <= 290) applyRaw(rawToNormalized(WEEKLY_CONTENT_RAW[level].extreme) * (1 + eterion.mp / 100));
+          else if (level >= 291) applyRaw(rawToNormalized(POST_290_EFFICIENCY_RAW[level].extreme) * (1 + eterion.mp / 100));
+          else if (level < 285) applyPercent(efficiency[level].extreme * (1 + eterion.mp / 100));
+        });
       }
       if (s.epic && level < targetLevel) {
-        if (level >= 291) applyRaw(rawToNormalized(POST_290_EFFICIENCY_RAW[level].epic) * (s.epicMult + eterion.epic / 100));
-        else if (level >= 285) applyRaw(rawToNormalized(WEEKLY_CONTENT_RAW[level].epic) * (s.epicMult + eterion.epic / 100));
-        else applyPercent(efficiency[level].epic * (s.epicMult + eterion.epic / 100));
+        recordContribution("epic", "악몽선경", () => {
+          if (level >= 291) applyRaw(rawToNormalized(POST_290_EFFICIENCY_RAW[level].epic) * (s.epicMult + eterion.epic / 100));
+          else if (level >= 285) applyRaw(rawToNormalized(WEEKLY_CONTENT_RAW[level].epic) * (s.epicMult + eterion.epic / 100));
+          else applyPercent(efficiency[level].epic * (s.epicMult + eterion.epic / 100));
+        });
       }
       capture285(date);
       events.push("익몬 · 악몽선경");
@@ -1122,17 +1154,21 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
       const isSpecialSunday = isSunday && sundaysSeen < specialSundayCount;
       if (isSunday) sundaysSeen += 1;
       const sundayBonus = isSpecialSunday ? 3 : isSunday ? 0.5 : 0;
-      if (level >= 291) applyRaw(rawToNormalized(POST_290_EFFICIENCY_RAW[level].monsterParkPerRun * dailyRuns) * (1 + eterion.mp / 100 + sundayBonus));
-      else if (level >= 285) applyRaw(rawToNormalized(monsterParkRawForLevel(level, carcionActive(date)) * dailyRuns) * (1 + eterion.mp / 100 + sundayBonus));
-      else applyPercent(monsterParkExperiencePercent({
-          baseSevenRunPercent: efficiency[level].mp7,
-          runs: dailyRuns,
-          contentBonusPercent: eterion.mp,
-          sundayKind: isSpecialSunday ? "special" : isSunday ? "normal" : "none",
-        }));
+      recordContribution("monsterPark", "몬스터파크", () => {
+        if (level >= 291) applyRaw(rawToNormalized(POST_290_EFFICIENCY_RAW[level].monsterParkPerRun * dailyRuns) * (1 + eterion.mp / 100 + sundayBonus));
+        else if (level >= 285) applyRaw(rawToNormalized(monsterParkRawForLevel(level, carcionActive(date)) * dailyRuns) * (1 + eterion.mp / 100 + sundayBonus));
+        else applyPercent(monsterParkExperiencePercent({
+            baseSevenRunPercent: efficiency[level].mp7,
+            runs: dailyRuns,
+            contentBonusPercent: eterion.mp,
+            sundayKind: isSpecialSunday ? "special" : isSunday ? "normal" : "none",
+          }));
+      });
       if (s.grandis && level < targetLevel) {
-        if (level >= 285) applyRaw(rawToNormalized(grandisDailyRawForLevel(level, carcionActive(date))) * (1 + eterion.daily / 100));
-        else applyPercent(efficiency[level].grandis * (1 + eterion.daily / 100));
+        recordContribution("grandis", "그란디스 일퀘", () => {
+          if (level >= 285) applyRaw(rawToNormalized(grandisDailyRawForLevel(level, carcionActive(date))) * (1 + eterion.daily / 100));
+          else applyPercent(efficiency[level].grandis * (1 + eterion.daily / 100));
+        });
       }
       capture285(date);
     }
@@ -1140,7 +1176,8 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
     if (deferMomentumMech && level < targetLevel && !atForecastCap() && (level >= momentumMechLevel || date >= momentumMechDeadline)) {
       rewardDays.forEach(rewards => rewards.forEach(reward => {
         if (!reward.deferMech || (reward.date || "") > key || !reward.remaining || reward.remaining.mech <= 0 || level >= targetLevel) return;
-        const usedMech = applyItems("mech", reward.remaining.mech);
+        let usedMech = 0;
+        recordContribution("mech", "메카베리", () => { usedMech = applyItems("mech", reward.remaining!.mech); });
         reward.remaining.mech -= usedMech;
         usage.mech += usedMech;
         events.push(`${reward.label} 메카베리 사용`);
@@ -1149,7 +1186,7 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
     }
 
     const progress = level >= targetLevel ? targetLevel : level + xp / req(level);
-    rows.push({ date, key, level, exp: level >= targetLevel ? 0 : xp / req(level) * 100, progress, events, usage });
+    rows.push({ date, key, level, exp: level >= targetLevel ? 0 : xp / req(level) * 100, progress, events, usage, contributions });
     capture285(date);
     if (!forecastMode && level >= targetLevel) reached = date;
   }
@@ -1590,7 +1627,7 @@ export default function Home() {
   const milestoneLeftoverRows = r.leftoversAt285 ? leftoverRowsFor(r.leftoversAt285, r.specialSupplySavedAt285 || 0) : [];
   // 계산 근거: 실제로 무언가 일어난 날만 추려 앞뒤 레벨과 증가폭을 보여준다.
   const traceRows = useMemo(() => {
-    const list: { key: string; date: Date; fromLevel: number; fromExp: number; level: number; exp: number; gain: number; labels: string[] }[] = [];
+    const list: { key: string; date: Date; fromLevel: number; fromExp: number; level: number; exp: number; gain: number; labels: string[]; contributions: ReturnType<typeof roundContributionBreakdown> }[] = [];
     let previous = { level: r.startLevel, exp: r.startExp, progress: r.startLevel + r.startExp / 100 };
     for (const row of r.rows) {
       const labels = [...row.events];
@@ -1600,7 +1637,9 @@ export default function Home() {
       if (row.usage.sauna) labels.push(`사우나 ${row.usage.sauna.toLocaleString("ko-KR", { maximumFractionDigits: 1 })}시간`);
       if (row.usage.adv) labels.push(`상급 EXP ${row.usage.adv.toLocaleString("ko-KR")}장`);
       if (row.usage.potion) labels.push(`성장의 비약 ${row.usage.potion}개`);
-      if (labels.length) list.push({ key: row.key, date: row.date, fromLevel: previous.level, fromExp: previous.exp, level: row.level, exp: row.exp, gain: (row.progress - previous.progress) * 100, labels });
+      const gain = (row.progress - previous.progress) * 100;
+      const contributions = roundContributionBreakdown(row.contributions, gain);
+      if (labels.length || contributions.length) list.push({ key: row.key, date: row.date, fromLevel: previous.level, fromExp: previous.exp, level: row.level, exp: row.exp, gain, labels, contributions });
       previous = { level: row.level, exp: row.exp, progress: row.progress };
     }
     return list;
@@ -1806,31 +1845,6 @@ export default function Home() {
           <div className="strategy-choice-grid">{calc.recommendedPlansByWeek[calc.effectivePullWeeks].map((plan, index) => { const strategy = pullStrategies.find(item => item.id === plan.strategy)!; const active = plan.strategy === calc.selectedPlan.strategy; const recommended = plan.strategy === calc.bestRoiStrategy; return <button key={strategy.id} className={`${active ? "active" : ""} ${recommended ? "recommended" : ""}`} onClick={() => selectCalculatedRoute({ pullStrategy: strategy.id })}><div><span>{recommended ? "추천 · 순손익 최고" : index === 0 ? "메포 최저" : "더 빠른 선택"}</span><i>{active ? "선택됨" : "선택"}</i></div><h4>{strategy.label}</h4><p>{strategy.caption}</p><strong>{shortDate(plan.result.reached)}</strong><dl><div><dt>총액</dt><dd>{formatMP(plan.result.maplePoints)}</dd></div><div><dt>몬파</dt><dd>{formatMP(plan.result.monsterParkMaplePoints)}</dd></div><div><dt>상점</dt><dd>{formatMP(plan.result.shopMaplePoints)}</dd></div></dl><small>{calc.effectivePullWeeks ? shopPurchasePlanLabel(plan.shopBlueCount, plan.shopMechCount) : "0주에서는 농장 미구매"}</small></button>; })}</div>
         </div></>}
         {targetLevel === 285 && <ProgressChart selected={r} sunday={calc.sunday} free={calc.free} targetLevel={targetLevel} />}
-        <section className="trace-panel">
-          <div className="trace-head">
-            <div><span>계산 근거</span><h3>날짜별 진행</h3></div>
-            <p>선택 경로에서 그날 실제로 쓴 것과 그 결과입니다. 아무 일도 없는 날은 생략했습니다.</p>
-          </div>
-          <div className="trace-totals">
-            <div><span>몬스터파크</span><b>{traceTotals.runs.toLocaleString("ko-KR")}판</b></div>
-            <div><span>메카베리</span><b>{traceTotals.mech.toLocaleString("ko-KR")}장</b></div>
-            <div><span>블루베리</span><b>{traceTotals.blue.toLocaleString("ko-KR")}장</b></div>
-            <div><span>상급 EXP</span><b>{traceTotals.adv.toLocaleString("ko-KR")}장</b></div>
-            <div><span>VIP 사우나</span><b>{traceTotals.sauna.toLocaleString("ko-KR", { maximumFractionDigits: 1 })}시간</b></div>
-            <div><span>성장의 비약</span><b>{traceTotals.potion.toLocaleString("ko-KR")}개</b></div>
-          </div>
-          <div className="pre-timeline">
-            {traceRows.length ? traceRows.map(row => <article className="pre-row" key={row.key}>
-              <time>{shortDate(row.date)}</time>
-              <div>
-                <b>{row.labels.join(" · ")}</b>
-                <span>Lv.{row.fromLevel} {row.fromExp.toFixed(2)}% → Lv.{row.level} {row.exp.toFixed(2)}%</span>
-              </div>
-              <em>+{row.gain.toFixed(2)}%p</em>
-            </article>) : <div className="pre-empty">표시할 진행 내역이 없습니다.</div>}
-          </div>
-          <p className="pre-disclaimer">증가폭은 해당 레벨 필요 경험치 기준 퍼센트입니다. 레벨이 오르면 필요 경험치가 달라지므로 날짜별 수치를 그대로 더할 수는 없습니다.</p>
-        </section>
         {targetLevel === 290 ? <div className="route-grid">
           <article className="route-card chosen"><div><div className="route-card-label"><span>9/16 예상</span><i>계산 완료</i></div><h3>{calculatedSettings.paidMonsterPark ? "유료 몬파 추가 5판 ON" : "유료 몬파 추가 5판 OFF"}</h3><p>{calculatedSettings.paidMonsterPark ? "매일 7판 · 스페셜 선데이 적용" : "매일 기본 2판만 적용"}</p></div><strong>{forecastProgress}</strong><dl><div><dt>메포 합계</dt><dd>{formatMP(r.maplePoints)}</dd></div><div><dt>프라임</dt><dd>{formatCash(primeCash)}</dd></div></dl></article>
           <article className="route-card baseline"><div><div className="route-card-label"><span>모멘텀 1차</span><i>{!calculatedSettings.momentumPass1Enabled ? "참여 OFF" : calculatedSettings.momentumPrime1 ? "프라임 ON" : "일반"}</i></div><h3>7/23~8/19</h3><p>{calculatedSettings.momentumPass1Enabled ? `현재 패스 Lv.${calculatedSettings.momentumPass1Level}` : "보상 계산 제외"}</p></div><strong>{calculatedSettings.momentumPass1Enabled && calculatedSettings.momentumPrime1 ? "49,800 캐시" : "무료"}</strong><dl><div><dt>일반 보상</dt><dd>{calculatedSettings.momentumPass1Enabled ? "반영" : "제외"}</dd></div><div><dt>프라임</dt><dd>{calculatedSettings.momentumPass1Enabled ? "추가 보상만" : "0"}</dd></div></dl></article>
@@ -1848,6 +1862,34 @@ export default function Home() {
         </div>
         <details className="value-settings"><summary>메이린 가치·환율 수정</summary><div className="field-grid"><InputField label="노말→하드 결정석 차이 · 억" value={s.mayrinMesoGap} step={0.1} onChange={v => set("mayrinMesoGap", Number(v))} /><InputField label="노말 조각 예상량" value={s.mayrinNormalFrag} onChange={v => set("mayrinNormalFrag", Number(v))} /><InputField label="조각 1개 · 만 메소" value={s.fragPrice} step={10} onChange={v => set("fragPrice", Number(v))} /><InputField label="메소 1억당 메포" value={s.mpPerEok} step={100} onChange={v => set("mpPerEok", Number(v))} /></div><Toggle label="9/17 초기화 후 추가 1회 가정" checked={s.postReset} onChange={v => set("postReset", v)} /></details>
         </>}
+        <section className="trace-panel">
+          <div className="trace-head">
+            <div><span>계산 근거</span><h3>날짜별 진행</h3></div>
+            <p>선택 경로에서 그날 실제로 쓴 것과 원천별 경험치 기여량입니다. 아무 일도 없는 날은 생략했습니다.</p>
+          </div>
+          <div className="trace-totals">
+            <div><span>몬스터파크</span><b>{traceTotals.runs.toLocaleString("ko-KR")}판</b></div>
+            <div><span>메카베리</span><b>{traceTotals.mech.toLocaleString("ko-KR")}장</b></div>
+            <div><span>블루베리</span><b>{traceTotals.blue.toLocaleString("ko-KR")}장</b></div>
+            <div><span>상급 EXP</span><b>{traceTotals.adv.toLocaleString("ko-KR")}장</b></div>
+            <div><span>VIP 사우나</span><b>{traceTotals.sauna.toLocaleString("ko-KR", { maximumFractionDigits: 1 })}시간</b></div>
+            <div><span>성장의 비약</span><b>{traceTotals.potion.toLocaleString("ko-KR")}개</b></div>
+          </div>
+          <div className="pre-timeline trace-timeline">
+            {traceRows.length ? traceRows.map(row => <article className="pre-row trace-row" key={row.key}>
+              <time>{shortDate(row.date)}</time>
+              <div>
+                <b>{row.labels.join(" · ")}</b>
+                <span>Lv.{row.fromLevel} {row.fromExp.toFixed(2)}% → Lv.{row.level} {row.exp.toFixed(2)}%</span>
+                {row.contributions.length > 0 && <ul className="trace-breakdown" aria-label={`${shortDate(row.date)} 원천별 경험치 기여량`}>
+                  {row.contributions.map(contribution => <li key={contribution.id}><span>{contribution.label}</span><b>+{contribution.roundedGain.toFixed(2)}%p</b></li>)}
+                </ul>}
+              </div>
+              <em className="trace-total"><span>전체</span><b>+{row.gain.toFixed(2)}%p</b></em>
+            </article>) : <div className="pre-empty">표시할 진행 내역이 없습니다.</div>}
+          </div>
+          <p className="pre-disclaimer">원천별 표시값은 합계가 전체 증가폭과 맞도록 0.01%p 단위로 배분합니다. 레벨이 오르면 필요 경험치가 달라지므로 날짜별 수치를 그대로 더할 수는 없습니다.</p>
+        </section>
       </div>
     </section>
 

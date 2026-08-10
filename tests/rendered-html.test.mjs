@@ -78,6 +78,17 @@ test("keeps the 285 calculator primary, adds 290, and moves supporting content i
   assert.match(page, /모멘텀 1차 현재 레벨/);
   assert.match(page, /모멘텀 2차 현재 레벨/);
   assert.match(page, /특수 물자 지원 · 4배 쿠폰 몰아쓰기/);
+  assert.match(page, /type ExperienceContribution = \{ id: ExperienceSourceId; label: string; gain: number \}/);
+  assert.match(page, /recordContribution\("monsterPark", "몬스터파크"/);
+  assert.match(page, /recordContribution\("grandis", "그란디스 일퀘"/);
+  assert.match(page, /recordContribution\("extreme", "익스트림 몬스터파크"/);
+  assert.match(page, /recordContribution\("epic", "악몽선경"/);
+  assert.match(page, /recordContribution\("specialSupply", "특수 물자"/);
+  assert.match(page, /className="trace-breakdown"/);
+  assert.match(page, />전체<\/span><b>\+\{row\.gain\.toFixed\(2\)\}%p/);
+  const tracePanelStart = page.indexOf('<section className="trace-panel">');
+  assert.ok(page.indexOf('className="route-card chosen"') < tracePanelStart);
+  assert.ok(page.indexOf('className="decision-card"') < tracePanelStart);
   assert.match(page, /시작일 보유 · 당일 충전 포함/);
   assert.match(page, /실측 1회 경험치/);
   assert.match(page, /입력값이 없으면 0으로 계산/);
@@ -111,6 +122,8 @@ test("keeps the 285 calculator primary, adds 290, and moves supporting content i
   assert.match(css, /\.efficiency-values small \{ font-size: 11px/);
   assert.match(css, /\.leftover-note \{[^}]*font-size: 13px/);
   assert.match(css, /\.calculate-bar \{/);
+  assert.match(css, /\.trace-breakdown \{/);
+  assert.match(css, /@media \(max-width: 430px\)[\s\S]*?\.trace-breakdown \{ grid-template-columns: minmax\(0, 1fr\); \}/);
   assert.match(css, /\.core6-picker \{/);
   assert.match(css, /\.core6-choice\.active \{/);
   assert.match(css, /\.quick-choice-grid \{[^}]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
@@ -1097,6 +1110,66 @@ test("keeps paid Monster Park off at the free two-run baseline", async () => {
   assert.equal(free.monsterParkMaplePoints, 0);
   assert.equal(paid.monsterParkMaplePoints, 3000);
   assert.ok(paid.rows.at(-1).progress > free.rows.at(-1).progress);
+});
+
+test("records every applied EXP source and reconciles displayed contributions to the daily total", async () => {
+  const pageModule = await importBuiltPage("trace-contributions");
+  const start = "2026-08-06";
+  const settings = {
+    ...pageModule.createDefaultSettings(start),
+    targetLevel: 290,
+    level: 285,
+    exp: 0,
+    start,
+    challengerPassLevel: 30,
+    challengerUnclaimed: false,
+    momentumPass1Enabled: false,
+    momentumPass2Enabled: false,
+    apology: false,
+    shardEvent: false,
+    ultima: false,
+    shopMech: false,
+    shopBlue: false,
+    deferMomentumMech: false,
+    paidMonsterPark: true,
+    specialSundayCount: 0,
+    specialSupply: true,
+    specialSupplySaved: 5,
+    specialSupplyExpPerCharge: Number(pageModule.REQUIRED_EXP[285]) / 1000,
+    weeklyOpen: true,
+    todayDaily: true,
+    grandis: true,
+    extreme: true,
+    epic: true,
+    epicMult: 1,
+    ownedMech: 1,
+    ownedBlue: 1,
+    ownedSauna: 0.5,
+    ownedAdv: 100,
+    ownedPotion279: 1,
+  };
+  const result = pageModule.simulate(settings, { fixedRuns: 7 });
+  const row = result.rows[0];
+  const labels = row.contributions.map(contribution => contribution.label);
+
+  assert.deepEqual(labels, [
+    "블루베리",
+    "메카베리",
+    "VIP 사우나",
+    "성장의 비약",
+    "상급 EXP",
+    "특수 물자",
+    "익스트림 몬스터파크",
+    "악몽선경",
+    "몬스터파크",
+    "그란디스 일퀘",
+  ]);
+  assert.deepEqual(row.usage, { blue: 1, mech: 1, sauna: 0.5, adv: 100, potion: 1, runs: 7 });
+  const rawGain = (row.progress - 285) * 100;
+  const contributionGain = row.contributions.reduce((sum, contribution) => sum + contribution.gain, 0);
+  assert.ok(Math.abs(contributionGain - rawGain) < 1e-9);
+  const rounded = pageModule.roundContributionBreakdown(row.contributions, rawGain);
+  assert.equal(rounded.reduce((sum, contribution) => sum + Math.round(contribution.roundedGain * 100), 0), Math.round(rawGain * 100));
 });
 
 test("pins the 9/16 forecast selection while preserving the 285 strategy input", async () => {
