@@ -63,7 +63,6 @@ type Settings = {
   mpCore6Date: string;
   epicCore6Enabled: boolean;
   epicCore6Date: string;
-  apology: boolean;
   shardEvent: boolean;
   ultima: boolean;
   shopMech: boolean;
@@ -467,7 +466,7 @@ const createDefaultSettings = (start = SSR_DEFAULT_START): Settings => {
   fragPrice: 640, mpPerEok: 2500, postReset: true, challengerUnclaimed: false, challengerExp: true,
   momentumPrime1: true, momentumPrime2: true, deferMomentumMech: true,
   dailyCore6Enabled: true, dailyCore6Date: "2026-07-27", mpCore6Enabled: true, mpCore6Date: "2026-07-27", epicCore6Enabled: true, epicCore6Date: "2026-07-27",
-  apology: true, shardEvent: true, ultima: true, shopMech: true, shopBlue: true, mpCore5: 90,
+  shardEvent: true, ultima: true, shopMech: true, shopBlue: true, mpCore5: 90,
   core20Date: "2026-07-23", core20Bonus: 5, mpCore6: 95,
   dailyCore5: 95, dailyCore6: 100, shardDate: "2026-07-30", shardAdv: 5000,
   ultimaCount: ultimaProgress.count, ultimaWeek: ultimaProgress.week, ultimaStart: true, grandis: true, weeklyOpen: true, todayDaily: true,
@@ -932,7 +931,6 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
   };
   if (s.momentumPass1Enabled) scheduleMomentumSeason(1, s.momentumPass1Level, s.momentumPrime1, MOMENTUM_PASS_1_START, MOMENTUM_PASS_1_END);
   if (s.momentumPass2Enabled) scheduleMomentumSeason(2, s.momentumPass2Level, s.momentumPrime2, MOMENTUM_PASS_2_START, MOMENTUM_PASS_2_END);
-  if (s.apology) addReward(start, { label: "7월 NOW 보상", mech: 1, sauna: 2, coupon4x: 4 });
   if (s.shardEvent && s.shardDate) {
     const shardRewardDate = parseDate(s.shardDate);
     if (shardRewardDate >= start) addReward(shardRewardDate, { label: "울티마 스쿼드 상점 EXP 5,000장 (예상)", adv: s.shardAdv });
@@ -1432,13 +1430,18 @@ function ProgressChart({ selected, sunday, free, targetLevel }: { selected: Simu
   const path = (rows: Row[]) => rows.map((row, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(row.progress).toFixed(1)}`).join(" ");
   const longest = [selected.rows, sunday.rows, free.rows].sort((a, b) => b.length - a.length)[0];
   const tickEvery = Math.max(1, Math.ceil(longest.length / 6));
+  const series = [
+    { key: "selected", title: "선택 경로", detail: selected.scheduleLabel, short: "선택", result: selected, labelOffset: 14 },
+    { key: "sunday", title: "일요일만 7판 비교", detail: sunday.scheduleLabel, short: "일요일 7판", result: sunday, labelOffset: 32 },
+    { key: "free", title: "매일 2판 비교", detail: free.scheduleLabel, short: "매일 2판", result: free, labelOffset: 50 },
+  ] as const;
   return <div className="chart-wrap">
-    <div className="chart-legend"><span className="legend selected">선택 경로</span><span className="legend sunday">일요일 7판</span><span className="legend free">매일 2판</span></div>
+    <div className="chart-legend" aria-label="그래프 경로 설명">{series.map(item => <div className={`legend-card ${item.key}`} key={item.key}><span className="legend-line" aria-hidden="true" /><span><strong>{item.title}</strong><small>{item.detail}</small></span></div>)}</div>
     <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`세 경로의 ${targetLevel}레벨 도달 진행 비교`}>
       {Array.from({ length: targetLevel - 279 }, (_, index) => index + 280).map(level => <g key={level}><line x1={margin.left} x2={width - margin.right} y1={y(level)} y2={y(level)} className="grid-line" /><text x={margin.left - 10} y={y(level) + 4} textAnchor="end" className="axis-label">{level}</text></g>)}
       {longest.map((row, index) => (index % tickEvery === 0 || index === longest.length - 1) ? <text key={row.key} x={x(index)} y={height - 12} textAnchor="middle" className="axis-label">{shortDate(row.date)}</text> : null)}
-      <path d={path(free.rows)} className="chart-line free" /><path d={path(sunday.rows)} className="chart-line sunday" /><path d={path(selected.rows)} className="chart-line selected" />
-      {[selected, sunday, free].map((result, index) => { const row = result.rows[result.rows.length - 1]; return row ? <circle key={index} cx={x(result.rows.length - 1)} cy={y(row.progress)} r="5" className={["dot selected", "dot sunday", "dot free"][index]} /> : null; })}
+      {[...series].reverse().map(item => <g key={item.key}><title>{item.title}: {item.detail}</title><path d={path(item.result.rows)} className={`chart-line ${item.key}`} /></g>)}
+      {series.map(item => { const row = item.result.rows[item.result.rows.length - 1]; if (!row) return null; const endX = x(item.result.rows.length - 1); const endY = y(row.progress); const labelY = Math.max(margin.top + 12, Math.min(height - margin.bottom - 8, endY + item.labelOffset)); const alignEnd = endX > width - 170; const labelX = endX + (alignEnd ? -9 : 9); return <g key={item.key} className={`chart-end ${item.key}`}><circle cx={endX} cy={endY} r="5" className={`dot ${item.key}`} /><line x1={endX} y1={endY} x2={labelX} y2={labelY - 4} className="chart-end-guide" /><text x={labelX} y={labelY} textAnchor={alignEnd ? "end" : "start"} className="chart-end-label">{item.short}</text></g>; })}
     </svg>
   </div>;
 }
@@ -1797,7 +1800,7 @@ export default function Home() {
           <Toggle label="특수 물자 지원 · 4배 쿠폰 몰아쓰기" checked={s.specialSupply} onChange={v => set("specialSupply", v)} />
           <div className="field-grid compact inset supply-input"><InputField label="시작일 보유 · 당일 충전 포함" value={s.specialSupplySaved} min={0} max={5} step={1} disabled={!s.specialSupply} onChange={v => set("specialSupplySaved", Number(v))} /><InputField label="실측 1회 경험치" value={s.specialSupplyExpPerCharge} min={0} step={1} disabled={!s.specialSupply} onChange={v => set("specialSupplyExpPerCharge", Number(v))} /></div>
           <div className="supply-warning"><b>직접 입력</b><p>공식 고정 경험치가 없어 입력값이 없으면 0으로 계산합니다.</p><small>5회 저장 시 입력한 1회 경험치의 5배 적용 · 농장과 달리 임의 추정값을 자동 사용하지 않음</small></div>
-          <Toggle label="7월 NOW 보상" checked={s.apology} onChange={v => set("apology", v)} /><Toggle label="울티마 스쿼드 상점 EXP 5,000장 (예상)" checked={s.shardEvent} onChange={v => set("shardEvent", v)} /><Toggle label="울티마 작전 일지" checked={s.ultima} onChange={v => set("ultima", v)} />
+          <Toggle label="울티마 스쿼드 상점 EXP 5,000장 (예상)" checked={s.shardEvent} onChange={v => set("shardEvent", v)} /><Toggle label="울티마 작전 일지" checked={s.ultima} onChange={v => set("ultima", v)} />
           <div className="callout-mini">계산기는 <b>받을 수 있는 보상을 전부 받는 것</b>을 기준으로 잡고, 못 받는 것만 빼는 방식입니다. 모멘텀 패스 레벨 기본값은 계산 시작일까지 열린 주차(1차 {momentumUnlockedLevelOn(parseDate(s.start), MOMENTUM_PASS_1_START)}레벨 · 2차 {momentumUnlockedLevelOn(parseDate(s.start), MOMENTUM_PASS_2_START)}레벨)를 모두 클리어한 상태입니다. 밀렸으면 그만큼 낮춰 입력하세요.</div>
           <div className="callout-mini">현재 패스 레벨까지 받은 보상은 현재 경험치에 포함된 것으로 보고 제외합니다. 챌섭은 최대 30레벨이며 주 5레벨씩 계산합니다. 모멘텀은 패스 시작일 기준 주차별 2→3→3→2레벨로 열리며, 밀린 주차는 다음 수령일에 한 번에 따라잡습니다.</div>
           <div className="callout-mini shop-priority">평일 몬파는 기본 2판 뒤 유료 추가 5판을 먼저 적용합니다. 농장은 몬파만으로 다음 하드 주차를 못 당길 때만 비교하며, 같은 도달 주차에서는 더 적은 메포 경로를 추천합니다.</div>

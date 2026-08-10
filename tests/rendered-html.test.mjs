@@ -86,6 +86,11 @@ test("keeps the 285 calculator primary, adds 290, and moves supporting content i
   assert.match(page, /recordContribution\("specialSupply", "특수 물자"/);
   assert.match(page, /className="trace-breakdown"/);
   assert.match(page, />전체<\/span><b>\+\{row\.gain\.toFixed\(2\)\}%p/);
+  assert.doesNotMatch(page, /\bapology\b|7월 NOW 보상/);
+  assert.match(page, /title: "선택 경로", detail: selected\.scheduleLabel/);
+  assert.match(page, /title: "일요일만 7판 비교", detail: sunday\.scheduleLabel/);
+  assert.match(page, /title: "매일 2판 비교", detail: free\.scheduleLabel/);
+  assert.match(page, /className="chart-end-label"/);
   const tracePanelStart = page.indexOf('<section className="trace-panel">');
   assert.ok(page.indexOf('className="route-card chosen"') < tracePanelStart);
   assert.ok(page.indexOf('className="decision-card"') < tracePanelStart);
@@ -123,6 +128,14 @@ test("keeps the 285 calculator primary, adds 290, and moves supporting content i
   assert.match(css, /\.leftover-note \{[^}]*font-size: 13px/);
   assert.match(css, /\.calculate-bar \{/);
   assert.match(css, /\.trace-breakdown \{/);
+  assert.match(css, /\.trace-panel \{[^}]*color: var\(--ink\);[^}]*background: #f8f7fb/);
+  assert.match(css, /\.trace-head p \{[^}]*color: #4f4b58;[^}]*font-size: 13px/);
+  assert.match(css, /\.trace-totals span \{[^}]*font-size: 12px/);
+  assert.match(css, /\.pre-row \.trace-breakdown li b \{[^}]*color: #116b48;[^}]*font-size: 12px/);
+  assert.match(css, /\.pre-row \.trace-total b \{[^}]*color: #7a5100;[^}]*font-size: 13px/);
+  assert.match(css, /\.trace-panel \.pre-disclaimer \{[^}]*color: #4f4b58;[^}]*font-size: 12px/);
+  assert.match(css, /\.chart-line\.sunday \{[^}]*stroke-dasharray: 12 6/);
+  assert.match(css, /\.chart-line\.free \{[^}]*stroke-dasharray: 2 7/);
   assert.match(css, /@media \(max-width: 430px\)[\s\S]*?\.trace-breakdown \{ grid-template-columns: minmax\(0, 1fr\); \}/);
   assert.match(css, /\.core6-picker \{/);
   assert.match(css, /\.core6-choice\.active \{/);
@@ -292,7 +305,6 @@ test("uses the Epic Dungeon level 6 core in Nightmare Paradise stage 1", async (
     ownedMech: 0,
     ownedSauna: 0,
     ownedAdv: 0,
-    apology: false,
     shardEvent: false,
     ultima: false,
     specialSupply: false,
@@ -339,7 +351,6 @@ test("ignores Ultima shop EXP rewards that are already past", async () => {
     challengerPassLevel: 30,
     momentumPass1Level: 10,
     momentumPass2Level: 10,
-    apology: false,
     ultima: false,
     specialSupply: false,
     todayDaily: false,
@@ -380,7 +391,6 @@ test("buys one Blueberry on the first still-open Maple Point shop week", async (
     ownedMech: 0,
     ownedSauna: 0,
     ownedAdv: 0,
-    apology: false,
     shardEvent: false,
     ultima: false,
     specialSupply: false,
@@ -413,7 +423,6 @@ test("prices, grants, and distributes Maple Point shop items by exact count", as
     ownedMech: 0,
     ownedSauna: 0,
     ownedAdv: 0,
-    apology: false,
     shardEvent: false,
     ultima: false,
     specialSupply: false,
@@ -476,7 +485,6 @@ test("starts Thursday Ultima attendance from the new week without overwriting ma
     challengerPassLevel: 30,
     momentumPass1Level: 10,
     momentumPass2Level: 10,
-    apology: false,
     shardEvent: false,
     specialSupply: false,
     todayDaily: false,
@@ -707,10 +715,10 @@ test("recommends paid weekday Monster Park for the reported Lv.282 case", async 
   assert.equal(planning.maxPullWeeks, 2);
   assert.equal(planning.bestPlansByWeek[1].strategy, "monsterPark");
   assert.deepEqual(recommended.map(plan => plan.strategy), ["monsterPark"]);
-  assert.equal(recommended[0].scheduleIndex, 9);
+  assert.equal(recommended[0].scheduleIndex, 13);
   assert.equal(recommended[0].result.shopMaplePoints, 0);
-  assert.equal(recommended[0].result.monsterParkMaplePoints, 33_000);
-  assert.equal(pageModule.simulationDateKey(recommended[0].result.reached), "2026-08-19");
+  assert.equal(recommended[0].result.monsterParkMaplePoints, 45_000);
+  assert.equal(pageModule.simulationDateKey(recommended[0].result.reached), "2026-08-18");
 });
 
 test("carries the full growth-potion overflow into level 280 with Burning Beyond", () => {
@@ -782,7 +790,7 @@ test("labels cumulative ROI as the main result and keeps the prior step secondar
   assert.match(page, /직전 \$\{calc\.effectivePullWeeks - 1\}주 경로와 같은 비용/);
 });
 
-test("keeps the approved A-C fixtures unchanged in target 285 mode", async () => {
+test("keeps the target 285 A-C fixtures aligned after the expired NOW reward is removed", async () => {
   const pageModule = await importBuiltPage("target-285-fixtures");
   const fixtures = [
     // 풀 보상 기준(프라임 2개 · 패스 완주)으로 재승인된 값. 이전 기준은 2차 프라임 OFF에
@@ -791,19 +799,19 @@ test("keeps the approved A-C fixtures unchanged in target 285 mode", async () =>
       settings: pageModule.createDefaultSettings("2026-07-27"),
       reached: "2026-09-03",
       maplePoints: 15_000,
-      leftovers: { blue: 0, mech: 4, sauna: 0, adv: 3300, potion269: 0, potion279: 0, coupon3x: 81, coupon4x: 14 },
+      leftovers: { blue: 0, mech: 4, sauna: 0, adv: 3300, potion269: 0, potion279: 0, coupon3x: 81, coupon4x: 10 },
     },
     {
       settings: { ...pageModule.createDefaultSettings("2026-08-03"), level: 280, exp: 0 },
       reached: "2026-09-10",
       maplePoints: 15_000,
-      leftovers: { blue: 0, mech: 0, sauna: 0, adv: 451, potion269: 0, potion279: 0, coupon3x: 78, coupon4x: 12 },
+      leftovers: { blue: 0, mech: 0, sauna: 0, adv: 0, potion269: 0, potion279: 0, coupon3x: 78, coupon4x: 8 },
     },
     {
       settings: { ...pageModule.createDefaultSettings("2026-08-03"), level: 284, exp: 50 },
       reached: "2026-08-03",
       maplePoints: 0,
-      leftovers: { blue: 0, mech: 18, sauna: 2, adv: 15900, potion269: 0, potion279: 0, coupon3x: 3, coupon4x: 12 },
+      leftovers: { blue: 0, mech: 18, sauna: 2, adv: 15900, potion269: 0, potion279: 0, coupon3x: 3, coupon4x: 8 },
     },
   ];
 
@@ -872,7 +880,6 @@ test("uses the calculation start date as the automatic Carcion boundary", async 
     challengerPassLevel: 30,
     momentumPass1Level: 10,
     momentumPass2Level: 10,
-    apology: false,
     shardEvent: false,
     ultima: false,
     specialSupply: false,
@@ -902,7 +909,6 @@ test("preserves a 285 milestone snapshot in target 290 mode", async () => {
     challengerPassLevel: 30,
     momentumPass1Level: 10,
     momentumPass2Level: 10,
-    apology: false,
     shardEvent: false,
     ultima: false,
     specialSupply: false,
@@ -928,7 +934,6 @@ test("does not auto-apply Special Supply EXP without direct input", async () => 
     challengerPassLevel: 30,
     momentumPass1Level: 10,
     momentumPass2Level: 10,
-    apology: false,
     shardEvent: false,
     ultima: false,
     weeklyOpen: false,
@@ -973,7 +978,7 @@ test("forecasts the final level and EXP at the September 16 deadline", async () 
 
   assert.equal(planning.basePlan.result.rows.at(-1).key, "2026-09-16");
   assert.equal(planning.basePlan.result.finalLevel, 287);
-  assert.ok(Math.abs(planning.basePlan.result.finalExp - 97.4205680568897) < 1e-10);
+  assert.ok(Math.abs(planning.basePlan.result.finalExp - 92.43505266139972) < 1e-10);
   assert.equal(planning.basePlan.result.monsterParkMaplePoints, 0);
   assert.equal(planning.basePlan.result.reached, null);
   assert.equal(planning.basePlan.result.endReason, "horizon");
@@ -994,7 +999,6 @@ test("caps the September 16 forecast at Lv.295 99.999%", async () => {
     challengerPassLevel: 30,
     momentumPass1Level: 10,
     momentumPass2Level: 10,
-    apology: false,
     shardEvent: false,
     ultima: false,
     specialSupply: false,
@@ -1054,7 +1058,6 @@ test("excludes each disabled Momentum season including its normal and Prime rewa
     ownedMech: 0,
     ownedSauna: 0,
     ownedAdv: 0,
-    apology: false,
     shardEvent: false,
     ultima: false,
     specialSupply: false,
@@ -1093,7 +1096,6 @@ test("keeps paid Monster Park off at the free two-run baseline", async () => {
     momentumPass1Enabled: false,
     momentumPass2Enabled: false,
     challengerPassLevel: 30,
-    apology: false,
     shardEvent: false,
     ultima: false,
     specialSupply: false,
@@ -1112,6 +1114,39 @@ test("keeps paid Monster Park off at the free two-run baseline", async () => {
   assert.ok(paid.rows.at(-1).progress > free.rows.at(-1).progress);
 });
 
+test("ignores the expired July NOW reward key from legacy settings", async () => {
+  const pageModule = await importBuiltPage("legacy-now-reward");
+  const common = {
+    ...pageModule.createDefaultSettings("2026-08-20"),
+    targetLevel: 290,
+    level: 285,
+    exp: 0,
+    challengerPassLevel: 30,
+    momentumPass1Enabled: false,
+    momentumPass2Enabled: false,
+    shardEvent: false,
+    ultima: false,
+    specialSupply: false,
+    paidMonsterPark: false,
+    weeklyOpen: false,
+    todayDaily: false,
+    grandis: false,
+    extreme: false,
+    epic: false,
+    ownedMech: 0,
+    ownedSauna: 0,
+    ownedAdv: 0,
+    ownedBlue: 0,
+    ownedPotion279: 0,
+  };
+  const baseline = pageModule.simulate(common, { fixedRuns: 0 });
+  const legacy = pageModule.simulate({ ...common, apology: true }, { fixedRuns: 0 });
+
+  assert.deepEqual(legacy.rows, baseline.rows);
+  assert.deepEqual(legacy.leftovers, baseline.leftovers);
+  assert.ok(legacy.rows.flatMap(row => row.events).every(label => !label.includes("NOW")));
+});
+
 test("records every applied EXP source and reconciles displayed contributions to the daily total", async () => {
   const pageModule = await importBuiltPage("trace-contributions");
   const start = "2026-08-06";
@@ -1125,7 +1160,6 @@ test("records every applied EXP source and reconciles displayed contributions to
     challengerUnclaimed: false,
     momentumPass1Enabled: false,
     momentumPass2Enabled: false,
-    apology: false,
     shardEvent: false,
     ultima: false,
     shopMech: false,
