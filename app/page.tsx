@@ -14,6 +14,7 @@ export const dynamic = "force-static";
 
 type PullStrategy = "monsterPark" | "blue" | "mech" | "both";
 type ViewTab = "calculator" | "pre280" | "efficiency" | "passes";
+type ExperienceSourceId = "monsterPark" | "grandis" | "extreme" | "epic" | "mech" | "blue" | "sauna" | "adv" | "potion" | "specialSupply";
 type Settings = {
   targetLevel: 285 | 290;
   level: number;
@@ -96,6 +97,7 @@ type Settings = {
   ownedSauna: number;
   ownedAdv: number;
   ownedPotion279: number;
+  excludedExperienceSources: ExperienceSourceId[];
 };
 
 type ItemType = "blue" | "mech" | "sauna" | "adv" | "potion269" | "potion279" | "coupon3x" | "coupon4x";
@@ -113,7 +115,6 @@ type Reward = Partial<Leftovers> & {
   remaining?: Leftovers;
 };
 type RowUsage = { blue: number; mech: number; sauna: number; adv: number; potion: number; runs: number };
-type ExperienceSourceId = "monsterPark" | "grandis" | "extreme" | "epic" | "mech" | "blue" | "sauna" | "adv" | "potion" | "specialSupply";
 type ExperienceContribution = { id: ExperienceSourceId; label: string; gain: number };
 type Row = { date: Date; key: string; level: number; exp: number; progress: number; events: string[]; usage: RowUsage; contributions: ExperienceContribution[] };
 type Simulation = {
@@ -174,6 +175,28 @@ type Pre280Simulation = {
   dailyDays: number;
   monsterParkRuns: number;
   weeklyCount: number;
+};
+
+export const EXPERIENCE_SOURCE_LABELS: Record<ExperienceSourceId, string> = {
+  monsterPark: "몬스터파크",
+  grandis: "그란디스 일퀘",
+  extreme: "익스트림 몬스터파크",
+  epic: "악몽선경",
+  mech: "메카베리",
+  blue: "블루베리",
+  sauna: "VIP 사우나",
+  adv: "상급 EXP",
+  potion: "성장의 비약",
+  specialSupply: "특수 물자",
+};
+const experienceSourceIds = Object.keys(EXPERIENCE_SOURCE_LABELS) as ExperienceSourceId[];
+export const normalizeExcludedExperienceSources = (value: unknown): ExperienceSourceId[] => {
+  if (!Array.isArray(value)) return [];
+  return [...new Set(value.filter((id): id is ExperienceSourceId => typeof id === "string" && experienceSourceIds.includes(id as ExperienceSourceId)))];
+};
+export const toggleExcludedExperienceSource = (value: unknown, id: ExperienceSourceId): ExperienceSourceId[] => {
+  const normalized = normalizeExcludedExperienceSources(value);
+  return normalized.includes(id) ? normalized.filter(sourceId => sourceId !== id) : [...normalized, id];
 };
 
 export function roundContributionBreakdown(contributions: ExperienceContribution[], totalGain: number) {
@@ -476,6 +499,7 @@ const createDefaultSettings = (start = SSR_DEFAULT_START): Settings => {
   ownedMech: claimed1.mech + claimed2.mech,
   ownedSauna: claimed1.sauna + claimed2.sauna,
   ownedAdv: claimed1.adv + claimed2.adv,
+  excludedExperienceSources: [],
   });
 };
 const defaults = createDefaultSettings();
@@ -848,6 +872,8 @@ function simulatePre280(s: Settings): Pre280Simulation {
 
 function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number; deferMomentumMech?: boolean; shopBlueCount?: number; shopMechCount?: number } = {}): Simulation {
   const start = parseDate(s.start);
+  const excludedExperienceSources = normalizeExcludedExperienceSources(s.excludedExperienceSources);
+  const sourceEnabled = (id: ExperienceSourceId) => !excludedExperienceSources.includes(id);
   const forecastMode = s.targetLevel === 290;
   const forecastEnd = parseDate("2026-09-16");
   const targetLevel = forecastMode ? 296 : 285;
@@ -858,14 +884,14 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
   const selectedCutoff = addDays(start, -1);
   const sevenUntil = schedule.sevenUntil ?? selectedCutoff;
   const requestedFixedRuns = schedule.fixedRuns == null ? null : Math.max(0, Math.min(7, schedule.fixedRuns));
-  const fixedRuns = s.paidMonsterPark ? requestedFixedRuns : 2;
+  const fixedRuns = sourceEnabled("monsterPark") ? (s.paidMonsterPark ? requestedFixedRuns : 2) : 0;
   const specialSundayCount = Math.max(0, Math.min(12, Math.floor(s.specialSundayCount)));
   const specialSupplyStart = parseDate(SPECIAL_SUPPLY_START);
   const specialSupplyEnd = parseDate(SPECIAL_SUPPLY_END);
   let specialSupplySaved = s.specialSupply ? Math.max(0, Math.min(SPECIAL_SUPPLY_BATCH_SIZE, Math.floor(s.specialSupplySaved))) : 0;
   let specialSupplyUsed = 0;
   const runsForDate = (date: Date) => fixedRuns == null ? (dayOfWeek(date) === 0 ? 7 : date <= sevenUntil ? 7 : 2) : fixedRuns;
-  const scheduleLabel = !s.paidMonsterPark ? "매일 기본 2판" : fixedRuns == null
+  const scheduleLabel = !sourceEnabled("monsterPark") ? "몬스터파크 제외" : !s.paidMonsterPark ? "매일 기본 2판" : fixedRuns == null
     ? sevenUntil < start ? "평일 2판 · 일요일 7판" : `${shortDate(sevenUntil)}까지 7판 · 이후 평일 2판`
     : `매일 ${fixedRuns}판`;
   const deferMomentumMech = schedule.deferMomentumMech ?? s.deferMomentumMech;
@@ -1081,6 +1107,7 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
     const contributions: ExperienceContribution[] = [];
     const currentProgress = () => level >= targetLevel ? targetLevel : level + xp / req(level);
     const recordContribution = (id: ExperienceSourceId, label: string, apply: () => void) => {
+      if (!sourceEnabled(id)) return;
       const before = currentProgress();
       apply();
       const gain = (currentProgress() - before) * 100;
@@ -1092,18 +1119,25 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
     (rewardDays.get(key) || []).forEach(reward => {
       if (reward.optionalPurchase && (level >= targetLevel || atForecastCap())) return;
       if (reward.optionalPurchase) {
+        const blueCount = sourceEnabled("blue") ? Math.max(0, Math.floor(Number(reward.blue || 0))) : 0;
+        const mechCount = sourceEnabled("mech") ? Math.max(0, Math.floor(Number(reward.mech || 0))) : 0;
+        if (blueCount + mechCount === 0) return;
         reward.purchased = true;
-        shopBluePurchased += Math.max(0, Math.floor(Number(reward.blue || 0)));
-        shopMechPurchased += Math.max(0, Math.floor(Number(reward.mech || 0)));
+        shopBluePurchased += blueCount;
+        shopMechPurchased += mechCount;
+        shopMaplePoints += blueCount * SHOP_BLUE_UNIT_PRICE + mechCount * SHOP_MECH_UNIT_PRICE;
+        if (!sourceEnabled("blue")) reward.remaining!.blue = 0;
+        if (!sourceEnabled("mech")) reward.remaining!.mech = 0;
+      } else {
+        shopMaplePoints += reward.maplePoints || 0;
       }
-      shopMaplePoints += reward.maplePoints || 0;
       const r = reward.remaining!;
-      if ((reward.blue || 0) > 0) { let used = 0; recordContribution("blue", "블루베리", () => { used = applyItems("blue", r.blue); }); r.blue -= used; usage.blue += used; }
-      if ((reward.mech || 0) > 0 && (!reward.deferMech || level >= momentumMechLevel || date >= momentumMechDeadline)) { let used = 0; recordContribution("mech", "메카베리", () => { used = applyItems("mech", r.mech); }); r.mech -= used; usage.mech += used; }
-      if ((reward.sauna || 0) > 0) { let used = 0; recordContribution("sauna", "VIP 사우나", () => { used = applyItems("sauna", r.sauna); }); r.sauna -= used; usage.sauna += used; }
-      if ((reward.potion269 || 0) > 0) { let used = 0; recordContribution("potion", "성장의 비약", () => { used = applyGrowthPotion("potion269", r.potion269); }); r.potion269 -= used; usage.potion += used; }
-      if ((reward.potion279 || 0) > 0) { let used = 0; recordContribution("potion", "성장의 비약", () => { used = applyGrowthPotion("potion279", r.potion279); }); r.potion279 -= used; usage.potion += used; }
-      if ((reward.adv || 0) > 0) { let used = 0; recordContribution("adv", "상급 EXP", () => { used = applyItems("adv", r.adv); }); r.adv -= used; usage.adv += used; }
+      if (sourceEnabled("blue") && (reward.blue || 0) > 0) { let used = 0; recordContribution("blue", EXPERIENCE_SOURCE_LABELS.blue, () => { used = applyItems("blue", r.blue); }); r.blue -= used; usage.blue += used; }
+      if (sourceEnabled("mech") && (reward.mech || 0) > 0 && (!reward.deferMech || level >= momentumMechLevel || date >= momentumMechDeadline)) { let used = 0; recordContribution("mech", EXPERIENCE_SOURCE_LABELS.mech, () => { used = applyItems("mech", r.mech); }); r.mech -= used; usage.mech += used; }
+      if (sourceEnabled("sauna") && (reward.sauna || 0) > 0) { let used = 0; recordContribution("sauna", EXPERIENCE_SOURCE_LABELS.sauna, () => { used = applyItems("sauna", r.sauna); }); r.sauna -= used; usage.sauna += used; }
+      if (sourceEnabled("potion") && (reward.potion269 || 0) > 0) { let used = 0; recordContribution("potion", EXPERIENCE_SOURCE_LABELS.potion, () => { used = applyGrowthPotion("potion269", r.potion269); }); r.potion269 -= used; usage.potion += used; }
+      if (sourceEnabled("potion") && (reward.potion279 || 0) > 0) { let used = 0; recordContribution("potion", EXPERIENCE_SOURCE_LABELS.potion, () => { used = applyGrowthPotion("potion279", r.potion279); }); r.potion279 -= used; usage.potion += used; }
+      if (sourceEnabled("adv") && (reward.adv || 0) > 0) { let used = 0; recordContribution("adv", EXPERIENCE_SOURCE_LABELS.adv, () => { used = applyItems("adv", r.adv); }); r.adv -= used; usage.adv += used; }
       capture285(date);
       const notableAttendance = reward.attendanceReward && (reward.sauna || reward.adv || reward.potion269 || reward.potion279);
       if ((!reward.attendanceReward && (reward.label !== "현재 보유분" || itemTypes.some(type => Number(reward[type] || 0) > 0))) || notableAttendance) events.push(reward.label);
@@ -1112,8 +1146,8 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
     if (s.specialSupply && date >= specialSupplyStart && date <= specialSupplyEnd) {
       // 시작일 보유 횟수에는 그날 충전분이 포함된 것으로 보고, 다음 날부터 하루 1회만 더합니다.
       if (date.getTime() !== start.getTime()) specialSupplySaved = Math.min(SPECIAL_SUPPLY_BATCH_SIZE, specialSupplySaved + 1);
-      if (specialSupplySaved >= SPECIAL_SUPPLY_BATCH_SIZE && level < targetLevel && !atForecastCap() && s.specialSupplyExpPerCharge > 0) {
-        recordContribution("specialSupply", "특수 물자", () => applyRaw(rawToNormalized(s.specialSupplyExpPerCharge * SPECIAL_SUPPLY_BATCH_SIZE)));
+      if (sourceEnabled("specialSupply") && specialSupplySaved >= SPECIAL_SUPPLY_BATCH_SIZE && level < targetLevel && !atForecastCap() && s.specialSupplyExpPerCharge > 0) {
+        recordContribution("specialSupply", EXPERIENCE_SOURCE_LABELS.specialSupply, () => applyRaw(rawToNormalized(s.specialSupplyExpPerCharge * SPECIAL_SUPPLY_BATCH_SIZE)));
         specialSupplyUsed += SPECIAL_SUPPLY_BATCH_SIZE;
         specialSupplySaved = 0;
         events.push("특수 물자 5회 · 4배 쿠폰");
@@ -1124,27 +1158,28 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
     const thursday = dayOfWeek(date) === 4;
     if ((thursday && day > 0) || (day === 0 && s.weeklyOpen)) {
       const eterion = eterionBonusesForDate(s, date);
-      if (s.extreme && level < targetLevel) {
-        recordContribution("extreme", "익스트림 몬스터파크", () => {
+      if (sourceEnabled("extreme") && s.extreme && level < targetLevel) {
+        recordContribution("extreme", EXPERIENCE_SOURCE_LABELS.extreme, () => {
           if (level >= 285 && level <= 290) applyRaw(rawToNormalized(WEEKLY_CONTENT_RAW[level].extreme) * (1 + eterion.mp / 100));
           else if (level >= 291) applyRaw(rawToNormalized(POST_290_EFFICIENCY_RAW[level].extreme) * (1 + eterion.mp / 100));
           else if (level < 285) applyPercent(efficiency[level].extreme * (1 + eterion.mp / 100));
         });
       }
-      if (s.epic && level < targetLevel) {
-        recordContribution("epic", "악몽선경", () => {
+      if (sourceEnabled("epic") && s.epic && level < targetLevel) {
+        recordContribution("epic", EXPERIENCE_SOURCE_LABELS.epic, () => {
           if (level >= 291) applyRaw(rawToNormalized(POST_290_EFFICIENCY_RAW[level].epic) * (s.epicMult + eterion.epic / 100));
           else if (level >= 285) applyRaw(rawToNormalized(WEEKLY_CONTENT_RAW[level].epic) * (s.epicMult + eterion.epic / 100));
           else applyPercent(efficiency[level].epic * (s.epicMult + eterion.epic / 100));
         });
       }
       capture285(date);
-      events.push("익몬 · 악몽선경");
+      const weeklyEvents = [sourceEnabled("extreme") && s.extreme ? "익몬" : "", sourceEnabled("epic") && s.epic ? "악몽선경" : ""].filter(Boolean);
+      if (weeklyEvents.length) events.push(weeklyEvents.join(" · "));
     }
 
     if (level < targetLevel && !atForecastCap() && (day > 0 || s.todayDaily)) {
       dailyDaysApplied += 1;
-      const dailyRuns = runsForDate(date);
+      const dailyRuns = sourceEnabled("monsterPark") ? runsForDate(date) : 0;
       usage.runs += dailyRuns;
       monsterParkMaplePoints += paidMonsterParkMaplePoints(dailyRuns);
       const eterion = eterionBonusesForDate(s, date);
@@ -1152,7 +1187,7 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
       const isSpecialSunday = isSunday && sundaysSeen < specialSundayCount;
       if (isSunday) sundaysSeen += 1;
       const sundayBonus = isSpecialSunday ? 3 : isSunday ? 0.5 : 0;
-      recordContribution("monsterPark", "몬스터파크", () => {
+      if (dailyRuns > 0) recordContribution("monsterPark", EXPERIENCE_SOURCE_LABELS.monsterPark, () => {
         if (level >= 291) applyRaw(rawToNormalized(POST_290_EFFICIENCY_RAW[level].monsterParkPerRun * dailyRuns) * (1 + eterion.mp / 100 + sundayBonus));
         else if (level >= 285) applyRaw(rawToNormalized(monsterParkRawForLevel(level, carcionActive(date)) * dailyRuns) * (1 + eterion.mp / 100 + sundayBonus));
         else applyPercent(monsterParkExperiencePercent({
@@ -1162,8 +1197,8 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
             sundayKind: isSpecialSunday ? "special" : isSunday ? "normal" : "none",
           }));
       });
-      if (s.grandis && level < targetLevel) {
-        recordContribution("grandis", "그란디스 일퀘", () => {
+      if (sourceEnabled("grandis") && s.grandis && level < targetLevel) {
+        recordContribution("grandis", EXPERIENCE_SOURCE_LABELS.grandis, () => {
           if (level >= 285) applyRaw(rawToNormalized(grandisDailyRawForLevel(level, carcionActive(date))) * (1 + eterion.daily / 100));
           else applyPercent(efficiency[level].grandis * (1 + eterion.daily / 100));
         });
@@ -1171,11 +1206,11 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
       capture285(date);
     }
 
-    if (deferMomentumMech && level < targetLevel && !atForecastCap() && (level >= momentumMechLevel || date >= momentumMechDeadline)) {
+    if (sourceEnabled("mech") && deferMomentumMech && level < targetLevel && !atForecastCap() && (level >= momentumMechLevel || date >= momentumMechDeadline)) {
       rewardDays.forEach(rewards => rewards.forEach(reward => {
         if (!reward.deferMech || (reward.date || "") > key || !reward.remaining || reward.remaining.mech <= 0 || level >= targetLevel) return;
         let usedMech = 0;
-        recordContribution("mech", "메카베리", () => { usedMech = applyItems("mech", reward.remaining!.mech); });
+        recordContribution("mech", EXPERIENCE_SOURCE_LABELS.mech, () => { usedMech = applyItems("mech", reward.remaining!.mech); });
         reward.remaining.mech -= usedMech;
         usage.mech += usedMech;
         events.push(`${reward.label} 메카베리 사용`);
@@ -1469,6 +1504,12 @@ export default function Home() {
     if (pre280SettingKeys.includes(key)) setPreApplied(false);
     setS(current => ({ ...current, [key]: value }));
   };
+  const toggleTraceSource = (id: ExperienceSourceId) => {
+    setS(current => ({
+      ...current,
+      excludedExperienceSources: toggleExcludedExperienceSource(current.excludedExperienceSources, id),
+    }));
+  };
   // 현재 패스 레벨까지 받은 보상. 보유 토글이 이 값을 기준으로 켜고 끈다.
   const claimedPassRewards = useMemo(() => {
     const first = momentumClaimedRewards(s.momentumPass1Enabled ? s.momentumPass1Level : 0, s.momentumPrime1);
@@ -1651,6 +1692,9 @@ export default function Home() {
     runs: total.runs + row.usage.runs, mech: total.mech + row.usage.mech, blue: total.blue + row.usage.blue,
     sauna: total.sauna + row.usage.sauna, adv: total.adv + row.usage.adv, potion: total.potion + row.usage.potion,
   }), { runs: 0, mech: 0, blue: 0, sauna: 0, adv: 0, potion: 0 }), [r]);
+  const pendingExcludedSources = normalizeExcludedExperienceSources(s.excludedExperienceSources);
+  const calculatedExcludedSources = normalizeExcludedExperienceSources(calculatedSettings.excludedExperienceSources);
+  const traceExclusionItems = experienceSourceIds.filter(id => pendingExcludedSources.includes(id) || calculatedExcludedSources.includes(id));
   const efficiencyStartDate = parseDate(s.start);
   const efficiencyMonsterParkBonus = eterionBonusesForDate(s, efficiencyStartDate).mp;
   const efficiencyCoreLevel = s.mpCore6Enabled && dateReached(efficiencyStartDate, s.mpCore6Date) ? 6 : 5;
@@ -1868,7 +1912,7 @@ export default function Home() {
         <section className="trace-panel">
           <div className="trace-head">
             <div><span>계산 근거</span><h3>날짜별 진행</h3></div>
-            <p>선택 경로에서 그날 실제로 쓴 것과 원천별 경험치 기여량입니다. 아무 일도 없는 날은 생략했습니다.</p>
+            <p>선택 경로에서 그날 실제로 쓴 것과 원천별 경험치 기여량입니다. ×를 누른 원천은 계산 전체에서 빼며, 계산하기를 눌러 적용합니다.</p>
           </div>
           <div className="trace-totals">
             <div><span>몬스터파크</span><b>{traceTotals.runs.toLocaleString("ko-KR")}판</b></div>
@@ -1878,6 +1922,28 @@ export default function Home() {
             <div><span>VIP 사우나</span><b>{traceTotals.sauna.toLocaleString("ko-KR", { maximumFractionDigits: 1 })}시간</b></div>
             <div><span>성장의 비약</span><b>{traceTotals.potion.toLocaleString("ko-KR")}개</b></div>
           </div>
+          {traceExclusionItems.length > 0 && <div className="trace-exclusions" aria-live="polite">
+            <span>계산에서 제외</span>
+            <div>
+              {traceExclusionItems.map(id => {
+                const currentExcluded = pendingExcludedSources.includes(id);
+                const calculatedExcluded = calculatedExcludedSources.includes(id);
+                const state = calculatedExcluded
+                  ? currentExcluded ? "복구" : "복구 예정 · 취소"
+                  : "제외 예정 · 취소";
+                const accessibleAction = calculatedExcluded
+                  ? currentExcluded ? "계산에 다시 포함" : "복구 예정 취소"
+                  : "계산 제외 취소";
+                return <button
+                  type="button"
+                  key={id}
+                  className={!currentExcluded && calculatedExcluded ? "restoring" : calculatedExcluded ? "excluded" : "pending"}
+                  onClick={() => toggleTraceSource(id)}
+                  aria-label={`${EXPERIENCE_SOURCE_LABELS[id]} ${accessibleAction}`}
+                ><b>{EXPERIENCE_SOURCE_LABELS[id]}</b><span>{state}</span></button>;
+              })}
+            </div>
+          </div>}
           <div className="pre-timeline trace-timeline">
             {traceRows.length ? traceRows.map(row => <article className="pre-row trace-row" key={row.key}>
               <time>{shortDate(row.date)}</time>
@@ -1885,7 +1951,21 @@ export default function Home() {
                 <b>{row.labels.join(" · ")}</b>
                 <span>Lv.{row.fromLevel} {row.fromExp.toFixed(2)}% → Lv.{row.level} {row.exp.toFixed(2)}%</span>
                 {row.contributions.length > 0 && <ul className="trace-breakdown" aria-label={`${shortDate(row.date)} 원천별 경험치 기여량`}>
-                  {row.contributions.map(contribution => <li key={contribution.id}><span>{contribution.label}</span><b>+{contribution.roundedGain.toFixed(2)}%p</b></li>)}
+                  {row.contributions.map(contribution => {
+                    const pendingRemoval = pendingExcludedSources.includes(contribution.id);
+                    return <li key={contribution.id} className={pendingRemoval ? "pending-removal" : ""}>
+                      <span className="trace-source-label">{contribution.label}</span>
+                      <b>+{contribution.roundedGain.toFixed(2)}%p</b>
+                      {pendingRemoval && <em>제외 예정</em>}
+                      <button
+                        type="button"
+                        className="trace-source-toggle"
+                        onClick={() => toggleTraceSource(contribution.id)}
+                        aria-pressed={pendingRemoval}
+                        aria-label={`${contribution.label} ${pendingRemoval ? "계산 제외 취소" : "계산에서 제외"}`}
+                      ><span aria-hidden="true">{pendingRemoval ? "↶" : "×"}</span></button>
+                    </li>;
+                  })}
                 </ul>}
               </div>
               <em className="trace-total"><span>전체</span><b>+{row.gain.toFixed(2)}%p</b></em>
