@@ -163,7 +163,10 @@ test("keeps the 285 calculator primary, adds 290, and moves supporting content i
 });
 
 test("keeps verified calculator constants visible in source", async () => {
-  const page = await readFile(new URL("app/page.tsx", root), "utf8");
+  const [page, css] = await Promise.all([
+    readFile(new URL("app/page.tsx", root), "utf8"),
+    readFile(new URL("app/globals.css", root), "utf8"),
+  ]);
   assert.match(page, /mpCore5: 90/);
   assert.match(page, /dailyCore5: 95, dailyCore6: 100/);
   assert.match(page, /epicCore5: 30/);
@@ -230,6 +233,14 @@ test("keeps verified calculator constants visible in source", async () => {
   assert.match(page, /specialSupplyExpPerCharge \* SPECIAL_SUPPLY_BATCH_SIZE/);
   assert.doesNotMatch(page, /38[_ ,]?512[_ ,]?167[_ ,]?837\s*[×x*]\s*4/);
   assert.match(page, /울티마 스쿼드 상점 EXP 5,000장 \(예상\)/);
+  assert.match(page, /\+ 보상 추가/);
+  assert.match(page, /보유분 날짜 지정/);
+  assert.match(page, /새 보상 더하기/);
+  assert.match(page, /레벨 범위 몬스터 10,000마리를 처치한 뒤 ‘수집하기’를 눌러 9회차를 완료해야/);
+  assert.match(page, /이번 주 보상을 이미 받았다면 ‘이번 주 익몬·악몽선경 미완료’를 꺼 주세요/);
+  assert.match(page, /최종 7\.0배로 계산/);
+  assert.match(css, /\.custom-reward-scheduler/);
+  assert.match(css, /\.epic-artifact-check/);
   assert.match(page, /2026\.08\.03 확인/);
 });
 
@@ -253,6 +264,7 @@ test("uses the browser-local date and Challenger EXP Pass level 30 for defaults"
   assert.equal(currentDefaults.dailyCore6Enabled, true);
   assert.equal(currentDefaults.mpCore6Enabled, true);
   assert.equal(currentDefaults.epicCore6Enabled, true);
+  assert.deepEqual(currentDefaults.customRewards, []);
   assert.equal(currentDefaults.shardDate, "2026-07-30");
   assert.equal(currentDefaults.ultimaCount, 29);
   assert.equal(currentDefaults.ultimaWeek, 4);
@@ -295,6 +307,50 @@ test("applies the three Eterion level 6 cores independently by date", async () =
   };
   assert.deepEqual(pageModule.eterionBonusesForDate(afterArtifactAndTotals, targetDate), { daily: 95, mp: 100, epic: 200 });
   assert.deepEqual(pageModule.eterionBonusesForDate({ ...afterArtifactAndTotals, epicCore6Enabled: false }, targetDate), { daily: 95, mp: 100, epic: 190 });
+});
+
+test("applies the Aug 13 Epic artifact only after the ninth mission and reaches a 7.0x stage-one multiplier", async () => {
+  const pageModule = await importBuiltPage("epic-artifact-week-nine");
+  const settings = pageModule.createDefaultSettings("2026-08-13");
+
+  assert.equal(pageModule.eterionBonusesForDate(settings, new Date(2026, 7, 12)).epic, 50);
+  assert.equal(pageModule.eterionBonusesForDate(settings, new Date(2026, 7, 13)).epic, 200);
+
+  const isolated = {
+    ...settings,
+    level: 284,
+    exp: 0,
+    challengerPassLevel: 30,
+    momentumPass1Enabled: false,
+    momentumPass2Enabled: false,
+    shardEvent: false,
+    ultima: false,
+    specialSupply: false,
+    todayDaily: false,
+    weeklyOpen: true,
+    grandis: false,
+    extreme: false,
+    epic: true,
+    epicMult: 5,
+    ownedBlue: 0,
+    ownedMech: 0,
+    ownedSauna: 0,
+    ownedAdv: 0,
+    ownedPotion279: 0,
+    customRewards: [],
+  };
+  const result = pageModule.simulate(isolated, { fixedRuns: 0 });
+  const epicGain = result.rows[0].contributions.find(contribution => contribution.id === "epic")?.gain || 0;
+  const baseResult = pageModule.simulate({
+    ...isolated,
+    epicMult: 1,
+    epicCore6Enabled: false,
+    epicCore5: 0,
+    core25Date: "2099-01-01",
+    epicArtifactDate: "2099-01-01",
+  }, { fixedRuns: 0 });
+  const baseEpicGain = baseResult.rows[0].contributions.find(contribution => contribution.id === "epic")?.gain || 0;
+  assert.ok(Math.abs(epicGain / baseEpicGain - 7) < 1e-8);
 });
 
 test("uses the Epic Dungeon level 6 core in Nightmare Paradise stage 1", async () => {
@@ -1278,6 +1334,156 @@ test("excludes all ten EXP sources from application, consumption, and cost", asy
   assert.equal(mechOnlyShop.shopMaplePoints, 20_000);
   assert.equal(mechOnlyShop.shopBluePurchased, 0);
   assert.equal(mechOnlyShop.shopMechPurchased, 2);
+});
+
+test("schedules held and extra rewards without double counting and restores held stock on removal", async () => {
+  const pageModule = await importBuiltPage("custom-reward-scheduler");
+  const start = "2026-08-13";
+  const common = {
+    ...pageModule.createDefaultSettings(start),
+    targetLevel: 290,
+    level: 285,
+    exp: 0,
+    challengerPassLevel: 30,
+    momentumPass1Enabled: false,
+    momentumPass2Enabled: false,
+    shardEvent: false,
+    ultima: false,
+    shopMech: false,
+    shopBlue: false,
+    specialSupply: false,
+    todayDaily: false,
+    weeklyOpen: false,
+    grandis: false,
+    extreme: false,
+    epic: false,
+    ownedBlue: 0,
+    ownedMech: 0,
+    ownedSauna: 0,
+    ownedAdv: 1000,
+    ownedPotion279: 0,
+    customRewards: [],
+  };
+  const heldReward = { id: "held-adv", type: "adv", amount: 600, useDate: "2026-08-15", origin: "owned" };
+  const moved = pageModule.addCustomRewardToSettings(common, heldReward);
+  assert.equal(moved.ownedAdv, 400);
+  assert.equal(moved.customRewards.length, 1);
+
+  const movedResult = pageModule.simulate(moved, { fixedRuns: 0 });
+  assert.equal(movedResult.rows.find(row => row.key === start).usage.adv, 400);
+  assert.equal(movedResult.rows.find(row => row.key === "2026-08-15").usage.adv, 600);
+
+  const restored = pageModule.removeCustomRewardFromSettings(moved, heldReward.id);
+  assert.equal(restored.ownedAdv, 1000);
+  assert.deepEqual(restored.customRewards, []);
+
+  const extra = pageModule.addCustomRewardToSettings(common, { ...heldReward, id: "extra-adv", origin: "extra" });
+  assert.equal(extra.ownedAdv, 1000);
+  assert.equal(extra.customRewards[0].amount, 600);
+  const extraResult = pageModule.simulate(extra, { fixedRuns: 0 });
+  assert.equal(extraResult.rows.find(row => row.key === start).usage.adv, 1000);
+  assert.equal(extraResult.rows.find(row => row.key === "2026-08-15").usage.adv, 600);
+
+  const rejected = pageModule.addCustomRewardToSettings(common, { ...heldReward, id: "too-many", amount: 1001 });
+  assert.equal(rejected, common);
+});
+
+test("keeps claimed reward toggles checked for fully scheduled stock and prevents toggle double counting", async () => {
+  const pageModule = await importBuiltPage("claimed-reward-toggle-scheduled-stock");
+  const cases = [
+    { type: "mech", ownedField: "ownedMech", claimed: 4 },
+    { type: "adv", ownedField: "ownedAdv", claimed: 9500 },
+    { type: "sauna", ownedField: "ownedSauna", claimed: 1.5 },
+  ];
+
+  for (const fixture of cases) {
+    const base = {
+      ...pageModule.createDefaultSettings("2026-08-13"),
+      ownedMech: 0,
+      ownedAdv: 0,
+      ownedSauna: 0,
+      customRewards: [],
+      [fixture.ownedField]: fixture.claimed,
+    };
+    const scheduled = pageModule.addCustomRewardToSettings(base, {
+      id: `held-${fixture.type}`,
+      type: fixture.type,
+      amount: fixture.claimed,
+      useDate: "2026-08-15",
+      origin: "owned",
+    });
+    const withExtra = pageModule.addCustomRewardToSettings(scheduled, {
+      id: `extra-${fixture.type}`,
+      type: fixture.type,
+      amount: fixture.type === "sauna" ? 0.5 : 1,
+      useDate: "2026-08-16",
+      origin: "extra",
+    });
+
+    assert.equal(withExtra[fixture.ownedField], 0);
+    assert.equal(pageModule.claimedRewardTotal(withExtra, fixture.type), fixture.claimed);
+    assert.equal(pageModule.claimedRewardToggleChecked(withExtra, fixture.type), true);
+
+    const repeatedOn = pageModule.setClaimedRewardToggle(withExtra, fixture.type, true, fixture.claimed);
+    assert.equal(repeatedOn, withExtra);
+    assert.equal(repeatedOn[fixture.ownedField], 0);
+    assert.equal(repeatedOn.customRewards.length, 2);
+
+    const switchedOff = pageModule.setClaimedRewardToggle(repeatedOn, fixture.type, false, fixture.claimed);
+    assert.equal(switchedOff[fixture.ownedField], 0);
+    assert.equal(pageModule.claimedRewardToggleChecked(switchedOff, fixture.type), false);
+    assert.equal(switchedOff.customRewards.some(reward => reward.origin === "owned" && reward.type === fixture.type), false);
+    assert.equal(switchedOff.customRewards.some(reward => reward.origin === "extra" && reward.type === fixture.type), true);
+
+    const switchedOnAgain = pageModule.setClaimedRewardToggle(switchedOff, fixture.type, true, fixture.claimed);
+    assert.equal(switchedOnAgain[fixture.ownedField], fixture.claimed);
+    assert.equal(pageModule.claimedRewardTotal(switchedOnAgain, fixture.type), fixture.claimed);
+    assert.equal(switchedOnAgain.customRewards.filter(reward => reward.origin === "extra" && reward.type === fixture.type).length, 1);
+  }
+});
+
+test("keeps rewards scheduled after target completion as leftovers and normalizes legacy custom reward settings", async () => {
+  const pageModule = await importBuiltPage("custom-reward-leftovers-legacy");
+  assert.deepEqual(pageModule.normalizeCustomRewards(undefined, "2026-08-13"), []);
+  assert.deepEqual(pageModule.normalizeCustomRewards([
+    { id: "good", type: "adv", amount: 500, useDate: "bad-date", origin: "extra" },
+    { id: "bad-type", type: "unknown", amount: 1, useDate: "2026-08-20", origin: "extra" },
+    { id: "good", type: "adv", amount: 10, useDate: "2026-08-20", origin: "owned" },
+  ], "2026-08-13"), [{ id: "good", type: "adv", amount: 500, useDate: "2026-08-13", origin: "extra" }]);
+
+  const base = {
+    ...pageModule.createDefaultSettings("2026-08-13"),
+    targetLevel: 285,
+    level: 284,
+    exp: 99.9,
+    challengerPassLevel: 30,
+    momentumPass1Enabled: false,
+    momentumPass2Enabled: false,
+    shardEvent: false,
+    ultima: false,
+    specialSupply: false,
+    todayDaily: false,
+    weeklyOpen: false,
+    grandis: false,
+    extreme: false,
+    epic: false,
+    ownedBlue: 0,
+    ownedMech: 0,
+    ownedSauna: 0,
+    ownedAdv: 100,
+    ownedPotion279: 0,
+    customRewards: [],
+  };
+  const scheduledAfterTarget = pageModule.addCustomRewardToSettings(base, { id: "after-target", type: "adv", amount: 500, useDate: "2026-08-20", origin: "extra" });
+  const result = pageModule.simulate(scheduledAfterTarget, { fixedRuns: 0 });
+  assert.equal(result.reached?.toISOString(), pageModule.simulate(base, { fixedRuns: 0 }).reached?.toISOString());
+  assert.ok(result.leftovers.adv >= 500);
+  assert.ok(result.leftoverSources.includes("직접 추가 보상"));
+
+  const current = { ...base, customRewards: [] };
+  const legacy = { ...current };
+  delete legacy.customRewards;
+  assert.deepEqual(pageModule.simulate(legacy, { fixedRuns: 0 }), pageModule.simulate(current, { fixedRuns: 0 }));
 });
 
 test("normalizes legacy exclusion settings and preserves empty-exclusion 285 and 290 results", async () => {

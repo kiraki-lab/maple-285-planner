@@ -15,6 +15,9 @@ export const dynamic = "force-static";
 type PullStrategy = "monsterPark" | "blue" | "mech" | "both";
 type ViewTab = "calculator" | "pre280" | "efficiency" | "passes";
 type ExperienceSourceId = "monsterPark" | "grandis" | "extreme" | "epic" | "mech" | "blue" | "sauna" | "adv" | "potion" | "specialSupply";
+type CustomRewardType = "adv" | "mech" | "blue" | "sauna" | "potion279";
+type CustomRewardOrigin = "owned" | "extra";
+type CustomReward = { id: string; type: CustomRewardType; amount: number; useDate: string; origin: CustomRewardOrigin };
 type Settings = {
   targetLevel: 285 | 290;
   level: number;
@@ -97,6 +100,7 @@ type Settings = {
   ownedSauna: number;
   ownedAdv: number;
   ownedPotion279: number;
+  customRewards: CustomReward[];
   excludedExperienceSources: ExperienceSourceId[];
 };
 
@@ -229,6 +233,7 @@ const efficiency: Record<number, Record<string, number>> = {
 
 const emptyLeftovers = (): Leftovers => ({ blue: 0, mech: 0, sauna: 0, adv: 0, potion269: 0, potion279: 0, coupon3x: 0, coupon4x: 0 });
 const itemTypes = Object.keys(emptyLeftovers()) as ItemType[];
+const SSR_DEFAULT_START = "2026-07-27";
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 const parseDate = (value: string) => { const [y, m, d] = value.split("-").map(Number); return new Date(Date.UTC(y, m - 1, d) - KST_OFFSET_MS); };
 const kstView = (date: Date) => new Date(date.getTime() + KST_OFFSET_MS);
@@ -238,6 +243,86 @@ const shortDate = (date: Date | null) => { if (!date) return "미도달"; const 
 const longDate = (date: Date | null) => { if (!date) return "계산 범위 내 미도달"; const value = kstView(date); return `${value.getUTCMonth() + 1}월 ${value.getUTCDate()}일`; };
 const addDays = (date: Date, days: number) => new Date(date.getTime() + days * 86400000);
 const dayOfWeek = (date: Date) => kstView(date).getUTCDay();
+const customRewardTypes: CustomRewardType[] = ["adv", "mech", "blue", "sauna", "potion279"];
+const CUSTOM_REWARD_META: Record<CustomRewardType, { label: string; unit: string; ownedField: "ownedAdv" | "ownedMech" | "ownedBlue" | "ownedSauna" | "ownedPotion279"; step: number; extraDefault: number }> = {
+  adv: { label: "상급 EXP 쿠폰", unit: "장", ownedField: "ownedAdv", step: 1, extraDefault: 1000 },
+  mech: { label: "메카베리", unit: "개", ownedField: "ownedMech", step: 1, extraDefault: 1 },
+  blue: { label: "블루베리", unit: "개", ownedField: "ownedBlue", step: 1, extraDefault: 1 },
+  sauna: { label: "VIP 사우나", unit: "시간", ownedField: "ownedSauna", step: 0.5, extraDefault: 0.5 },
+  potion279: { label: "성장의 비약", unit: "개", ownedField: "ownedPotion279", step: 1, extraDefault: 1 },
+};
+const validDateInput = (value: unknown): value is string => {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const parsed = parseDate(value);
+  return Number.isFinite(parsed.getTime()) && iso(parsed) === value;
+};
+export const normalizeCustomRewards = (value: unknown, fallbackDate = SSR_DEFAULT_START): CustomReward[] => {
+  if (!Array.isArray(value)) return [];
+  const safeFallbackDate = validDateInput(fallbackDate) ? fallbackDate : SSR_DEFAULT_START;
+  const ids = new Set<string>();
+  return value.flatMap((candidate, index) => {
+    if (!candidate || typeof candidate !== "object") return [];
+    const raw = candidate as Partial<CustomReward>;
+    if (!customRewardTypes.includes(raw.type as CustomRewardType) || !Number.isFinite(Number(raw.amount)) || Number(raw.amount) <= 0) return [];
+    const type = raw.type as CustomRewardType;
+    const amount = type === "sauna" ? Number(raw.amount) : Math.floor(Number(raw.amount));
+    if (amount <= 0) return [];
+    const baseId = typeof raw.id === "string" && raw.id.trim() ? raw.id.trim() : `legacy-${index}`;
+    if (ids.has(baseId)) return [];
+    ids.add(baseId);
+    return [{
+      id: baseId,
+      type,
+      amount,
+      useDate: validDateInput(raw.useDate) ? raw.useDate : safeFallbackDate,
+      origin: raw.origin === "owned" ? "owned" : "extra",
+    }];
+  });
+};
+export const addCustomRewardToSettings = (settings: Settings, input: CustomReward): Settings => {
+  const reward = normalizeCustomRewards([input], settings.start)[0];
+  if (!reward) return settings;
+  const currentRewards = normalizeCustomRewards(settings.customRewards, settings.start);
+  if (currentRewards.some(candidate => candidate.id === reward.id)) return settings;
+  if (reward.origin === "extra") return { ...settings, customRewards: [...currentRewards, reward] };
+  const ownedField = CUSTOM_REWARD_META[reward.type].ownedField;
+  const available = Math.max(0, Number(settings[ownedField] || 0));
+  if (available + 1e-9 < reward.amount) return settings;
+  return { ...settings, [ownedField]: Math.max(0, available - reward.amount), customRewards: [...currentRewards, reward] };
+};
+export const removeCustomRewardFromSettings = (settings: Settings, id: string): Settings => {
+  const currentRewards = normalizeCustomRewards(settings.customRewards, settings.start);
+  const removed = currentRewards.find(reward => reward.id === id);
+  if (!removed) return settings;
+  const next = { ...settings, customRewards: currentRewards.filter(reward => reward.id !== id) };
+  if (removed.origin === "extra") return next;
+  const ownedField = CUSTOM_REWARD_META[removed.type].ownedField;
+  return { ...next, [ownedField]: Math.max(0, Number(settings[ownedField] || 0)) + removed.amount };
+};
+export const claimedRewardTotal = (settings: Settings, type: CustomRewardType) => {
+  const ownedField = CUSTOM_REWARD_META[type].ownedField;
+  const immediatelyOwned = Math.max(0, Number(settings[ownedField] || 0));
+  const scheduledOwned = normalizeCustomRewards(settings.customRewards, settings.start)
+    .filter(reward => reward.type === type && reward.origin === "owned")
+    .reduce((sum, reward) => sum + reward.amount, 0);
+  return immediatelyOwned + scheduledOwned;
+};
+export const claimedRewardToggleChecked = (settings: Settings, type: CustomRewardType) => claimedRewardTotal(settings, type) > 0;
+export const setClaimedRewardToggle = (settings: Settings, type: CustomRewardType, checked: boolean, claimedAmount: number): Settings => {
+  const ownedField = CUSTOM_REWARD_META[type].ownedField;
+  const customRewards = normalizeCustomRewards(settings.customRewards, settings.start);
+  if (checked) {
+    // 즉시 보유분이나 예약 보유분이 하나라도 있으면 다시 더하지 않는다.
+    if (claimedRewardTotal(settings, type) > 0) return settings;
+    return { ...settings, [ownedField]: Math.max(0, Number(claimedAmount || 0)), customRewards };
+  }
+  // OFF는 이 패스 보상을 계산에서 완전히 뺀다. extra 일정은 별도 입력이므로 유지한다.
+  return {
+    ...settings,
+    [ownedField]: 0,
+    customRewards: customRewards.filter(reward => !(reward.type === type && reward.origin === "owned")),
+  };
+};
 export const REQUIRED_EXP: Record<number, bigint> = {
   280: 33_647_601_750_165n,
   281: 37_012_361_925_181n,
@@ -415,7 +500,6 @@ export function calculateMayrinRoi({
     marginal: compare(previousMaplePoints, previousHardWeeks),
   };
 }
-const SSR_DEFAULT_START = "2026-07-27";
 const localDateInputValue = (date = new Date()) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 const ultimaProgressBefore = (start: string) => {
   const target = parseDate(start);
@@ -499,6 +583,7 @@ const createDefaultSettings = (start = SSR_DEFAULT_START): Settings => {
   ownedMech: claimed1.mech + claimed2.mech,
   ownedSauna: claimed1.sauna + claimed2.sauna,
   ownedAdv: claimed1.adv + claimed2.adv,
+  customRewards: [],
   excludedExperienceSources: [],
   });
 };
@@ -873,6 +958,7 @@ function simulatePre280(s: Settings): Pre280Simulation {
 function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number; deferMomentumMech?: boolean; shopBlueCount?: number; shopMechCount?: number } = {}): Simulation {
   const start = parseDate(s.start);
   const excludedExperienceSources = normalizeExcludedExperienceSources(s.excludedExperienceSources);
+  const customRewards = normalizeCustomRewards(s.customRewards, s.start);
   const sourceEnabled = (id: ExperienceSourceId) => !excludedExperienceSources.includes(id);
   const forecastMode = s.targetLevel === 290;
   const forecastEnd = parseDate("2026-09-16");
@@ -1001,6 +1087,18 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
       });
     });
   }
+  customRewards.forEach(customReward => {
+    const requestedDate = parseDate(customReward.useDate);
+    const useDate = requestedDate < start ? start : requestedDate;
+    const meta = CUSTOM_REWARD_META[customReward.type];
+    const reward: Reward = {
+      label: `직접 추가 · ${meta.label} ${customReward.amount.toLocaleString("ko-KR")}${meta.unit}`,
+      sourceLabel: "직접 추가 보상",
+    };
+    reward[customReward.type] = customReward.amount;
+    // 날짜를 직접 고른 메카베리는 전역 모아쓰기 규칙으로 다시 미루지 않는다.
+    addReward(useDate, reward);
+  });
   // 보유 메카베리도 모아쓰기를 따른다. 먼저 쓸 이유가 없다.
   addReward(start, { label: "현재 보유분", blue: s.ownedBlue, mech: s.ownedMech, sauna: s.ownedSauna, adv: s.ownedAdv, potion279: s.ownedPotion279, deferMech: deferMomentumMech });
 
@@ -1492,6 +1590,13 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<ViewTab>("calculator");
   const [efficiencyLevel, setEfficiencyLevel] = useState(280);
   const [efficiencyLevelInput, setEfficiencyLevelInput] = useState("280");
+  const [customRewardOpen, setCustomRewardOpen] = useState(false);
+  const [customRewardType, setCustomRewardType] = useState<CustomRewardType>("adv");
+  const [customRewardOrigin, setCustomRewardOrigin] = useState<CustomRewardOrigin>("owned");
+  const [customRewardAmount, setCustomRewardAmount] = useState("1000");
+  const [customRewardDate, setCustomRewardDate] = useState("");
+  const [customRewardError, setCustomRewardError] = useState("");
+  const customRewardId = useRef(0);
   useEffect(() => {
     if (localDefaultsApplied.current) return;
     localDefaultsApplied.current = true;
@@ -1518,6 +1623,64 @@ export default function Home() {
   }, [s.momentumPass1Enabled, s.momentumPass1Level, s.momentumPrime1, s.momentumPass2Enabled, s.momentumPass2Level, s.momentumPrime2]);
   const core6MasterEnabled = s.dailyCore6Enabled && s.mpCore6Enabled && s.epicCore6Enabled;
   const setCore6Master = (enabled: boolean) => setS(current => ({ ...current, ...core6MasterPatch(enabled) }));
+  const normalizedCustomRewards = normalizeCustomRewards(s.customRewards, s.start);
+  const ownedAmountForCustomReward = (type: CustomRewardType) => Math.max(0, Number(s[CUSTOM_REWARD_META[type].ownedField] || 0));
+  const customRewardMeta = CUSTOM_REWARD_META[customRewardType];
+  const customRewardOwnedAvailable = ownedAmountForCustomReward(customRewardType);
+  const suggestedCustomRewardAmount = (type: CustomRewardType, origin: CustomRewardOrigin) => {
+    const available = ownedAmountForCustomReward(type);
+    return origin === "owned" && available > 0 ? available : CUSTOM_REWARD_META[type].extraDefault;
+  };
+  const toggleCustomRewardForm = () => {
+    if (!customRewardOpen) {
+      setCustomRewardDate(s.start);
+      setCustomRewardAmount(String(suggestedCustomRewardAmount(customRewardType, customRewardOrigin)));
+      setCustomRewardError("");
+    }
+    setCustomRewardOpen(open => !open);
+  };
+  const changeCustomRewardType = (type: CustomRewardType) => {
+    setCustomRewardType(type);
+    setCustomRewardAmount(String(suggestedCustomRewardAmount(type, customRewardOrigin)));
+    setCustomRewardError("");
+  };
+  const changeCustomRewardOrigin = (origin: CustomRewardOrigin) => {
+    setCustomRewardOrigin(origin);
+    setCustomRewardAmount(String(suggestedCustomRewardAmount(customRewardType, origin)));
+    setCustomRewardError("");
+  };
+  const addCustomReward = () => {
+    const amount = Number(customRewardAmount);
+    if (!Number.isFinite(amount) || amount <= 0 || (customRewardType !== "sauna" && !Number.isInteger(amount))) {
+      setCustomRewardError(customRewardType === "sauna" ? "수량은 0보다 크게 입력해 주세요." : "수량은 1개 이상 정수로 입력해 주세요.");
+      return;
+    }
+    if (!validDateInput(customRewardDate)) {
+      setCustomRewardError("사용할 날짜를 확인해 주세요.");
+      return;
+    }
+    if (customRewardOrigin === "owned" && amount > customRewardOwnedAvailable + 1e-9) {
+      setCustomRewardError(`보유 수량 ${customRewardOwnedAvailable.toLocaleString("ko-KR")}${customRewardMeta.unit}을 넘길 수 없습니다.`);
+      return;
+    }
+    customRewardId.current += 1;
+    const reward: CustomReward = {
+      id: `custom-${customRewardId.current}`,
+      type: customRewardType,
+      amount,
+      useDate: customRewardDate,
+      origin: customRewardOrigin,
+    };
+    const next = addCustomRewardToSettings(s, reward);
+    if (next === s) {
+      setCustomRewardError("보상을 추가하지 못했습니다. 입력값을 다시 확인해 주세요.");
+      return;
+    }
+    setS(next);
+    setCustomRewardOpen(false);
+    setCustomRewardError("");
+  };
+  const removeCustomReward = (id: string) => setS(current => removeCustomRewardFromSettings(current, id));
   const updateEfficiencyLevelInput = (value: string) => {
     setEfficiencyLevelInput(value);
     const nextLevel = Number(value);
@@ -1827,14 +1990,43 @@ export default function Home() {
           <QuickChoice label="추가 몬파" checked={s.paidMonsterPark} onChange={v => set("paidMonsterPark", v)} />
           <QuickChoice label="코어 6레벨 일괄" checked={core6MasterEnabled} onChange={setCore6Master} />
         </div>
+        <section className={`custom-reward-scheduler ${customRewardOpen ? "open" : ""}`} aria-labelledby="custom-reward-title">
+          <div className="custom-reward-head">
+            <div><span>직접 일정</span><b id="custom-reward-title">보상 사용일 예약</b><small>남겨 둔 쿠폰도 실제로 쓸 날짜에 넣습니다.</small></div>
+            <button type="button" className="custom-reward-toggle" aria-expanded={customRewardOpen} aria-controls="custom-reward-form" onClick={toggleCustomRewardForm}>{customRewardOpen ? "닫기" : "+ 보상 추가"}</button>
+          </div>
+          {customRewardOpen && <div className="custom-reward-form" id="custom-reward-form">
+            <div className="field-grid compact">
+              <label className="field"><span>보상 종류</span><select value={customRewardType} onChange={event => changeCustomRewardType(event.target.value as CustomRewardType)}>{customRewardTypes.map(type => <option value={type} key={type}>{CUSTOM_REWARD_META[type].label}</option>)}</select></label>
+              <label className="field"><span>처리 방식</span><select value={customRewardOrigin} onChange={event => changeCustomRewardOrigin(event.target.value as CustomRewardOrigin)}><option value="owned">보유분 날짜 지정</option><option value="extra">새 보상 더하기</option></select></label>
+              <InputField label={`수량 (${customRewardMeta.unit})`} value={customRewardAmount} min={customRewardMeta.step} step={customRewardMeta.step} onChange={setCustomRewardAmount} />
+              <InputField label="사용할 날짜" value={customRewardDate} type="date" onChange={setCustomRewardDate} />
+            </div>
+            <div className="custom-reward-form-foot">
+              <p>{customRewardOrigin === "owned" ? <>현재 입력된 보유분 <b>{customRewardOwnedAvailable.toLocaleString("ko-KR")}{customRewardMeta.unit}</b>에서 옮깁니다.</> : <>기존 보유분은 그대로 두고 새 보상을 더합니다.</>}</p>
+              <button type="button" onClick={addCustomReward}>일정에 추가</button>
+            </div>
+            {customRewardError && <p className="custom-reward-error" role="alert">{customRewardError}</p>}
+            <small className="custom-reward-note">사용일이 계산 시작일보다 빠르면 계산상 시작일에 적용합니다. 보상을 넣은 뒤 아래 계산하기 버튼을 눌러 주세요.</small>
+          </div>}
+          {normalizedCustomRewards.length > 0 && <div className="custom-reward-list" aria-label="추가한 보상 일정">{normalizedCustomRewards.map(reward => {
+            const meta = CUSTOM_REWARD_META[reward.type];
+            const beforeStart = reward.useDate < s.start;
+            return <article key={reward.id}>
+              <div><b>{meta.label} {reward.amount.toLocaleString("ko-KR")}{meta.unit}</b><small>{reward.origin === "owned" ? "보유분 날짜 지정" : "새 보상 더하기"}</small></div>
+              <time dateTime={reward.useDate}>{beforeStart ? `${reward.useDate} 요청 · ${s.start} 적용` : `${reward.useDate} 사용`}</time>
+              <button type="button" onClick={() => removeCustomReward(reward.id)} aria-label={`${meta.label} ${reward.amount}${meta.unit} 일정 삭제`}>×</button>
+            </article>;
+          })}</div>}
+        </section>
         <details><summary>패스 · 이벤트 설정 <span>12</span></summary><div className="detail-body">
           <div className="quick-toggles"><Toggle label="오늘 일퀘·몬파 미완료" checked={s.todayDaily} onChange={v => set("todayDaily", v)} /><Toggle label="이번 주 챌섭 5레벨 미완료" checked={s.challengerUnclaimed} onChange={v => set("challengerUnclaimed", v)} /></div>
           <div className="field-grid compact inset"><InputField label="스페셜 선데이 몬파 횟수" value={s.specialSundayCount} min={0} max={12} step={1} disabled={!s.paidMonsterPark} onChange={v => set("specialSundayCount", Number(v))} /><InputField label="모멘텀 1차 현재 레벨" value={s.momentumPass1Level} min={0} max={10} step={1} disabled={!s.momentumPass1Enabled} onChange={v => set("momentumPass1Level", Number(v))} /><InputField label="모멘텀 2차 현재 레벨" value={s.momentumPass2Level} min={0} max={10} step={1} disabled={!s.momentumPass2Enabled} onChange={v => set("momentumPass2Level", Number(v))} /></div>
           <Toggle label="챌린저스 EXP 패스" checked={s.challengerExp} onChange={v => set("challengerExp", v)} /><Toggle label="모멘텀 1차 프라임 · 49,800 넥슨캐시" checked={s.momentumPrime1} disabled={!s.momentumPass1Enabled} onChange={v => set("momentumPrime1", v)} /><Toggle label="모멘텀 2차 프라임 · 49,800 넥슨캐시" checked={s.momentumPrime2} disabled={!s.momentumPass2Enabled} onChange={v => set("momentumPrime2", v)} /><Toggle label="모멘텀 메카베리 모아쓰기" checked={s.deferMomentumMech} onChange={v => set("deferMomentumMech", v)} />
           <div className="callout-mini">이미 받은 패스 보상 중 아직 안 쓴 것만 켜 둡니다. 끄면 그만큼 빠집니다.</div>
-          <Toggle label={`받은 메카베리 ${claimedPassRewards.mech}장 보유 중`} checked={s.ownedMech > 0} onChange={v => set("ownedMech", v ? claimedPassRewards.mech : 0)} />
-          <Toggle label={`받은 상급 EXP ${claimedPassRewards.adv.toLocaleString("ko-KR")}장 보유 중`} checked={s.ownedAdv > 0} onChange={v => set("ownedAdv", v ? claimedPassRewards.adv : 0)} />
-          <Toggle label={`받은 VIP 사우나 ${claimedPassRewards.sauna}시간 보유 중`} checked={s.ownedSauna > 0} onChange={v => set("ownedSauna", v ? claimedPassRewards.sauna : 0)} />
+          <Toggle label={`받은 메카베리 ${claimedPassRewards.mech}장 보유·예약 중`} checked={claimedRewardToggleChecked(s, "mech")} onChange={v => setS(current => setClaimedRewardToggle(current, "mech", v, claimedPassRewards.mech))} />
+          <Toggle label={`받은 상급 EXP ${claimedPassRewards.adv.toLocaleString("ko-KR")}장 보유·예약 중`} checked={claimedRewardToggleChecked(s, "adv")} onChange={v => setS(current => setClaimedRewardToggle(current, "adv", v, claimedPassRewards.adv))} />
+          <Toggle label={`받은 VIP 사우나 ${claimedPassRewards.sauna}시간 보유·예약 중`} checked={claimedRewardToggleChecked(s, "sauna")} onChange={v => setS(current => setClaimedRewardToggle(current, "sauna", v, claimedPassRewards.sauna))} />
           {s.targetLevel === 290 && <>
             <Toggle label="메포샵 메카베리 구매 · 1개 10,000 메포" checked={s.shopMech} onChange={v => set("shopMech", v)} />
             <Toggle label="메포샵 블루베리 구매 · 1개 7,000 메포" checked={s.shopBlue} onChange={v => set("shopBlue", v)} />
@@ -1862,6 +2054,7 @@ export default function Home() {
           <div className="field-grid compact"><InputField label="몬파 5레벨 %" value={s.mpCore5} onChange={v => set("mpCore5", Number(v))} /><InputField label="코어 총합 20 달성일" value={s.core20Date} type="date" onChange={v => set("core20Date", v)} /><InputField label="총합 20 몬파 추가 %" value={s.core20Bonus} onChange={v => set("core20Bonus", Number(v))} /><InputField label="몬파 6레벨 달성일" value={s.mpCore6Date} type="date" disabled={!s.mpCore6Enabled} onChange={v => set("mpCore6Date", v)} /><InputField label="몬파 6레벨 %" value={s.mpCore6} disabled={!s.mpCore6Enabled} onChange={v => set("mpCore6", Number(v))} /><InputField label="일퀘 5레벨 %" value={s.dailyCore5} onChange={v => set("dailyCore5", Number(v))} /><InputField label="일퀘 6레벨 달성일" value={s.dailyCore6Date} type="date" disabled={!s.dailyCore6Enabled} onChange={v => set("dailyCore6Date", v)} /><InputField label="일퀘 6레벨 %" value={s.dailyCore6} disabled={!s.dailyCore6Enabled} onChange={v => set("dailyCore6", Number(v))} /></div>
           <Toggle label="이번 주 익몬·악몽선경 미완료" checked={s.weeklyOpen} onChange={v => set("weeklyOpen", v)} /><Toggle label="그란디스 일퀘" checked={s.grandis} onChange={v => set("grandis", v)} /><Toggle label="익스트림 몬스터파크" checked={s.extreme} onChange={v => set("extreme", v)} /><Toggle label="악몽선경 1단계" checked={s.epic} onChange={v => set("epic", v)} />
           <div className="field-grid compact"><label className="field"><span>악몽선경 보상 배수</span><select value={s.epicMult} onChange={e => set("epicMult", Number(e.target.value))}><option value={1}>기본</option><option value={5}>4배 추가</option><option value={9}>8배 추가</option></select></label><InputField label="에픽 5레벨 %" value={s.epicCore5} onChange={v => set("epicCore5", Number(v))} /><InputField label="코어 총합 25 달성일" value={s.core25Date} type="date" onChange={v => set("core25Date", v)} /><InputField label="총합 25 에픽 추가 %" value={s.core25Bonus} onChange={v => set("core25Bonus", Number(v))} /><InputField label="에픽 아티팩트 활성일" value={s.epicArtifactDate} type="date" onChange={v => set("epicArtifactDate", v)} /><InputField label="아티팩트 후 5레벨 %" value={s.epicArtifact} onChange={v => set("epicArtifact", Number(v))} /><InputField label="에픽 6레벨 달성일" value={s.epicCore6Date} type="date" disabled={!s.epicCore6Enabled} onChange={v => set("epicCore6Date", v)} /><InputField label="6레벨 · 아티팩트 전 %" value={s.epicCore6} disabled={!s.epicCore6Enabled} onChange={v => set("epicCore6", Number(v))} /><InputField label="6레벨 · 아티팩트 후 %" value={s.epicCore6Artifact} disabled={!s.epicCore6Enabled} onChange={v => set("epicCore6Artifact", Number(v))} /></div>
+          <div className="epic-artifact-check"><b>8/13 에픽 추가 경험치 적용 확인</b><p><strong>8/13은 9회차 오픈일입니다. 레벨 범위 몬스터 10,000마리를 처치한 뒤 ‘수집하기’를 눌러 9회차를 완료해야</strong> 아티팩트 +150%가 활성화됩니다. 에픽 코어 6레벨 +40% · 코어 총합 25 +10%까지 총 +200%이며, 악몽선경 1단계 4배 추가 선택은 기본 5배를 포함해 최종 7.0배로 계산합니다.</p><small>미완료자는 ‘에픽 아티팩트 활성일’을 실제 완료일로 바꾸고, 이번 주 보상을 이미 받았다면 ‘이번 주 익몬·악몽선경 미완료’를 꺼 주세요.</small></div>
         </div></details>
         <details><summary>보유 보상 · 울티마 <span>9</span></summary><div className="detail-body"><div className="field-grid compact"><InputField label="보유 블루베리" value={s.ownedBlue} min={0} onChange={v => set("ownedBlue", Number(v))} /><InputField label="보유 메카베리" value={s.ownedMech} min={0} onChange={v => set("ownedMech", Number(v))} /><InputField label="보유 사우나 시간" value={s.ownedSauna} min={0} onChange={v => set("ownedSauna", Number(v))} /><InputField label="보유 상급 EXP" value={s.ownedAdv} min={0} onChange={v => set("ownedAdv", Number(v))} /><InputField label="보유 200~279 비약" value={s.ownedPotion279} min={0} onChange={v => set("ownedPotion279", Number(v))} /><InputField label="EXP 5,000 예상 사용일" value={s.shardDate} type="date" disabled={!s.shardEvent} onChange={v => set("shardDate", v)} /><InputField label="상급 EXP 사용량" value={s.shardAdv} disabled={!s.shardEvent} onChange={v => set("shardAdv", Number(v))} /><InputField label="울티마 누적 출석" value={s.ultimaCount} disabled={!s.ultima} onChange={v => set("ultimaCount", Number(v))} /><InputField label="이번 주 이미 출석" value={s.ultimaWeek} disabled={!s.ultima} onChange={v => set("ultimaWeek", Number(v))} /></div><Toggle label="시작일 울티마 출석 예정" checked={s.ultimaStart} disabled={!s.ultima} onChange={v => set("ultimaStart", v)} /></div></details>
         <div className={`calculate-bar ${hasPendingChanges ? "pending" : ""} ${isCalculating ? "calculating" : ""}`}>
