@@ -22,6 +22,16 @@ const importBuiltPage = async tag => {
   return import(`${pageModuleUrl.href}?${tag}-${Date.now()}`);
 };
 
+const renderBuiltSsrHtml = async tag => {
+  const workerUrl = new URL("dist/server/index.js", root);
+  const worker = await import(`${workerUrl.href}?${tag}-${Date.now()}`);
+  const response = await worker.default.fetch(new Request("http://localhost/"), {
+    ASSETS: { fetch: async () => new Response("", { status: 404 }) },
+  }, {});
+  assert.equal(response.status, 200);
+  return response.text();
+};
+
 test("keeps the 285 calculator primary, adds 290, and moves supporting content into tabs", async () => {
   const [page, layout, css, packageJson] = await Promise.all([
     readFile(new URL("app/page.tsx", root), "utf8"),
@@ -86,6 +96,7 @@ test("keeps the 285 calculator primary, adds 290, and moves supporting content i
   assert.match(page, /recordContribution\("specialSupply", EXPERIENCE_SOURCE_LABELS\.specialSupply/);
   assert.match(page, /className="trace-breakdown"/);
   assert.match(page, /className="trace-source-toggle"/);
+  assert.match(page, /title=\{pendingRemoval \? "계산 제외 취소" : "계산에서 제외"\}/);
   assert.match(page, /pendingRemoval && <em>제외 예정<\/em>/);
   assert.match(page, /계산에서 제외/);
   assert.match(page, /복구 예정 · 취소/);
@@ -128,7 +139,7 @@ test("keeps the 285 calculator primary, adds 290, and moves supporting content i
   assert.doesNotMatch(page, /SPECTER_BLAST_END|specter|mpNow|dailyNow|epicNow|mpPatch|dailyPatch|epicPatch|afterPatch|patchDate|challengerPassCapForDate|7\/22|패치 전|패치 후/);
   assert.match(layout, /285 플래너/);
   assert.match(layout, /new URL\("og\.png", siteBase\)/);
-  assert.match(css, /@media \(max-width: 720px\)/);
+  assert.match(css, /@media \(max-width: 760px\)/);
   assert.match(css, /\.efficiency-values small \{ font-size: 11px/);
   assert.match(css, /\.leftover-note \{[^}]*font-size: 13px/);
   assert.match(css, /\.calculate-bar \{/);
@@ -138,6 +149,15 @@ test("keeps the 285 calculator primary, adds 290, and moves supporting content i
   assert.match(css, /\.trace-totals span \{[^}]*font-size: 12px/);
   assert.match(css, /\.pre-row \.trace-breakdown li b \{[^}]*color: #116b48;[^}]*font-size: 12px/);
   assert.match(css, /\.trace-source-toggle:focus-visible/);
+  assert.match(css, /\.trace-source-toggle \{[^}]*width: 32px;[^}]*height: 32px;[^}]*color: #9f1239;[^}]*border: 1px solid #e88ba5;[^}]*border-radius: 999px;[^}]*background: #fff0f4/);
+  assert.match(css, /\.pre-row \.trace-source-toggle span \{[^}]*color: inherit;[^}]*font-size: 21px;[^}]*font-weight: 950;[^}]*line-height: 1/);
+  assert.match(css, /\.trace-source-toggle:hover \{[^}]*color: #750c2d;[^}]*border-color: #cf315e;[^}]*background: #ffd9e3/);
+  assert.match(css, /\.trace-source-toggle:active \{[^}]*transform: scale\(\.92\);[^}]*background: #ffc8d6/);
+  assert.match(css, /\.trace-source-toggle:focus-visible \{[^}]*outline: 3px solid rgba\(159, 18, 57, \.34\);[^}]*outline-offset: 2px/);
+  assert.match(css, /\.pending-removal \.trace-source-toggle \{[^}]*color: #116447;[^}]*border-color: #62b893;[^}]*background: #e9f8f1/);
+  assert.match(css, /\.pre-row \.pending-removal \.trace-source-toggle span \{[^}]*color: inherit;[^}]*font-size: 20px;[^}]*font-weight: 950;[^}]*line-height: 1;[^}]*transform: none/);
+  assert.match(css, /\.pending-removal \.trace-source-toggle:hover \{[^}]*color: #064a33;[^}]*border-color: #19845d;[^}]*background: #cef0df/);
+  assert.match(css, /@media \(max-width: 760px\)[\s\S]*?\.trace-source-toggle \{ width: 40px; height: 40px/);
   assert.match(css, /\.trace-exclusions button:focus-visible/);
   assert.match(css, /\.pre-row \.trace-total b \{[^}]*color: #7a5100;[^}]*font-size: 13px/);
   assert.match(css, /\.trace-panel \.pre-disclaimer \{[^}]*color: #4f4b58;[^}]*font-size: 12px/);
@@ -153,7 +173,7 @@ test("keeps the 285 calculator primary, adds 290, and moves supporting content i
   assert.match(css, /\.core6-picker-grid \{[^}]*min-width: 0;[^}]*grid-template-columns: minmax\(0, 1fr\)/);
   assert.match(css, /\.core6-choice \{[^}]*min-width: 0/);
   assert.match(css, /@media \(max-width: 1100px\)[\s\S]*?\.calculator-shell \{ grid-template-columns: minmax\(0, 1fr\); \}/);
-  assert.match(css, /@media \(max-width: 720px\)[\s\S]*?\.chart-wrap \{[^}]*overflow-x: auto/);
+  assert.match(css, /@media \(max-width: 760px\)[\s\S]*?\.chart-wrap \{[^}]*overflow-x: auto/);
   assert.match(css, /@media \(max-width: 430px\)[\s\S]*\.core6-picker/);
   assert.match(css, /@keyframes calculation-slide/);
   assert.doesNotMatch(css, /backdrop-filter/);
@@ -233,9 +253,11 @@ test("keeps verified calculator constants visible in source", async () => {
   assert.match(page, /specialSupplyExpPerCharge \* SPECIAL_SUPPLY_BATCH_SIZE/);
   assert.doesNotMatch(page, /38[_ ,]?512[_ ,]?167[_ ,]?837\s*[×x*]\s*4/);
   assert.match(page, /울티마 스쿼드 상점 EXP 5,000장 \(예상\)/);
-  assert.match(page, /\+ 보상 추가/);
-  assert.match(page, /보유분 날짜 지정/);
-  assert.match(page, /새 보상 더하기/);
+  assert.match(page, /\+ 수동 입력/);
+  assert.match(page, /현재 보유량을 이 값으로 바꿉니다/);
+  assert.match(page, /같은 종류의 기존 예약분도 이 수량으로 대체합니다/);
+  assert.doesNotMatch(page, /보상 사용일 예약/);
+  assert.doesNotMatch(page, /\+ 보상 추가/);
   assert.match(page, /레벨 범위 몬스터 10,000마리를 처치한 뒤 ‘수집하기’를 눌러 9회차를 완료해야/);
   assert.match(page, /이번 주 보상을 이미 받았다면 ‘이번 주 익몬·악몽선경 미완료’를 꺼 주세요/);
   assert.match(page, /최종 7\.0배로 계산/);
@@ -400,7 +422,14 @@ test("applies local defaults only after hydration and keeps reset in sync", asyn
   assert.match(page, /setCalculatedSettings\(localDefaults\)/);
   assert.match(page, /setPlanning\(runPlanningImmediately\(localDefaults\)\)/);
   assert.equal((page.match(/const localDefaults = createDefaultSettings\(localDateInputValue\(\)\)/g) || []).length, 2);
+  assert.match(page, /<title>\{`\$\{item\.title\}: \$\{item\.detail\}`\}<\/title>/);
   assert.doesNotMatch(page, /localDateInputValue[\s\S]{0,300}toISOString/);
+
+  const html = await renderBuiltSsrHtml("ssr-progress-chart-title");
+  assert.doesNotMatch(html, /<title><\/title>/);
+  assert.match(html, /<title>선택 경로: [^<]+<\/title>/);
+  assert.match(html, /<title>일요일만 7판 비교: [^<]+<\/title>/);
+  assert.match(html, /<title>매일 2판 비교: [^<]+<\/title>/);
 });
 
 test("ignores Ultima shop EXP rewards that are already past", async () => {
@@ -860,21 +889,21 @@ test("keeps the target 285 A-C fixtures aligned after the expired NOW reward is 
     // 1차 패스가 계산 시작일부터 세어 Lv.5에서 잘리던 상태였다.
     {
       settings: pageModule.createDefaultSettings("2026-07-27"),
-      reached: "2026-09-03",
-      maplePoints: 15_000,
-      leftovers: { blue: 0, mech: 4, sauna: 0, adv: 3300, potion269: 0, potion279: 0, coupon3x: 81, coupon4x: 10 },
+      reached: "2026-08-27",
+      maplePoints: 12_000,
+      leftovers: { blue: 0, mech: 0, crimson: 7, sauna: 1.5, adv: 11000, potion269: 0, potion279: 0, coupon3x: 66, coupon4x: 14 },
     },
     {
       settings: { ...pageModule.createDefaultSettings("2026-08-03"), level: 280, exp: 0 },
-      reached: "2026-09-10",
-      maplePoints: 15_000,
-      leftovers: { blue: 0, mech: 0, sauna: 0, adv: 0, potion269: 0, potion279: 0, coupon3x: 78, coupon4x: 8 },
+      reached: "2026-09-03",
+      maplePoints: 12_000,
+      leftovers: { blue: 0, mech: 0, crimson: 2, sauna: 1, adv: 4900, potion269: 0, potion279: 0, coupon3x: 66, coupon4x: 12 },
     },
     {
       settings: { ...pageModule.createDefaultSettings("2026-08-03"), level: 284, exp: 50 },
       reached: "2026-08-03",
       maplePoints: 0,
-      leftovers: { blue: 0, mech: 18, sauna: 2, adv: 15900, potion269: 0, potion279: 0, coupon3x: 3, coupon4x: 8 },
+      leftovers: { blue: 0, mech: 7, crimson: 17, sauna: 2, adv: 20400, potion269: 0, potion279: 0, coupon3x: 3, coupon4x: 12 },
     },
   ];
 
@@ -985,7 +1014,7 @@ test("preserves a 285 milestone snapshot in target 290 mode", async () => {
   assert.ok(Math.abs(result.finalExp - 64.61980722056909) < 1e-10);
   assert.ok(result.leftoversAt285);
   assert.notEqual(result.leftoversAt285, result.leftovers);
-  assert.deepEqual(result.leftoversAt285, { blue: 0, mech: 4, sauna: 1, adv: 3100, potion269: 0, potion279: 0, coupon3x: 0, coupon4x: 0 });
+  assert.deepEqual(result.leftoversAt285, { blue: 0, mech: 4, crimson: 0, sauna: 1, adv: 3100, potion269: 0, potion279: 0, coupon3x: 0, coupon4x: 0 });
 });
 
 test("does not auto-apply Special Supply EXP without direct input", async () => {
@@ -1040,8 +1069,8 @@ test("forecasts the final level and EXP at the September 16 deadline", async () 
   const planning = pageModule.runPlanningImmediately(settings);
 
   assert.equal(planning.basePlan.result.rows.at(-1).key, "2026-09-16");
-  assert.equal(planning.basePlan.result.finalLevel, 287);
-  assert.ok(Math.abs(planning.basePlan.result.finalExp - 92.43505266139972) < 1e-10);
+  assert.equal(planning.basePlan.result.finalLevel, 288);
+  assert.ok(Math.abs(planning.basePlan.result.finalExp - 31.628610348455876) < 1e-10);
   assert.equal(planning.basePlan.result.monsterParkMaplePoints, 0);
   assert.equal(planning.basePlan.result.reached, null);
   assert.equal(planning.basePlan.result.endReason, "horizon");
@@ -1099,8 +1128,9 @@ test("keeps the two Momentum Prime purchases independent and adds only Prime rew
 test("shows both Prime prices as 99,600 Nexon Cash without adding them to Maple Points", async () => {
   const page = await readFile(new URL("app/page.tsx", root), "utf8");
   assert.match(page, /모멘텀 1차 프라임 · 49,800 넥슨캐시/);
-  assert.match(page, /모멘텀 2차 프라임 · 49,800 넥슨캐시/);
-  assert.match(page, /두 패스와 두 프라임을 모두 ON하면 총 99,600 넥슨캐시/);
+  assert.match(page, /모멘텀 PLUS 프리미엄 · 29,800 넥슨캐시/);
+  assert.match(page, /모멘텀 PLUS 프라임 · 39,800 넥슨캐시/);
+  assert.match(page, /1차 프라임까지 모두 ON하면 총 119,400 넥슨캐시/);
   assert.match(page, /메포 합계에는 섞지 않습니다/);
 });
 
@@ -1135,12 +1165,12 @@ test("excludes each disabled Momentum season including its normal and Prime rewa
   const onlyFirst = run(true, false);
   const onlySecond = run(false, true);
   const neither = run(false, false);
-  const passRewards = result => ({ mech: result.leftovers.mech, sauna: result.leftovers.sauna, adv: result.leftovers.adv, coupon4x: result.leftovers.coupon4x });
+  const passRewards = result => ({ mech: result.leftovers.mech, crimson: result.leftovers.crimson, sauna: result.leftovers.sauna, adv: result.leftovers.adv, coupon4x: result.leftovers.coupon4x });
 
-  assert.deepEqual(passRewards(both), { mech: 22, sauna: 3, adv: 19000, coupon4x: 12 });
-  assert.deepEqual(passRewards(onlyFirst), { mech: 11, sauna: 1.5, adv: 9500, coupon4x: 6 });
-  assert.deepEqual(passRewards(onlySecond), { mech: 11, sauna: 1.5, adv: 9500, coupon4x: 6 });
-  assert.deepEqual(passRewards(neither), { mech: 0, sauna: 0, adv: 0, coupon4x: 0 });
+  assert.deepEqual(passRewards(both), { mech: 11, crimson: 17, sauna: 3, adv: 23500, coupon4x: 16 });
+  assert.deepEqual(passRewards(onlyFirst), { mech: 11, crimson: 0, sauna: 1.5, adv: 9500, coupon4x: 6 });
+  assert.deepEqual(passRewards(onlySecond), { mech: 0, crimson: 17, sauna: 1.5, adv: 14000, coupon4x: 10 });
+  assert.deepEqual(passRewards(neither), { mech: 0, crimson: 0, sauna: 0, adv: 0, coupon4x: 0 });
 });
 
 test("sets all three Eterion core toggles with the master patch", async () => {
@@ -1261,7 +1291,7 @@ test("records every applied EXP source and reconciles displayed contributions to
     "몬스터파크",
     "그란디스 일퀘",
   ]);
-  assert.deepEqual(row.usage, { blue: 1, mech: 1, sauna: 0.5, adv: 100, potion: 1, runs: 7 });
+  assert.deepEqual(row.usage, { blue: 1, mech: 1, crimson: 0, sauna: 0.5, adv: 100, potion: 1, runs: 7 });
   const rawGain = (row.progress - 285) * 100;
   const contributionGain = row.contributions.reduce((sum, contribution) => sum + contribution.gain, 0);
   assert.ok(Math.abs(contributionGain - rawGain) < 1e-9);
@@ -1386,6 +1416,59 @@ test("schedules held and extra rewards without double counting and restores held
 
   const rejected = pageModule.addCustomRewardToSettings(common, { ...heldReward, id: "too-many", amount: 1001 });
   assert.equal(rejected, common);
+});
+
+test("overwrites the selected current inventory as one absolute value and applies it to calculation", async () => {
+  const pageModule = await importBuiltPage("manual-inventory-absolute-value");
+  const start = "2026-08-14";
+  const base = {
+    ...pageModule.createDefaultSettings(start),
+    targetLevel: 290,
+    level: 285,
+    exp: 0,
+    challengerPassLevel: 30,
+    momentumPass1Enabled: false,
+    momentumPass2Enabled: false,
+    shardEvent: false,
+    ultima: false,
+    shopMech: false,
+    shopBlue: false,
+    specialSupply: false,
+    todayDaily: false,
+    weeklyOpen: false,
+    grandis: false,
+    extreme: false,
+    epic: false,
+    ownedBlue: 2,
+    ownedMech: 0,
+    ownedSauna: 0,
+    ownedAdv: 100,
+    ownedPotion279: 0,
+    customRewards: [
+      { id: "adv-owned", type: "adv", amount: 200, useDate: "2026-08-15", origin: "owned" },
+      { id: "adv-extra", type: "adv", amount: 300, useDate: "2026-08-16", origin: "extra" },
+      { id: "blue-extra", type: "blue", amount: 1, useDate: "2026-08-16", origin: "extra" },
+    ],
+  };
+
+  assert.equal(pageModule.currentInventoryTotal(base, "adv"), 600);
+  const overwritten = pageModule.overwriteInventoryAmount(base, "adv", 750);
+  assert.equal(overwritten.ownedAdv, 750);
+  assert.equal(pageModule.currentInventoryTotal(overwritten, "adv"), 750);
+  assert.equal(overwritten.customRewards.some(reward => reward.type === "adv"), false);
+  assert.equal(overwritten.customRewards.some(reward => reward.id === "blue-extra"), true);
+  assert.equal(pageModule.claimedRewardToggleChecked(overwritten, "adv"), true);
+
+  const result = pageModule.simulate(overwritten, { fixedRuns: 0 });
+  assert.equal(result.rows.find(row => row.key === start).usage.adv, 750);
+  assert.equal(result.rows.reduce((sum, row) => sum + row.usage.adv, 0), 750);
+
+  const zeroed = pageModule.overwriteInventoryAmount(overwritten, "adv", 0);
+  assert.equal(zeroed.ownedAdv, 0);
+  assert.equal(pageModule.currentInventoryTotal(zeroed, "adv"), 0);
+  assert.equal(pageModule.claimedRewardToggleChecked(zeroed, "adv"), false);
+  assert.equal(pageModule.overwriteInventoryAmount(base, "adv", -1), base);
+  assert.equal(pageModule.overwriteInventoryAmount(base, "adv", 1.5), base);
 });
 
 test("keeps claimed reward toggles checked for fully scheduled stock and prevents toggle double counting", async () => {
@@ -1536,6 +1619,66 @@ test("keeps the target 285 simulation on the 120-day fast horizon", async () => 
 
   assert.equal(planning.basePlan.result.horizonDays, 120);
   assert.ok(planning.basePlan.result.rows.length <= 120);
-  assert.equal(pageModule.simulationDateKey(planning.basePlan.result.reached), "2026-09-03");
+  assert.equal(pageModule.simulationDateKey(planning.basePlan.result.reached), "2026-08-27");
   assert.ok(elapsed < 2_000, `target 285 planning took ${elapsed.toFixed(1)}ms`);
+});
+
+test("converts held EXP items without mixing raw gain with the Maple Point efficiency index", async () => {
+  const pageModule = await importBuiltPage("item-conversion-maplescouter-benchmark");
+  const rounded = value => Number(value.toFixed(2));
+
+  assert.equal(rounded(pageModule.itemConversionPercent("mech", 285)), 5.17);
+  assert.equal(rounded(pageModule.itemConversionPercent("blue", 285)), 2.19);
+  assert.equal(rounded(pageModule.itemConversionPercent("potion279", 285)), 16.74);
+  assert.equal(Math.round(pageModule.itemConversionRawExperience("adv", 285) * 1000), 914_168_000_000);
+  assert.equal(rounded(pageModule.itemConversionPercent("adv", 285, 1000)), 0.92);
+  assert.equal(rounded(pageModule.itemConversionPercent("mech", 280)), 9.71);
+  assert.equal(rounded(pageModule.itemConversionPercent("blue", 280)), 6.48);
+  assert.equal(rounded(pageModule.itemConversionPercent("potion279", 260)), 100);
+  assert.equal(rounded(pageModule.itemConversionPercent("potion279", 279)), 100);
+  assert.equal(rounded(pageModule.itemConversionPercent("potion279", 280)), 49.5);
+
+  const converted = pageModule.simulateItemInventoryConversion({
+    level: 285,
+    exp: 1.091,
+    inventory: { mech: 1, blue: 1, potion279: 1, sauna: 0, adv: 1000 },
+  });
+  assert.equal(converted.startLevel, 285);
+  assert.ok(converted.level > 285 || converted.exp > 1.091);
+  assert.equal(converted.remaining.mech, 0);
+  assert.equal(converted.remaining.blue, 0);
+  assert.equal(converted.remaining.potion279, 0);
+  assert.equal(converted.remaining.adv, 0);
+
+  const upperLimit = pageModule.simulateItemInventoryConversion({ level: 295, exp: 0, inventory: { potion279: 1000 } });
+  assert.equal(upperLimit.reachedUpperLimit, true);
+  assert.equal(upperLimit.level, 296);
+  assert.ok(upperLimit.remaining.potion279 > 0);
+  assert.equal(upperLimit.used.potion279 + upperLimit.remaining.potion279, 1000);
+  assert.ok(upperLimit.totalRawExperience < pageModule.itemConversionRawExperience("potion279", 295) * 1000);
+
+  const [page, css] = await Promise.all([
+    readFile(new URL("app/page.tsx", root), "utf8"),
+    readFile(new URL("app/globals.css", root), "utf8"),
+  ]);
+  assert.match(page, /전부 쓰면 어디까지 오르나요/);
+  assert.match(page, /획득량 환산/);
+  assert.match(page, /메포 효율 순위와는 별도 계산입니다/);
+  assert.match(page, /285·290 계산 탭 현재값 불러오기/);
+  assert.match(page, /현재 계산기에 입력한 보유량/);
+  assert.match(page, /Lv\.285 검산/);
+  assert.match(page, /914,168,000,000 EXP/);
+  assert.match(page, /76,572,000,000 EXP/);
+  assert.match(page, /https:\/\/maplescouter\.com\/ko\/exp\/item/);
+  assert.doesNotMatch(page, /name=%EC%98%88%EC%81%9C%EC%98%88/);
+  assert.match(page, /backgroundImage: `url\(\$\{assetUrl\(row\.iconSrc\)\}\)`/);
+  assert.match(page, /type: "potion279" as const, mark: "비약", iconSrc: "", label: "전설 성장의 비약"/);
+  assert.doesNotMatch(page, /type: "potion279"[^\n]+small-exp-potion\.png/);
+  assert.match(css, /\.item-conversion-panel \{/);
+  assert.match(css, /\.item-conversion-sync \{[^}]*font-size: 12px/);
+  assert.match(css, /\.item-conversion-route span \{[^}]*font-size: 12px/);
+  assert.match(css, /\.item-conversion-totals small \{[^}]*font-size: 12px/);
+  assert.match(css, /\.item-conversion-name small, \.item-conversion-value small, \.item-conversion-percent small \{[^}]*font-size: 12px/);
+  assert.match(css, /@media \(max-width: 760px\)[\s\S]*?\.item-conversion-head \{ flex-direction: column/);
+  assert.match(css, /@media \(max-width: 430px\)[\s\S]*?\.item-conversion-list article/);
 });

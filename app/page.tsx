@@ -16,6 +16,17 @@ type PullStrategy = "monsterPark" | "blue" | "mech" | "both";
 type ViewTab = "calculator" | "pre280" | "efficiency" | "passes";
 type ExperienceSourceId = "monsterPark" | "grandis" | "extreme" | "epic" | "mech" | "blue" | "sauna" | "adv" | "potion" | "specialSupply";
 type CustomRewardType = "adv" | "mech" | "blue" | "sauna" | "potion279";
+type ItemConversionInventory = Record<CustomRewardType, number>;
+type ItemConversionResult = {
+  startLevel: number;
+  startExp: number;
+  level: number;
+  exp: number;
+  totalRawExperience: number;
+  used: ItemConversionInventory;
+  remaining: ItemConversionInventory;
+  reachedUpperLimit: boolean;
+};
 type CustomRewardOrigin = "owned" | "extra";
 type CustomReward = { id: string; type: CustomRewardType; amount: number; useDate: string; origin: CustomRewardOrigin };
 type Settings = {
@@ -60,6 +71,7 @@ type Settings = {
   challengerExp: boolean;
   momentumPrime1: boolean;
   momentumPrime2: boolean;
+  momentumPremium2: boolean;
   deferMomentumMech: boolean;
   dailyCore6Enabled: boolean;
   dailyCore6Date: string;
@@ -104,7 +116,7 @@ type Settings = {
   excludedExperienceSources: ExperienceSourceId[];
 };
 
-type ItemType = "blue" | "mech" | "sauna" | "adv" | "potion269" | "potion279" | "coupon3x" | "coupon4x";
+type ItemType = "blue" | "mech" | "crimson" | "sauna" | "adv" | "potion269" | "potion279" | "coupon3x" | "coupon4x";
 type Leftovers = Record<ItemType, number>;
 type Reward = Partial<Leftovers> & {
   label: string;
@@ -118,7 +130,7 @@ type Reward = Partial<Leftovers> & {
   date?: string;
   remaining?: Leftovers;
 };
-type RowUsage = { blue: number; mech: number; sauna: number; adv: number; potion: number; runs: number };
+type RowUsage = { blue: number; mech: number; crimson: number; sauna: number; adv: number; potion: number; runs: number };
 type ExperienceContribution = { id: ExperienceSourceId; label: string; gain: number };
 type Row = { date: Date; key: string; level: number; exp: number; progress: number; events: string[]; usage: RowUsage; contributions: ExperienceContribution[] };
 type Simulation = {
@@ -231,7 +243,13 @@ const efficiency: Record<number, Record<string, number>> = {
   289: { grandis: 0.120408, mp7: 0.749593, extreme: 0.746554, epic: 0.885408, adv100: 0.065873, sauna: 0.266999, blue: 1.4969, mech: 3.710 },
 };
 
-const emptyLeftovers = (): Leftovers => ({ blue: 0, mech: 0, sauna: 0, adv: 0, potion269: 0, potion279: 0, coupon3x: 0, coupon4x: 0 });
+const emptyLeftovers = (): Leftovers => ({ blue: 0, mech: 0, crimson: 0, sauna: 0, adv: 0, potion269: 0, potion279: 0, coupon3x: 0, coupon4x: 0 });
+// 크림슨 메카베리 농장은 전 구간 동렙몹 1,478,400마리 고정이다 (하루1소재).
+// 메카베리는 구간마다 마릿수가 달라 배율이 레벨에 따라 바뀐다: 280~284 1.5556 · 285~289 1.1667 · 290+ 1.0769.
+export const CRIMSON_FARM_MOBS = 1_478_400;
+export const mechFarmMobsForLevel = (level: number) => level >= 290 ? 1_372_800 : level >= 285 ? 1_267_200 : 950_400;
+export const crimsonPercentForLevel = (mechPercent: number, level: number) =>
+  mechPercent * CRIMSON_FARM_MOBS / mechFarmMobsForLevel(level);
 const itemTypes = Object.keys(emptyLeftovers()) as ItemType[];
 const SSR_DEFAULT_START = "2026-07-27";
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
@@ -321,6 +339,23 @@ export const setClaimedRewardToggle = (settings: Settings, type: CustomRewardTyp
     ...settings,
     [ownedField]: 0,
     customRewards: customRewards.filter(reward => !(reward.type === type && reward.origin === "owned")),
+  };
+};
+export const currentInventoryTotal = (settings: Settings, type: CustomRewardType) => {
+  const ownedField = CUSTOM_REWARD_META[type].ownedField;
+  const scheduled = normalizeCustomRewards(settings.customRewards, settings.start)
+    .filter(reward => reward.type === type)
+    .reduce((sum, reward) => sum + reward.amount, 0);
+  return Math.max(0, Number(settings[ownedField] || 0)) + scheduled;
+};
+export const overwriteInventoryAmount = (settings: Settings, type: CustomRewardType, amount: number): Settings => {
+  if (!Number.isFinite(amount) || amount < 0 || (type !== "sauna" && !Number.isInteger(amount))) return settings;
+  const ownedField = CUSTOM_REWARD_META[type].ownedField;
+  return {
+    ...settings,
+    [ownedField]: amount,
+    // 수동 입력값이 이 종류의 단일 진실이 되도록 숨은 예약분까지 모두 대체한다.
+    customRewards: normalizeCustomRewards(settings.customRewards, settings.start).filter(reward => reward.type !== type),
   };
 };
 export const REQUIRED_EXP: Record<number, bigint> = {
@@ -542,6 +577,34 @@ const momentumRewardForLevel = (level: number, prime: boolean, deferMech: boolea
 
 // 이미 받은 패스 레벨의 보상은 아직 손에 들고 있는 것으로 본다. 특히 메카베리는
 // 계산기 스스로 284까지 모아쓰라고 안내하므로, 수령했다고 사라지면 안 된다.
+// 모멘텀 패스 PLUS (2차, 8/20~9/16). 테스트월드 1.2.205 공지의 레벨별 표를 그대로 옮겼다.
+// 세 등급의 보상은 누적되며, 프라임은 프리미엄 선구매가 필수다.
+const MOMENTUM_PLUS_FREE: Record<number, { crimson?: number; adv?: number; sauna?: number }> = {
+  1: { crimson: 1 }, 2: { sauna: 0.5 }, 4: { adv: 100 }, 5: { sauna: 0.5 }, 7: { adv: 100 }, 8: { sauna: 0.5 }, 10: { adv: 300 },
+};
+const MOMENTUM_PLUS_PREMIUM: Record<number, { crimson?: number; adv?: number; coupon4x?: number }> = {
+  2: { crimson: 1 }, 3: { coupon4x: 2 }, 4: { adv: 1500 }, 5: { crimson: 2 }, 6: { adv: 1500 }, 8: { crimson: 2 }, 9: { coupon4x: 2 }, 10: { adv: 1500 },
+};
+const MOMENTUM_PLUS_PRIME: Record<number, { crimson?: number; adv?: number; coupon4x?: number }> = {
+  1: { coupon4x: 2 }, 2: { adv: 3000 }, 3: { crimson: 3 }, 4: { coupon4x: 2 }, 5: { adv: 3000 }, 6: { crimson: 4 }, 7: { coupon4x: 2 }, 8: { adv: 3000 }, 10: { crimson: 4 },
+};
+export type MomentumTier = "free" | "premium" | "prime";
+export const MOMENTUM_PLUS_PREMIUM_CASH = 29_800;
+export const MOMENTUM_PLUS_PRIME_CASH = 39_800;
+// 750포인트마다 1레벨, 주간 최대 2,500포인트 → 3주차에 만렙.
+const MOMENTUM_PLUS_POINTS_PER_LEVEL = 750;
+const MOMENTUM_PLUS_WEEKLY_POINTS = 2_500;
+export const momentumPlusUnlockedLevel = (elapsedWeeks: number) => elapsedWeeks < 0 ? 0
+  : Math.min(MOMENTUM_MAX_LEVEL, Math.floor(MOMENTUM_PLUS_WEEKLY_POINTS * (elapsedWeeks + 1) / MOMENTUM_PLUS_POINTS_PER_LEVEL));
+export const momentumPlusRewardForLevel = (level: number, tier: MomentumTier, deferMech: boolean): Omit<Reward, "label"> => {
+  const tables = [MOMENTUM_PLUS_FREE as Record<number, Record<string, number>>];
+  if (tier !== "free") tables.push(MOMENTUM_PLUS_PREMIUM as Record<number, Record<string, number>>);
+  if (tier === "prime") tables.push(MOMENTUM_PLUS_PRIME as Record<number, Record<string, number>>);
+  const total = { crimson: 0, adv: 0, sauna: 0, coupon4x: 0 };
+  tables.forEach(table => Object.entries(table[level] || {}).forEach(([key, value]) => { total[key as keyof typeof total] += value; }));
+  return { deferMech, crimson: total.crimson, adv: total.adv, sauna: total.sauna, coupon4x: total.coupon4x };
+};
+
 export const momentumClaimedRewards = (level: number, prime: boolean) => {
   const claimed = { mech: 0, sauna: 0, adv: 0 };
   for (let passLevel = 1; passLevel <= Math.max(0, Math.min(MOMENTUM_MAX_LEVEL, Math.floor(level))); passLevel += 1) {
@@ -571,7 +634,7 @@ const createDefaultSettings = (start = SSR_DEFAULT_START): Settings => {
   preTodayDaily: true, preWeeklyOpen: true,
   momentumMechLevel: 284, momentumMechDeadline: "2026-08-12", mayrinMesoGap: 3, mayrinNormalFrag: 30,
   fragPrice: 640, mpPerEok: 2500, postReset: true, challengerUnclaimed: false, challengerExp: true,
-  momentumPrime1: true, momentumPrime2: true, deferMomentumMech: true,
+  momentumPrime1: true, momentumPrime2: true, momentumPremium2: true, deferMomentumMech: true,
   dailyCore6Enabled: true, dailyCore6Date: "2026-07-27", mpCore6Enabled: true, mpCore6Date: "2026-07-27", epicCore6Enabled: true, epicCore6Date: "2026-07-27",
   shardEvent: true, ultima: true, shopMech: true, shopBlue: true, mpCore5: 90,
   core20Date: "2026-07-23", core20Bonus: 5, mpCore6: 95,
@@ -780,6 +843,106 @@ Object.keys(pre280Content).map(Number).forEach(level => {
     mech: 0,
   };
 });
+
+const ITEM_CONVERSION_LEVEL_MIN = 260;
+const ITEM_CONVERSION_LEVEL_MAX = 295;
+const ITEM_CONVERSION_UPPER_BOUND = ITEM_CONVERSION_LEVEL_MAX + 1;
+const LEGENDARY_GROWTH_POTION_RAW = LEVEL_280_REQUIRED_EXP * 0.49505;
+const itemConversionOrder: CustomRewardType[] = ["blue", "mech", "sauna", "potion279", "adv"];
+const emptyItemConversionInventory = (): ItemConversionInventory => ({ adv: 0, mech: 0, blue: 0, sauna: 0, potion279: 0 });
+
+export const itemConversionRequiredExperience = (level: number) => {
+  if (level >= 280) return Number(REQUIRED_EXP[level] || 0n);
+  return pre280Data[level]?.required || 0;
+};
+
+export const itemConversionRawExperience = (type: CustomRewardType, level: number) => {
+  const required = itemConversionRequiredExperience(level);
+  if (!required || !efficiency[level]) return 0;
+  if (type === "potion279") return level < 280 ? required : LEGENDARY_GROWTH_POTION_RAW;
+  if (type === "adv") return required * efficiency[level].adv100 / 10_000;
+  if (type === "mech" && level < 280) return 0;
+  return required * efficiency[level][type] / 100;
+};
+
+export const itemConversionPercent = (type: CustomRewardType, level: number, amount = 1) => {
+  const required = itemConversionRequiredExperience(level);
+  return required ? itemConversionRawExperience(type, level) * Math.max(0, amount) / required * 100 : 0;
+};
+
+export function simulateItemInventoryConversion({ level, exp, inventory }: { level: number; exp: number; inventory: Partial<ItemConversionInventory> }): ItemConversionResult {
+  const startLevel = Math.max(ITEM_CONVERSION_LEVEL_MIN, Math.min(ITEM_CONVERSION_LEVEL_MAX, Math.floor(level)));
+  const startExp = Math.max(0, Math.min(99.999, Number(exp) || 0));
+  let currentLevel = startLevel;
+  let rawExperience = itemConversionRequiredExperience(currentLevel) * startExp / 100;
+  let totalRawExperience = 0;
+  const used = emptyItemConversionInventory();
+  const remaining = emptyItemConversionInventory();
+  itemConversionOrder.forEach(type => {
+    const requested = Math.max(0, Number(inventory[type]) || 0);
+    remaining[type] = type === "sauna" ? requested : Math.floor(requested);
+  });
+
+  const applyRawExperience = (amount: number) => {
+    let rest = Math.max(0, amount);
+    totalRawExperience += rest;
+    while (rest > 1e-6 && currentLevel < ITEM_CONVERSION_UPPER_BOUND) {
+      const required = itemConversionRequiredExperience(currentLevel);
+      if (!required) break;
+      const needed = Math.max(0, required - rawExperience);
+      if (rest + 1e-6 < needed) {
+        rawExperience += rest;
+        rest = 0;
+      } else {
+        rest -= needed;
+        currentLevel += 1;
+        rawExperience = 0;
+      }
+    }
+  };
+
+  itemConversionOrder.forEach(type => {
+    let quantity = remaining[type];
+    let guard = 0;
+    while (quantity > 1e-9 && currentLevel < ITEM_CONVERSION_UPPER_BOUND && guard < 64) {
+      guard += 1;
+      const rawPerUnit = itemConversionRawExperience(type, currentLevel);
+      if (rawPerUnit <= 0) break;
+      const required = itemConversionRequiredExperience(currentLevel);
+      const needed = Math.max(0, required - rawExperience);
+      if (type === "sauna") {
+        const amount = Math.min(quantity, needed > 1e-6 ? needed / rawPerUnit : quantity);
+        applyRawExperience(rawPerUnit * amount);
+        quantity -= amount;
+        used[type] += amount;
+      } else {
+        const count = Math.min(Math.floor(quantity), Math.max(1, Math.ceil(needed / rawPerUnit - 1e-12)));
+        if (count <= 0) break;
+        applyRawExperience(rawPerUnit * count);
+        quantity -= count;
+        used[type] += count;
+      }
+    }
+    remaining[type] = Math.max(0, quantity);
+  });
+
+  const required = itemConversionRequiredExperience(currentLevel);
+  return {
+    startLevel,
+    startExp,
+    level: currentLevel,
+    exp: required ? rawExperience / required * 100 : 0,
+    totalRawExperience,
+    used,
+    remaining,
+    reachedUpperLimit: currentLevel >= ITEM_CONVERSION_UPPER_BOUND,
+  };
+}
+
+export const formatItemConversionExperience = (raw: number) => {
+  if (raw >= 1_000_000_000_000) return `${(raw / 1_000_000_000_000).toLocaleString("ko-KR", { maximumFractionDigits: 2 })}조 EXP`;
+  return `${(raw / 100_000_000).toLocaleString("ko-KR", { maximumFractionDigits: 2 })}억 EXP`;
+};
 
 function simulatePre280(s: Settings): Pre280Simulation {
   let level = Math.max(260, Math.min(279, Math.floor(s.preLevel)));
@@ -1015,7 +1178,9 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
     challengerDate = challengerDate.getTime() === start.getTime() ? nextThursdayAfter(start) : addDays(challengerDate, 7);
   }
 
-  const scheduleMomentumSeason = (season: 1 | 2, currentLevel: number, prime: boolean, startValue: string, endValue: string) => {
+  const scheduleMomentumSeason = (season: 1 | 2, currentLevel: number, prime: boolean, startValue: string, endValue: string, plusTier: MomentumTier = "free") => {
+    // 이번 주까지는 기존 모멘텀 패스, 8/20부터는 모멘텀 패스 PLUS 구조다.
+    const isPlus = season === 2;
     let momentumLevel = Math.max(0, Math.min(10, Math.floor(currentLevel)));
     const momentumStart = parseDate(startValue);
     const momentumEnd = parseDate(endValue);
@@ -1023,14 +1188,18 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
     while (momentumLevel < MOMENTUM_MAX_LEVEL && rewardDate <= momentumEnd) {
       // 주차는 계산 시작일이 아니라 패스 시작일 기준으로 쌓인다.
       // 밀린 주차가 있으면 그때까지 열린 만큼 한 번에 따라잡는다.
-      const unlocked = momentumUnlockedLevelOn(rewardDate, startValue);
+      const elapsedWeeks = Math.floor((rewardDate.getTime() - momentumStart.getTime()) / (7 * 86400000));
+      const unlocked = isPlus ? momentumPlusUnlockedLevel(elapsedWeeks) : momentumUnlockedLevelOn(rewardDate, startValue);
       if (unlocked > momentumLevel) {
         const from = momentumLevel + 1;
         const to = unlocked;
-        const batch: Reward = { label: `모멘텀 ${season}차 ${from}~${to}레벨`, deferMech: deferMomentumMech };
+        const batch: Reward = { label: `${isPlus ? "모멘텀 PLUS" : `모멘텀 ${season}차`} ${from}~${to}레벨`, deferMech: deferMomentumMech };
         for (let passLevel = from; passLevel <= to; passLevel += 1) {
-          const reward = momentumRewardForLevel(passLevel, prime, deferMomentumMech);
+          const reward = isPlus
+            ? momentumPlusRewardForLevel(passLevel, plusTier, deferMomentumMech)
+            : momentumRewardForLevel(passLevel, prime, deferMomentumMech);
           batch.mech = Number(batch.mech || 0) + Number(reward.mech || 0);
+          batch.crimson = Number(batch.crimson || 0) + Number(reward.crimson || 0);
           batch.sauna = Number(batch.sauna || 0) + Number(reward.sauna || 0);
           batch.adv = Number(batch.adv || 0) + Number(reward.adv || 0);
           batch.coupon4x = Number(batch.coupon4x || 0) + Number(reward.coupon4x || 0);
@@ -1042,7 +1211,7 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
     }
   };
   if (s.momentumPass1Enabled) scheduleMomentumSeason(1, s.momentumPass1Level, s.momentumPrime1, MOMENTUM_PASS_1_START, MOMENTUM_PASS_1_END);
-  if (s.momentumPass2Enabled) scheduleMomentumSeason(2, s.momentumPass2Level, s.momentumPrime2, MOMENTUM_PASS_2_START, MOMENTUM_PASS_2_END);
+  if (s.momentumPass2Enabled) scheduleMomentumSeason(2, s.momentumPass2Level, s.momentumPrime2, MOMENTUM_PASS_2_START, MOMENTUM_PASS_2_END, s.momentumPrime2 ? "prime" : s.momentumPremium2 ? "premium" : "free");
   if (s.shardEvent && s.shardDate) {
     const shardRewardDate = parseDate(s.shardDate);
     if (shardRewardDate >= start) addReward(shardRewardDate, { label: "울티마 스쿼드 상점 EXP 5,000장 (예상)", adv: s.shardAdv });
@@ -1120,7 +1289,7 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
     }
   };
   const applyPercent = (percent: number) => { if (level < targetLevel && efficiency[level]) applyRaw(req(level) * percent / 100); };
-  const applyItems = (type: "blue" | "mech" | "sauna" | "adv", count: number) => {
+  const applyItems = (type: "blue" | "mech" | "crimson" | "sauna" | "adv", count: number) => {
     let remaining = type === "sauna" ? Math.max(0, Number(count || 0)) : Math.max(0, Math.floor(count || 0));
     let used = 0;
     if (type === "sauna") {
@@ -1154,7 +1323,7 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
       return used;
     }
     while (remaining > 0 && level < targetLevel && !atForecastCap()) {
-      const percent = type === "adv" ? efficiency[level].adv100 / 100 : efficiency[level][type];
+      const percent = type === "crimson" ? crimsonPercentForLevel(efficiency[level].mech, level) : efficiency[level][type];
       applyPercent(percent); remaining -= 1; used += 1;
     }
     return used;
@@ -1201,7 +1370,7 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
   for (let day = 0; day < horizonDays && (forecastMode || level < targetLevel); day += 1) {
     const date = addDays(start, day); const key = iso(date); const events: string[] = [];
     // 계산 근거 표시용. 그날 실제로 소비한 수량을 그대로 모은다.
-    const usage: RowUsage = { blue: 0, mech: 0, sauna: 0, adv: 0, potion: 0, runs: 0 };
+    const usage: RowUsage = { blue: 0, mech: 0, crimson: 0, sauna: 0, adv: 0, potion: 0, runs: 0 };
     const contributions: ExperienceContribution[] = [];
     const currentProgress = () => level >= targetLevel ? targetLevel : level + xp / req(level);
     const recordContribution = (id: ExperienceSourceId, label: string, apply: () => void) => {
@@ -1232,6 +1401,7 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
       const r = reward.remaining!;
       if (sourceEnabled("blue") && (reward.blue || 0) > 0) { let used = 0; recordContribution("blue", EXPERIENCE_SOURCE_LABELS.blue, () => { used = applyItems("blue", r.blue); }); r.blue -= used; usage.blue += used; }
       if (sourceEnabled("mech") && (reward.mech || 0) > 0 && (!reward.deferMech || level >= momentumMechLevel || date >= momentumMechDeadline)) { let used = 0; recordContribution("mech", EXPERIENCE_SOURCE_LABELS.mech, () => { used = applyItems("mech", r.mech); }); r.mech -= used; usage.mech += used; }
+      if (sourceEnabled("mech") && (reward.crimson || 0) > 0 && (!reward.deferMech || level >= momentumMechLevel || date >= momentumMechDeadline)) { let used = 0; recordContribution("mech", EXPERIENCE_SOURCE_LABELS.mech, () => { used = applyItems("crimson", r.crimson); }); r.crimson -= used; usage.crimson += used; }
       if (sourceEnabled("sauna") && (reward.sauna || 0) > 0) { let used = 0; recordContribution("sauna", EXPERIENCE_SOURCE_LABELS.sauna, () => { used = applyItems("sauna", r.sauna); }); r.sauna -= used; usage.sauna += used; }
       if (sourceEnabled("potion") && (reward.potion269 || 0) > 0) { let used = 0; recordContribution("potion", EXPERIENCE_SOURCE_LABELS.potion, () => { used = applyGrowthPotion("potion269", r.potion269); }); r.potion269 -= used; usage.potion += used; }
       if (sourceEnabled("potion") && (reward.potion279 || 0) > 0) { let used = 0; recordContribution("potion", EXPERIENCE_SOURCE_LABELS.potion, () => { used = applyGrowthPotion("potion279", r.potion279); }); r.potion279 -= used; usage.potion += used; }
@@ -1306,12 +1476,18 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
 
     if (sourceEnabled("mech") && deferMomentumMech && level < targetLevel && !atForecastCap() && (level >= momentumMechLevel || date >= momentumMechDeadline)) {
       rewardDays.forEach(rewards => rewards.forEach(reward => {
-        if (!reward.deferMech || (reward.date || "") > key || !reward.remaining || reward.remaining.mech <= 0 || level >= targetLevel) return;
+        if (!reward.deferMech || (reward.date || "") > key || !reward.remaining || (reward.remaining.mech <= 0 && reward.remaining.crimson <= 0) || level >= targetLevel) return;
         let usedMech = 0;
-        recordContribution("mech", EXPERIENCE_SOURCE_LABELS.mech, () => { usedMech = applyItems("mech", reward.remaining!.mech); });
+        let usedCrimson = 0;
+        recordContribution("mech", EXPERIENCE_SOURCE_LABELS.mech, () => {
+          usedCrimson = applyItems("crimson", reward.remaining!.crimson);
+          usedMech = applyItems("mech", reward.remaining!.mech);
+        });
+        reward.remaining.crimson -= usedCrimson;
         reward.remaining.mech -= usedMech;
+        usage.crimson += usedCrimson;
         usage.mech += usedMech;
-        events.push(`${reward.label} 메카베리 사용`);
+        events.push(`${reward.label} ${usedCrimson > 0 ? "크림슨 메카베리" : "메카베리"} 사용`);
       }));
       capture285(date);
     }
@@ -1573,7 +1749,7 @@ function ProgressChart({ selected, sunday, free, targetLevel }: { selected: Simu
     <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`세 경로의 ${targetLevel}레벨 도달 진행 비교`}>
       {Array.from({ length: targetLevel - 279 }, (_, index) => index + 280).map(level => <g key={level}><line x1={margin.left} x2={width - margin.right} y1={y(level)} y2={y(level)} className="grid-line" /><text x={margin.left - 10} y={y(level) + 4} textAnchor="end" className="axis-label">{level}</text></g>)}
       {longest.map((row, index) => (index % tickEvery === 0 || index === longest.length - 1) ? <text key={row.key} x={x(index)} y={height - 12} textAnchor="middle" className="axis-label">{shortDate(row.date)}</text> : null)}
-      {[...series].reverse().map(item => <g key={item.key}><title>{item.title}: {item.detail}</title><path d={path(item.result.rows)} className={`chart-line ${item.key}`} /></g>)}
+      {[...series].reverse().map(item => <g key={item.key}><title>{`${item.title}: ${item.detail}`}</title><path d={path(item.result.rows)} className={`chart-line ${item.key}`} /></g>)}
       {series.map(item => { const row = item.result.rows[item.result.rows.length - 1]; if (!row) return null; const endX = x(item.result.rows.length - 1); const endY = y(row.progress); const labelY = Math.max(margin.top + 12, Math.min(height - margin.bottom - 8, endY + item.labelOffset)); const alignEnd = endX > width - 170; const labelX = endX + (alignEnd ? -9 : 9); return <g key={item.key} className={`chart-end ${item.key}`}><circle cx={endX} cy={endY} r="5" className={`dot ${item.key}`} /><line x1={endX} y1={endY} x2={labelX} y2={labelY - 4} className="chart-end-guide" /><text x={labelX} y={labelY} textAnchor={alignEnd ? "end" : "start"} className="chart-end-label">{item.short}</text></g>; })}
     </svg>
   </div>;
@@ -1590,13 +1766,11 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<ViewTab>("calculator");
   const [efficiencyLevel, setEfficiencyLevel] = useState(280);
   const [efficiencyLevelInput, setEfficiencyLevelInput] = useState("280");
-  const [customRewardOpen, setCustomRewardOpen] = useState(false);
-  const [customRewardType, setCustomRewardType] = useState<CustomRewardType>("adv");
-  const [customRewardOrigin, setCustomRewardOrigin] = useState<CustomRewardOrigin>("owned");
-  const [customRewardAmount, setCustomRewardAmount] = useState("1000");
-  const [customRewardDate, setCustomRewardDate] = useState("");
-  const [customRewardError, setCustomRewardError] = useState("");
-  const customRewardId = useRef(0);
+  const [itemConversionExpInput, setItemConversionExpInput] = useState(String(defaults.exp));
+  const [manualInventoryOpen, setManualInventoryOpen] = useState(false);
+  const [manualInventoryType, setManualInventoryType] = useState<CustomRewardType>("adv");
+  const [manualInventoryAmount, setManualInventoryAmount] = useState("0");
+  const [manualInventoryError, setManualInventoryError] = useState("");
   useEffect(() => {
     if (localDefaultsApplied.current) return;
     localDefaultsApplied.current = true;
@@ -1623,64 +1797,29 @@ export default function Home() {
   }, [s.momentumPass1Enabled, s.momentumPass1Level, s.momentumPrime1, s.momentumPass2Enabled, s.momentumPass2Level, s.momentumPrime2]);
   const core6MasterEnabled = s.dailyCore6Enabled && s.mpCore6Enabled && s.epicCore6Enabled;
   const setCore6Master = (enabled: boolean) => setS(current => ({ ...current, ...core6MasterPatch(enabled) }));
-  const normalizedCustomRewards = normalizeCustomRewards(s.customRewards, s.start);
-  const ownedAmountForCustomReward = (type: CustomRewardType) => Math.max(0, Number(s[CUSTOM_REWARD_META[type].ownedField] || 0));
-  const customRewardMeta = CUSTOM_REWARD_META[customRewardType];
-  const customRewardOwnedAvailable = ownedAmountForCustomReward(customRewardType);
-  const suggestedCustomRewardAmount = (type: CustomRewardType, origin: CustomRewardOrigin) => {
-    const available = ownedAmountForCustomReward(type);
-    return origin === "owned" && available > 0 ? available : CUSTOM_REWARD_META[type].extraDefault;
-  };
-  const toggleCustomRewardForm = () => {
-    if (!customRewardOpen) {
-      setCustomRewardDate(s.start);
-      setCustomRewardAmount(String(suggestedCustomRewardAmount(customRewardType, customRewardOrigin)));
-      setCustomRewardError("");
+  const manualInventoryMeta = CUSTOM_REWARD_META[manualInventoryType];
+  const toggleManualInventoryForm = () => {
+    if (!manualInventoryOpen) {
+      setManualInventoryAmount(String(currentInventoryTotal(s, manualInventoryType)));
+      setManualInventoryError("");
     }
-    setCustomRewardOpen(open => !open);
+    setManualInventoryOpen(open => !open);
   };
-  const changeCustomRewardType = (type: CustomRewardType) => {
-    setCustomRewardType(type);
-    setCustomRewardAmount(String(suggestedCustomRewardAmount(type, customRewardOrigin)));
-    setCustomRewardError("");
+  const changeManualInventoryType = (type: CustomRewardType) => {
+    setManualInventoryType(type);
+    setManualInventoryAmount(String(currentInventoryTotal(s, type)));
+    setManualInventoryError("");
   };
-  const changeCustomRewardOrigin = (origin: CustomRewardOrigin) => {
-    setCustomRewardOrigin(origin);
-    setCustomRewardAmount(String(suggestedCustomRewardAmount(customRewardType, origin)));
-    setCustomRewardError("");
-  };
-  const addCustomReward = () => {
-    const amount = Number(customRewardAmount);
-    if (!Number.isFinite(amount) || amount <= 0 || (customRewardType !== "sauna" && !Number.isInteger(amount))) {
-      setCustomRewardError(customRewardType === "sauna" ? "수량은 0보다 크게 입력해 주세요." : "수량은 1개 이상 정수로 입력해 주세요.");
+  const applyManualInventory = () => {
+    const amount = Number(manualInventoryAmount);
+    if (!Number.isFinite(amount) || amount < 0 || (manualInventoryType !== "sauna" && !Number.isInteger(amount))) {
+      setManualInventoryError(manualInventoryType === "sauna" ? "보유량은 0 이상으로 입력해 주세요." : "보유량은 0 이상의 정수로 입력해 주세요.");
       return;
     }
-    if (!validDateInput(customRewardDate)) {
-      setCustomRewardError("사용할 날짜를 확인해 주세요.");
-      return;
-    }
-    if (customRewardOrigin === "owned" && amount > customRewardOwnedAvailable + 1e-9) {
-      setCustomRewardError(`보유 수량 ${customRewardOwnedAvailable.toLocaleString("ko-KR")}${customRewardMeta.unit}을 넘길 수 없습니다.`);
-      return;
-    }
-    customRewardId.current += 1;
-    const reward: CustomReward = {
-      id: `custom-${customRewardId.current}`,
-      type: customRewardType,
-      amount,
-      useDate: customRewardDate,
-      origin: customRewardOrigin,
-    };
-    const next = addCustomRewardToSettings(s, reward);
-    if (next === s) {
-      setCustomRewardError("보상을 추가하지 못했습니다. 입력값을 다시 확인해 주세요.");
-      return;
-    }
-    setS(next);
-    setCustomRewardOpen(false);
-    setCustomRewardError("");
+    setS(current => overwriteInventoryAmount(current, manualInventoryType, amount));
+    setManualInventoryOpen(false);
+    setManualInventoryError("");
   };
-  const removeCustomReward = (id: string) => setS(current => removeCustomRewardFromSettings(current, id));
   const updateEfficiencyLevelInput = (value: string) => {
     setEfficiencyLevelInput(value);
     const nextLevel = Number(value);
@@ -1695,6 +1834,18 @@ export default function Home() {
       : efficiencyLevel;
     setEfficiencyLevel(nextLevel);
     setEfficiencyLevelInput(String(nextLevel));
+  };
+  const normalizeItemConversionExpInput = () => {
+    const parsed = Number(itemConversionExpInput);
+    const nextExp = Number.isFinite(parsed) ? Math.max(0, Math.min(99.999, parsed)) : 0;
+    setItemConversionExpInput(String(nextExp));
+  };
+  const loadCalculatorProgressIntoConversion = () => {
+    const nextLevel = Math.max(EFFICIENCY_LEVEL_MIN, Math.min(EFFICIENCY_LEVEL_MAX, Math.floor(s.level)));
+    const nextExp = Math.max(0, Math.min(99.999, Number(s.exp) || 0));
+    setEfficiencyLevel(nextLevel);
+    setEfficiencyLevelInput(String(nextLevel));
+    setItemConversionExpInput(String(nextExp));
   };
   const pre280Key = selectedSettingsKey(s, pre280SettingKeys);
   const pre280Settings = useMemo(() => s, [pre280Key]);
@@ -1826,6 +1977,7 @@ export default function Home() {
   const leftoverRowsFor = (leftovers: Leftovers, specialSupplySaved: number): [string, string][] => [
     ["상급 EXP 교환권", `${leftovers.adv.toLocaleString("ko-KR")}장`], ["VIP 사우나", `${leftovers.sauna.toLocaleString("ko-KR", { maximumFractionDigits: 2 })}시간`],
     ["블루베리 농장", `${leftovers.blue.toLocaleString("ko-KR")}장`], ["메카베리 농장", `${leftovers.mech.toLocaleString("ko-KR")}장`],
+    ["크림슨 메카베리 농장", `${leftovers.crimson.toLocaleString("ko-KR")}장`],
     ["성장의 비약 200~269", `${leftovers.potion269.toLocaleString("ko-KR")}개`], ["성장의 비약 200~279", `${leftovers.potion279.toLocaleString("ko-KR")}개`],
     ["3배 쿠폰 · 30분", `${leftovers.coupon3x.toLocaleString("ko-KR")}개`], ["4배 쿠폰 · 30분", `${leftovers.coupon4x.toLocaleString("ko-KR")}개`],
     ["특수 물자 저장", calculatedSettings.specialSupply ? `${specialSupplySaved.toLocaleString("ko-KR")}회` : "계산 제외"],
@@ -1840,6 +1992,7 @@ export default function Home() {
       const labels = [...row.events];
       if (row.usage.runs) labels.push(`몬파 ${row.usage.runs}판`);
       if (row.usage.mech) labels.push(`메카베리 ${row.usage.mech}장`);
+      if (row.usage.crimson) labels.push(`크림슨 메카베리 ${row.usage.crimson}장`);
       if (row.usage.blue) labels.push(`블루베리 ${row.usage.blue}장`);
       if (row.usage.sauna) labels.push(`사우나 ${row.usage.sauna.toLocaleString("ko-KR", { maximumFractionDigits: 1 })}시간`);
       if (row.usage.adv) labels.push(`상급 EXP ${row.usage.adv.toLocaleString("ko-KR")}장`);
@@ -1852,9 +2005,9 @@ export default function Home() {
     return list;
   }, [r]);
   const traceTotals = useMemo(() => r.rows.reduce((total, row) => ({
-    runs: total.runs + row.usage.runs, mech: total.mech + row.usage.mech, blue: total.blue + row.usage.blue,
+    runs: total.runs + row.usage.runs, mech: total.mech + row.usage.mech, crimson: total.crimson + row.usage.crimson, blue: total.blue + row.usage.blue,
     sauna: total.sauna + row.usage.sauna, adv: total.adv + row.usage.adv, potion: total.potion + row.usage.potion,
-  }), { runs: 0, mech: 0, blue: 0, sauna: 0, adv: 0, potion: 0 }), [r]);
+  }), { runs: 0, mech: 0, crimson: 0, blue: 0, sauna: 0, adv: 0, potion: 0 }), [r]);
   const pendingExcludedSources = normalizeExcludedExperienceSources(s.excludedExperienceSources);
   const calculatedExcludedSources = normalizeExcludedExperienceSources(calculatedSettings.excludedExperienceSources);
   const traceExclusionItems = experienceSourceIds.filter(id => pendingExcludedSources.includes(id) || calculatedExcludedSources.includes(id));
@@ -1868,6 +2021,24 @@ export default function Home() {
       .filter(source => efficiencyLevel >= (source.minimumLevel ?? EFFICIENCY_LEVEL_MIN))
       .sort((a, b) => relativeEfficiencyScore(b, efficiencyLevel, efficiencyMonsterParkBonus) - relativeEfficiencyScore(a, efficiencyLevel, efficiencyMonsterParkBonus))
     : [];
+  const itemConversionExp = Math.max(0, Math.min(99.999, Number(itemConversionExpInput) || 0));
+  const itemConversionInventory: ItemConversionInventory = {
+    adv: currentInventoryTotal(s, "adv"),
+    mech: currentInventoryTotal(s, "mech"),
+    blue: currentInventoryTotal(s, "blue"),
+    sauna: currentInventoryTotal(s, "sauna"),
+    potion279: currentInventoryTotal(s, "potion279"),
+  };
+  const itemConversionResult = simulateItemInventoryConversion({ level: efficiencyLevel, exp: itemConversionExp, inventory: itemConversionInventory });
+  const itemConversionGain = (itemConversionResult.level - itemConversionResult.startLevel) * 100 + itemConversionResult.exp - itemConversionResult.startExp;
+  const itemConversionRows = [
+    { type: "mech" as const, mark: "ME", iconSrc: "/efficiency-icons/mekaberry.png", label: "메카베리 농장", amount: itemConversionInventory.mech, unit: "개", sampleAmount: 1, sampleUnit: "1개" },
+    { type: "blue" as const, mark: "BL", iconSrc: "/efficiency-icons/blueberry.png", label: "블루베리 농장", amount: itemConversionInventory.blue, unit: "개", sampleAmount: 1, sampleUnit: "1개" },
+    { type: "potion279" as const, mark: "비약", iconSrc: "", label: "전설 성장의 비약", amount: itemConversionInventory.potion279, unit: "개", sampleAmount: 1, sampleUnit: "1개" },
+    { type: "sauna" as const, mark: "VIP", iconSrc: "/efficiency-icons/vip-sauna.png", label: "VIP 사우나", amount: itemConversionInventory.sauna, unit: "시간", sampleAmount: 1, sampleUnit: "1시간" },
+    { type: "adv" as const, mark: "EXP", iconSrc: "", label: "상급 EXP 쿠폰", amount: itemConversionInventory.adv, unit: "장", sampleAmount: 1000, sampleUnit: "1,000장" },
+  ];
+  const itemConversionHasInventory = itemConversionRows.some(row => row.amount > 0);
   const preLevelData = pre280Data[Math.max(260, Math.min(279, Math.floor(s.preLevel)))];
   const preUsedLabel = (used: Pre280Inventory) => [
     used.blue ? `블루 ${used.blue}` : "",
@@ -1876,12 +2047,20 @@ export default function Home() {
     used.potion279 ? `비약 ${used.potion279}` : "",
   ].filter(Boolean).join(" · ") || "콘텐츠 누적";
   const forecastProgress = `Lv.${r.finalLevel} ${r.finalExp.toFixed(1)}%`;
-  const primeCount = Number(calculatedSettings.momentumPass1Enabled && calculatedSettings.momentumPrime1) + Number(calculatedSettings.momentumPass2Enabled && calculatedSettings.momentumPrime2);
-  const primeCash = primeCount * 49_800;
+  // 1차는 기존 프라임 49,800. 2차(모멘텀 패스 PLUS)는 프리미엄 29,800이 선행 조건이고 프라임이 39,800 추가다.
+  const season1Prime = calculatedSettings.momentumPass1Enabled && calculatedSettings.momentumPrime1;
+  const season2Prime = calculatedSettings.momentumPass2Enabled && calculatedSettings.momentumPrime2;
+  const season2Premium = calculatedSettings.momentumPass2Enabled && (calculatedSettings.momentumPremium2 || season2Prime);
+  const primeCount = Number(season1Prime) + Number(season2Prime);
+  const primeCash = Number(season1Prime) * 49_800
+    + (season2Premium ? MOMENTUM_PLUS_PREMIUM_CASH : 0)
+    + (season2Prime ? MOMENTUM_PLUS_PRIME_CASH : 0);
   // 풀 보상이 기준이므로 켠 것을 나열하지 않고 뺀 것만 보여준다.
   const forecastExclusions = [
     !calculatedSettings.momentumPass1Enabled ? "모멘텀 1차 전체" : !calculatedSettings.momentumPrime1 ? "1차 프라임" : "",
-    !calculatedSettings.momentumPass2Enabled ? "모멘텀 2차 전체" : !calculatedSettings.momentumPrime2 ? "2차 프라임" : "",
+    !calculatedSettings.momentumPass2Enabled ? "모멘텀 PLUS 전체"
+      : !calculatedSettings.momentumPremium2 && !calculatedSettings.momentumPrime2 ? "PLUS 프리미엄·프라임"
+        : !calculatedSettings.momentumPrime2 ? "PLUS 프라임" : "",
     !calculatedSettings.paidMonsterPark ? "유료 몬파 5판" : "",
     !calculatedSettings.shopMech && !calculatedSettings.shopBlue ? "메포샵 농장"
       : !calculatedSettings.shopMech ? "메포샵 메카베리"
@@ -1990,39 +2169,28 @@ export default function Home() {
           <QuickChoice label="추가 몬파" checked={s.paidMonsterPark} onChange={v => set("paidMonsterPark", v)} />
           <QuickChoice label="코어 6레벨 일괄" checked={core6MasterEnabled} onChange={setCore6Master} />
         </div>
-        <section className={`custom-reward-scheduler ${customRewardOpen ? "open" : ""}`} aria-labelledby="custom-reward-title">
+        <section className={`custom-reward-scheduler ${manualInventoryOpen ? "open" : ""}`} aria-labelledby="manual-inventory-title">
           <div className="custom-reward-head">
-            <div><span>직접 일정</span><b id="custom-reward-title">보상 사용일 예약</b><small>남겨 둔 쿠폰도 실제로 쓸 날짜에 넣습니다.</small></div>
-            <button type="button" className="custom-reward-toggle" aria-expanded={customRewardOpen} aria-controls="custom-reward-form" onClick={toggleCustomRewardForm}>{customRewardOpen ? "닫기" : "+ 보상 추가"}</button>
+            <div><span>보유량 수정</span><b id="manual-inventory-title">현재 보상 수동 입력</b><small>상급 EXP처럼 실제로 남은 수량이 다르면 바로 고칩니다.</small></div>
+            <button type="button" className="custom-reward-toggle" aria-expanded={manualInventoryOpen} aria-controls="manual-inventory-form" onClick={toggleManualInventoryForm}>{manualInventoryOpen ? "닫기" : "+ 수동 입력"}</button>
           </div>
-          {customRewardOpen && <div className="custom-reward-form" id="custom-reward-form">
+          {manualInventoryOpen && <div className="custom-reward-form" id="manual-inventory-form">
             <div className="field-grid compact">
-              <label className="field"><span>보상 종류</span><select value={customRewardType} onChange={event => changeCustomRewardType(event.target.value as CustomRewardType)}>{customRewardTypes.map(type => <option value={type} key={type}>{CUSTOM_REWARD_META[type].label}</option>)}</select></label>
-              <label className="field"><span>처리 방식</span><select value={customRewardOrigin} onChange={event => changeCustomRewardOrigin(event.target.value as CustomRewardOrigin)}><option value="owned">보유분 날짜 지정</option><option value="extra">새 보상 더하기</option></select></label>
-              <InputField label={`수량 (${customRewardMeta.unit})`} value={customRewardAmount} min={customRewardMeta.step} step={customRewardMeta.step} onChange={setCustomRewardAmount} />
-              <InputField label="사용할 날짜" value={customRewardDate} type="date" onChange={setCustomRewardDate} />
+              <label className="field"><span>보상 종류</span><select value={manualInventoryType} onChange={event => changeManualInventoryType(event.target.value as CustomRewardType)}>{customRewardTypes.map(type => <option value={type} key={type}>{CUSTOM_REWARD_META[type].label}</option>)}</select></label>
+              <InputField label={`현재 보유량 (${manualInventoryMeta.unit})`} value={manualInventoryAmount} min={0} step={manualInventoryMeta.step} onChange={setManualInventoryAmount} />
             </div>
             <div className="custom-reward-form-foot">
-              <p>{customRewardOrigin === "owned" ? <>현재 입력된 보유분 <b>{customRewardOwnedAvailable.toLocaleString("ko-KR")}{customRewardMeta.unit}</b>에서 옮깁니다.</> : <>기존 보유분은 그대로 두고 새 보상을 더합니다.</>}</p>
-              <button type="button" onClick={addCustomReward}>일정에 추가</button>
+              <p><b>현재 보유량을 이 값으로 바꿉니다.</b> 더하는 값이 아니며, 같은 종류의 기존 예약분도 이 수량으로 대체합니다.</p>
+              <button type="button" onClick={applyManualInventory}>보유량 적용</button>
             </div>
-            {customRewardError && <p className="custom-reward-error" role="alert">{customRewardError}</p>}
-            <small className="custom-reward-note">사용일이 계산 시작일보다 빠르면 계산상 시작일에 적용합니다. 보상을 넣은 뒤 아래 계산하기 버튼을 눌러 주세요.</small>
+            {manualInventoryError && <p className="custom-reward-error" role="alert">{manualInventoryError}</p>}
+            <small className="custom-reward-note">0을 입력하면 해당 보상을 계산에서 뺍니다. 적용 후 아래 계산하기 버튼을 눌러 결과를 갱신해 주세요.</small>
           </div>}
-          {normalizedCustomRewards.length > 0 && <div className="custom-reward-list" aria-label="추가한 보상 일정">{normalizedCustomRewards.map(reward => {
-            const meta = CUSTOM_REWARD_META[reward.type];
-            const beforeStart = reward.useDate < s.start;
-            return <article key={reward.id}>
-              <div><b>{meta.label} {reward.amount.toLocaleString("ko-KR")}{meta.unit}</b><small>{reward.origin === "owned" ? "보유분 날짜 지정" : "새 보상 더하기"}</small></div>
-              <time dateTime={reward.useDate}>{beforeStart ? `${reward.useDate} 요청 · ${s.start} 적용` : `${reward.useDate} 사용`}</time>
-              <button type="button" onClick={() => removeCustomReward(reward.id)} aria-label={`${meta.label} ${reward.amount}${meta.unit} 일정 삭제`}>×</button>
-            </article>;
-          })}</div>}
         </section>
         <details><summary>패스 · 이벤트 설정 <span>12</span></summary><div className="detail-body">
           <div className="quick-toggles"><Toggle label="오늘 일퀘·몬파 미완료" checked={s.todayDaily} onChange={v => set("todayDaily", v)} /><Toggle label="이번 주 챌섭 5레벨 미완료" checked={s.challengerUnclaimed} onChange={v => set("challengerUnclaimed", v)} /></div>
           <div className="field-grid compact inset"><InputField label="스페셜 선데이 몬파 횟수" value={s.specialSundayCount} min={0} max={12} step={1} disabled={!s.paidMonsterPark} onChange={v => set("specialSundayCount", Number(v))} /><InputField label="모멘텀 1차 현재 레벨" value={s.momentumPass1Level} min={0} max={10} step={1} disabled={!s.momentumPass1Enabled} onChange={v => set("momentumPass1Level", Number(v))} /><InputField label="모멘텀 2차 현재 레벨" value={s.momentumPass2Level} min={0} max={10} step={1} disabled={!s.momentumPass2Enabled} onChange={v => set("momentumPass2Level", Number(v))} /></div>
-          <Toggle label="챌린저스 EXP 패스" checked={s.challengerExp} onChange={v => set("challengerExp", v)} /><Toggle label="모멘텀 1차 프라임 · 49,800 넥슨캐시" checked={s.momentumPrime1} disabled={!s.momentumPass1Enabled} onChange={v => set("momentumPrime1", v)} /><Toggle label="모멘텀 2차 프라임 · 49,800 넥슨캐시" checked={s.momentumPrime2} disabled={!s.momentumPass2Enabled} onChange={v => set("momentumPrime2", v)} /><Toggle label="모멘텀 메카베리 모아쓰기" checked={s.deferMomentumMech} onChange={v => set("deferMomentumMech", v)} />
+          <Toggle label="챌린저스 EXP 패스" checked={s.challengerExp} onChange={v => set("challengerExp", v)} /><Toggle label="모멘텀 1차 프라임 · 49,800 넥슨캐시" checked={s.momentumPrime1} disabled={!s.momentumPass1Enabled} onChange={v => set("momentumPrime1", v)} /><Toggle label="모멘텀 PLUS 프리미엄 · 29,800 넥슨캐시" checked={s.momentumPremium2 || s.momentumPrime2} disabled={!s.momentumPass2Enabled || s.momentumPrime2} onChange={v => set("momentumPremium2", v)} /><Toggle label="모멘텀 PLUS 프라임 · 39,800 넥슨캐시 (프리미엄 필수)" checked={s.momentumPrime2} disabled={!s.momentumPass2Enabled} onChange={v => { set("momentumPrime2", v); if (v) set("momentumPremium2", true); }} /><Toggle label="모멘텀 메카베리 모아쓰기" checked={s.deferMomentumMech} onChange={v => set("deferMomentumMech", v)} />
           <div className="callout-mini">이미 받은 패스 보상 중 아직 안 쓴 것만 켜 둡니다. 끄면 그만큼 빠집니다.</div>
           <Toggle label={`받은 메카베리 ${claimedPassRewards.mech}장 보유·예약 중`} checked={claimedRewardToggleChecked(s, "mech")} onChange={v => setS(current => setClaimedRewardToggle(current, "mech", v, claimedPassRewards.mech))} />
           <Toggle label={`받은 상급 EXP ${claimedPassRewards.adv.toLocaleString("ko-KR")}장 보유·예약 중`} checked={claimedRewardToggleChecked(s, "adv")} onChange={v => setS(current => setClaimedRewardToggle(current, "adv", v, claimedPassRewards.adv))} />
@@ -2031,7 +2199,7 @@ export default function Home() {
             <Toggle label="메포샵 메카베리 구매 · 1개 10,000 메포" checked={s.shopMech} onChange={v => set("shopMech", v)} />
             <Toggle label="메포샵 블루베리 구매 · 1개 7,000 메포" checked={s.shopBlue} onChange={v => set("shopBlue", v)} />
           </>}
-          <div className="callout-mini">프라임은 회차별 별도 구매입니다. 두 패스와 두 프라임을 모두 ON하면 총 99,600 넥슨캐시이며 메포 합계에는 섞지 않습니다.{s.targetLevel === 285 ? " 285 모드의 메포샵 농장은 계산기가 필요할 때만 알아서 넣습니다." : ""}</div>
+          <div className="callout-mini">8월 19일까지는 기존 모멘텀 패스(1차), 8월 20일부터는 <b>모멘텀 패스 PLUS</b>입니다. PLUS는 무료·프리미엄(29,800)·프라임(39,800) 3단계이고 프라임은 프리미엄을 먼저 사야 합니다. 1차 프라임까지 모두 ON하면 총 119,400 넥슨캐시이며 메포 합계에는 섞지 않습니다.{s.targetLevel === 285 ? " 285 모드의 메포샵 농장은 계산기가 필요할 때만 알아서 넣습니다." : ""}</div>
           <div className="field-grid compact inset"><label className="field"><span>메카베리 사용 레벨</span><select value={Math.min(s.momentumMechLevel, s.targetLevel === 290 ? 295 : 284)} disabled={!s.deferMomentumMech} onChange={e => set("momentumMechLevel", Number(e.target.value))}>{Array.from({ length: s.targetLevel === 290 ? 16 : 5 }, (_, index) => index + 280).map(level => <option key={level}>{level}</option>)}</select></label><InputField label="최종 사용일" value={s.momentumMechDeadline} type="date" disabled={!s.deferMomentumMech} onChange={v => set("momentumMechDeadline", v)} /></div>
           <Toggle label="특수 물자 지원 · 4배 쿠폰 몰아쓰기" checked={s.specialSupply} onChange={v => set("specialSupply", v)} />
           <div className="field-grid compact inset supply-input"><InputField label="시작일 보유 · 당일 충전 포함" value={s.specialSupplySaved} min={0} max={5} step={1} disabled={!s.specialSupply} onChange={v => set("specialSupplySaved", Number(v))} /><InputField label="실측 1회 경험치" value={s.specialSupplyExpPerCharge} min={0} step={1} disabled={!s.specialSupply} onChange={v => set("specialSupplyExpPerCharge", Number(v))} /></div>
@@ -2110,6 +2278,7 @@ export default function Home() {
           <div className="trace-totals">
             <div><span>몬스터파크</span><b>{traceTotals.runs.toLocaleString("ko-KR")}판</b></div>
             <div><span>메카베리</span><b>{traceTotals.mech.toLocaleString("ko-KR")}장</b></div>
+            <div><span>크림슨 메카베리</span><b>{traceTotals.crimson.toLocaleString("ko-KR")}장</b></div>
             <div><span>블루베리</span><b>{traceTotals.blue.toLocaleString("ko-KR")}장</b></div>
             <div><span>상급 EXP</span><b>{traceTotals.adv.toLocaleString("ko-KR")}장</b></div>
             <div><span>VIP 사우나</span><b>{traceTotals.sauna.toLocaleString("ko-KR", { maximumFractionDigits: 1 })}시간</b></div>
@@ -2156,6 +2325,7 @@ export default function Home() {
                         onClick={() => toggleTraceSource(contribution.id)}
                         aria-pressed={pendingRemoval}
                         aria-label={`${contribution.label} ${pendingRemoval ? "계산 제외 취소" : "계산에서 제외"}`}
+                        title={pendingRemoval ? "계산 제외 취소" : "계산에서 제외"}
                       ><span aria-hidden="true">{pendingRemoval ? "↶" : "×"}</span></button>
                     </li>;
                   })}
@@ -2210,15 +2380,52 @@ export default function Home() {
         </figure>
       </section>
 
+      <section className="item-conversion-panel" aria-labelledby="item-conversion-title">
+        <div className="item-conversion-head">
+          <div><span>보유 보상 · 획득량 환산</span><h2 id="item-conversion-title">전부 쓰면 어디까지 오르나요?</h2><p>현재 계산기에 입력한 보유량을 선택 레벨부터 순서대로 사용합니다. 메포 효율 순위와는 별도 계산입니다.</p></div>
+          <div className="item-conversion-inputs">
+            <label className="efficiency-level-picker" htmlFor="efficiency-level-input">
+              <span>현재 레벨</span>
+              <div className="efficiency-level-control"><b>Lv.</b><input id="efficiency-level-input" type="number" min={EFFICIENCY_LEVEL_MIN} max={EFFICIENCY_LEVEL_MAX} step="1" list="efficiency-level-options" value={efficiencyLevelInput} inputMode="numeric" aria-describedby="efficiency-level-help" onChange={event => updateEfficiencyLevelInput(event.target.value)} onBlur={normalizeEfficiencyLevelInput} onKeyDown={event => { if (event.key === "Enter") event.currentTarget.blur(); }} /></div>
+              <datalist id="efficiency-level-options">{Array.from({ length: EFFICIENCY_LEVEL_MAX - EFFICIENCY_LEVEL_MIN + 1 }, (_, index) => EFFICIENCY_LEVEL_MIN + index).map(level => <option value={level} key={level}>Lv.{level}</option>)}</datalist>
+              <small id="efficiency-level-help">260~295 · 선택 또는 직접 입력</small>
+            </label>
+            <label className="item-conversion-exp" htmlFor="item-conversion-exp-input"><span>현재 경험치</span><div><input id="item-conversion-exp-input" type="number" min="0" max="99.999" step="0.001" inputMode="decimal" value={itemConversionExpInput} onChange={event => setItemConversionExpInput(event.target.value)} onBlur={normalizeItemConversionExpInput} onKeyDown={event => { if (event.key === "Enter") event.currentTarget.blur(); }} /><b>%</b></div></label>
+            <button type="button" className="item-conversion-sync" onClick={loadCalculatorProgressIntoConversion}>285·290 계산 탭 현재값 불러오기</button>
+          </div>
+        </div>
+        <div className="item-conversion-result" aria-live="polite">
+          <div className="item-conversion-route"><span>현재</span><b>Lv.{itemConversionResult.startLevel} {itemConversionResult.startExp.toFixed(3)}%</b><i aria-hidden="true">→</i><span>사용 후</span><strong>{itemConversionResult.reachedUpperLimit ? "Lv.296 이상" : `Lv.${itemConversionResult.level} ${itemConversionResult.exp.toFixed(3)}%`}</strong></div>
+          <div className="item-conversion-totals"><span><small>레벨 진행도</small><b>+{Math.max(0, itemConversionGain).toFixed(2)}%p</b></span><span><small>사용 경험치</small><b>{formatItemConversionExperience(itemConversionResult.totalRawExperience)}</b></span></div>
+        </div>
+        <div className="item-conversion-list" aria-label={`Lv.${efficiencyLevel} 아이템별 경험치 환산`}>
+          {itemConversionRows.map(row => {
+            const available = row.type !== "mech" || efficiencyLevel >= 280;
+            const raw = itemConversionRawExperience(row.type, efficiencyLevel) * row.sampleAmount;
+            const percent = itemConversionPercent(row.type, efficiencyLevel, row.sampleAmount);
+            return <article className={!available ? "unavailable" : ""} key={row.type}>
+              <span className={`item-conversion-mark type-${row.type}`} aria-hidden="true">{row.iconSrc ? <i className="item-conversion-icon" style={{ backgroundImage: `url(${assetUrl(row.iconSrc)})` }} /> : row.mark}</span>
+              <div className="item-conversion-name"><b>{row.label}</b><small>보유 {row.amount.toLocaleString("ko-KR", { maximumFractionDigits: 2 })}{row.unit}</small></div>
+              <div className="item-conversion-value"><small>{available ? row.sampleUnit : "사용 조건"}</small><b>{available ? formatItemConversionExperience(raw) : "Lv.280부터"}</b></div>
+              <div className="item-conversion-percent"><small>획득량</small><b>{available ? `+${percent.toFixed(percent >= 1 ? 2 : 3)}%p` : "-"}</b></div>
+            </article>;
+          })}
+        </div>
+        {!itemConversionHasInventory && <div className="item-conversion-empty"><p>보유량이 0이라 결과가 그대로입니다. 285·290 계산 탭에서 실제 남은 수량을 입력해 주세요.</p><button type="button" onClick={() => setActiveTab("calculator")}>+ 수동 입력으로 이동</button></div>}
+        <div className="item-conversion-notes">
+          <p><b>구분:</b> 위 %p는 아이템으로 오르는 경험치입니다. 아래 VIP 사우나=100은 가격 대비 효율 지수라 서로 비교할 수 없습니다.</p>
+          <p><b>보유량:</b> 285·290 계산 탭의 현재 입력값이며, 이전 날짜 예약 데이터가 남아 있으면 함께 합산합니다. + 수동 입력을 적용하면 같은 종류는 입력한 한 값으로 정리됩니다.</p>
+          <p><b>사용 순서:</b> 블루베리 → 메카베리 → VIP 사우나 → 전설 성장의 비약 → 상급 EXP. 레벨이 오르면 다음 아이템은 새 레벨 값을 적용합니다.</p>
+          {efficiencyLevel < 280 && <p><b>260~279:</b> 이 표는 아이템 자체 경험치 환산입니다. 챌린저스 월드의 2레벨 상승은 `260→280` 탭에서 계산합니다.</p>}
+          {efficiencyLevel === 285 && <p><b>Lv.285 검산:</b> 상급 EXP 1,000장 = 914,168,000,000 EXP · +0.92%p. 일반 EXP 1,000장 = 76,572,000,000 EXP · +0.08%p는 현재 보유량 입력 대상이 아닙니다.</p>}
+          <a href="https://maplescouter.com/ko/exp/item" target="_blank" rel="noreferrer">메이플스카우터 소비아이템 환산과 대조</a>
+        </div>
+      </section>
+
       <section className="efficiency-panel full-efficiency-table">
         <div className="efficiency-head">
           <div><span>LV.{efficiencyLevel} · VIP 사우나 100 기준 · 현재 몬파 +{efficiencyMonsterParkBonus}%</span><h3>Lv.260~295 경험치 효율표</h3></div>
-          <label className="efficiency-level-picker" htmlFor="efficiency-level-input">
-            <span>보고 싶은 레벨</span>
-            <div className="efficiency-level-control"><b>Lv.</b><input id="efficiency-level-input" type="number" min={EFFICIENCY_LEVEL_MIN} max={EFFICIENCY_LEVEL_MAX} step="1" list="efficiency-level-options" value={efficiencyLevelInput} inputMode="numeric" aria-describedby="efficiency-level-help" onChange={event => updateEfficiencyLevelInput(event.target.value)} onBlur={normalizeEfficiencyLevelInput} onKeyDown={event => { if (event.key === "Enter") event.currentTarget.blur(); }} /></div>
-            <datalist id="efficiency-level-options">{Array.from({ length: EFFICIENCY_LEVEL_MAX - EFFICIENCY_LEVEL_MIN + 1 }, (_, index) => EFFICIENCY_LEVEL_MIN + index).map(level => <option value={level} key={level}>Lv.{level}</option>)}</datalist>
-            <small id="efficiency-level-help">260~295 · 선택 또는 직접 입력</small>
-          </label>
+          <div className="efficiency-metric-label"><b>메포 효율 지수</b><span>획득 경험치가 아닌 가격 대비 값</span></div>
         </div>
         <div className="efficiency-list">
           {efficiencyRanking.map((source, index) => <div className={`efficiency-row ${index < 3 ? "top" : ""}`} data-source={source.id} key={source.id}>
@@ -2238,7 +2445,7 @@ export default function Home() {
 
     {activeTab === "passes" && <section className="rewards-section passes-panel tab-panel" id="passes-panel" role="tabpanel" aria-labelledby="passes-tab">
       <div className="section-heading light"><span>표</span><div><p>현재 패스 레벨 입력 가능</p><h2>패스 보상표</h2></div></div>
-      <div className="pass-grid"><article><div className="table-title"><span>CHALLENGERS · 현재 {s.challengerPassLevel}레벨</span><h3>챌린저스 EXP 패스</h3></div><table><thead><tr><th>레벨 구간</th><th>일반</th><th>EXP 패스 포함</th></tr></thead><tbody><tr><td>1~10</td><td>-</td><td>블루베리 6 · 사우나 2시간 · 상급 EXP 2,000</td></tr><tr><td>11~20</td><td>-</td><td>블루베리 6 · 사우나 2시간 · 상급 EXP 2,000</td></tr><tr><td>21~25</td><td>상급 EXP 100</td><td>블루베리 3 · 사우나 1시간 · 상급 EXP 1,100</td></tr><tr><td>26~30</td><td>상급 EXP 2,100</td><td>블루베리 2 · 사우나 1시간 · 상급 EXP 3,100 · 비약 1</td></tr><tr className="total"><td>1~30 합계</td><td>상급 EXP 2,200</td><td>블루베리 17 · 사우나 6시간 · 상급 EXP 8,200 · 비약 1</td></tr></tbody></table></article><article><div className="table-title"><span>MOMENTUM · 1차 {s.momentumPass1Enabled ? `Lv.${s.momentumPass1Level}` : "OFF"} · 2차 {s.momentumPass2Enabled ? `Lv.${s.momentumPass2Level}` : "OFF"}</span><h3>모멘텀 패스 1·2차</h3></div><table><thead><tr><th>회차별 합계</th><th>보상</th></tr></thead><tbody><tr><td>현재 선택</td><td>1차 {s.momentumPass1Enabled ? "반영" : "제외"} · 2차 {s.momentumPass2Enabled ? "반영" : "제외"}</td></tr><tr><td>일반</td><td>메카베리 1 · 사우나 1.5시간 · 상급 EXP 500</td></tr><tr><td>프라임 추가</td><td>메카베리 10 · 상급 EXP 9,000 · 4배 쿠폰 6</td></tr><tr className="total"><td>프라임 포함</td><td>메카베리 11 · 사우나 1.5시간 · 상급 EXP 9,500 · 4배 쿠폰 6</td></tr><tr><td>기간</td><td>1차 7/23~8/19 · 2차 8/20~9/16</td></tr><tr><td>가격</td><td>각 49,800 넥슨캐시 · 별도 구매</td></tr></tbody></table></article></div>
+      <div className="pass-grid"><article><div className="table-title"><span>CHALLENGERS · 현재 {s.challengerPassLevel}레벨</span><h3>챌린저스 EXP 패스</h3></div><table><thead><tr><th>레벨 구간</th><th>일반</th><th>EXP 패스 포함</th></tr></thead><tbody><tr><td>1~10</td><td>-</td><td>블루베리 6 · 사우나 2시간 · 상급 EXP 2,000</td></tr><tr><td>11~20</td><td>-</td><td>블루베리 6 · 사우나 2시간 · 상급 EXP 2,000</td></tr><tr><td>21~25</td><td>상급 EXP 100</td><td>블루베리 3 · 사우나 1시간 · 상급 EXP 1,100</td></tr><tr><td>26~30</td><td>상급 EXP 2,100</td><td>블루베리 2 · 사우나 1시간 · 상급 EXP 3,100 · 비약 1</td></tr><tr className="total"><td>1~30 합계</td><td>상급 EXP 2,200</td><td>블루베리 17 · 사우나 6시간 · 상급 EXP 8,200 · 비약 1</td></tr></tbody></table></article><article><div className="table-title"><span>MOMENTUM · 1차 {s.momentumPass1Enabled ? `Lv.${s.momentumPass1Level}` : "OFF"} · 2차 {s.momentumPass2Enabled ? `Lv.${s.momentumPass2Level}` : "OFF"}</span><h3>모멘텀 패스 1차</h3></div><table><thead><tr><th>회차별 합계</th><th>보상</th></tr></thead><tbody><tr><td>현재 선택</td><td>1차 {s.momentumPass1Enabled ? "반영" : "제외"}</td></tr><tr><td>일반</td><td>메카베리 1 · 사우나 1.5시간 · 상급 EXP 500</td></tr><tr><td>프라임 추가</td><td>메카베리 10 · 상급 EXP 9,000 · 4배 쿠폰 6</td></tr><tr className="total"><td>프라임 포함</td><td>메카베리 11 · 사우나 1.5시간 · 상급 EXP 9,500 · 4배 쿠폰 6</td></tr><tr><td>기간</td><td>7/23~8/19</td></tr><tr><td>가격</td><td>49,800 넥슨캐시</td></tr></tbody></table></article><article><div className="table-title"><span>MOMENTUM PLUS · 2차 {s.momentumPass2Enabled ? `Lv.${s.momentumPass2Level}` : "OFF"}</span><h3>모멘텀 패스 PLUS</h3></div><table><thead><tr><th>등급</th><th>누적 보상</th><th>누적 캐시</th></tr></thead><tbody><tr><td>무료</td><td>크림슨 1 · 사우나 1.5시간 · 상급 EXP 500</td><td>-</td></tr><tr><td>프리미엄</td><td>크림슨 6 · 사우나 1.5시간 · 상급 EXP 5,000 · 4배 쿠폰 4</td><td>29,800</td></tr><tr className="total"><td>프라임</td><td>크림슨 17 · 사우나 1.5시간 · 상급 EXP 14,000 · 4배 쿠폰 10</td><td>69,600</td></tr><tr><td>기간</td><td colSpan={2}>8/20~9/16 · 프라임은 프리미엄 선구매 필수</td></tr><tr><td>주차 해금</td><td colSpan={2}>750포인트당 1레벨 · 주 최대 2,500포인트 → 1주 Lv.3 · 2주 Lv.6 · 3주 Lv.10</td></tr><tr><td>밀린 주차</td><td colSpan={2}>전 주 미획득 포인트를 100당 1,000 메포로 구매 · 1레벨 7,500 메포</td></tr><tr><td>크림슨 경험치</td><td colSpan={2}>메카베리의 7/6배 · Lv.285에서 6.0361% (메이플로드 기준)</td></tr></tbody></table></article></div>
     </section>}
 
     <footer><div className="brand"><span className="brand-mark">M</span><span>285·290 CALCULATOR</span></div><p>경험치 기준 · 하루1소재 · 메이플로드 · 2026.08.03 확인</p><div className="source-links"><a href="https://haru1sojae.kr/table" target="_blank" rel="noreferrer">하루1소재</a><a href="https://mapleroad.kr/utils/exp_calculator" target="_blank" rel="noreferrer">메이플로드</a><a href="https://maplestory.nexon.com/testworld/news/all/188" target="_blank" rel="noreferrer">테스트월드</a></div></footer>
