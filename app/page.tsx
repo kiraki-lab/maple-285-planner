@@ -635,8 +635,8 @@ const createDefaultSettings = (start = SSR_DEFAULT_START): Settings => {
   const momentumPass1Level = momentumUnlockedLevelOn(parseDate(start), MOMENTUM_PASS_1_START);
   const momentumPass2Level = momentumPlusUnlockedLevel(Math.floor((parseDate(start).getTime() - parseDate(MOMENTUM_PASS_2_START).getTime()) / (7 * 86400000)));
   // 이미 수령한 패스 보상은 아직 안 쓴 것으로 보고 보유 보상에 넣는다.
-  // 1차 모멘텀 패스는 8/19에 종료됐다. 더 받을 것은 없고, 받아서 안 쓴 분량만 보유 보상으로 넘긴다.
-  const claimed1 = momentumClaimedRewards(MOMENTUM_MAX_LEVEL, true);
+  // 1차 모멘텀 패스는 8/19 수령 마감, 8/20 오전 2시 사용 마감으로 완전히 끝났다.
+  // 남아 있던 아이템도 소멸했으므로 보유 보상에 넣지 않는다. PLUS 수령분만 넘긴다.
   const claimed2 = momentumPlusClaimedRewards(momentumPass2Level, "prime");
   return ({
   targetLevel: 285, level: 280, exp: 87.39, start, pullWeeks: 0, pullStrategy: "monsterPark", specialSundayCount: 1, paidMonsterPark: true,
@@ -658,10 +658,10 @@ const createDefaultSettings = (start = SSR_DEFAULT_START): Settings => {
   extreme: true, epic: true, epicMult: 5, epicCore5: 30, core25Date: "2026-08-06",
   core25Bonus: 10, epicArtifactDate: "2026-08-13", epicArtifact: 180, epicCore6: 40,
   epicCore6Artifact: 190, ownedBlue: 0, ownedPotion279: 0,
-  ownedMech: claimed1.mech,
+  ownedMech: 0,
   ownedCrimson: claimed2.crimson,
-  ownedSauna: claimed1.sauna + claimed2.sauna,
-  ownedAdv: claimed1.adv + claimed2.adv,
+  ownedSauna: claimed2.sauna,
+  ownedAdv: claimed2.adv,
   customRewards: [],
   excludedExperienceSources: [],
   });
@@ -1807,10 +1807,9 @@ export default function Home() {
   };
   // 현재 패스 레벨까지 받은 보상. 보유 토글이 이 값을 기준으로 켜고 끈다.
   const claimedPassRewards = useMemo(() => {
-    const first = momentumClaimedRewards(MOMENTUM_MAX_LEVEL, s.momentumPrime1);
     const second = momentumPlusClaimedRewards(s.momentumPass2Enabled ? s.momentumPass2Level : 0, s.momentumPrime2 ? "prime" : s.momentumPremium2 ? "premium" : "free");
-    return { mech: first.mech, crimson: second.crimson, sauna: first.sauna + second.sauna, adv: first.adv + second.adv };
-  }, [s.momentumPrime1, s.momentumPass2Enabled, s.momentumPass2Level, s.momentumPrime2, s.momentumPremium2]);
+    return { mech: 0, crimson: second.crimson, sauna: second.sauna, adv: second.adv };
+  }, [s.momentumPass2Enabled, s.momentumPass2Level, s.momentumPrime2, s.momentumPremium2]);
   const core6MasterEnabled = s.dailyCore6Enabled && s.mpCore6Enabled && s.epicCore6Enabled;
   const setCore6Master = (enabled: boolean) => setS(current => ({ ...current, ...core6MasterPatch(enabled) }));
   const manualInventoryMeta = CUSTOM_REWARD_META[manualInventoryType];
@@ -2096,7 +2095,7 @@ export default function Home() {
       <div className="hero-grid">
         {targetLevel === 290 ? <>
           <article className="hero-card primary"><div className="card-label">9/16 시즌 종료 예상</div><strong>{forecastProgress}</strong><span>{forecastBasisLabel}</span><div className="card-meta"><b>{formatMP(r.maplePoints)}</b><em>몬파·메포샵 합계</em></div></article>
-          <article className="hero-card"><div className="card-label">모멘텀 1차 · 종료</div><strong>8/19 마감</strong><span>받아둔 보상만 보유분으로 반영</span><div className="card-meta"><b>메카베리 {calculatedSettings.ownedMech}장 · 상급 {calculatedSettings.ownedAdv.toLocaleString("ko-KR")}장</b><em>세부 설정에서 조정</em></div></article>
+          <article className="hero-card"><div className="card-label">모멘텀 1차 · 종료</div><strong>보상 소멸</strong><span>8/19 수령 마감 · 8/20 사용 마감</span><div className="card-meta"><b>계산에서 제외</b><em>남은 아이템 없음</em></div></article>
           <article className="hero-card verdict"><div className="card-label">모멘텀 PLUS · 8/20~9/16</div><strong>{!calculatedSettings.momentumPass2Enabled ? "참여 OFF" : calculatedSettings.momentumPrime2 ? "프라임 ON" : calculatedSettings.momentumPremium2 ? "프리미엄 ON" : "무료 보상"}</strong><span>{calculatedSettings.momentumPass2Enabled ? `현재 Lv.${calculatedSettings.momentumPass2Level}` : "보상 계산 제외"}</span><div className="card-meta"><b>{calculatedSettings.momentumPass2Enabled && calculatedSettings.momentumPrime2 ? "69,600 넥슨캐시" : calculatedSettings.momentumPass2Enabled && calculatedSettings.momentumPremium2 ? "29,800 넥슨캐시" : "추가 결제 없음"}</b><em>프라임은 프리미엄 필수</em></div></article>
         </> : <>
           <article className="hero-card primary"><div className="card-label">{calc.effectivePullWeeks ? `${calc.effectivePullWeeks}주 당김 · ${selectedStrategy.label}` : "마감만 맞추기"}</div><strong>{longDate(r.reached)}</strong><span>{r.scheduleLabel}</span><div className="card-meta"><b>{formatMP(r.maplePoints)}{primeCash > 0 ? ` + ${formatCash(primeCash)}` : ""}</b><em>몬파 {formatMP(r.monsterParkMaplePoints)} · 상점 {formatMP(r.shopMaplePoints)}{r.shopMaplePoints > 0 ? ` · ${shopPurchasePlanLabel(r.shopBluePurchased, r.shopMechPurchased)}` : ""}{primeCash > 0 ? ` · 프라임 ${primeCount}개` : " · 프라임 미구매"}</em></div></article>
@@ -2459,7 +2458,7 @@ export default function Home() {
 
     {activeTab === "passes" && <section className="rewards-section passes-panel tab-panel" id="passes-panel" role="tabpanel" aria-labelledby="passes-tab">
       <div className="section-heading light"><span>표</span><div><p>현재 패스 레벨 입력 가능</p><h2>패스 보상표</h2></div></div>
-      <div className="pass-grid"><article><div className="table-title"><span>CHALLENGERS · 현재 {s.challengerPassLevel}레벨</span><h3>챌린저스 EXP 패스</h3></div><table><thead><tr><th>레벨 구간</th><th>일반</th><th>EXP 패스 포함</th></tr></thead><tbody><tr><td>1~10</td><td>-</td><td>블루베리 6 · 사우나 2시간 · 상급 EXP 2,000</td></tr><tr><td>11~20</td><td>-</td><td>블루베리 6 · 사우나 2시간 · 상급 EXP 2,000</td></tr><tr><td>21~25</td><td>상급 EXP 100</td><td>블루베리 3 · 사우나 1시간 · 상급 EXP 1,100</td></tr><tr><td>26~30</td><td>상급 EXP 2,100</td><td>블루베리 2 · 사우나 1시간 · 상급 EXP 3,100 · 비약 1</td></tr><tr className="total"><td>1~30 합계</td><td>상급 EXP 2,200</td><td>블루베리 17 · 사우나 6시간 · 상급 EXP 8,200 · 비약 1</td></tr></tbody></table></article><article><div className="table-title"><span>MOMENTUM · 1차 종료</span><h3>모멘텀 패스 1차 (종료)</h3></div><table><thead><tr><th>회차별 합계</th><th>보상</th></tr></thead><tbody><tr><td>상태</td><td>8/19 종료 · 새로 받을 수 없음</td></tr><tr><td>일반</td><td>메카베리 1 · 사우나 1.5시간 · 상급 EXP 500</td></tr><tr><td>프라임 추가</td><td>메카베리 10 · 상급 EXP 9,000 · 4배 쿠폰 6</td></tr><tr className="total"><td>프라임 포함</td><td>메카베리 11 · 사우나 1.5시간 · 상급 EXP 9,500 · 4배 쿠폰 6</td></tr><tr><td>기간</td><td>7/23~8/19</td></tr><tr><td>가격</td><td>49,800 넥슨캐시</td></tr></tbody></table></article><article><div className="table-title"><span>MOMENTUM PLUS · 현재 {s.momentumPass2Enabled ? `Lv.${s.momentumPass2Level}` : "OFF"}</span><h3>모멘텀 패스 PLUS</h3></div><table><thead><tr><th>등급</th><th>누적 보상</th><th>누적 캐시</th></tr></thead><tbody><tr><td>무료</td><td>크림슨 1 · 사우나 1.5시간 · 상급 EXP 500</td><td>-</td></tr><tr><td>프리미엄</td><td>크림슨 6 · 사우나 1.5시간 · 상급 EXP 5,000 · 4배 쿠폰 4</td><td>29,800</td></tr><tr className="total"><td>프라임</td><td>크림슨 17 · 사우나 1.5시간 · 상급 EXP 14,000 · 4배 쿠폰 10</td><td>69,600</td></tr><tr><td>기간</td><td colSpan={2}>8/20~9/16 · 프라임은 프리미엄 선구매 필수</td></tr><tr><td>주차 해금</td><td colSpan={2}>750포인트당 1레벨 · 주 최대 2,500포인트 → 1주 Lv.3 · 2주 Lv.6 · 3주 Lv.10</td></tr><tr><td>밀린 주차</td><td colSpan={2}>전 주 미획득 포인트를 100당 1,000 메포로 구매 · 1레벨 7,500 메포</td></tr><tr><td>크림슨 경험치</td><td colSpan={2}>전 구간 동렙몹 1,478,400마리 고정 · 280~284 1.5556배 · 285~289 1.1667배 · 290+ 1.0769배 (하루1소재)</td></tr></tbody></table></article></div>
+      <div className="pass-grid"><article><div className="table-title"><span>CHALLENGERS · 현재 {s.challengerPassLevel}레벨</span><h3>챌린저스 EXP 패스</h3></div><table><thead><tr><th>레벨 구간</th><th>일반</th><th>EXP 패스 포함</th></tr></thead><tbody><tr><td>1~10</td><td>-</td><td>블루베리 6 · 사우나 2시간 · 상급 EXP 2,000</td></tr><tr><td>11~20</td><td>-</td><td>블루베리 6 · 사우나 2시간 · 상급 EXP 2,000</td></tr><tr><td>21~25</td><td>상급 EXP 100</td><td>블루베리 3 · 사우나 1시간 · 상급 EXP 1,100</td></tr><tr><td>26~30</td><td>상급 EXP 2,100</td><td>블루베리 2 · 사우나 1시간 · 상급 EXP 3,100 · 비약 1</td></tr><tr className="total"><td>1~30 합계</td><td>상급 EXP 2,200</td><td>블루베리 17 · 사우나 6시간 · 상급 EXP 8,200 · 비약 1</td></tr></tbody></table></article><article><div className="table-title"><span>MOMENTUM · 1차 소멸</span><h3>모멘텀 패스 1차 (종료)</h3></div><table><thead><tr><th>회차별 합계</th><th>보상</th></tr></thead><tbody><tr><td>상태</td><td>8/19 수령 마감 · 8/20 오전 2시 사용 마감 · 아이템까지 소멸해 계산에서 완전히 제외</td></tr><tr><td>일반</td><td>메카베리 1 · 사우나 1.5시간 · 상급 EXP 500</td></tr><tr><td>프라임 추가</td><td>메카베리 10 · 상급 EXP 9,000 · 4배 쿠폰 6</td></tr><tr className="total"><td>프라임 포함</td><td>메카베리 11 · 사우나 1.5시간 · 상급 EXP 9,500 · 4배 쿠폰 6</td></tr><tr><td>기간</td><td>7/23~8/19</td></tr><tr><td>가격</td><td>49,800 넥슨캐시</td></tr></tbody></table></article><article><div className="table-title"><span>MOMENTUM PLUS · 현재 {s.momentumPass2Enabled ? `Lv.${s.momentumPass2Level}` : "OFF"}</span><h3>모멘텀 패스 PLUS</h3></div><table><thead><tr><th>등급</th><th>누적 보상</th><th>누적 캐시</th></tr></thead><tbody><tr><td>무료</td><td>크림슨 1 · 사우나 1.5시간 · 상급 EXP 500</td><td>-</td></tr><tr><td>프리미엄</td><td>크림슨 6 · 사우나 1.5시간 · 상급 EXP 5,000 · 4배 쿠폰 4</td><td>29,800</td></tr><tr className="total"><td>프라임</td><td>크림슨 17 · 사우나 1.5시간 · 상급 EXP 14,000 · 4배 쿠폰 10</td><td>69,600</td></tr><tr><td>기간</td><td colSpan={2}>8/20~9/16 · 프라임은 프리미엄 선구매 필수</td></tr><tr><td>주차 해금</td><td colSpan={2}>750포인트당 1레벨 · 주 최대 2,500포인트 → 1주 Lv.3 · 2주 Lv.6 · 3주 Lv.10</td></tr><tr><td>밀린 주차</td><td colSpan={2}>전 주 미획득 포인트를 100당 1,000 메포로 구매 · 1레벨 7,500 메포</td></tr><tr><td>크림슨 경험치</td><td colSpan={2}>전 구간 동렙몹 1,478,400마리 고정 · 280~284 1.5556배 · 285~289 1.1667배 · 290+ 1.0769배 (하루1소재)</td></tr></tbody></table></article></div>
     </section>}
 
     <footer><div className="brand"><span className="brand-mark">M</span><span>285·290 CALCULATOR</span></div><p>경험치 기준 · 하루1소재 · 메이플로드 · 2026.08.03 확인</p><div className="source-links"><a href="https://haru1sojae.kr/table" target="_blank" rel="noreferrer">하루1소재</a><a href="https://mapleroad.kr/utils/exp_calculator" target="_blank" rel="noreferrer">메이플로드</a><a href="https://maplestory.nexon.com/testworld/news/all/188" target="_blank" rel="noreferrer">테스트월드</a></div></footer>

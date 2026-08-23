@@ -209,11 +209,14 @@ test("keeps verified calculator constants visible in source", async () => {
   assert.match(page, /ownedCrimson: claimed2.crimson/);
   // 1차 모멘텀 패스는 8/19 종료. 기본값에서 빠지고 받은 분량만 보유 보상으로 남는다.
   assert.match(page, /momentumPass1Enabled: false/);
+  // 1차는 8/20 오전 2시 사용 마감으로 아이템까지 소멸했다. 보유 보상 시드에 남으면 안 된다.
+  assert.match(page, /ownedMech: 0,/);
+  assert.doesNotMatch(page, /claimed1/);
   assert.doesNotMatch(page, /QuickChoice label="1차 패스"/);
   assert.doesNotMatch(page, /모멘텀 1차 프라임 · 49,800 넥슨캐시/);
   assert.match(page, /모멘텀 PLUS 프리미엄 · 29,800 넥슨캐시/);
   assert.match(page, /모멘텀 PLUS 프라임 · 39,800 넥슨캐시/);
-  assert.match(page, /ownedAdv: claimed1\.adv \+ claimed2\.adv/);
+  assert.match(page, /ownedAdv: claimed2.adv/);
   assert.match(page, /label: "현재 보유분".*deferMech: deferMomentumMech/);
   assert.match(page, /momentumPrime1: true, momentumPrime2: true/);
   assert.match(page, /shopMech: true, shopBlue: true/);
@@ -914,21 +917,21 @@ test("keeps the target 285 A-C fixtures aligned after the expired NOW reward is 
     // 1차 패스가 계산 시작일부터 세어 Lv.5에서 잘리던 상태였다.
     {
       settings: pageModule.createDefaultSettings("2026-07-27"),
-      reached: "2026-08-27",
-      maplePoints: 12_000,
-      leftovers: { blue: 0, mech: 0, crimson: 7, sauna: 1.5, adv: 11000, potion269: 0, potion279: 0, coupon3x: 66, coupon4x: 10 },
+      reached: "2026-09-03",
+      maplePoints: 15_000,
+      leftovers: { blue: 0, mech: 0, crimson: 3, sauna: 1, adv: 4900, potion269: 0, potion279: 0, coupon3x: 81, coupon4x: 10 },
     },
     {
       settings: { ...pageModule.createDefaultSettings("2026-08-03"), level: 280, exp: 0 },
-      reached: "2026-09-03",
-      maplePoints: 12_000,
-      leftovers: { blue: 0, mech: 0, crimson: 2, sauna: 1, adv: 4900, potion269: 0, potion279: 0, coupon3x: 66, coupon4x: 10 },
+      reached: "2026-09-07",
+      maplePoints: 15_000,
+      leftovers: { blue: 0, mech: 0, crimson: 0, sauna: 0, adv: 0, potion269: 0, potion279: 0, coupon3x: 78, coupon4x: 10 },
     },
     {
       settings: { ...pageModule.createDefaultSettings("2026-08-03"), level: 284, exp: 50 },
-      reached: "2026-08-03",
-      maplePoints: 0,
-      leftovers: { blue: 0, mech: 3, crimson: 17, sauna: 3, adv: 23500, potion269: 0, potion279: 0, coupon3x: 3, coupon4x: 10 },
+      reached: "2026-08-11",
+      maplePoints: 3_000,
+      leftovers: { blue: 0, mech: 0, crimson: 17, sauna: 1.5, adv: 14000, potion269: 0, potion279: 0, coupon3x: 18, coupon4x: 10 },
     },
   ];
 
@@ -1106,8 +1109,8 @@ test("forecasts the final level and EXP at the September 16 deadline", async () 
   const planning = pageModule.runPlanningImmediately(settings);
 
   assert.equal(planning.basePlan.result.rows.at(-1).key, "2026-09-16");
-  assert.equal(planning.basePlan.result.finalLevel, 288);
-  assert.ok(Math.abs(planning.basePlan.result.finalExp - 31.544581752444707) < 1e-10);
+  assert.equal(planning.basePlan.result.finalLevel, 287);
+  assert.ok(Math.abs(planning.basePlan.result.finalExp - 78.74318796397988) < 1e-10);
   assert.equal(planning.basePlan.result.monsterParkMaplePoints, 0);
   assert.equal(planning.basePlan.result.reached, null);
   assert.equal(planning.basePlan.result.endReason, "horizon");
@@ -1660,7 +1663,7 @@ test("keeps the target 285 simulation on the 120-day fast horizon", async () => 
 
   assert.equal(planning.basePlan.result.horizonDays, 120);
   assert.ok(planning.basePlan.result.rows.length <= 120);
-  assert.equal(pageModule.simulationDateKey(planning.basePlan.result.reached), "2026-08-27");
+  assert.equal(pageModule.simulationDateKey(planning.basePlan.result.reached), "2026-09-03");
   assert.ok(elapsed < 2_000, `target 285 planning took ${elapsed.toFixed(1)}ms`);
 });
 
