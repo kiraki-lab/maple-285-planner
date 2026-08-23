@@ -15,7 +15,7 @@ export const dynamic = "force-static";
 type PullStrategy = "monsterPark" | "blue" | "mech" | "both";
 type ViewTab = "calculator" | "pre280" | "efficiency" | "passes";
 type ExperienceSourceId = "monsterPark" | "grandis" | "extreme" | "epic" | "mech" | "blue" | "sauna" | "adv" | "potion" | "specialSupply";
-type CustomRewardType = "adv" | "mech" | "blue" | "sauna" | "potion279";
+type CustomRewardType = "adv" | "mech" | "crimson" | "blue" | "sauna" | "potion279";
 type ItemConversionInventory = Record<CustomRewardType, number>;
 type ItemConversionResult = {
   startLevel: number;
@@ -109,6 +109,7 @@ type Settings = {
   epicCore6Artifact: number;
   ownedBlue: number;
   ownedMech: number;
+  ownedCrimson: number;
   ownedSauna: number;
   ownedAdv: number;
   ownedPotion279: number;
@@ -262,9 +263,10 @@ const longDate = (date: Date | null) => { if (!date) return "계산 범위 내 �
 const addDays = (date: Date, days: number) => new Date(date.getTime() + days * 86400000);
 const dayOfWeek = (date: Date) => kstView(date).getUTCDay();
 const customRewardTypes: CustomRewardType[] = ["adv", "mech", "blue", "sauna", "potion279"];
-const CUSTOM_REWARD_META: Record<CustomRewardType, { label: string; unit: string; ownedField: "ownedAdv" | "ownedMech" | "ownedBlue" | "ownedSauna" | "ownedPotion279"; step: number; extraDefault: number }> = {
+const CUSTOM_REWARD_META: Record<CustomRewardType, { label: string; unit: string; ownedField: "ownedAdv" | "ownedMech" | "ownedCrimson" | "ownedBlue" | "ownedSauna" | "ownedPotion279"; step: number; extraDefault: number }> = {
   adv: { label: "상급 EXP 쿠폰", unit: "장", ownedField: "ownedAdv", step: 1, extraDefault: 1000 },
   mech: { label: "메카베리", unit: "개", ownedField: "ownedMech", step: 1, extraDefault: 1 },
+  crimson: { label: "크림슨 메카베리", unit: "개", ownedField: "ownedCrimson", step: 1, extraDefault: 1 },
   blue: { label: "블루베리", unit: "개", ownedField: "ownedBlue", step: 1, extraDefault: 1 },
   sauna: { label: "VIP 사우나", unit: "시간", ownedField: "ownedSauna", step: 0.5, extraDefault: 0.5 },
   potion279: { label: "성장의 비약", unit: "개", ownedField: "ownedPotion279", step: 1, extraDefault: 1 },
@@ -605,6 +607,18 @@ export const momentumPlusRewardForLevel = (level: number, tier: MomentumTier, de
   return { deferMech, crimson: total.crimson, adv: total.adv, sauna: total.sauna, coupon4x: total.coupon4x };
 };
 
+// 모멘텀 패스 PLUS에서 이미 받은 레벨의 보상. 1차와 달리 크림슨 메카베리로 나온다.
+export const momentumPlusClaimedRewards = (level: number, tier: MomentumTier) => {
+  const claimed = { crimson: 0, adv: 0, sauna: 0 };
+  for (let passLevel = 1; passLevel <= Math.max(0, Math.min(MOMENTUM_MAX_LEVEL, Math.floor(level))); passLevel += 1) {
+    const reward = momentumPlusRewardForLevel(passLevel, tier, false);
+    claimed.crimson += Number(reward.crimson || 0);
+    claimed.adv += Number(reward.adv || 0);
+    claimed.sauna += Number(reward.sauna || 0);
+  }
+  return claimed;
+};
+
 export const momentumClaimedRewards = (level: number, prime: boolean) => {
   const claimed = { mech: 0, sauna: 0, adv: 0 };
   for (let passLevel = 1; passLevel <= Math.max(0, Math.min(MOMENTUM_MAX_LEVEL, Math.floor(level))); passLevel += 1) {
@@ -619,14 +633,15 @@ export const momentumClaimedRewards = (level: number, prime: boolean) => {
 const createDefaultSettings = (start = SSR_DEFAULT_START): Settings => {
   const ultimaProgress = ultimaProgressBefore(start);
   const momentumPass1Level = momentumUnlockedLevelOn(parseDate(start), MOMENTUM_PASS_1_START);
-  const momentumPass2Level = momentumUnlockedLevelOn(parseDate(start), MOMENTUM_PASS_2_START);
+  const momentumPass2Level = momentumPlusUnlockedLevel(Math.floor((parseDate(start).getTime() - parseDate(MOMENTUM_PASS_2_START).getTime()) / (7 * 86400000)));
   // 이미 수령한 패스 보상은 아직 안 쓴 것으로 보고 보유 보상에 넣는다.
-  const claimed1 = momentumClaimedRewards(momentumPass1Level, true);
-  const claimed2 = momentumClaimedRewards(momentumPass2Level, true);
+  // 1차 모멘텀 패스는 8/19에 종료됐다. 더 받을 것은 없고, 받아서 안 쓴 분량만 보유 보상으로 넘긴다.
+  const claimed1 = momentumClaimedRewards(MOMENTUM_MAX_LEVEL, true);
+  const claimed2 = momentumPlusClaimedRewards(momentumPass2Level, "prime");
   return ({
   targetLevel: 285, level: 280, exp: 87.39, start, pullWeeks: 0, pullStrategy: "monsterPark", specialSundayCount: 1, paidMonsterPark: true,
   specialSupply: false, specialSupplySaved: 0, specialSupplyExpPerCharge: 0,
-  challengerPassLevel: 30, momentumPass1Enabled: true, momentumPass2Enabled: true,
+  challengerPassLevel: 30, momentumPass1Enabled: false, momentumPass2Enabled: true,
   momentumPass1Level, momentumPass2Level,
   preLevel: 270, preExp: 0, prePassLevel: 30, preUnclaimed: false,
   preUseBlue: true, preUseSauna: true, preUseAdv: true, preUsePotion: true,
@@ -643,7 +658,8 @@ const createDefaultSettings = (start = SSR_DEFAULT_START): Settings => {
   extreme: true, epic: true, epicMult: 5, epicCore5: 30, core25Date: "2026-08-06",
   core25Bonus: 10, epicArtifactDate: "2026-08-13", epicArtifact: 180, epicCore6: 40,
   epicCore6Artifact: 190, ownedBlue: 0, ownedPotion279: 0,
-  ownedMech: claimed1.mech + claimed2.mech,
+  ownedMech: claimed1.mech,
+  ownedCrimson: claimed2.crimson,
   ownedSauna: claimed1.sauna + claimed2.sauna,
   ownedAdv: claimed1.adv + claimed2.adv,
   customRewards: [],
@@ -1269,7 +1285,7 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
     addReward(useDate, reward);
   });
   // 보유 메카베리도 모아쓰기를 따른다. 먼저 쓸 이유가 없다.
-  addReward(start, { label: "현재 보유분", blue: s.ownedBlue, mech: s.ownedMech, sauna: s.ownedSauna, adv: s.ownedAdv, potion279: s.ownedPotion279, deferMech: deferMomentumMech });
+  addReward(start, { label: "현재 보유분", blue: s.ownedBlue, mech: s.ownedMech, crimson: s.ownedCrimson, sauna: s.ownedSauna, adv: s.ownedAdv, potion279: s.ownedPotion279, deferMech: deferMomentumMech });
 
   const forecastCapExp = () => req(295) * 0.99999;
   const atForecastCap = () => forecastMode && level >= 295 && xp >= forecastCapExp() - 1e-12;
@@ -1791,10 +1807,10 @@ export default function Home() {
   };
   // 현재 패스 레벨까지 받은 보상. 보유 토글이 이 값을 기준으로 켜고 끈다.
   const claimedPassRewards = useMemo(() => {
-    const first = momentumClaimedRewards(s.momentumPass1Enabled ? s.momentumPass1Level : 0, s.momentumPrime1);
-    const second = momentumClaimedRewards(s.momentumPass2Enabled ? s.momentumPass2Level : 0, s.momentumPrime2);
-    return { mech: first.mech + second.mech, sauna: first.sauna + second.sauna, adv: first.adv + second.adv };
-  }, [s.momentumPass1Enabled, s.momentumPass1Level, s.momentumPrime1, s.momentumPass2Enabled, s.momentumPass2Level, s.momentumPrime2]);
+    const first = momentumClaimedRewards(MOMENTUM_MAX_LEVEL, s.momentumPrime1);
+    const second = momentumPlusClaimedRewards(s.momentumPass2Enabled ? s.momentumPass2Level : 0, s.momentumPrime2 ? "prime" : s.momentumPremium2 ? "premium" : "free");
+    return { mech: first.mech, crimson: second.crimson, sauna: first.sauna + second.sauna, adv: first.adv + second.adv };
+  }, [s.momentumPrime1, s.momentumPass2Enabled, s.momentumPass2Level, s.momentumPrime2, s.momentumPremium2]);
   const core6MasterEnabled = s.dailyCore6Enabled && s.mpCore6Enabled && s.epicCore6Enabled;
   const setCore6Master = (enabled: boolean) => setS(current => ({ ...current, ...core6MasterPatch(enabled) }));
   const manualInventoryMeta = CUSTOM_REWARD_META[manualInventoryType];
@@ -2057,7 +2073,6 @@ export default function Home() {
     + (season2Prime ? MOMENTUM_PLUS_PRIME_CASH : 0);
   // 풀 보상이 기준이므로 켠 것을 나열하지 않고 뺀 것만 보여준다.
   const forecastExclusions = [
-    !calculatedSettings.momentumPass1Enabled ? "모멘텀 1차 전체" : !calculatedSettings.momentumPrime1 ? "1차 프라임" : "",
     !calculatedSettings.momentumPass2Enabled ? "모멘텀 PLUS 전체"
       : !calculatedSettings.momentumPremium2 && !calculatedSettings.momentumPrime2 ? "PLUS 프리미엄·프라임"
         : !calculatedSettings.momentumPrime2 ? "PLUS 프라임" : "",
@@ -2081,8 +2096,8 @@ export default function Home() {
       <div className="hero-grid">
         {targetLevel === 290 ? <>
           <article className="hero-card primary"><div className="card-label">9/16 시즌 종료 예상</div><strong>{forecastProgress}</strong><span>{forecastBasisLabel}</span><div className="card-meta"><b>{formatMP(r.maplePoints)}</b><em>몬파·메포샵 합계</em></div></article>
-          <article className="hero-card"><div className="card-label">모멘텀 1차 · 7/23~8/19</div><strong>{!calculatedSettings.momentumPass1Enabled ? "참여 OFF" : calculatedSettings.momentumPrime1 ? "프라임 ON" : "일반 보상"}</strong><span>{calculatedSettings.momentumPass1Enabled ? `현재 Lv.${calculatedSettings.momentumPass1Level}` : "보상 계산 제외"}</span><div className="card-meta"><b>{calculatedSettings.momentumPass1Enabled && calculatedSettings.momentumPrime1 ? "49,800 넥슨캐시" : "추가 결제 없음"}</b><em>프라임 별도 구매</em></div></article>
-          <article className="hero-card verdict"><div className="card-label">모멘텀 2차 · 8/20~9/16</div><strong>{!calculatedSettings.momentumPass2Enabled ? "참여 OFF" : calculatedSettings.momentumPrime2 ? "프라임 ON" : "일반 보상"}</strong><span>{calculatedSettings.momentumPass2Enabled ? `현재 Lv.${calculatedSettings.momentumPass2Level}` : "보상 계산 제외"}</span><div className="card-meta"><b>{calculatedSettings.momentumPass2Enabled && calculatedSettings.momentumPrime2 ? "49,800 넥슨캐시" : "추가 결제 없음"}</b><em>1차와 별도 구매</em></div></article>
+          <article className="hero-card"><div className="card-label">모멘텀 1차 · 종료</div><strong>8/19 마감</strong><span>받아둔 보상만 보유분으로 반영</span><div className="card-meta"><b>메카베리 {calculatedSettings.ownedMech}장 · 상급 {calculatedSettings.ownedAdv.toLocaleString("ko-KR")}장</b><em>세부 설정에서 조정</em></div></article>
+          <article className="hero-card verdict"><div className="card-label">모멘텀 PLUS · 8/20~9/16</div><strong>{!calculatedSettings.momentumPass2Enabled ? "참여 OFF" : calculatedSettings.momentumPrime2 ? "프라임 ON" : calculatedSettings.momentumPremium2 ? "프리미엄 ON" : "무료 보상"}</strong><span>{calculatedSettings.momentumPass2Enabled ? `현재 Lv.${calculatedSettings.momentumPass2Level}` : "보상 계산 제외"}</span><div className="card-meta"><b>{calculatedSettings.momentumPass2Enabled && calculatedSettings.momentumPrime2 ? "69,600 넥슨캐시" : calculatedSettings.momentumPass2Enabled && calculatedSettings.momentumPremium2 ? "29,800 넥슨캐시" : "추가 결제 없음"}</b><em>프라임은 프리미엄 필수</em></div></article>
         </> : <>
           <article className="hero-card primary"><div className="card-label">{calc.effectivePullWeeks ? `${calc.effectivePullWeeks}주 당김 · ${selectedStrategy.label}` : "마감만 맞추기"}</div><strong>{longDate(r.reached)}</strong><span>{r.scheduleLabel}</span><div className="card-meta"><b>{formatMP(r.maplePoints)}{primeCash > 0 ? ` + ${formatCash(primeCash)}` : ""}</b><em>몬파 {formatMP(r.monsterParkMaplePoints)} · 상점 {formatMP(r.shopMaplePoints)}{r.shopMaplePoints > 0 ? ` · ${shopPurchasePlanLabel(r.shopBluePurchased, r.shopMechPurchased)}` : ""}{primeCash > 0 ? ` · 프라임 ${primeCount}개` : " · 프라임 미구매"}</em></div></article>
           <article className="hero-card"><div className="card-label">0주 · 마감 기준</div><strong>{longDate(calc.basePlan.result.reached)}</strong><span>{calc.basePlan.result.scheduleLabel}</span><div className="card-meta"><b>{formatMP(calc.basePlan.result.maplePoints)}</b><em>상점 없이 9월 16일 달성</em></div></article>
@@ -2164,8 +2179,7 @@ export default function Home() {
           <InputField label="챌섭 EXP 패스 현재 레벨" value={s.challengerPassLevel} min={0} max={30} step={1} onChange={v => set("challengerPassLevel", Number(v))} />
         </div>
         <div className="quick-choice-grid" role="group" aria-label="빠른 계산 선택">
-          <QuickChoice label="1차 패스" checked={s.momentumPass1Enabled} onChange={v => set("momentumPass1Enabled", v)} />
-          <QuickChoice label="2차 패스" checked={s.momentumPass2Enabled} onChange={v => set("momentumPass2Enabled", v)} />
+          <QuickChoice label="PLUS 패스" checked={s.momentumPass2Enabled} onChange={v => set("momentumPass2Enabled", v)} />
           <QuickChoice label="추가 몬파" checked={s.paidMonsterPark} onChange={v => set("paidMonsterPark", v)} />
           <QuickChoice label="코어 6레벨 일괄" checked={core6MasterEnabled} onChange={setCore6Master} />
         </div>
@@ -2189,10 +2203,11 @@ export default function Home() {
         </section>
         <details><summary>패스 · 이벤트 설정 <span>12</span></summary><div className="detail-body">
           <div className="quick-toggles"><Toggle label="오늘 일퀘·몬파 미완료" checked={s.todayDaily} onChange={v => set("todayDaily", v)} /><Toggle label="이번 주 챌섭 5레벨 미완료" checked={s.challengerUnclaimed} onChange={v => set("challengerUnclaimed", v)} /></div>
-          <div className="field-grid compact inset"><InputField label="스페셜 선데이 몬파 횟수" value={s.specialSundayCount} min={0} max={12} step={1} disabled={!s.paidMonsterPark} onChange={v => set("specialSundayCount", Number(v))} /><InputField label="모멘텀 1차 현재 레벨" value={s.momentumPass1Level} min={0} max={10} step={1} disabled={!s.momentumPass1Enabled} onChange={v => set("momentumPass1Level", Number(v))} /><InputField label="모멘텀 2차 현재 레벨" value={s.momentumPass2Level} min={0} max={10} step={1} disabled={!s.momentumPass2Enabled} onChange={v => set("momentumPass2Level", Number(v))} /></div>
-          <Toggle label="챌린저스 EXP 패스" checked={s.challengerExp} onChange={v => set("challengerExp", v)} /><Toggle label="모멘텀 1차 프라임 · 49,800 넥슨캐시" checked={s.momentumPrime1} disabled={!s.momentumPass1Enabled} onChange={v => set("momentumPrime1", v)} /><Toggle label="모멘텀 PLUS 프리미엄 · 29,800 넥슨캐시" checked={s.momentumPremium2 || s.momentumPrime2} disabled={!s.momentumPass2Enabled || s.momentumPrime2} onChange={v => set("momentumPremium2", v)} /><Toggle label="모멘텀 PLUS 프라임 · 39,800 넥슨캐시 (프리미엄 필수)" checked={s.momentumPrime2} disabled={!s.momentumPass2Enabled} onChange={v => { set("momentumPrime2", v); if (v) set("momentumPremium2", true); }} /><Toggle label="모멘텀 메카베리 모아쓰기" checked={s.deferMomentumMech} onChange={v => set("deferMomentumMech", v)} />
+          <div className="field-grid compact inset"><InputField label="스페셜 선데이 몬파 횟수" value={s.specialSundayCount} min={0} max={12} step={1} disabled={!s.paidMonsterPark} onChange={v => set("specialSundayCount", Number(v))} /><InputField label="모멘텀 PLUS 현재 레벨" value={s.momentumPass2Level} min={0} max={10} step={1} disabled={!s.momentumPass2Enabled} onChange={v => set("momentumPass2Level", Number(v))} /></div>
+          <Toggle label="챌린저스 EXP 패스" checked={s.challengerExp} onChange={v => set("challengerExp", v)} /><Toggle label="모멘텀 PLUS 프리미엄 · 29,800 넥슨캐시" checked={s.momentumPremium2 || s.momentumPrime2} disabled={!s.momentumPass2Enabled || s.momentumPrime2} onChange={v => set("momentumPremium2", v)} /><Toggle label="모멘텀 PLUS 프라임 · 39,800 넥슨캐시 (프리미엄 필수)" checked={s.momentumPrime2} disabled={!s.momentumPass2Enabled} onChange={v => { set("momentumPrime2", v); if (v) set("momentumPremium2", true); }} /><Toggle label="모멘텀 메카베리 모아쓰기" checked={s.deferMomentumMech} onChange={v => set("deferMomentumMech", v)} />
           <div className="callout-mini">이미 받은 패스 보상 중 아직 안 쓴 것만 켜 둡니다. 끄면 그만큼 빠집니다.</div>
           <Toggle label={`받은 메카베리 ${claimedPassRewards.mech}장 보유·예약 중`} checked={claimedRewardToggleChecked(s, "mech")} onChange={v => setS(current => setClaimedRewardToggle(current, "mech", v, claimedPassRewards.mech))} />
+          <Toggle label={`받은 크림슨 메카베리 ${claimedPassRewards.crimson}장 보유·예약 중`} checked={claimedRewardToggleChecked(s, "crimson")} onChange={v => setS(current => setClaimedRewardToggle(current, "crimson", v, claimedPassRewards.crimson))} />
           <Toggle label={`받은 상급 EXP ${claimedPassRewards.adv.toLocaleString("ko-KR")}장 보유·예약 중`} checked={claimedRewardToggleChecked(s, "adv")} onChange={v => setS(current => setClaimedRewardToggle(current, "adv", v, claimedPassRewards.adv))} />
           <Toggle label={`받은 VIP 사우나 ${claimedPassRewards.sauna}시간 보유·예약 중`} checked={claimedRewardToggleChecked(s, "sauna")} onChange={v => setS(current => setClaimedRewardToggle(current, "sauna", v, claimedPassRewards.sauna))} />
           {s.targetLevel === 290 && <>
@@ -2224,7 +2239,7 @@ export default function Home() {
           <div className="field-grid compact"><label className="field"><span>악몽선경 보상 배수</span><select value={s.epicMult} onChange={e => set("epicMult", Number(e.target.value))}><option value={1}>기본</option><option value={5}>4배 추가</option><option value={9}>8배 추가</option></select></label><InputField label="에픽 5레벨 %" value={s.epicCore5} onChange={v => set("epicCore5", Number(v))} /><InputField label="코어 총합 25 달성일" value={s.core25Date} type="date" onChange={v => set("core25Date", v)} /><InputField label="총합 25 에픽 추가 %" value={s.core25Bonus} onChange={v => set("core25Bonus", Number(v))} /><InputField label="에픽 아티팩트 활성일" value={s.epicArtifactDate} type="date" onChange={v => set("epicArtifactDate", v)} /><InputField label="아티팩트 후 5레벨 %" value={s.epicArtifact} onChange={v => set("epicArtifact", Number(v))} /><InputField label="에픽 6레벨 달성일" value={s.epicCore6Date} type="date" disabled={!s.epicCore6Enabled} onChange={v => set("epicCore6Date", v)} /><InputField label="6레벨 · 아티팩트 전 %" value={s.epicCore6} disabled={!s.epicCore6Enabled} onChange={v => set("epicCore6", Number(v))} /><InputField label="6레벨 · 아티팩트 후 %" value={s.epicCore6Artifact} disabled={!s.epicCore6Enabled} onChange={v => set("epicCore6Artifact", Number(v))} /></div>
           <div className="epic-artifact-check"><b>8/13 에픽 추가 경험치 적용 확인</b><p><strong>8/13은 9회차 오픈일입니다. 레벨 범위 몬스터 10,000마리를 처치한 뒤 ‘수집하기’를 눌러 9회차를 완료해야</strong> 아티팩트 +150%가 활성화됩니다. 에픽 코어 6레벨 +40% · 코어 총합 25 +10%까지 총 +200%이며, 악몽선경 1단계 4배 추가 선택은 기본 5배를 포함해 최종 7.0배로 계산합니다.</p><small>미완료자는 ‘에픽 아티팩트 활성일’을 실제 완료일로 바꾸고, 이번 주 보상을 이미 받았다면 ‘이번 주 익몬·악몽선경 미완료’를 꺼 주세요.</small></div>
         </div></details>
-        <details><summary>보유 보상 · 울티마 <span>9</span></summary><div className="detail-body"><div className="field-grid compact"><InputField label="보유 블루베리" value={s.ownedBlue} min={0} onChange={v => set("ownedBlue", Number(v))} /><InputField label="보유 메카베리" value={s.ownedMech} min={0} onChange={v => set("ownedMech", Number(v))} /><InputField label="보유 사우나 시간" value={s.ownedSauna} min={0} onChange={v => set("ownedSauna", Number(v))} /><InputField label="보유 상급 EXP" value={s.ownedAdv} min={0} onChange={v => set("ownedAdv", Number(v))} /><InputField label="보유 200~279 비약" value={s.ownedPotion279} min={0} onChange={v => set("ownedPotion279", Number(v))} /><InputField label="EXP 5,000 예상 사용일" value={s.shardDate} type="date" disabled={!s.shardEvent} onChange={v => set("shardDate", v)} /><InputField label="상급 EXP 사용량" value={s.shardAdv} disabled={!s.shardEvent} onChange={v => set("shardAdv", Number(v))} /><InputField label="울티마 누적 출석" value={s.ultimaCount} disabled={!s.ultima} onChange={v => set("ultimaCount", Number(v))} /><InputField label="이번 주 이미 출석" value={s.ultimaWeek} disabled={!s.ultima} onChange={v => set("ultimaWeek", Number(v))} /></div><Toggle label="시작일 울티마 출석 예정" checked={s.ultimaStart} disabled={!s.ultima} onChange={v => set("ultimaStart", v)} /></div></details>
+        <details><summary>보유 보상 · 울티마 <span>9</span></summary><div className="detail-body"><div className="field-grid compact"><InputField label="보유 블루베리" value={s.ownedBlue} min={0} onChange={v => set("ownedBlue", Number(v))} /><InputField label="보유 메카베리" value={s.ownedMech} min={0} onChange={v => set("ownedMech", Number(v))} /><InputField label="보유 크림슨 메카베리" value={s.ownedCrimson} min={0} onChange={v => set("ownedCrimson", Number(v))} /><InputField label="보유 사우나 시간" value={s.ownedSauna} min={0} onChange={v => set("ownedSauna", Number(v))} /><InputField label="보유 상급 EXP" value={s.ownedAdv} min={0} onChange={v => set("ownedAdv", Number(v))} /><InputField label="보유 200~279 비약" value={s.ownedPotion279} min={0} onChange={v => set("ownedPotion279", Number(v))} /><InputField label="EXP 5,000 예상 사용일" value={s.shardDate} type="date" disabled={!s.shardEvent} onChange={v => set("shardDate", v)} /><InputField label="상급 EXP 사용량" value={s.shardAdv} disabled={!s.shardEvent} onChange={v => set("shardAdv", Number(v))} /><InputField label="울티마 누적 출석" value={s.ultimaCount} disabled={!s.ultima} onChange={v => set("ultimaCount", Number(v))} /><InputField label="이번 주 이미 출석" value={s.ultimaWeek} disabled={!s.ultima} onChange={v => set("ultimaWeek", Number(v))} /></div><Toggle label="시작일 울티마 출석 예정" checked={s.ultimaStart} disabled={!s.ultima} onChange={v => set("ultimaStart", v)} /></div></details>
         <div className={`calculate-bar ${hasPendingChanges ? "pending" : ""} ${isCalculating ? "calculating" : ""}`}>
           <span>{isCalculating ? <>전략 비교 중 · <CalculationSteps />개 확인</> : hasPendingChanges ? "입력값이 변경되었습니다" : "현재 입력값으로 계산 완료"}</span>
           {isCalculating && <div className="calculation-progress" aria-hidden="true"><i /></div>}
@@ -2255,8 +2270,7 @@ export default function Home() {
         {targetLevel === 285 && <ProgressChart selected={r} sunday={calc.sunday} free={calc.free} targetLevel={targetLevel} />}
         {targetLevel === 290 ? <div className="route-grid">
           <article className="route-card chosen"><div><div className="route-card-label"><span>9/16 예상</span><i>계산 완료</i></div><h3>{calculatedSettings.paidMonsterPark ? "유료 몬파 추가 5판 ON" : "유료 몬파 추가 5판 OFF"}</h3><p>{calculatedSettings.paidMonsterPark ? "매일 7판 · 스페셜 선데이 적용" : "매일 기본 2판만 적용"}</p></div><strong>{forecastProgress}</strong><dl><div><dt>메포 합계</dt><dd>{formatMP(r.maplePoints)}</dd></div><div><dt>프라임</dt><dd>{formatCash(primeCash)}</dd></div></dl></article>
-          <article className="route-card baseline"><div><div className="route-card-label"><span>모멘텀 1차</span><i>{!calculatedSettings.momentumPass1Enabled ? "참여 OFF" : calculatedSettings.momentumPrime1 ? "프라임 ON" : "일반"}</i></div><h3>7/23~8/19</h3><p>{calculatedSettings.momentumPass1Enabled ? `현재 패스 Lv.${calculatedSettings.momentumPass1Level}` : "보상 계산 제외"}</p></div><strong>{calculatedSettings.momentumPass1Enabled && calculatedSettings.momentumPrime1 ? "49,800 캐시" : "무료"}</strong><dl><div><dt>일반 보상</dt><dd>{calculatedSettings.momentumPass1Enabled ? "반영" : "제외"}</dd></div><div><dt>프라임</dt><dd>{calculatedSettings.momentumPass1Enabled ? "추가 보상만" : "0"}</dd></div></dl></article>
-          <article className="route-card free-route"><div><div className="route-card-label"><span>모멘텀 2차</span><i>{!calculatedSettings.momentumPass2Enabled ? "참여 OFF" : calculatedSettings.momentumPrime2 ? "프라임 ON" : "일반"}</i></div><h3>8/20~9/16</h3><p>{calculatedSettings.momentumPass2Enabled ? `현재 패스 Lv.${calculatedSettings.momentumPass2Level}` : "보상 계산 제외"}</p></div><strong>{calculatedSettings.momentumPass2Enabled && calculatedSettings.momentumPrime2 ? "49,800 캐시" : "무료"}</strong><dl><div><dt>일반 보상</dt><dd>{calculatedSettings.momentumPass2Enabled ? "반영" : "제외"}</dd></div><div><dt>프라임</dt><dd>{calculatedSettings.momentumPass2Enabled ? "추가 보상만" : "0"}</dd></div></dl></article>
+          <article className="route-card free-route"><div><div className="route-card-label"><span>모멘텀 PLUS</span><i>{!calculatedSettings.momentumPass2Enabled ? "참여 OFF" : calculatedSettings.momentumPrime2 ? "프라임 ON" : calculatedSettings.momentumPremium2 ? "프리미엄" : "무료"}</i></div><h3>8/20~9/16</h3><p>{calculatedSettings.momentumPass2Enabled ? `현재 패스 Lv.${calculatedSettings.momentumPass2Level}` : "보상 계산 제외"}</p></div><strong>{calculatedSettings.momentumPass2Enabled && calculatedSettings.momentumPrime2 ? "69,600 캐시" : calculatedSettings.momentumPass2Enabled && calculatedSettings.momentumPremium2 ? "29,800 캐시" : "무료"}</strong><dl><div><dt>일반 보상</dt><dd>{calculatedSettings.momentumPass2Enabled ? "반영" : "제외"}</dd></div><div><dt>프라임</dt><dd>{calculatedSettings.momentumPass2Enabled ? "추가 보상만" : "0"}</dd></div></dl></article>
         </div> : <div className={`route-grid ${calc.effectivePullWeeks === 0 ? "two" : ""}`}>
           <article className="route-card chosen"><div><div className="route-card-label"><span>선택 경로 · {calc.effectivePullWeeks}주</span><i>{calc.selectedPlan.strategy === calc.bestRoiStrategy ? "추천 · 순손익 최고" : "선택됨"}</i></div><h3>{selectedRouteTitle}</h3><p>{calc.effectivePullWeeks === 0 ? "9월 16일 마감 기준" : `${calc.effectivePullWeeks}주 당김 기준`}{r.shopMaplePoints > 0 ? ` · 상점 ${formatMP(r.shopMaplePoints)} · ${shopPurchasePlanLabel(r.shopBluePurchased, r.shopMechPurchased)}` : " · 메포샵 미구매"}</p></div><strong>{shortDate(r.reached)}</strong><dl><div><dt>총 비용</dt><dd>{formatMP(r.maplePoints)}</dd></div><div><dt>프라임</dt><dd>{formatCash(primeCash)}</dd></div><div><dt>메포샵</dt><dd>{formatMP(r.shopMaplePoints)}</dd></div><div><dt>하드</dt><dd>{calc.selectedHardWeeks}회</dd></div></dl></article>
           {calc.effectivePullWeeks > 0 && <article className="route-card baseline"><div><div className="route-card-label"><span>0주 비교 기준</span><i>추가 당김 없음</i></div><h3>{calc.basePlan.result.scheduleLabel}</h3><p>선택 경로의 비용·하드 횟수를 비교하는 기준입니다.</p></div><strong>{shortDate(calc.basePlan.result.reached)}</strong><dl><div><dt>총 비용</dt><dd>{formatMP(calc.basePlan.result.maplePoints)}</dd></div><div><dt>하드</dt><dd>{calc.baseHardWeeks}회</dd></div></dl></article>}
@@ -2445,7 +2459,7 @@ export default function Home() {
 
     {activeTab === "passes" && <section className="rewards-section passes-panel tab-panel" id="passes-panel" role="tabpanel" aria-labelledby="passes-tab">
       <div className="section-heading light"><span>표</span><div><p>현재 패스 레벨 입력 가능</p><h2>패스 보상표</h2></div></div>
-      <div className="pass-grid"><article><div className="table-title"><span>CHALLENGERS · 현재 {s.challengerPassLevel}레벨</span><h3>챌린저스 EXP 패스</h3></div><table><thead><tr><th>레벨 구간</th><th>일반</th><th>EXP 패스 포함</th></tr></thead><tbody><tr><td>1~10</td><td>-</td><td>블루베리 6 · 사우나 2시간 · 상급 EXP 2,000</td></tr><tr><td>11~20</td><td>-</td><td>블루베리 6 · 사우나 2시간 · 상급 EXP 2,000</td></tr><tr><td>21~25</td><td>상급 EXP 100</td><td>블루베리 3 · 사우나 1시간 · 상급 EXP 1,100</td></tr><tr><td>26~30</td><td>상급 EXP 2,100</td><td>블루베리 2 · 사우나 1시간 · 상급 EXP 3,100 · 비약 1</td></tr><tr className="total"><td>1~30 합계</td><td>상급 EXP 2,200</td><td>블루베리 17 · 사우나 6시간 · 상급 EXP 8,200 · 비약 1</td></tr></tbody></table></article><article><div className="table-title"><span>MOMENTUM · 1차 {s.momentumPass1Enabled ? `Lv.${s.momentumPass1Level}` : "OFF"} · 2차 {s.momentumPass2Enabled ? `Lv.${s.momentumPass2Level}` : "OFF"}</span><h3>모멘텀 패스 1차</h3></div><table><thead><tr><th>회차별 합계</th><th>보상</th></tr></thead><tbody><tr><td>현재 선택</td><td>1차 {s.momentumPass1Enabled ? "반영" : "제외"}</td></tr><tr><td>일반</td><td>메카베리 1 · 사우나 1.5시간 · 상급 EXP 500</td></tr><tr><td>프라임 추가</td><td>메카베리 10 · 상급 EXP 9,000 · 4배 쿠폰 6</td></tr><tr className="total"><td>프라임 포함</td><td>메카베리 11 · 사우나 1.5시간 · 상급 EXP 9,500 · 4배 쿠폰 6</td></tr><tr><td>기간</td><td>7/23~8/19</td></tr><tr><td>가격</td><td>49,800 넥슨캐시</td></tr></tbody></table></article><article><div className="table-title"><span>MOMENTUM PLUS · 2차 {s.momentumPass2Enabled ? `Lv.${s.momentumPass2Level}` : "OFF"}</span><h3>모멘텀 패스 PLUS</h3></div><table><thead><tr><th>등급</th><th>누적 보상</th><th>누적 캐시</th></tr></thead><tbody><tr><td>무료</td><td>크림슨 1 · 사우나 1.5시간 · 상급 EXP 500</td><td>-</td></tr><tr><td>프리미엄</td><td>크림슨 6 · 사우나 1.5시간 · 상급 EXP 5,000 · 4배 쿠폰 4</td><td>29,800</td></tr><tr className="total"><td>프라임</td><td>크림슨 17 · 사우나 1.5시간 · 상급 EXP 14,000 · 4배 쿠폰 10</td><td>69,600</td></tr><tr><td>기간</td><td colSpan={2}>8/20~9/16 · 프라임은 프리미엄 선구매 필수</td></tr><tr><td>주차 해금</td><td colSpan={2}>750포인트당 1레벨 · 주 최대 2,500포인트 → 1주 Lv.3 · 2주 Lv.6 · 3주 Lv.10</td></tr><tr><td>밀린 주차</td><td colSpan={2}>전 주 미획득 포인트를 100당 1,000 메포로 구매 · 1레벨 7,500 메포</td></tr><tr><td>크림슨 경험치</td><td colSpan={2}>메카베리의 7/6배 · Lv.285에서 6.0361% (메이플로드 기준)</td></tr></tbody></table></article></div>
+      <div className="pass-grid"><article><div className="table-title"><span>CHALLENGERS · 현재 {s.challengerPassLevel}레벨</span><h3>챌린저스 EXP 패스</h3></div><table><thead><tr><th>레벨 구간</th><th>일반</th><th>EXP 패스 포함</th></tr></thead><tbody><tr><td>1~10</td><td>-</td><td>블루베리 6 · 사우나 2시간 · 상급 EXP 2,000</td></tr><tr><td>11~20</td><td>-</td><td>블루베리 6 · 사우나 2시간 · 상급 EXP 2,000</td></tr><tr><td>21~25</td><td>상급 EXP 100</td><td>블루베리 3 · 사우나 1시간 · 상급 EXP 1,100</td></tr><tr><td>26~30</td><td>상급 EXP 2,100</td><td>블루베리 2 · 사우나 1시간 · 상급 EXP 3,100 · 비약 1</td></tr><tr className="total"><td>1~30 합계</td><td>상급 EXP 2,200</td><td>블루베리 17 · 사우나 6시간 · 상급 EXP 8,200 · 비약 1</td></tr></tbody></table></article><article><div className="table-title"><span>MOMENTUM · 1차 종료</span><h3>모멘텀 패스 1차 (종료)</h3></div><table><thead><tr><th>회차별 합계</th><th>보상</th></tr></thead><tbody><tr><td>상태</td><td>8/19 종료 · 새로 받을 수 없음</td></tr><tr><td>일반</td><td>메카베리 1 · 사우나 1.5시간 · 상급 EXP 500</td></tr><tr><td>프라임 추가</td><td>메카베리 10 · 상급 EXP 9,000 · 4배 쿠폰 6</td></tr><tr className="total"><td>프라임 포함</td><td>메카베리 11 · 사우나 1.5시간 · 상급 EXP 9,500 · 4배 쿠폰 6</td></tr><tr><td>기간</td><td>7/23~8/19</td></tr><tr><td>가격</td><td>49,800 넥슨캐시</td></tr></tbody></table></article><article><div className="table-title"><span>MOMENTUM PLUS · 현재 {s.momentumPass2Enabled ? `Lv.${s.momentumPass2Level}` : "OFF"}</span><h3>모멘텀 패스 PLUS</h3></div><table><thead><tr><th>등급</th><th>누적 보상</th><th>누적 캐시</th></tr></thead><tbody><tr><td>무료</td><td>크림슨 1 · 사우나 1.5시간 · 상급 EXP 500</td><td>-</td></tr><tr><td>프리미엄</td><td>크림슨 6 · 사우나 1.5시간 · 상급 EXP 5,000 · 4배 쿠폰 4</td><td>29,800</td></tr><tr className="total"><td>프라임</td><td>크림슨 17 · 사우나 1.5시간 · 상급 EXP 14,000 · 4배 쿠폰 10</td><td>69,600</td></tr><tr><td>기간</td><td colSpan={2}>8/20~9/16 · 프라임은 프리미엄 선구매 필수</td></tr><tr><td>주차 해금</td><td colSpan={2}>750포인트당 1레벨 · 주 최대 2,500포인트 → 1주 Lv.3 · 2주 Lv.6 · 3주 Lv.10</td></tr><tr><td>밀린 주차</td><td colSpan={2}>전 주 미획득 포인트를 100당 1,000 메포로 구매 · 1레벨 7,500 메포</td></tr><tr><td>크림슨 경험치</td><td colSpan={2}>전 구간 동렙몹 1,478,400마리 고정 · 280~284 1.5556배 · 285~289 1.1667배 · 290+ 1.0769배 (하루1소재)</td></tr></tbody></table></article></div>
     </section>}
 
     <footer><div className="brand"><span className="brand-mark">M</span><span>285·290 CALCULATOR</span></div><p>경험치 기준 · 하루1소재 · 메이플로드 · 2026.08.03 확인</p><div className="source-links"><a href="https://haru1sojae.kr/table" target="_blank" rel="noreferrer">하루1소재</a><a href="https://mapleroad.kr/utils/exp_calculator" target="_blank" rel="noreferrer">메이플로드</a><a href="https://maplestory.nexon.com/testworld/news/all/188" target="_blank" rel="noreferrer">테스트월드</a></div></footer>
