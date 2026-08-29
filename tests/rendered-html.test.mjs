@@ -581,7 +581,7 @@ test("prices, grants, and distributes Maple Point shop items by exact count", as
   assert.match(page, /개별 구매 · 주당 각각 최대 2개/);
   assert.doesNotMatch(page, /caption: "메카 1개 \+ 블루 1개 · 17,000 메포"/);
   assert.equal((page.match(/shopPurchasePlanLabel\(r\.shopBluePurchased, r\.shopMechPurchased\)/g) || []).length, 2);
-  const heroCardStart = page.indexOf('<article className="hero-card primary"><div className="card-label">{calc.effectivePullWeeks');
+  const heroCardStart = page.indexOf('<article className="hero-card primary"><div className="card-label">{calc.deadlineMissed');
   const heroCardEnd = page.indexOf("</article>", heroCardStart);
   const chosenRouteStart = page.indexOf('<article className="route-card chosen"><div><div className="route-card-label"><span>선택 경로');
   const chosenRouteEnd = page.indexOf("</article>", chosenRouteStart);
@@ -1776,4 +1776,25 @@ test("supports any goal level and defers rewards later as the goal rises", async
   const forecast = pageModule.runPlanningImmediately({ ...base, calcMode: "forecast" }).basePlan.result;
   assert.equal(forecast.rows.at(-1).key, "2026-09-16");
   assert.equal(forecast.endReason, "horizon");
+});
+
+test("reports how far the goal gets by the deadline when it cannot be reached", async () => {
+  const pageModule = await importBuiltPage("deadline-miss");
+  const page = await readFile(new URL("app/page.tsx", root), "utf8");
+  const base = { ...pageModule.createDefaultSettings("2026-08-23"), level: 285, exp: 0 };
+
+  // 286은 9/16 안에 되고 290은 안 된다.
+  const ok = pageModule.runPlanningImmediately({ ...base, targetLevel: 286 });
+  const miss = pageModule.runPlanningImmediately({ ...base, targetLevel: 290 });
+  assert.equal(ok.basePlan.feasible, true);
+  assert.equal(miss.basePlan.feasible, false);
+
+  // 못 찍을 때 9/16 도달 지점은 예측 모드로 낸다.
+  const forecast = pageModule.simulate({ ...base, targetLevel: 290, calcMode: "forecast" }, { fixedRuns: 7 });
+  assert.equal(forecast.rows.at(-1).key, "2026-09-16");
+  assert.ok(forecast.finalLevel >= 285 && forecast.finalLevel < 290);
+
+  assert.match(page, /달성 불가/);
+  assert.match(page, /9월 16일 시즌 종료 시점/);
+  assert.match(page, /deadlineMissed/);
 });
