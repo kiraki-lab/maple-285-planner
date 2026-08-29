@@ -1092,7 +1092,9 @@ test("keeps the target round-trip inputs in source instead of clamping state", a
 
   assert.match(page, /targetLevel: number;/);
   assert.match(page, /calcMode: "target" \| "forecast";/);
-  assert.match(page, /Math\.min\(s\.level, \(s\.calcMode === "forecast" \? 296 : s\.targetLevel\) - 1\)/);
+  // 현재 레벨은 목표에 막히지 않는다. 목표가 낮으면 목표를 밀어 올린다.
+  assert.match(page, /Math\.min\(s\.level, TARGET_LEVEL_MAX - 1\)/);
+  assert.match(page, /next\.targetLevel = clampTargetLevel\(next\.targetLevel, next\.level\)/);
   assert.doesNotMatch(page, /set\("level", 284\)/);
   assert.match(page, /Lv\.285~295 농장은 하루1소재 공개 퍼센트 기반 근사값/);
   assert.match(page, /challengerLevel < 30/);
@@ -1797,4 +1799,25 @@ test("reports how far the goal gets by the deadline when it cannot be reached", 
   assert.match(page, /달성 불가/);
   assert.match(page, /9월 16일 시즌 종료 시점/);
   assert.match(page, /deadlineMissed/);
+});
+
+test("keeps the goal above the current level and styles the advice panel for the light results area", async () => {
+  const pageModule = await importBuiltPage("goal-clamp");
+  const css = await readFile(new URL("app/globals.css", root), "utf8");
+
+  // Lv.286 캐릭터에 285 목표는 성립하지 않는다.
+  assert.equal(pageModule.clampTargetLevel(285, 286), 287);
+  assert.equal(pageModule.clampTargetLevel(290, 286), 290);
+  assert.equal(pageModule.clampTargetLevel(285, 280), 285);
+  assert.equal(pageModule.clampTargetLevel(285, 294), 295);
+
+  // 조언은 밀어 올린 목표를 쓴다.
+  const advice = pageModule.rewardUsageAdvice(286, pageModule.clampTargetLevel(285, 286)).find(item => item.type === "mech");
+  assert.equal(advice.bestLevel, 286);
+  assert.ok(advice.blockedGainPercent > 40);
+
+  // 결과 영역은 밝은 배경이라 흰색 글자를 쓰면 안 보인다.
+  assert.ok(css.includes("color: var(--ink); border: 1px solid #d8d5e2"), "조언 패널이 밝은 배경용 색을 써야 한다");
+  assert.ok(!css.includes(".advice-name span { color: rgba(255"), "흰색 글자를 쓰면 안 된다");
+  assert.ok(!css.includes(".advice-flat { color: rgba(255"), "흰색 글자를 쓰면 안 된다");
 });

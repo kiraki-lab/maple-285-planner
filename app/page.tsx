@@ -749,6 +749,9 @@ type EfficiencyBenchmark = {
 export const EFFICIENCY_LEVEL_MIN = 260;
 export const EFFICIENCY_LEVEL_MAX = 295;
 export const TARGET_LEVEL_MIN = 285;
+// 목표는 현재 레벨보다 항상 높아야 한다. 286에서 285를 목표로 두면 조언도 계산도 뜻이 없어진다.
+export const clampTargetLevel = (targetLevel: number, currentLevel: number) =>
+  Math.max(Math.min(TARGET_LEVEL_MAX, Math.floor(currentLevel) + 1), Math.min(TARGET_LEVEL_MAX, Math.max(TARGET_LEVEL_MIN, Math.floor(targetLevel))));
 export const TARGET_LEVEL_MAX = 295;
 export const epicDungeonEfficiencyCostMultiplier = (level: number) => level < 270 ? 5 / 3 : level < 280 ? 5 / 4 : 1;
 export const epicDungeonIconForLevel = (level: number) => level < 270
@@ -1198,7 +1201,7 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
   const sourceEnabled = (id: ExperienceSourceId) => !excludedExperienceSources.includes(id);
   const forecastMode = s.calcMode === "forecast";
   const forecastEnd = parseDate("2026-09-16");
-  const targetLevel = forecastMode ? 296 : Math.max(281, Math.min(TARGET_LEVEL_MAX, Math.floor(s.targetLevel)));
+  const targetLevel = forecastMode ? 296 : clampTargetLevel(s.targetLevel, s.level);
   const horizonDays = forecastMode ? Math.max(0, Math.floor((forecastEnd.getTime() - start.getTime()) / 86400000) + 1) : 120;
   let level = Math.max(280, Math.min(targetLevel - 1, s.level));
   let xp = req(level) * Math.max(0, Math.min(99.999, s.exp)) / 100;
@@ -1854,7 +1857,12 @@ export default function Home() {
   }, []);
   const set = <K extends keyof Settings>(key: K, value: Settings[K]) => {
     if (pre280SettingKeys.includes(key)) setPreApplied(false);
-    setS(current => ({ ...current, [key]: value }));
+    setS(current => {
+      const next = { ...current, [key]: value } as Settings;
+      // 현재 레벨을 올리면 목표도 같이 밀어 올린다.
+      if (key === "level" || key === "targetLevel") next.targetLevel = clampTargetLevel(next.targetLevel, next.level);
+      return next;
+    });
   };
   const toggleTraceSource = (id: ExperienceSourceId) => {
     setS(current => ({
@@ -2091,7 +2099,7 @@ export default function Home() {
     sauna: total.sauna + row.usage.sauna, adv: total.adv + row.usage.adv, potion: total.potion + row.usage.potion,
   }), { runs: 0, mech: 0, crimson: 0, blue: 0, sauna: 0, adv: 0, potion: 0 }), [r]);
   // 같은 아이템도 레벨 구간에 따라 실제 획득 경험치가 달라진다. 언제 쓰는 게 이득인지 계산한다.
-  const rewardAdvice = useMemo(() => rewardUsageAdvice(calculatedSettings.level, calculatedSettings.targetLevel), [calculatedSettings.level, calculatedSettings.targetLevel]);
+  const rewardAdvice = useMemo(() => rewardUsageAdvice(calculatedSettings.level, clampTargetLevel(calculatedSettings.targetLevel, calculatedSettings.level)), [calculatedSettings.level, calculatedSettings.targetLevel]);
   const pendingExcludedSources = normalizeExcludedExperienceSources(s.excludedExperienceSources);
   const calculatedExcludedSources = normalizeExcludedExperienceSources(calculatedSettings.excludedExperienceSources);
   const traceExclusionItems = experienceSourceIds.filter(id => pendingExcludedSources.includes(id) || calculatedExcludedSources.includes(id));
@@ -2240,8 +2248,8 @@ export default function Home() {
       <aside className="controls">
         <div className="section-heading"><span>입력</span><div><p>현재 캐릭터</p><h2>{s.targetLevel} 계산 조건</h2></div></div>
         <div className="field-grid compact">
-          <label className="field"><span>계산 모드</span><select value={s.calcMode} onChange={e => set("calcMode", e.target.value as "target" | "forecast")}><option value="target">목표 레벨 도달일</option><option value="forecast">9/16 종료 예상</option></select></label><label className="field"><span>목표 레벨</span><select value={s.targetLevel} disabled={s.calcMode === "forecast"} onChange={e => set("targetLevel", Number(e.target.value))}>{Array.from({ length: TARGET_LEVEL_MAX - TARGET_LEVEL_MIN + 1 }, (_, index) => index + TARGET_LEVEL_MIN).map(level => <option key={level}>{level}</option>)}</select></label>
-          <label className="field"><span>현재 레벨</span><select value={Math.min(s.level, (s.calcMode === "forecast" ? 296 : s.targetLevel) - 1)} onChange={e => set("level", Number(e.target.value))}>{Array.from({ length: (s.calcMode === "forecast" ? 296 : s.targetLevel) - 280 }, (_, index) => index + 280).map(level => <option key={level}>{level}</option>)}</select></label>
+          <label className="field"><span>계산 모드</span><select value={s.calcMode} onChange={e => set("calcMode", e.target.value as "target" | "forecast")}><option value="target">목표 레벨 도달일</option><option value="forecast">9/16 종료 예상</option></select></label><label className="field"><span>목표 레벨</span><select value={clampTargetLevel(s.targetLevel, s.level)} disabled={s.calcMode === "forecast"} onChange={e => set("targetLevel", Number(e.target.value))}>{Array.from({ length: TARGET_LEVEL_MAX - TARGET_LEVEL_MIN + 1 }, (_, index) => index + TARGET_LEVEL_MIN).filter(level => level > s.level).map(level => <option key={level}>{level}</option>)}</select></label>
+          <label className="field"><span>현재 레벨</span><select value={Math.min(s.level, TARGET_LEVEL_MAX - 1)} onChange={e => set("level", Number(e.target.value))}>{Array.from({ length: TARGET_LEVEL_MAX - 280 }, (_, index) => index + 280).map(level => <option key={level}>{level}</option>)}</select></label>
           <InputField label="현재 경험치 %" value={s.exp} min={0} max={99.999} step={0.001} onChange={v => set("exp", Number(v))} />
           <InputField label="계산 시작일" value={s.start} type="date" onChange={v => set("start", v)} />
           <InputField label="챌섭 EXP 패스 현재 레벨" value={s.challengerPassLevel} min={0} max={30} step={1} onChange={v => set("challengerPassLevel", Number(v))} />
