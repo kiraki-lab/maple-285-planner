@@ -1754,6 +1754,10 @@ test("advises when to spend each reward and flags the boundary the target blocks
   assert.match(page, /보상 사용 조언/);
   assert.match(page, /언제 쓰는 게 이득인가/);
   assert.match(page, /지금 써도 손해 없음/);
+  // 전략 근거가 화면에 드러나야 한다.
+  assert.match(page, /hold-table/);
+  assert.match(page, /경계가 앞에 있으면 지금 쓰는 쪽이/);
+  assert.match(page, /9월 17일 오전 2시에 사용 마감/);
 });
 
 test("supports any goal level and defers rewards later as the goal rises", async () => {
@@ -1870,6 +1874,16 @@ test("picks the hoarding moment by running candidates instead of a formula", asy
 
   // 후보는 경계와 즉시 사용뿐이라 비용이 시뮬레이션 몇 회로 끝난다.
   assert.deepEqual(pageModule.MECH_HOLD_CANDIDATES, [280, 285, 290, 295]);
+
+  // 화면이 판단 근거를 보여줄 수 있도록 후보 비교 자체를 내보낸다.
+  const analysis = pageModule.mechHoldAnalysis(at(286, 74, "forecast"));
+  assert.ok(analysis.options.length >= 2, "후보 비교가 비어 있으면 안 된다");
+  assert.equal(analysis.options.filter(option => option.best).length, 1, "최선 후보는 하나여야 한다");
+  assert.equal(analysis.options.find(option => option.best).level, analysis.best);
+  assert.ok(analysis.gainOverImmediate > 0, "이 사례는 모으기가 앞서야 한다");
+  const lowAnalysis = pageModule.mechHoldAnalysis(at(283, 0, "forecast"));
+  assert.equal(lowAnalysis.best, 280);
+  assert.equal(lowAnalysis.gainOverImmediate, 0, "즉시가 최선이면 이득이 0이어야 한다");
   const settings = pageModule.createDefaultSettings("2026-08-30");
   const started = performance.now();
   pageModule.runPlanningImmediately(settings);

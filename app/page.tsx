@@ -1614,26 +1614,34 @@ function mayrinClearWeeks(reached: Date | null) {
 // 290에서 탈라하트로 바뀌며 일일 수입이 크게 뛰기 때문에 경계가 앞에 있으면 즉시 쓰는 쪽이 이긴다.
 // 공식으로 판단하지 않고 후보를 실제로 돌려 비교한다. 후보가 4개뿐이라 비용은 시뮬레이션 4회다.
 export const MECH_HOLD_CANDIDATES = [280, 285, 290, 295];
-export const pickMechHoldLevel = (settings: Settings) => {
+export type MechHoldOption = { level: number; reached: Date | null; progress: number; best: boolean };
+export type MechHoldAnalysis = { best: number; options: MechHoldOption[]; gainOverImmediate: number };
+// 후보를 실제로 돌려 비교한다. 화면에도 같은 표를 보여줘야 판단 근거가 드러난다.
+export const mechHoldAnalysis = (settings: Settings): MechHoldAnalysis => {
   const forecastMode = settings.calcMode === "forecast";
   // simulate 는 사용 레벨을 목표 바로 아래로 자른다. 선택기도 같은 상한을 봐야 고른 값이 그대로 쓰인다.
   const ceiling = forecastMode ? TARGET_LEVEL_MAX : clampTargetLevel(settings.targetLevel, settings.level) - 1;
   const candidates = MECH_HOLD_CANDIDATES.map(level => Math.min(level, ceiling)).filter((level, index, list) => list.indexOf(level) === index).filter(level => level === 280 || level > settings.level);
-  let best = candidates[0] ?? 280;
-  let bestReached = Infinity;
-  let bestProgress = -Infinity;
-  for (const level of candidates) {
+  const options = candidates.map(level => {
     const result = simulate({ ...settings, momentumMechLevel: level, shopMech: false, shopBlue: false }, { fixedRuns: 7 });
     const lastRow = result.rows[result.rows.length - 1];
-    const progress = lastRow ? lastRow.progress : 0;
-    const reached = forecastMode ? Infinity : result.reached ? result.reached.getTime() : Infinity;
+    return { level, reached: forecastMode ? null : result.reached, progress: lastRow ? lastRow.progress : 0, best: false };
+  });
+  let best = options[0];
+  for (const option of options) {
     // 목표 모드는 도달일이 우선, 같으면 진행도. 예측 모드는 9/16 도달 지점만 본다.
-    if (reached < bestReached || (reached === bestReached && progress > bestProgress)) {
-      best = level; bestReached = reached; bestProgress = progress;
-    }
+    const time = (item: MechHoldOption) => item.reached ? item.reached.getTime() : Infinity;
+    if (!best || time(option) < time(best) || (time(option) === time(best) && option.progress > best.progress)) best = option;
   }
-  return best;
+  if (best) best.best = true;
+  const immediate = options.find(option => option.level === 280);
+  return {
+    best: best ? best.level : 280,
+    options,
+    gainOverImmediate: best && immediate ? (best.progress - immediate.progress) * 100 : 0,
+  };
 };
+export const pickMechHoldLevel = (settings: Settings) => mechHoldAnalysis(settings).best;
 
 function* buildPlanningSteps(settings: Settings): Generator<number, Planning, void> {
   const s = settings;
@@ -2149,7 +2157,8 @@ export default function Home() {
   // 같은 아이템도 레벨 구간에 따라 실제 획득 경험치가 달라진다. 언제 쓰는 게 이득인지 계산한다.
   const rewardAdvice = useMemo(() => rewardUsageAdvice(calculatedSettings.level, clampTargetLevel(calculatedSettings.targetLevel, calculatedSettings.level)), [calculatedSettings.level, calculatedSettings.targetLevel]);
   // 한 장 가치가 아니라 실제 도달 결과로 고른 시점이다.
-  const pickedMechHold = useMemo(() => pickMechHoldLevel(calculatedSettings), [calculatedSettings]);
+  const holdAnalysis = useMemo(() => mechHoldAnalysis(calculatedSettings), [calculatedSettings]);
+  const pickedMechHold = holdAnalysis.best;
   const pendingExcludedSources = normalizeExcludedExperienceSources(s.excludedExperienceSources);
   const calculatedExcludedSources = normalizeExcludedExperienceSources(calculatedSettings.excludedExperienceSources);
   const traceExclusionItems = experienceSourceIds.filter(id => pendingExcludedSources.includes(id) || calculatedExcludedSources.includes(id));
@@ -2428,7 +2437,28 @@ export default function Home() {
               </div>
             </article>)}
           </div>
-          <div className="advice-verdict"><b>{pickedMechHold === 280 ? "크림슨은 지금 쓰는 것이 낫습니다" : `크림슨은 Lv.${pickedMechHold}까지 모았다 쓰는 것이 낫습니다`}</b><span>후보 시점을 실제로 돌려 도달 결과가 가장 좋은 쪽을 고른 값입니다. 위의 한 장 가치와 다를 수 있습니다.</span></div>
+          <div className="advice-verdict">
+            <b>{pickedMechHold === 280 ? "크림슨은 지금 쓰는 것이 낫습니다" : `크림슨은 Lv.${pickedMechHold}까지 모았다 쓰는 것이 낫습니다`}</b>
+            <span>후보 시점을 실제로 돌려 결과가 가장 좋은 쪽을 고릅니다. 위의 한 장 가치와 다를 수 있습니다.</span>
+            <table className="hold-table">
+              <thead><tr><th>사용 시점</th><th>{calculatedSettings.calcMode === "forecast" ? "9/16 도달 지점" : "목표 도달일"}</th><th>차이</th></tr></thead>
+              <tbody>
+                {holdAnalysis.options.map(option => {
+                  const immediate = holdAnalysis.options.find(item => item.level === 280);
+                  const diff = immediate ? (option.progress - immediate.progress) * 100 : 0;
+                  return <tr key={option.level} className={option.best ? "best" : ""}>
+                    <td>{option.level === 280 ? "지금 바로" : `Lv.${option.level}까지 모음`}</td>
+                    <td>{calculatedSettings.calcMode === "forecast"
+                      ? `Lv.${Math.floor(option.progress)} ${((option.progress % 1) * 100).toFixed(2)}%`
+                      : option.reached ? shortDate(option.reached) : "미도달"}</td>
+                    <td>{option.level === 280 ? "기준" : `${diff >= 0 ? "+" : ""}${diff.toFixed(2)}%p`}</td>
+                  </tr>;
+                })}
+              </tbody>
+            </table>
+            <span>레벨이 오르면 한 장 가치가 오르지만(레벨당 약 1.2%), 레벨을 일찍 올리면 그 뒤 매일 버는 경험치가 커집니다. 285에서 몬파·일퀘가 카르시온으로, 290에서 탈라하트로 바뀌며 일일 수입이 크게 뜁니다. 그래서 경계가 앞에 있으면 지금 쓰는 쪽이, 경계 사이에 갇혀 있으면 모으는 쪽이 이깁니다.</span>
+            {pickedMechHold !== 280 && Math.abs(holdAnalysis.gainOverImmediate) < 1.5 && <span className="hold-caution">모아서 얻는 값이 {holdAnalysis.gainOverImmediate.toFixed(2)}%p뿐입니다. PLUS 보상은 9월 17일 오전 2시에 사용 마감이라 접속을 놓치면 전량 소멸합니다. 이 정도 차이면 지금 쓰는 편이 안전합니다.</span>}
+          </div>
           <p className="pre-disclaimer">위 수치는 한 장의 가치만 비교한 것입니다. 실제로는 레벨을 일찍 올릴수록 그 뒤 매일 버는 경험치가 커지고, 285에서 몬파·일퀘가 카르시온으로 290에서 탈라하트로 바뀌며 일일 수입이 크게 뜁니다. 그래서 경계가 앞에 있으면 모으는 것보다 지금 쓰는 편이 낫습니다. 블루베리는 280 이상이면 완전히 고정이라 미룰 이유가 없습니다.</p>
         </section>
         <section className="trace-panel">

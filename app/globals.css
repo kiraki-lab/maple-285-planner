@@ -705,3 +705,10 @@ footer p { margin: 0; color: #65636c; font-size: 12px; text-align: center; }
 .advice-verdict { margin: 12px 0 4px; padding: 11px 13px; display: flex; flex-direction: column; gap: 4px; border: 1px solid #cbbdf0; border-radius: 12px; background: #f3effd; }
 .advice-verdict b { color: #3d2f78; font-size: 13px; }
 .advice-verdict span { color: #5b5470; font-size: 12px; line-height: 1.6; }
+
+.hold-table { width: 100%; margin: 8px 0 4px; border-collapse: collapse; font-size: 12px; }
+.hold-table th { padding: 6px 8px; color: #5b5470; font-weight: 800; text-align: left; border-bottom: 1px solid #cbbdf0; }
+.hold-table td { padding: 6px 8px; color: #3d2f78; border-bottom: 1px solid #e0d8f5; }
+.hold-table tr:last-child td { border-bottom: 0; }
+.hold-table tr.best td { color: #23205c; font-weight: 800; background: #e6ddfb; }
+.hold-caution { color: #8a4b00 !important; font-weight: 750; }
