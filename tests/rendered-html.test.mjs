@@ -987,7 +987,7 @@ test("uses the calculation start date as the automatic Carcion boundary", async 
 
   const firstDaySettings = {
     ...defaultsAtStart,
-    targetLevel: 290,
+    targetLevel: 285, calcMode: "forecast",
     level: 285,
     exp: 0,
     // 몬파만 남겨 카르시온 경계를 격리한다. 기본값은 풀 보상이라 메포샵 구매와
@@ -1027,7 +1027,7 @@ test("preserves a 285 milestone snapshot in target 290 mode", async () => {
   const pageModule = await importBuiltPage("target-290-milestone");
   const settings = {
     ...pageModule.createDefaultSettings("2026-08-03"),
-    targetLevel: 290,
+    targetLevel: 285, calcMode: "forecast",
     level: 289,
     exp: 99.999,
     challengerPassLevel: 30,
@@ -1090,8 +1090,9 @@ test("does not auto-apply Special Supply EXP without direct input", async () => 
 test("keeps the target round-trip inputs in source instead of clamping state", async () => {
   const page = await readFile(new URL("app/page.tsx", root), "utf8");
 
-  assert.match(page, /targetLevel: 285 \| 290/);
-  assert.match(page, /value=\{Math\.min\(s\.level, s\.targetLevel === 290 \? 295 : 284\)\}/);
+  assert.match(page, /targetLevel: number;/);
+  assert.match(page, /calcMode: "target" \| "forecast";/);
+  assert.match(page, /Math\.min\(s\.level, \(s\.calcMode === "forecast" \? 296 : s\.targetLevel\) - 1\)/);
   assert.doesNotMatch(page, /set\("level", 284\)/);
   assert.match(page, /Lv\.285~295 농장은 하루1소재 공개 퍼센트 기반 근사값/);
   assert.match(page, /challengerLevel < 30/);
@@ -1101,7 +1102,7 @@ test("forecasts the final level and EXP at the September 16 deadline", async () 
   const pageModule = await importBuiltPage("target-290-deadline");
   const settings = {
     ...pageModule.createDefaultSettings("2026-08-03"),
-    targetLevel: 290,
+    targetLevel: 285, calcMode: "forecast",
     level: 285,
     exp: 0,
     paidMonsterPark: false,
@@ -1124,7 +1125,7 @@ test("caps the September 16 forecast at Lv.295 99.999%", async () => {
   const pageModule = await importBuiltPage("target-295-cap");
   const settings = {
     ...pageModule.createDefaultSettings("2026-09-16"),
-    targetLevel: 290,
+    targetLevel: 285, calcMode: "forecast",
     level: 295,
     exp: 99.999,
     paidMonsterPark: false,
@@ -1182,7 +1183,7 @@ test("excludes each disabled Momentum season including its normal and Prime rewa
   const pageModule = await importBuiltPage("momentum-season-enabled");
   const common = {
     ...pageModule.createDefaultSettings("2026-07-23"),
-    targetLevel: 290,
+    targetLevel: 285, calcMode: "forecast",
     level: 295,
     exp: 99.999,
     paidMonsterPark: false,
@@ -1227,7 +1228,7 @@ test("keeps paid Monster Park off at the free two-run baseline", async () => {
   const pageModule = await importBuiltPage("paid-monster-park-quick-toggle");
   const common = {
     ...pageModule.createDefaultSettings("2026-09-16"),
-    targetLevel: 290,
+    targetLevel: 285, calcMode: "forecast",
     level: 280,
     exp: 0,
     momentumPass1Enabled: false,
@@ -1255,7 +1256,7 @@ test("ignores the expired July NOW reward key from legacy settings", async () =>
   const pageModule = await importBuiltPage("legacy-now-reward");
   const common = {
     ...pageModule.createDefaultSettings("2026-08-20"),
-    targetLevel: 290,
+    targetLevel: 285, calcMode: "forecast",
     level: 285,
     exp: 0,
     challengerPassLevel: 30,
@@ -1289,7 +1290,7 @@ test("records every applied EXP source and reconciles displayed contributions to
   const start = "2026-08-06";
   const settings = {
     ...pageModule.createDefaultSettings(start),
-    targetLevel: 290,
+    targetLevel: 285, calcMode: "forecast",
     level: 285,
     exp: 0,
     start,
@@ -1348,7 +1349,7 @@ test("excludes all ten EXP sources from application, consumption, and cost", asy
   const start = "2026-08-06";
   const settings = {
     ...pageModule.createDefaultSettings(start),
-    targetLevel: 290,
+    targetLevel: 285, calcMode: "forecast",
     level: 285,
     exp: 0,
     start,
@@ -1415,7 +1416,7 @@ test("schedules held and extra rewards without double counting and restores held
   const start = "2026-08-13";
   const common = {
     ...pageModule.createDefaultSettings(start),
-    targetLevel: 290,
+    targetLevel: 285, calcMode: "forecast",
     level: 285,
     exp: 0,
     challengerPassLevel: 30,
@@ -1467,7 +1468,7 @@ test("overwrites the selected current inventory as one absolute value and applie
   const start = "2026-08-14";
   const base = {
     ...pageModule.createDefaultSettings(start),
-    targetLevel: 290,
+    targetLevel: 285, calcMode: "forecast",
     level: 285,
     exp: 0,
     challengerPassLevel: 30,
@@ -1635,7 +1636,7 @@ test("pins the 9/16 forecast selection while preserving the 285 strategy input",
   for (const pullStrategy of ["blue", "mech", "both"]) {
     const target290 = {
       ...pageModule.createDefaultSettings("2026-08-03"),
-      targetLevel: 290,
+      targetLevel: 285, calcMode: "forecast",
       level: 285,
       exp: 0,
       pullStrategy,
@@ -1650,7 +1651,7 @@ test("pins the 9/16 forecast selection while preserving the 285 strategy input",
     assert.equal(selected290.result.rows.at(-1).key, "2026-09-16");
     assert.equal(target290.pullStrategy, pullStrategy);
 
-    const returnedTo285 = { ...target290, targetLevel: 285 };
+    const returnedTo285 = { ...target290, calcMode: "target" };
     assert.equal(returnedTo285.pullStrategy, pullStrategy);
   }
 });
@@ -1751,4 +1752,28 @@ test("advises when to spend each reward and flags the boundary the target blocks
   assert.match(page, /보상 사용 조언/);
   assert.match(page, /언제 쓰는 게 이득인가/);
   assert.match(page, /지금 써도 손해 없음/);
+});
+
+test("supports any goal level and defers rewards later as the goal rises", async () => {
+  const pageModule = await importBuiltPage("goal-level");
+  const base = { ...pageModule.createDefaultSettings("2026-08-23"), level: 285, exp: 0 };
+
+  // 목표가 올라갈수록 도달일이 늦어진다.
+  const to286 = pageModule.runPlanningImmediately({ ...base, targetLevel: 286 }).basePlan.result;
+  const to288 = pageModule.runPlanningImmediately({ ...base, targetLevel: 288 }).basePlan.result;
+  assert.ok(to286.reached);
+  assert.ok(to288.reached);
+  assert.ok(to288.reached.getTime() > to286.reached.getTime());
+
+  // 목표가 높을수록 보상을 더 늦게 쓰는 것이 이득이다.
+  const mechAt = target => pageModule.rewardUsageAdvice(285, target).find(item => item.type === "mech");
+  assert.equal(mechAt(285).bestLevel, 285);
+  assert.equal(mechAt(290).bestLevel, 289);
+  assert.equal(mechAt(295).bestLevel, 294);
+  assert.ok(mechAt(295).gainPercent > mechAt(290).gainPercent);
+
+  // 예측 모드는 목표와 무관하게 9/16 종료 시점을 낸다.
+  const forecast = pageModule.runPlanningImmediately({ ...base, calcMode: "forecast" }).basePlan.result;
+  assert.equal(forecast.rows.at(-1).key, "2026-09-16");
+  assert.equal(forecast.endReason, "horizon");
 });

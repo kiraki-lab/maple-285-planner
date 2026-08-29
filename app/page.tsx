@@ -30,7 +30,8 @@ type ItemConversionResult = {
 type CustomRewardOrigin = "owned" | "extra";
 type CustomReward = { id: string; type: CustomRewardType; amount: number; useDate: string; origin: CustomRewardOrigin };
 type Settings = {
-  targetLevel: 285 | 290;
+  targetLevel: number;
+  calcMode: "target" | "forecast";
   level: number;
   exp: number;
   start: string;
@@ -609,6 +610,19 @@ export const momentumPlusRewardForLevel = (level: number, tier: MomentumTier, de
   return { deferMech, crimson: total.crimson, adv: total.adv, sauna: total.sauna, coupon4x: total.coupon4x };
 };
 
+// 챌린저스 EXP 패스에서 이미 받은 레벨의 보상. 다 쓴 사람이 많아 기본값은 0이고, 남아 있으면 토글로 켠다.
+export const challengerClaimedRewards = (level: number, expPass: boolean) => {
+  const claimed = { blue: 0, sauna: 0, adv: 0, potion279: 0 };
+  for (let passLevel = 1; passLevel <= Math.max(0, Math.min(30, Math.floor(level))); passLevel += 1) {
+    const reward = challengerRewardForLevel(passLevel, expPass);
+    claimed.blue += Number(reward.blue || 0);
+    claimed.sauna += Number(reward.sauna || 0);
+    claimed.adv += Number(reward.adv || 0);
+    claimed.potion279 += Number(reward.potion279 || 0);
+  }
+  return claimed;
+};
+
 // 모멘텀 패스 PLUS에서 이미 받은 레벨의 보상. 1차와 달리 크림슨 메카베리로 나온다.
 export const momentumPlusClaimedRewards = (level: number, tier: MomentumTier) => {
   const claimed = { crimson: 0, adv: 0, sauna: 0 };
@@ -641,7 +655,7 @@ const createDefaultSettings = (start = SSR_DEFAULT_START): Settings => {
   // 남아 있던 아이템도 소멸했으므로 보유 보상에 넣지 않는다. PLUS 수령분만 넘긴다.
   const claimed2 = momentumPlusClaimedRewards(momentumPass2Level, "prime");
   return ({
-  targetLevel: 285, level: 280, exp: 87.39, start, pullWeeks: 0, pullStrategy: "monsterPark", specialSundayCount: 1, paidMonsterPark: true,
+  targetLevel: 285, calcMode: "target", level: 280, exp: 87.39, start, pullWeeks: 0, pullStrategy: "monsterPark", specialSundayCount: 1, paidMonsterPark: true,
   specialSupply: false, specialSupplySaved: 0, specialSupplyExpPerCharge: 0,
   challengerPassLevel: 30, momentumPass1Enabled: false, momentumPass2Enabled: true,
   momentumPass1Level, momentumPass2Level,
@@ -734,6 +748,8 @@ type EfficiencyBenchmark = {
 };
 export const EFFICIENCY_LEVEL_MIN = 260;
 export const EFFICIENCY_LEVEL_MAX = 295;
+export const TARGET_LEVEL_MIN = 285;
+export const TARGET_LEVEL_MAX = 295;
 export const epicDungeonEfficiencyCostMultiplier = (level: number) => level < 270 ? 5 / 3 : level < 280 ? 5 / 4 : 1;
 export const epicDungeonIconForLevel = (level: number) => level < 270
   ? "/efficiency-icons/high-mountain.png"
@@ -1180,9 +1196,9 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
   const excludedExperienceSources = normalizeExcludedExperienceSources(s.excludedExperienceSources);
   const customRewards = normalizeCustomRewards(s.customRewards, s.start);
   const sourceEnabled = (id: ExperienceSourceId) => !excludedExperienceSources.includes(id);
-  const forecastMode = s.targetLevel === 290;
+  const forecastMode = s.calcMode === "forecast";
   const forecastEnd = parseDate("2026-09-16");
-  const targetLevel = forecastMode ? 296 : 285;
+  const targetLevel = forecastMode ? 296 : Math.max(281, Math.min(TARGET_LEVEL_MAX, Math.floor(s.targetLevel)));
   const horizonDays = forecastMode ? Math.max(0, Math.floor((forecastEnd.getTime() - start.getTime()) / 86400000) + 1) : 120;
   let level = Math.max(280, Math.min(targetLevel - 1, s.level));
   let xp = req(level) * Math.max(0, Math.min(99.999, s.exp)) / 100;
@@ -1584,7 +1600,7 @@ function* buildPlanningSteps(settings: Settings): Generator<number, Planning, vo
   const sunday = simulate(strategySettings, { sevenUntil: addDays(start, -1) }); yield ++completed;
   const free = simulate(strategySettings, { fixedRuns: 2 }); yield ++completed;
   const allSeven = simulate(strategySettings, { fixedRuns: 7 }); yield ++completed;
-  if (s.targetLevel === 290) {
+  if (s.calcMode === "forecast") {
     const forecast = simulate(s, { fixedRuns: s.paidMonsterPark ? 7 : 2 }); yield ++completed;
     const makePlan = (strategy: PullStrategy, result: Simulation): PullPlan => ({
       pullWeeks: 0,
@@ -1745,7 +1761,7 @@ export { createDefaultSettings, defaults, eterionBonusesForDate, localDateInputV
 
 export const selectedPlanForSettings = (planning: Planning, settings: Settings) => {
   const effectivePullWeeks = Math.min(Math.max(0, Math.floor(settings.pullWeeks)), planning.maxPullWeeks);
-  if (settings.targetLevel === 290) return planning.basePlan;
+  if (settings.calcMode === "forecast") return planning.basePlan;
   const requestedPlan = planning.strategyPlans[settings.pullStrategy][effectivePullWeeks];
   const recommendedPlans = planning.recommendedPlansByWeek[effectivePullWeeks] || [];
   return requestedPlan?.feasible && recommendedPlans.some(plan => plan.strategy === requestedPlan.strategy)
@@ -1788,7 +1804,7 @@ function Core6Choice({ title, before, after, checked, onChange }: { title: strin
   return <div className={`core6-choice ${checked ? "active" : ""}`}><div><b>{title}</b><small>{before}% <span>→</span> {after}%</small></div><Toggle label="6레벨" accessibleLabel={`${title} 코어 6레벨`} checked={checked} onChange={onChange} /></div>;
 }
 
-function ProgressChart({ selected, sunday, free, targetLevel }: { selected: Simulation; sunday: Simulation; free: Simulation; targetLevel: 285 | 290 }) {
+function ProgressChart({ selected, sunday, free, targetLevel }: { selected: Simulation; sunday: Simulation; free: Simulation; targetLevel: number }) {
   const width = 900, height = 340, margin = { left: 44, right: 28, top: 32, bottom: 42 };
   const count = Math.max(1, selected.rows.length - 1, sunday.rows.length - 1, free.rows.length - 1);
   const x = (index: number) => margin.left + index / count * (width - margin.left - margin.right);
@@ -1849,8 +1865,9 @@ export default function Home() {
   // 현재 패스 레벨까지 받은 보상. 보유 토글이 이 값을 기준으로 켜고 끈다.
   const claimedPassRewards = useMemo(() => {
     const second = momentumPlusClaimedRewards(s.momentumPass2Enabled ? s.momentumPass2Level : 0, s.momentumPrime2 ? "prime" : s.momentumPremium2 ? "premium" : "free");
-    return { mech: 0, crimson: second.crimson, sauna: second.sauna, adv: second.adv };
-  }, [s.momentumPass2Enabled, s.momentumPass2Level, s.momentumPrime2, s.momentumPremium2]);
+    const pass = challengerClaimedRewards(s.challengerPassLevel, s.challengerExp);
+    return { mech: 0, crimson: second.crimson, sauna: second.sauna + pass.sauna, adv: second.adv + pass.adv, blue: pass.blue, potion279: pass.potion279 };
+  }, [s.momentumPass2Enabled, s.momentumPass2Level, s.momentumPrime2, s.momentumPremium2, s.challengerPassLevel, s.challengerExp]);
   const core6MasterEnabled = s.dailyCore6Enabled && s.mpCore6Enabled && s.epicCore6Enabled;
   const setCore6Master = (enabled: boolean) => setS(current => ({ ...current, ...core6MasterPatch(enabled) }));
   const manualInventoryMeta = CUSTOM_REWARD_META[manualInventoryType];
@@ -2021,6 +2038,7 @@ export default function Home() {
   };
   const r = calc.selected;
   const targetLevel = calculatedSettings.targetLevel;
+  const forecastMode = calculatedSettings.calcMode === "forecast";
   const pullDays = r.reached && calc.basePlan.result.reached ? Math.max(0, Math.round((calc.basePlan.result.reached.getTime() - r.reached.getTime()) / 86400000)) : 0;
   const recommendedPrefix = r.sevenUntil < r.start ? "평일 2판 · 일요일 7판" : `${shortDate(r.sevenUntil)}까지만 평일 7판`;
   const selectedStrategy = pullStrategies.find(strategy => strategy.id === calc.selectedPlan.strategy) || pullStrategies[0];
@@ -2133,10 +2151,10 @@ export default function Home() {
     <header className="topbar"><a className="brand" href="#top" aria-label="285·290 계산기 홈"><span className="brand-mark">M</span><span>285·290 CALCULATOR</span></a><span className="topbar-status">CHALLENGERS WORLD</span></header>
     <section className="hero" id="top">
       <div className="eyebrow"><span /> CHALLENGERS {targetLevel} CALCULATOR</div>
-      <h1>{targetLevel === 290 ? "9월 16일, 어디까지 갈까?" : `${targetLevel}, 언제 찍을까?`}</h1>
-      <p>{targetLevel === 290 ? "받을 수 있는 보상을 전부 받는 것이 기준입니다. 안 받을 것만 끄면 그만큼 빠집니다." : `현재 레벨과 보유 보상을 입력하면 ${targetLevel} 달성일, 필요한 몬파 횟수와 메포를 계산합니다.`}</p>
+      <h1>{forecastMode ? "9월 16일, 어디까지 갈까?" : `${targetLevel}, 언제 찍을까?`}</h1>
+      <p>{forecastMode ? "받을 수 있는 보상을 전부 받는 것이 기준입니다. 안 받을 것만 끄면 그만큼 빠집니다." : `현재 레벨과 보유 보상을 입력하면 ${targetLevel} 달성일, 필요한 몬파 횟수와 메포를 계산합니다.`}</p>
       <div className="hero-grid">
-        {targetLevel === 290 ? <>
+        {forecastMode ? <>
           <article className="hero-card primary"><div className="card-label">9/16 시즌 종료 예상</div><strong>{forecastProgress}</strong><span>{forecastBasisLabel}</span><div className="card-meta"><b>{formatMP(r.maplePoints)}</b><em>몬파·메포샵 합계</em></div></article>
           <article className="hero-card"><div className="card-label">모멘텀 1차 · 종료</div><strong>보상 소멸</strong><span>8/19 수령 마감 · 8/20 사용 마감</span><div className="card-meta"><b>계산에서 제외</b><em>남은 아이템 없음</em></div></article>
           <article className="hero-card verdict"><div className="card-label">모멘텀 PLUS · 8/20~9/16</div><strong>{!calculatedSettings.momentumPass2Enabled ? "참여 OFF" : calculatedSettings.momentumPrime2 ? "프라임 ON" : calculatedSettings.momentumPremium2 ? "프리미엄 ON" : "무료 보상"}</strong><span>{calculatedSettings.momentumPass2Enabled ? `현재 Lv.${calculatedSettings.momentumPass2Level}` : "보상 계산 제외"}</span><div className="card-meta"><b>{calculatedSettings.momentumPass2Enabled && calculatedSettings.momentumPrime2 ? "69,600 넥슨캐시" : calculatedSettings.momentumPass2Enabled && calculatedSettings.momentumPremium2 ? "29,800 넥슨캐시" : "추가 결제 없음"}</b><em>프라임은 프리미엄 필수</em></div></article>
@@ -2146,7 +2164,7 @@ export default function Home() {
           <article className="hero-card verdict"><div className="card-label">{calc.effectivePullWeeks ? `${calc.effectivePullWeeks}주 총손익 · 0주 대비` : "마감 확보 손익"}</div><strong className={primaryRoiNetValue >= 0 ? "positive" : "negative"}>{primaryRoiNetValue >= 0 ? "+" : ""}{eok(primaryRoiNetValue)}</strong><span>{calc.effectivePullWeeks ? `누적 회수율 ${primaryRoiRecoveryRate.toFixed(1)}%` : "마감은 필수조건 · 손익과 분리"}</span><div className="card-meta"><b>{primaryRoiHardWeeks}회 추가</b><em>보상 {eok(primaryRoiRecoveredValue)}</em></div></article>
         </>}
       </div>
-      {targetLevel === 290
+      {forecastMode
         ? <div className="hero-note"><span className="pulse" /><p><b>9/16 종료 예상</b> {forecastBasisLabel} · {forecastCostSummary}</p></div>
         : <div className={`hero-note ${calc.deadlineMet ? "" : "deadline-fail"}`}><span className="pulse" /><p><b>{calc.selectedPlan.strategy === calc.bestRoiStrategy ? "추천 · 순손익 최고" : calc.selectedPlan.strategy === calc.bestPlansByWeek[calc.effectivePullWeeks]?.strategy ? "메포 최저" : "더 빠른 선택"}</b> {selectedStrategy.id === "monsterPark" ? recommendedPrefix : `${selectedStrategy.label} · ${recommendedPrefix}`} → {shortDate(r.reached)} · 총 {formatMP(r.maplePoints)} · {pullDays ? `마감 경로보다 ${pullDays}일 빠름` : "9월 16일 마감 기준"} · {forecastBasisLabel}</p></div>}
     </section>
@@ -2214,8 +2232,8 @@ export default function Home() {
       <aside className="controls">
         <div className="section-heading"><span>입력</span><div><p>현재 캐릭터</p><h2>{s.targetLevel} 계산 조건</h2></div></div>
         <div className="field-grid compact">
-          <label className="field"><span>계산 모드</span><select value={s.targetLevel} onChange={e => set("targetLevel", Number(e.target.value) as 285 | 290)}><option value={285}>285 도달일</option><option value={290}>9/16 종료 예상</option></select></label>
-          <label className="field"><span>현재 레벨</span><select value={Math.min(s.level, s.targetLevel === 290 ? 295 : 284)} onChange={e => set("level", Number(e.target.value))}>{Array.from({ length: s.targetLevel === 290 ? 16 : 5 }, (_, index) => index + 280).map(level => <option key={level}>{level}</option>)}</select></label>
+          <label className="field"><span>계산 모드</span><select value={s.calcMode} onChange={e => set("calcMode", e.target.value as "target" | "forecast")}><option value="target">목표 레벨 도달일</option><option value="forecast">9/16 종료 예상</option></select></label><label className="field"><span>목표 레벨</span><select value={s.targetLevel} disabled={s.calcMode === "forecast"} onChange={e => set("targetLevel", Number(e.target.value))}>{Array.from({ length: TARGET_LEVEL_MAX - TARGET_LEVEL_MIN + 1 }, (_, index) => index + TARGET_LEVEL_MIN).map(level => <option key={level}>{level}</option>)}</select></label>
+          <label className="field"><span>현재 레벨</span><select value={Math.min(s.level, (s.calcMode === "forecast" ? 296 : s.targetLevel) - 1)} onChange={e => set("level", Number(e.target.value))}>{Array.from({ length: (s.calcMode === "forecast" ? 296 : s.targetLevel) - 280 }, (_, index) => index + 280).map(level => <option key={level}>{level}</option>)}</select></label>
           <InputField label="현재 경험치 %" value={s.exp} min={0} max={99.999} step={0.001} onChange={v => set("exp", Number(v))} />
           <InputField label="계산 시작일" value={s.start} type="date" onChange={v => set("start", v)} />
           <InputField label="챌섭 EXP 패스 현재 레벨" value={s.challengerPassLevel} min={0} max={30} step={1} onChange={v => set("challengerPassLevel", Number(v))} />
@@ -2252,12 +2270,14 @@ export default function Home() {
           <Toggle label={`받은 크림슨 메카베리 ${claimedPassRewards.crimson}장 보유·예약 중`} checked={claimedRewardToggleChecked(s, "crimson")} onChange={v => setS(current => setClaimedRewardToggle(current, "crimson", v, claimedPassRewards.crimson))} />
           <Toggle label={`받은 상급 EXP ${claimedPassRewards.adv.toLocaleString("ko-KR")}장 보유·예약 중`} checked={claimedRewardToggleChecked(s, "adv")} onChange={v => setS(current => setClaimedRewardToggle(current, "adv", v, claimedPassRewards.adv))} />
           <Toggle label={`받은 VIP 사우나 ${claimedPassRewards.sauna}시간 보유·예약 중`} checked={claimedRewardToggleChecked(s, "sauna")} onChange={v => setS(current => setClaimedRewardToggle(current, "sauna", v, claimedPassRewards.sauna))} />
-          {s.targetLevel === 290 && <>
+          <Toggle label={`챌섭 블루베리 ${claimedPassRewards.blue}장 보유·예약 중`} checked={claimedRewardToggleChecked(s, "blue")} onChange={v => setS(current => setClaimedRewardToggle(current, "blue", v, claimedPassRewards.blue))} />
+          <Toggle label={`챌섭 성장의 비약 ${claimedPassRewards.potion279}개 보유·예약 중`} checked={claimedRewardToggleChecked(s, "potion279")} onChange={v => setS(current => setClaimedRewardToggle(current, "potion279", v, claimedPassRewards.potion279))} />
+          {s.calcMode === "forecast" && <>
             <Toggle label="메포샵 메카베리 구매 · 1개 10,000 메포" checked={s.shopMech} onChange={v => set("shopMech", v)} />
             <Toggle label="메포샵 블루베리 구매 · 1개 7,000 메포" checked={s.shopBlue} onChange={v => set("shopBlue", v)} />
           </>}
           <div className="callout-mini">8월 19일까지는 기존 모멘텀 패스(1차), 8월 20일부터는 <b>모멘텀 패스 PLUS</b>입니다. PLUS는 무료·프리미엄(29,800)·프라임(39,800) 3단계이고 프라임은 프리미엄을 먼저 사야 합니다. 1차 프라임까지 모두 ON하면 총 119,400 넥슨캐시이며 메포 합계에는 섞지 않습니다.{s.targetLevel === 285 ? " 285 모드의 메포샵 농장은 계산기가 필요할 때만 알아서 넣습니다." : ""}</div>
-          <div className="field-grid compact inset"><label className="field"><span>메카베리 사용 레벨</span><select value={Math.min(s.momentumMechLevel, s.targetLevel === 290 ? 295 : 284)} disabled={!s.deferMomentumMech} onChange={e => set("momentumMechLevel", Number(e.target.value))}>{Array.from({ length: s.targetLevel === 290 ? 16 : 5 }, (_, index) => index + 280).map(level => <option key={level}>{level}</option>)}</select></label><InputField label="최종 사용일" value={s.momentumMechDeadline} type="date" disabled={!s.deferMomentumMech} onChange={v => set("momentumMechDeadline", v)} /></div>
+          <div className="field-grid compact inset"><label className="field"><span>메카베리 사용 레벨</span><select value={Math.min(s.momentumMechLevel, (s.calcMode === "forecast" ? 296 : s.targetLevel) - 1)} disabled={!s.deferMomentumMech} onChange={e => set("momentumMechLevel", Number(e.target.value))}>{Array.from({ length: (s.calcMode === "forecast" ? 296 : s.targetLevel) - 280 }, (_, index) => index + 280).map(level => <option key={level}>{level}</option>)}</select></label><InputField label="최종 사용일" value={s.momentumMechDeadline} type="date" disabled={!s.deferMomentumMech} onChange={v => set("momentumMechDeadline", v)} /></div>
           <Toggle label="특수 물자 지원 · 4배 쿠폰 몰아쓰기" checked={s.specialSupply} onChange={v => set("specialSupply", v)} />
           <div className="field-grid compact inset supply-input"><InputField label="시작일 보유 · 당일 충전 포함" value={s.specialSupplySaved} min={0} max={5} step={1} disabled={!s.specialSupply} onChange={v => set("specialSupplySaved", Number(v))} /><InputField label="실측 1회 경험치" value={s.specialSupplyExpPerCharge} min={0} step={1} disabled={!s.specialSupply} onChange={v => set("specialSupplyExpPerCharge", Number(v))} /></div>
           <div className="supply-warning"><b>직접 입력</b><p>공식 고정 경험치가 없어 입력값이 없으면 0으로 계산합니다.</p><small>5회 저장 시 입력한 1회 경험치의 5배 적용 · 농장과 달리 임의 추정값을 자동 사용하지 않음</small></div>
@@ -2286,7 +2306,7 @@ export default function Home() {
           <span>{isCalculating ? <>전략 비교 중 · <CalculationSteps />개 확인</> : hasPendingChanges ? "입력값이 변경되었습니다" : "현재 입력값으로 계산 완료"}</span>
           {isCalculating && <div className="calculation-progress" aria-hidden="true"><i /></div>}
           <div className="calculate-actions">
-            <button type="button" onClick={calculate} disabled={!hasPendingChanges || isCalculating}>{isCalculating ? "계산 중…" : hasPendingChanges ? s.targetLevel === 290 ? "9/16 예상 계산하기" : `${s.targetLevel} 도달일 계산하기` : "계산 완료"}</button>
+            <button type="button" onClick={calculate} disabled={!hasPendingChanges || isCalculating}>{isCalculating ? "계산 중…" : hasPendingChanges ? s.calcMode === "forecast" ? "9/16 예상 계산하기" : `${s.targetLevel} 도달일 계산하기` : "계산 완료"}</button>
             {isCalculating && <button type="button" className="cancel-calculation" onClick={cancelCalculation}>계산 취소</button>}
           </div>
           {isCalculating && <small>계산을 짧게 나눠 실행하므로 화면과 스크롤은 계속 사용할 수 있습니다.</small>}
@@ -2294,8 +2314,8 @@ export default function Home() {
       </aside>
 
       <div className="results" aria-busy={isCalculating}>
-        <div className="section-heading"><span>결과</span><div><p>선택한 조건</p><h2>{targetLevel === 290 ? "9/16 종료 예상" : `${targetLevel} 도달 경로`}</h2></div>{isCalculating ? <output className="calculation-status" aria-live="polite">계산 중 · 화면 사용 가능</output> : hasPendingChanges && <output className="calculation-status pending" aria-live="polite">입력값 변경됨</output>}<button className="reset" onClick={resetCalculator}>기본값 복원</button></div>
-        {targetLevel === 290 ? <div className="pull-selector long-range-selector">
+        <div className="section-heading"><span>결과</span><div><p>선택한 조건</p><h2>{forecastMode ? "9/16 종료 예상" : `${targetLevel} 도달 경로`}</h2></div>{isCalculating ? <output className="calculation-status" aria-live="polite">계산 중 · 화면 사용 가능</output> : hasPendingChanges && <output className="calculation-status pending" aria-live="polite">입력값 변경됨</output>}<button className="reset" onClick={resetCalculator}>기본값 복원</button></div>
+        {forecastMode ? <div className="pull-selector long-range-selector">
           <div className="pull-selector-head"><div><span>마감 예측</span><h3>{forecastExclusions.length ? "일부 빼면" : "보상 다 받으면"} {forecastProgress}</h3></div><b className="deadline-ok">2026년 9월 16일</b></div>
           <p>{forecastBasisLabel} · {forecastCostSummary}</p>
         </div> : <><div className="pull-selector">
@@ -2310,7 +2330,7 @@ export default function Home() {
           <div className="strategy-choice-grid">{calc.recommendedPlansByWeek[calc.effectivePullWeeks].map((plan, index) => { const strategy = pullStrategies.find(item => item.id === plan.strategy)!; const active = plan.strategy === calc.selectedPlan.strategy; const recommended = plan.strategy === calc.bestRoiStrategy; return <button key={strategy.id} className={`${active ? "active" : ""} ${recommended ? "recommended" : ""}`} onClick={() => selectCalculatedRoute({ pullStrategy: strategy.id })}><div><span>{recommended ? "추천 · 순손익 최고" : index === 0 ? "메포 최저" : "더 빠른 선택"}</span><i>{active ? "선택됨" : "선택"}</i></div><h4>{strategy.label}</h4><p>{strategy.caption}</p><strong>{shortDate(plan.result.reached)}</strong><dl><div><dt>총액</dt><dd>{formatMP(plan.result.maplePoints)}</dd></div><div><dt>몬파</dt><dd>{formatMP(plan.result.monsterParkMaplePoints)}</dd></div><div><dt>상점</dt><dd>{formatMP(plan.result.shopMaplePoints)}</dd></div></dl><small>{calc.effectivePullWeeks ? shopPurchasePlanLabel(plan.shopBlueCount, plan.shopMechCount) : "0주에서는 농장 미구매"}</small></button>; })}</div>
         </div></>}
         {targetLevel === 285 && <ProgressChart selected={r} sunday={calc.sunday} free={calc.free} targetLevel={targetLevel} />}
-        {targetLevel === 290 ? <div className="route-grid">
+        {forecastMode ? <div className="route-grid">
           <article className="route-card chosen"><div><div className="route-card-label"><span>9/16 예상</span><i>계산 완료</i></div><h3>{calculatedSettings.paidMonsterPark ? "유료 몬파 추가 5판 ON" : "유료 몬파 추가 5판 OFF"}</h3><p>{calculatedSettings.paidMonsterPark ? "매일 7판 · 스페셜 선데이 적용" : "매일 기본 2판만 적용"}</p></div><strong>{forecastProgress}</strong><dl><div><dt>메포 합계</dt><dd>{formatMP(r.maplePoints)}</dd></div><div><dt>프라임</dt><dd>{formatCash(primeCash)}</dd></div></dl></article>
           <article className="route-card free-route"><div><div className="route-card-label"><span>모멘텀 PLUS</span><i>{!calculatedSettings.momentumPass2Enabled ? "참여 OFF" : calculatedSettings.momentumPrime2 ? "프라임 ON" : calculatedSettings.momentumPremium2 ? "프리미엄" : "무료"}</i></div><h3>8/20~9/16</h3><p>{calculatedSettings.momentumPass2Enabled ? `현재 패스 Lv.${calculatedSettings.momentumPass2Level}` : "보상 계산 제외"}</p></div><strong>{calculatedSettings.momentumPass2Enabled && calculatedSettings.momentumPrime2 ? "69,600 캐시" : calculatedSettings.momentumPass2Enabled && calculatedSettings.momentumPremium2 ? "29,800 캐시" : "무료"}</strong><dl><div><dt>일반 보상</dt><dd>{calculatedSettings.momentumPass2Enabled ? "반영" : "제외"}</dd></div><div><dt>프라임</dt><dd>{calculatedSettings.momentumPass2Enabled ? "추가 보상만" : "0"}</dd></div></dl></article>
         </div> : <div className={`route-grid ${calc.effectivePullWeeks === 0 ? "two" : ""}`}>
@@ -2322,7 +2342,7 @@ export default function Home() {
           <div className="decision-top"><div><span>HARD MAYRIN ROI · {calc.effectivePullWeeks ? `0주 대비 · ${selectedStrategy.label}` : "DEADLINE"}</span><h3>{calc.effectivePullWeeks ? `${calc.effectivePullWeeks}주 당김 총손익` : "9월 16일 마감 확보 비용"}</h3></div><strong className={primaryRoiNetValue >= 0 ? "positive" : "negative"}>{primaryRoiNetValue >= 0 ? "+" : ""}{eok(primaryRoiNetValue)} 메소</strong></div>
           <div className="roi-grid"><div><span>{calc.effectivePullWeeks ? "0주 대비 추가 메포" : "추가 메포 0 대비"}</span><b>{formatMP(calc.effectivePullWeeks ? calc.cumulativeMP : calc.marginalMP)}</b><small>{calc.effectivePullWeeks ? `0주 ${formatMP(calc.basePlan.result.maplePoints)} → ${calc.effectivePullWeeks}주 ${formatMP(r.maplePoints)}` : `몬파 ${formatSignedMP(calc.marginalMonsterParkMP)} · 상점 ${formatSignedMP(calc.marginalShopMP)}`}</small></div><div><span>{calc.effectivePullWeeks ? "0주 대비 하드 추가" : "하드 추가 횟수"}</span><b>{primaryRoiHardWeeks}회</b><small>노말→하드 가치 {eok(calc.hardValue)}</small></div><div><span>{calc.effectivePullWeeks ? "0주 대비 누적 회수" : "마감 경로 회수"}</span><b>{eok(primaryRoiRecoveredValue)}</b><small>비용 {eok(calc.effectivePullWeeks ? calc.cumulativeCostValue : calc.marginalCostValue)} · 회수율 {primaryRoiRecoveryRate.toFixed(1)}%</small></div></div>
           {calc.effectivePullWeeks > 0 && <div className="cumulative-roi"><span>직전 {calc.effectivePullWeeks - 1}주 경로 대비</span><b>{calc.marginalMP === 0 ? `직전 ${calc.effectivePullWeeks - 1}주 경로와 같은 비용` : `메포 ${formatSignedMP(calc.marginalMP)}`} · 하드 +{calc.marginalGainedHardWeeks}회 · 단계 손익 <em className={calc.marginalNetValue >= 0 ? "positive" : "negative"}>{calc.marginalNetValue >= 0 ? "+" : ""}{eok(calc.marginalNetValue)}</em></b></div>}
-          <p>{calc.effectivePullWeeks ? `0주 비교 기준부터 선택한 ${calc.effectivePullWeeks}주 경로까지 누적한 비용과 하드 추가 횟수입니다. 직전 단계 증분은 위 보조 줄에서 따로 확인할 수 있습니다.` : `9월 16일 ${targetLevel} 목표를 기준으로 상점 구매 없이 마감을 맞추는 최소 몬파 비용을 표시합니다.`} 하드 메이린 횟수는 {targetLevel === 290 ? "중간 285 도달일" : "285 도달일"} 기준입니다.</p>
+          <p>{calc.effectivePullWeeks ? `0주 비교 기준부터 선택한 ${calc.effectivePullWeeks}주 경로까지 누적한 비용과 하드 추가 횟수입니다. 직전 단계 증분은 위 보조 줄에서 따로 확인할 수 있습니다.` : `9월 16일 ${targetLevel} 목표를 기준으로 상점 구매 없이 마감을 맞추는 최소 몬파 비용을 표시합니다.`} 하드 메이린 횟수는 {forecastMode ? "중간 285 도달일" : "285 도달일"} 기준입니다.</p>
         </div>
         <details className="value-settings"><summary>메이린 가치·환율 수정</summary><div className="field-grid"><InputField label="노말→하드 결정석 차이 · 억" value={s.mayrinMesoGap} step={0.1} onChange={v => set("mayrinMesoGap", Number(v))} /><InputField label="노말 조각 예상량" value={s.mayrinNormalFrag} onChange={v => set("mayrinNormalFrag", Number(v))} /><InputField label="조각 1개 · 만 메소" value={s.fragPrice} step={10} onChange={v => set("fragPrice", Number(v))} /><InputField label="메소 1억당 메포" value={s.mpPerEok} step={100} onChange={v => set("mpPerEok", Number(v))} /></div><Toggle label="9/17 초기화 후 추가 1회 가정" checked={s.postReset} onChange={v => set("postReset", v)} /></details>
         </>}
@@ -2413,14 +2433,14 @@ export default function Home() {
       </div>
     </section>
 
-    {targetLevel === 290 && <section className="rewards-section main-leftovers milestone-leftovers">
+    {forecastMode && <section className="rewards-section main-leftovers milestone-leftovers">
       <div className="section-heading light"><span>285</span><div><p>{shortDate(r.reach285At)} 마일스톤</p><h2>285 도달 시점 남는 보상</h2></div></div>
       <div className="leftover-grid">{milestoneLeftoverRows.map(([label, value]) => <article key={label}><span>{label}</span><strong>{value}</strong></article>)}</div>
       <p className="leftover-note">{r.startLevel >= 285 ? "이미 285 이상에서 시작해 계산 시작일 기준 보유·예정 보상을 표시합니다." : "9/16 예측 중 실제 285 도달일과 당시 패스·이벤트 잔여를 보존합니다."}</p>
     </section>}
 
-    <section className={`rewards-section main-leftovers ${targetLevel === 290 ? "final-leftovers" : ""}`}>
-      <div className="section-heading light"><span>잔여</span><div><p>{targetLevel === 290 ? "9/16 시즌 종료 기준" : r.reached ? `${shortDate(r.reached)} 기준` : `${r.horizonDays}일 계산 종료 기준`}</p><h2>{targetLevel === 290 ? "9/16에 남는 보상" : r.reached ? `${targetLevel} 달성 후 남는 보상` : "계산 종료 시점 남는 보상"}</h2></div></div>
+    <section className={`rewards-section main-leftovers ${forecastMode ? "final-leftovers" : ""}`}>
+      <div className="section-heading light"><span>잔여</span><div><p>{forecastMode ? "9/16 시즌 종료 기준" : r.reached ? `${shortDate(r.reached)} 기준` : `${r.horizonDays}일 계산 종료 기준`}</p><h2>{forecastMode ? "9/16에 남는 보상" : r.reached ? `${targetLevel} 달성 후 남는 보상` : "계산 종료 시점 남는 보상"}</h2></div></div>
       <div className="leftover-grid">{leftoverRows.map(([label, value]) => <article key={label}><span>{label}</span><strong>{value}</strong></article>)}</div>
       <p className="leftover-note">{momentumLeft ? `모멘텀 패스 4주차 보상은 ${targetLevel} 달성 후 수령합니다.` : "모멘텀 패스 4주차 보상까지 사용한 결과입니다."} {calculatedSettings.specialSupply ? calculatedSettings.specialSupplyExpPerCharge > 0 ? `특수 물자는 계산 중 ${r.specialSupplyUsed.toLocaleString("ko-KR")}회 사용했습니다.` : "특수 물자 실측값이 없어 경험치 0으로 계산했습니다." : "특수 물자는 계산에서 제외했습니다."}</p>
     </section>
