@@ -646,6 +646,19 @@ export const momentumClaimedRewards = (level: number, prime: boolean) => {
   return claimed;
 };
 
+// 메카베리는 동렙몹 마릿수가 285와 290에서 뛴다. 그 경계를 넘길 수 있을 때만 모아둘 값어치가 있다.
+// 구간 안에서는 레벨당 1% 남짓이라, 기다리는 동안 진행이 굶어 오히려 도달일이 늦어진다.
+export const MECH_TIER_BOUNDARIES = [285, 290];
+export const mechHoldLevelForTarget = (targetLevel: number) => {
+  const goal = Math.floor(targetLevel);
+  const boundary = MECH_TIER_BOUNDARIES.filter(level => level < goal).pop();
+  return boundary ?? 280;
+};
+// 남은 농장 입장권은 모멘텀 패스 PLUS 것뿐이다. 1차 메카베리는 8/20 오전 2시에 이미 소멸했다.
+// PLUS 보상은 9/16 23:59 수령 · 9/17 오전 2시 사용 마감이라 계산 마지막 날인 9/16이 사용 한계다.
+// 지난 날짜를 두면 모아쓰기가 즉시 풀리므로 기본값을 시즌 종료일에 고정한다.
+export const MOMENTUM_MECH_DEADLINE = "2026-09-16";
+
 const createDefaultSettings = (start = SSR_DEFAULT_START): Settings => {
   const ultimaProgress = ultimaProgressBefore(start);
   const momentumPass1Level = momentumUnlockedLevelOn(parseDate(start), MOMENTUM_PASS_1_START);
@@ -663,7 +676,7 @@ const createDefaultSettings = (start = SSR_DEFAULT_START): Settings => {
   preUseBlue: true, preUseSauna: true, preUseAdv: true, preUsePotion: true,
   preMonsterParkRuns: 2, preSpecialSundayCount: 1, preDailyQuests: true, preWeeklyContent: true,
   preTodayDaily: true, preWeeklyOpen: true,
-  momentumMechLevel: 284, momentumMechDeadline: "2026-08-12", mayrinMesoGap: 3, mayrinNormalFrag: 30,
+  momentumMechLevel: mechHoldLevelForTarget(285), momentumMechDeadline: MOMENTUM_MECH_DEADLINE, mayrinMesoGap: 3, mayrinNormalFrag: 30,
   fragPrice: 640, mpPerEok: 2500, postReset: true, challengerUnclaimed: false, challengerExp: true,
   momentumPrime1: true, momentumPrime2: true, momentumPremium2: true, deferMomentumMech: true,
   dailyCore6Enabled: true, dailyCore6Date: "2026-07-27", mpCore6Enabled: true, mpCore6Date: "2026-07-27", epicCore6Enabled: true, epicCore6Date: "2026-07-27",
@@ -1221,7 +1234,7 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
     : `매일 ${fixedRuns}판`;
   const deferMomentumMech = schedule.deferMomentumMech ?? s.deferMomentumMech;
   const momentumMechLevel = Math.max(280, Math.min(targetLevel - 1, s.momentumMechLevel));
-  const momentumMechDeadline = s.momentumMechDeadline ? parseDate(s.momentumMechDeadline) : parseDate("2026-08-12");
+  const momentumMechDeadline = s.momentumMechDeadline ? parseDate(s.momentumMechDeadline) : parseDate(MOMENTUM_MECH_DEADLINE);
   const rows: Row[] = [];
   const rewardDays = new Map<string, Reward[]>();
 
@@ -1860,7 +1873,12 @@ export default function Home() {
     setS(current => {
       const next = { ...current, [key]: value } as Settings;
       // 현재 레벨을 올리면 목표도 같이 밀어 올린다.
-      if (key === "level" || key === "targetLevel") next.targetLevel = clampTargetLevel(next.targetLevel, next.level);
+      if (key === "level" || key === "targetLevel") {
+        next.targetLevel = clampTargetLevel(next.targetLevel, next.level);
+        if (key === "targetLevel" || current.momentumMechLevel === mechHoldLevelForTarget(current.targetLevel)) {
+          next.momentumMechLevel = mechHoldLevelForTarget(next.targetLevel);
+        }
+      }
       return next;
     });
   };
@@ -2280,7 +2298,7 @@ export default function Home() {
         <details><summary>패스 · 이벤트 설정 <span>12</span></summary><div className="detail-body">
           <div className="quick-toggles"><Toggle label="오늘 일퀘·몬파 미완료" checked={s.todayDaily} onChange={v => set("todayDaily", v)} /><Toggle label="이번 주 챌섭 5레벨 미완료" checked={s.challengerUnclaimed} onChange={v => set("challengerUnclaimed", v)} /></div>
           <div className="field-grid compact inset"><InputField label="스페셜 선데이 몬파 횟수" value={s.specialSundayCount} min={0} max={12} step={1} disabled={!s.paidMonsterPark} onChange={v => set("specialSundayCount", Number(v))} /><InputField label="모멘텀 PLUS 현재 레벨" value={s.momentumPass2Level} min={0} max={10} step={1} disabled={!s.momentumPass2Enabled} onChange={v => set("momentumPass2Level", Number(v))} /></div>
-          <Toggle label="챌린저스 EXP 패스" checked={s.challengerExp} onChange={v => set("challengerExp", v)} /><Toggle label="모멘텀 PLUS 프리미엄 · 29,800 넥슨캐시" checked={s.momentumPremium2 || s.momentumPrime2} disabled={!s.momentumPass2Enabled || s.momentumPrime2} onChange={v => set("momentumPremium2", v)} /><Toggle label="모멘텀 PLUS 프라임 · 39,800 넥슨캐시 (프리미엄 필수)" checked={s.momentumPrime2} disabled={!s.momentumPass2Enabled} onChange={v => { set("momentumPrime2", v); if (v) set("momentumPremium2", true); }} /><Toggle label="모멘텀 메카베리 모아쓰기" checked={s.deferMomentumMech} onChange={v => set("deferMomentumMech", v)} />
+          <Toggle label="챌린저스 EXP 패스" checked={s.challengerExp} onChange={v => set("challengerExp", v)} /><Toggle label="모멘텀 PLUS 프리미엄 · 29,800 넥슨캐시" checked={s.momentumPremium2 || s.momentumPrime2} disabled={!s.momentumPass2Enabled || s.momentumPrime2} onChange={v => set("momentumPremium2", v)} /><Toggle label="모멘텀 PLUS 프라임 · 39,800 넥슨캐시 (프리미엄 필수)" checked={s.momentumPrime2} disabled={!s.momentumPass2Enabled} onChange={v => { set("momentumPrime2", v); if (v) set("momentumPremium2", true); }} /><Toggle label="크림슨 메카베리 모아쓰기" checked={s.deferMomentumMech} onChange={v => set("deferMomentumMech", v)} />
           <div className="callout-mini">이미 받은 패스 보상 중 아직 안 쓴 것만 켜 둡니다. 끄면 그만큼 빠집니다.</div>
           <Toggle label={`받은 메카베리 ${claimedPassRewards.mech}장 보유·예약 중`} checked={claimedRewardToggleChecked(s, "mech")} onChange={v => setS(current => setClaimedRewardToggle(current, "mech", v, claimedPassRewards.mech))} />
           <Toggle label={`받은 크림슨 메카베리 ${claimedPassRewards.crimson}장 보유·예약 중`} checked={claimedRewardToggleChecked(s, "crimson")} onChange={v => setS(current => setClaimedRewardToggle(current, "crimson", v, claimedPassRewards.crimson))} />
@@ -2293,7 +2311,7 @@ export default function Home() {
             <Toggle label="메포샵 블루베리 구매 · 1개 7,000 메포" checked={s.shopBlue} onChange={v => set("shopBlue", v)} />
           </>}
           <div className="callout-mini">8월 19일까지는 기존 모멘텀 패스(1차), 8월 20일부터는 <b>모멘텀 패스 PLUS</b>입니다. PLUS는 무료·프리미엄(29,800)·프라임(39,800) 3단계이고 프라임은 프리미엄을 먼저 사야 합니다. 1차 프라임까지 모두 ON하면 총 119,400 넥슨캐시이며 메포 합계에는 섞지 않습니다.{s.targetLevel === 285 ? " 285 모드의 메포샵 농장은 계산기가 필요할 때만 알아서 넣습니다." : ""}</div>
-          <div className="field-grid compact inset"><label className="field"><span>메카베리 사용 레벨</span><select value={Math.min(s.momentumMechLevel, (s.calcMode === "forecast" ? 296 : s.targetLevel) - 1)} disabled={!s.deferMomentumMech} onChange={e => set("momentumMechLevel", Number(e.target.value))}>{Array.from({ length: (s.calcMode === "forecast" ? 296 : s.targetLevel) - 280 }, (_, index) => index + 280).map(level => <option key={level}>{level}</option>)}</select></label><InputField label="최종 사용일" value={s.momentumMechDeadline} type="date" disabled={!s.deferMomentumMech} onChange={v => set("momentumMechDeadline", v)} /></div>
+          <div className="field-grid compact inset"><label className="field"><span>크림슨 사용 레벨</span><select value={Math.min(s.momentumMechLevel, (s.calcMode === "forecast" ? 296 : s.targetLevel) - 1)} disabled={!s.deferMomentumMech} onChange={e => set("momentumMechLevel", Number(e.target.value))}>{Array.from({ length: (s.calcMode === "forecast" ? 296 : s.targetLevel) - 280 }, (_, index) => index + 280).map(level => <option key={level}>{level}</option>)}</select></label><InputField label="최종 사용일 · PLUS 9/16" value={s.momentumMechDeadline} type="date" disabled={!s.deferMomentumMech} onChange={v => set("momentumMechDeadline", v)} /></div>
           <Toggle label="특수 물자 지원 · 4배 쿠폰 몰아쓰기" checked={s.specialSupply} onChange={v => set("specialSupply", v)} />
           <div className="field-grid compact inset supply-input"><InputField label="시작일 보유 · 당일 충전 포함" value={s.specialSupplySaved} min={0} max={5} step={1} disabled={!s.specialSupply} onChange={v => set("specialSupplySaved", Number(v))} /><InputField label="실측 1회 경험치" value={s.specialSupplyExpPerCharge} min={0} step={1} disabled={!s.specialSupply} onChange={v => set("specialSupplyExpPerCharge", Number(v))} /></div>
           <div className="supply-warning"><b>직접 입력</b><p>공식 고정 경험치가 없어 입력값이 없으면 0으로 계산합니다.</p><small>5회 저장 시 입력한 1회 경험치의 5배 적용 · 농장과 달리 임의 추정값을 자동 사용하지 않음</small></div>

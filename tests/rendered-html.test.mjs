@@ -1821,3 +1821,32 @@ test("keeps the goal above the current level and styles the advice panel for the
   assert.ok(!css.includes(".advice-name span { color: rgba(255"), "흰색 글자를 쓰면 안 된다");
   assert.ok(!css.includes(".advice-flat { color: rgba(255"), "흰색 글자를 쓰면 안 된다");
 });
+
+test("hoards farm tickets only across a mob-count tier boundary", async () => {
+  const pageModule = await importBuiltPage("mech-hold");
+  const page285 = await readFile(new URL("app/page.tsx", root), "utf8");
+
+  // 경계를 넘길 수 있을 때만 모아둔다. 285 목표는 넘길 경계가 없어 즉시 사용.
+  assert.equal(pageModule.mechHoldLevelForTarget(285), 280);
+  assert.equal(pageModule.mechHoldLevelForTarget(288), 285);
+  assert.equal(pageModule.mechHoldLevelForTarget(290), 285);
+  assert.equal(pageModule.mechHoldLevelForTarget(295), 290);
+  assert.deepEqual(pageModule.MECH_TIER_BOUNDARIES, [285, 290]);
+
+  // 사용 마감이 지난 날짜면 모아쓰기가 즉시 풀린다. 시즌 종료일이어야 한다.
+  assert.equal(pageModule.MOMENTUM_MECH_DEADLINE, "2026-09-16");
+  assert.equal(pageModule.createDefaultSettings("2026-08-29").momentumMechDeadline, "2026-09-16");
+
+  // 날짜 입력을 비워도 과거 날짜로 되돌아가면 안 된다. 모아쓰기가 즉시 풀린다.
+  assert.ok(!page285.includes("2026-08-12"), "지난 사용 마감 폴백이 남아 있으면 안 된다");
+  const emptyDeadline = pageModule.simulate({ ...pageModule.createDefaultSettings("2026-08-29"), level: 286, exp: 0, targetLevel: 290, momentumMechLevel: 285, momentumMechDeadline: "" }, { fixedRuns: 0 });
+  const keptDeadline = pageModule.simulate({ ...pageModule.createDefaultSettings("2026-08-29"), level: 286, exp: 0, targetLevel: 290, momentumMechLevel: 285, momentumMechDeadline: "2026-09-16" }, { fixedRuns: 0 });
+  assert.deepEqual(emptyDeadline.leftovers, keptDeadline.leftovers, "빈 날짜가 기본 마감과 같게 동작해야 한다");
+
+  // 구간 안에서 모아두면 도달일이 오히려 늦어진다. 285 목표 기본값이 즉시 사용인 이유다.
+  const base = pageModule.createDefaultSettings("2026-07-27");
+  assert.equal(base.momentumMechLevel, 280);
+  const now = pageModule.runPlanningImmediately(base).basePlan.result;
+  const hoarded = pageModule.runPlanningImmediately({ ...base, momentumMechLevel: 284 }).basePlan.result;
+  assert.ok(now.reached.getTime() <= hoarded.reached.getTime());
+});
