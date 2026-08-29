@@ -1726,3 +1726,29 @@ test("converts held EXP items without mixing raw gain with the Maple Point effic
   assert.match(css, /@media \(max-width: 760px\)[\s\S]*?\.item-conversion-head \{ flex-direction: column/);
   assert.match(css, /@media \(max-width: 430px\)[\s\S]*?\.item-conversion-list article/);
 });
+
+test("advises when to spend each reward and flags the boundary the target blocks", async () => {
+  const pageModule = await importBuiltPage("reward-usage-advice");
+
+  // 285를 목표로 하면 메카베리가 285 구간(마릿수 +33%)에 닿지 못한다.
+  const to285 = pageModule.rewardUsageAdvice(283, 285);
+  const mech285 = to285.find(item => item.type === "mech");
+  assert.equal(mech285.bestLevel, 284);
+  assert.ok(mech285.blockedGainPercent > 40, `막힌 구간 이득 ${mech285.blockedGainPercent}`);
+
+  // 블루베리는 280 이상에서 완전히 고정이라 미룰 이유가 없다.
+  const blue = to285.find(item => item.type === "blue");
+  assert.ok(blue.gainPercent < 0.5);
+  assert.ok(blue.blockedGainPercent < 0.5);
+
+  // 290이 목표면 289까지 모으는 것이 최선이고, 285 경계를 이미 지났다.
+  const to290 = pageModule.rewardUsageAdvice(285, 290);
+  const mech290 = to290.find(item => item.type === "mech");
+  assert.equal(mech290.bestLevel, 289);
+  assert.ok(mech290.gainPercent > 4 && mech290.gainPercent < 6);
+
+  const page = await readFile(new URL("app/page.tsx", root), "utf8");
+  assert.match(page, /보상 사용 조언/);
+  assert.match(page, /언제 쓰는 게 이득인가/);
+  assert.match(page, /지금 써도 손해 없음/);
+});

@@ -498,6 +498,8 @@ export const shopPurchasePairsForAvailableCount = (availableShopItemCount: numbe
 const formatMP = (value: number) => `${Math.round(value).toLocaleString("ko-KR")} 메포`;
 const formatSignedMP = (value: number) => `${value > 0 ? "+" : ""}${formatMP(value)}`;
 const eok = (value: number) => `${(value / 100000000).toLocaleString("ko-KR", { maximumFractionDigits: 2 })}억`;
+// 보상 한 개의 가치는 조 단위가 읽기 쉽다.
+const jo = (value: number) => `${(value / 1000000000000).toLocaleString("ko-KR", { maximumFractionDigits: 2 })}조`;
 export function calculateMayrinRoi({
   selectedMaplePoints,
   baselineMaplePoints,
@@ -877,8 +879,47 @@ export const itemConversionRawExperience = (type: CustomRewardType, level: numbe
   if (!required || !efficiency[level]) return 0;
   if (type === "potion279") return level < 280 ? required : LEGENDARY_GROWTH_POTION_RAW;
   if (type === "adv") return required * efficiency[level].adv100 / 10_000;
+  if (type === "crimson") return level < 280 ? 0 : required * crimsonPercentForLevel(efficiency[level].mech, level) / 100;
   if (type === "mech" && level < 280) return 0;
   return required * efficiency[level][type] / 100;
+};
+
+// 보상 사용 조언. 같은 아이템도 레벨 구간에 따라 실제 획득 경험치가 달라진다.
+// 메카베리는 285에서 동렙몹 마릿수가 33% 늘어 한 장 가치가 50% 뛰고, 블루베리는 280 이상이면 완전히 고정이다.
+export const REWARD_ADVICE_ITEMS: { type: CustomRewardType; label: string; unit: string; perUnit: number }[] = [
+  { type: "mech", label: "메카베리 농장", unit: "1장", perUnit: 1 },
+  { type: "crimson", label: "크림슨 메카베리 농장", unit: "1장", perUnit: 1 },
+  { type: "blue", label: "블루베리 농장", unit: "1장", perUnit: 1 },
+  { type: "adv", label: "상급 EXP 교환권", unit: "1,000장", perUnit: 1000 },
+  { type: "sauna", label: "VIP 사우나", unit: "1시간", perUnit: 1 },
+];
+export type RewardAdvice = { type: CustomRewardType; label: string; unit: string; nowRaw: number; bestLevel: number; bestRaw: number; gainPercent: number; blockedGainPercent: number; blockedLevel: number };
+export const rewardUsageAdvice = (currentLevel: number, targetLevel: number): RewardAdvice[] => {
+  const start = Math.max(EFFICIENCY_LEVEL_MIN, Math.min(EFFICIENCY_LEVEL_MAX, Math.floor(currentLevel)));
+  const lastUsable = Math.max(start, Math.min(EFFICIENCY_LEVEL_MAX, targetLevel - 1));
+  return REWARD_ADVICE_ITEMS.map(item => {
+    const valueAt = (level: number) => itemConversionRawExperience(item.type, level) * item.perUnit;
+    const nowRaw = valueAt(start);
+    let bestLevel = start;
+    let bestRaw = nowRaw;
+    for (let level = start; level <= lastUsable; level += 1) {
+      const value = valueAt(level);
+      if (value > bestRaw * 1.0005) { bestRaw = value; bestLevel = level; }
+    }
+    // 목표를 넘겨야만 닿는 더 좋은 구간이 있으면 따로 알린다. 285를 목표로 하면 메카베리가 여기 걸린다.
+    let blockedRaw = bestRaw;
+    let blockedLevel = bestLevel;
+    for (let level = lastUsable + 1; level <= EFFICIENCY_LEVEL_MAX; level += 1) {
+      const value = valueAt(level);
+      if (value > blockedRaw * 1.0005) { blockedRaw = value; blockedLevel = level; }
+    }
+    return {
+      type: item.type, label: item.label, unit: item.unit, nowRaw, bestLevel, bestRaw,
+      gainPercent: nowRaw > 0 ? (bestRaw / nowRaw - 1) * 100 : 0,
+      blockedGainPercent: bestRaw > 0 ? (blockedRaw / bestRaw - 1) * 100 : 0,
+      blockedLevel,
+    };
+  }).filter(advice => advice.nowRaw > 0);
 };
 
 export const itemConversionPercent = (type: CustomRewardType, level: number, amount = 1) => {
@@ -2023,6 +2064,8 @@ export default function Home() {
     runs: total.runs + row.usage.runs, mech: total.mech + row.usage.mech, crimson: total.crimson + row.usage.crimson, blue: total.blue + row.usage.blue,
     sauna: total.sauna + row.usage.sauna, adv: total.adv + row.usage.adv, potion: total.potion + row.usage.potion,
   }), { runs: 0, mech: 0, crimson: 0, blue: 0, sauna: 0, adv: 0, potion: 0 }), [r]);
+  // 같은 아이템도 레벨 구간에 따라 실제 획득 경험치가 달라진다. 언제 쓰는 게 이득인지 계산한다.
+  const rewardAdvice = useMemo(() => rewardUsageAdvice(calculatedSettings.level, calculatedSettings.targetLevel), [calculatedSettings.level, calculatedSettings.targetLevel]);
   const pendingExcludedSources = normalizeExcludedExperienceSources(s.excludedExperienceSources);
   const calculatedExcludedSources = normalizeExcludedExperienceSources(calculatedSettings.excludedExperienceSources);
   const traceExclusionItems = experienceSourceIds.filter(id => pendingExcludedSources.includes(id) || calculatedExcludedSources.includes(id));
@@ -2283,6 +2326,24 @@ export default function Home() {
         </div>
         <details className="value-settings"><summary>메이린 가치·환율 수정</summary><div className="field-grid"><InputField label="노말→하드 결정석 차이 · 억" value={s.mayrinMesoGap} step={0.1} onChange={v => set("mayrinMesoGap", Number(v))} /><InputField label="노말 조각 예상량" value={s.mayrinNormalFrag} onChange={v => set("mayrinNormalFrag", Number(v))} /><InputField label="조각 1개 · 만 메소" value={s.fragPrice} step={10} onChange={v => set("fragPrice", Number(v))} /><InputField label="메소 1억당 메포" value={s.mpPerEok} step={100} onChange={v => set("mpPerEok", Number(v))} /></div><Toggle label="9/17 초기화 후 추가 1회 가정" checked={s.postReset} onChange={v => set("postReset", v)} /></details>
         </>}
+        <section className="advice-panel">
+          <div className="trace-head">
+            <div><span>보상 사용 조언</span><h3>언제 쓰는 게 이득인가</h3></div>
+            <p>같은 아이템도 레벨 구간마다 실제 획득 경험치가 다릅니다. 현재 Lv.{calculatedSettings.level} · 목표 {calculatedSettings.targetLevel} 기준입니다.</p>
+          </div>
+          <div className="advice-list">
+            {rewardAdvice.map(item => <article key={item.type} className="advice-row">
+              <div className="advice-name"><b>{item.label}</b><span>{item.unit}당 지금 {jo(item.nowRaw)}</span></div>
+              <div className="advice-body">
+                {item.gainPercent > 0.5
+                  ? <b className="advice-gain">Lv.{item.bestLevel}까지 모았다 쓰면 +{item.gainPercent.toFixed(1)}%</b>
+                  : <b className="advice-flat">지금 써도 손해 없음</b>}
+                {item.blockedGainPercent > 0.5 && <span>목표를 넘기면 Lv.{item.blockedLevel}에서 +{item.blockedGainPercent.toFixed(1)}% 더 오릅니다</span>}
+              </div>
+            </article>)}
+          </div>
+          <p className="pre-disclaimer">메카베리는 285에서 동렙몹 마릿수가 33% 늘어 한 장 가치가 약 50% 뜁니다. 285 도달이 목표라면 그 구간에 닿을 수 없으니 284에서 쓰는 것이 최선입니다. 블루베리는 280 이상이면 완전히 고정이라 미룰 이유가 없습니다.</p>
+        </section>
         <section className="trace-panel">
           <div className="trace-head">
             <div><span>계산 근거</span><h3>날짜별 진행</h3></div>
