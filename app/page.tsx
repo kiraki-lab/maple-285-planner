@@ -62,6 +62,7 @@ type Settings = {
   preTodayDaily: boolean;
   preWeeklyOpen: boolean;
   momentumMechLevel: number;
+  mechHoldAuto: boolean;
   momentumMechDeadline: string;
   mayrinMesoGap: number;
   mayrinNormalFrag: number;
@@ -156,6 +157,7 @@ type Simulation = {
   sevenUntil: Date;
   specialSundayCount: number;
   momentumMechLevel: number;
+  mechHoldAuto: boolean;
   momentumMechDeadline: Date;
   dailyDaysApplied: number;
   ultimaCountAtReach: number;
@@ -676,7 +678,7 @@ const createDefaultSettings = (start = SSR_DEFAULT_START): Settings => {
   preUseBlue: true, preUseSauna: true, preUseAdv: true, preUsePotion: true,
   preMonsterParkRuns: 2, preSpecialSundayCount: 1, preDailyQuests: true, preWeeklyContent: true,
   preTodayDaily: true, preWeeklyOpen: true,
-  momentumMechLevel: mechHoldLevelForTarget(285), momentumMechDeadline: MOMENTUM_MECH_DEADLINE, mayrinMesoGap: 3, mayrinNormalFrag: 30,
+  momentumMechLevel: mechHoldLevelForTarget(285), mechHoldAuto: true, momentumMechDeadline: MOMENTUM_MECH_DEADLINE, mayrinMesoGap: 3, mayrinNormalFrag: 30,
   fragPrice: 640, mpPerEok: 2500, postReset: true, challengerUnclaimed: false, challengerExp: true,
   momentumPrime1: true, momentumPrime2: true, momentumPremium2: true, deferMomentumMech: true,
   dailyCore6Enabled: true, dailyCore6Date: "2026-07-27", mpCore6Enabled: true, mpCore6Date: "2026-07-27", epicCore6Enabled: true, epicCore6Date: "2026-07-27",
@@ -1607,17 +1609,45 @@ function mayrinClearWeeks(reached: Date | null) {
   return Math.floor((weekStartThursday(end).getTime() - weekStartThursday(reached).getTime()) / 604800000) + 1;
 }
 
+// 모아쓰기 시점은 두 힘의 줄다리기다. 레벨이 오르면 한 장 가치가 오르지만(레벨당 약 1.2%),
+// 레벨을 일찍 올리면 그 뒤 매일 버는 경험치가 커진다. 285에서 몬파·일퀘가 카르시온으로,
+// 290에서 탈라하트로 바뀌며 일일 수입이 크게 뛰기 때문에 경계가 앞에 있으면 즉시 쓰는 쪽이 이긴다.
+// 공식으로 판단하지 않고 후보를 실제로 돌려 비교한다. 후보가 4개뿐이라 비용은 시뮬레이션 4회다.
+export const MECH_HOLD_CANDIDATES = [280, 285, 290, 295];
+export const pickMechHoldLevel = (settings: Settings) => {
+  const forecastMode = settings.calcMode === "forecast";
+  // simulate 는 사용 레벨을 목표 바로 아래로 자른다. 선택기도 같은 상한을 봐야 고른 값이 그대로 쓰인다.
+  const ceiling = forecastMode ? TARGET_LEVEL_MAX : clampTargetLevel(settings.targetLevel, settings.level) - 1;
+  const candidates = MECH_HOLD_CANDIDATES.map(level => Math.min(level, ceiling)).filter((level, index, list) => list.indexOf(level) === index).filter(level => level === 280 || level > settings.level);
+  let best = candidates[0] ?? 280;
+  let bestReached = Infinity;
+  let bestProgress = -Infinity;
+  for (const level of candidates) {
+    const result = simulate({ ...settings, momentumMechLevel: level, shopMech: false, shopBlue: false }, { fixedRuns: 7 });
+    const lastRow = result.rows[result.rows.length - 1];
+    const progress = lastRow ? lastRow.progress : 0;
+    const reached = forecastMode ? Infinity : result.reached ? result.reached.getTime() : Infinity;
+    // 목표 모드는 도달일이 우선, 같으면 진행도. 예측 모드는 9/16 도달 지점만 본다.
+    if (reached < bestReached || (reached === bestReached && progress > bestProgress)) {
+      best = level; bestReached = reached; bestProgress = progress;
+    }
+  }
+  return best;
+};
+
 function* buildPlanningSteps(settings: Settings): Generator<number, Planning, void> {
   const s = settings;
   const start = parseDate(s.start);
   const deadline = parseDate("2026-09-16");
-  const strategySettings = { ...s, shopMech: false, shopBlue: false };
+  const mechHoldLevel = s.mechHoldAuto ? pickMechHoldLevel(s) : s.momentumMechLevel;
+  const strategySettings = { ...s, shopMech: false, shopBlue: false, momentumMechLevel: mechHoldLevel };
   let completed = 0;
   const sunday = simulate(strategySettings, { sevenUntil: addDays(start, -1) }); yield ++completed;
   const free = simulate(strategySettings, { fixedRuns: 2 }); yield ++completed;
   const allSeven = simulate(strategySettings, { fixedRuns: 7 }); yield ++completed;
   if (s.calcMode === "forecast") {
-    const forecast = simulate(s, { fixedRuns: s.paidMonsterPark ? 7 : 2 }); yield ++completed;
+    // 예측 모드도 자동 선택한 사용 레벨을 쓴다. 메포샵 설정은 예측 모드에서 그대로 살린다.
+    const forecast = simulate({ ...s, momentumMechLevel: mechHoldLevel }, { fixedRuns: s.paidMonsterPark ? 7 : 2 }); yield ++completed;
     const makePlan = (strategy: PullStrategy, result: Simulation): PullPlan => ({
       pullWeeks: 0,
       targetClearWeeks: 0,
@@ -2118,6 +2148,8 @@ export default function Home() {
   }), { runs: 0, mech: 0, crimson: 0, blue: 0, sauna: 0, adv: 0, potion: 0 }), [r]);
   // 같은 아이템도 레벨 구간에 따라 실제 획득 경험치가 달라진다. 언제 쓰는 게 이득인지 계산한다.
   const rewardAdvice = useMemo(() => rewardUsageAdvice(calculatedSettings.level, clampTargetLevel(calculatedSettings.targetLevel, calculatedSettings.level)), [calculatedSettings.level, calculatedSettings.targetLevel]);
+  // 한 장 가치가 아니라 실제 도달 결과로 고른 시점이다.
+  const pickedMechHold = useMemo(() => pickMechHoldLevel(calculatedSettings), [calculatedSettings]);
   const pendingExcludedSources = normalizeExcludedExperienceSources(s.excludedExperienceSources);
   const calculatedExcludedSources = normalizeExcludedExperienceSources(calculatedSettings.excludedExperienceSources);
   const traceExclusionItems = experienceSourceIds.filter(id => pendingExcludedSources.includes(id) || calculatedExcludedSources.includes(id));
@@ -2311,7 +2343,7 @@ export default function Home() {
             <Toggle label="메포샵 블루베리 구매 · 1개 7,000 메포" checked={s.shopBlue} onChange={v => set("shopBlue", v)} />
           </>}
           <div className="callout-mini">8월 19일까지는 기존 모멘텀 패스(1차), 8월 20일부터는 <b>모멘텀 패스 PLUS</b>입니다. PLUS는 무료·프리미엄(29,800)·프라임(39,800) 3단계이고 프라임은 프리미엄을 먼저 사야 합니다. 1차 프라임까지 모두 ON하면 총 119,400 넥슨캐시이며 메포 합계에는 섞지 않습니다.{s.targetLevel === 285 ? " 285 모드의 메포샵 농장은 계산기가 필요할 때만 알아서 넣습니다." : ""}</div>
-          <div className="field-grid compact inset"><label className="field"><span>크림슨 사용 레벨</span><select value={Math.min(s.momentumMechLevel, (s.calcMode === "forecast" ? 296 : s.targetLevel) - 1)} disabled={!s.deferMomentumMech} onChange={e => set("momentumMechLevel", Number(e.target.value))}>{Array.from({ length: (s.calcMode === "forecast" ? 296 : s.targetLevel) - 280 }, (_, index) => index + 280).map(level => <option key={level}>{level}</option>)}</select></label><InputField label="최종 사용일 · PLUS 9/16" value={s.momentumMechDeadline} type="date" disabled={!s.deferMomentumMech} onChange={v => set("momentumMechDeadline", v)} /></div>
+          <div className="field-grid compact inset"><label className="field"><span>크림슨 사용 레벨</span><select value={s.mechHoldAuto ? "auto" : String(Math.min(s.momentumMechLevel, (s.calcMode === "forecast" ? 296 : s.targetLevel) - 1))} disabled={!s.deferMomentumMech} onChange={e => { if (e.target.value === "auto") { set("mechHoldAuto", true); return; } setS(current => ({ ...current, mechHoldAuto: false, momentumMechLevel: Number(e.target.value) })); }}><option value="auto">자동 (계산기가 비교)</option>{Array.from({ length: (s.calcMode === "forecast" ? 296 : s.targetLevel) - 280 }, (_, index) => index + 280).map(level => <option key={level}>{level}</option>)}</select></label><InputField label="최종 사용일 · PLUS 9/16" value={s.momentumMechDeadline} type="date" disabled={!s.deferMomentumMech} onChange={v => set("momentumMechDeadline", v)} /></div>
           <Toggle label="특수 물자 지원 · 4배 쿠폰 몰아쓰기" checked={s.specialSupply} onChange={v => set("specialSupply", v)} />
           <div className="field-grid compact inset supply-input"><InputField label="시작일 보유 · 당일 충전 포함" value={s.specialSupplySaved} min={0} max={5} step={1} disabled={!s.specialSupply} onChange={v => set("specialSupplySaved", Number(v))} /><InputField label="실측 1회 경험치" value={s.specialSupplyExpPerCharge} min={0} step={1} disabled={!s.specialSupply} onChange={v => set("specialSupplyExpPerCharge", Number(v))} /></div>
           <div className="supply-warning"><b>직접 입력</b><p>공식 고정 경험치가 없어 입력값이 없으면 0으로 계산합니다.</p><small>5회 저장 시 입력한 1회 경험치의 5배 적용 · 농장과 달리 임의 추정값을 자동 사용하지 않음</small></div>
@@ -2396,7 +2428,8 @@ export default function Home() {
               </div>
             </article>)}
           </div>
-          <p className="pre-disclaimer">메카베리는 285에서 동렙몹 마릿수가 33% 늘어 한 장 가치가 약 50% 뜁니다. 285 도달이 목표라면 그 구간에 닿을 수 없으니 284에서 쓰는 것이 최선입니다. 블루베리는 280 이상이면 완전히 고정이라 미룰 이유가 없습니다.</p>
+          <div className="advice-verdict"><b>{pickedMechHold === 280 ? "크림슨은 지금 쓰는 것이 낫습니다" : `크림슨은 Lv.${pickedMechHold}까지 모았다 쓰는 것이 낫습니다`}</b><span>후보 시점을 실제로 돌려 도달 결과가 가장 좋은 쪽을 고른 값입니다. 위의 한 장 가치와 다를 수 있습니다.</span></div>
+          <p className="pre-disclaimer">위 수치는 한 장의 가치만 비교한 것입니다. 실제로는 레벨을 일찍 올릴수록 그 뒤 매일 버는 경험치가 커지고, 285에서 몬파·일퀘가 카르시온으로 290에서 탈라하트로 바뀌며 일일 수입이 크게 뜁니다. 그래서 경계가 앞에 있으면 모으는 것보다 지금 쓰는 편이 낫습니다. 블루베리는 280 이상이면 완전히 고정이라 미룰 이유가 없습니다.</p>
         </section>
         <section className="trace-panel">
           <div className="trace-head">

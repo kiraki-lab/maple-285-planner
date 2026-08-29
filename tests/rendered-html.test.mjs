@@ -1113,7 +1113,7 @@ test("forecasts the final level and EXP at the September 16 deadline", async () 
 
   assert.equal(planning.basePlan.result.rows.at(-1).key, "2026-09-16");
   assert.equal(planning.basePlan.result.finalLevel, 287);
-  assert.ok(Math.abs(planning.basePlan.result.finalExp - 78.74318796397988) < 1e-10);
+  assert.ok(Math.abs(planning.basePlan.result.finalExp - 79.0810668415963) < 1e-10);
   assert.equal(planning.basePlan.result.monsterParkMaplePoints, 0);
   assert.equal(planning.basePlan.result.reached, null);
   assert.equal(planning.basePlan.result.endReason, "horizon");
@@ -1849,4 +1849,39 @@ test("hoards farm tickets only across a mob-count tier boundary", async () => {
   const now = pageModule.runPlanningImmediately(base).basePlan.result;
   const hoarded = pageModule.runPlanningImmediately({ ...base, momentumMechLevel: 284 }).basePlan.result;
   assert.ok(now.reached.getTime() <= hoarded.reached.getTime());
+});
+
+test("picks the hoarding moment by running candidates instead of a formula", async () => {
+  const pageModule = await importBuiltPage("mech-hold-auto");
+  const at = (level, exp, calcMode) => ({ ...pageModule.createDefaultSettings("2026-08-30"), level, exp, calcMode, targetLevel: Math.min(295, level + 1), ownedCrimson: 17 });
+
+  // 285·290 경계가 앞에 있으면 즉시 쓰는 쪽이 낫다. 레벨을 일찍 올려야 일일 수입이 뛴다.
+  assert.equal(pageModule.pickMechHoldLevel(at(283, 0, "forecast")), 280);
+  assert.equal(pageModule.pickMechHoldLevel(at(288, 50, "forecast")), 280);
+
+  // 경계 사이에 갇혀 있으면 모으는 쪽이 낫다.
+  assert.ok(pageModule.pickMechHoldLevel(at(286, 74, "forecast")) > 280);
+
+  // 실제로 그 선택이 더 멀리 간다는 것까지 확인한다.
+  const far = hold => { const r = pageModule.simulate({ ...at(286, 74, "forecast"), momentumMechLevel: hold }, { fixedRuns: 7 }); return r.finalLevel + r.finalExp / 100; };
+  assert.ok(far(290) > far(280), `모으는 쪽이 더 멀리 가야 한다 ${far(290)} vs ${far(280)}`);
+  const farLow = hold => { const r = pageModule.simulate({ ...at(283, 0, "forecast"), momentumMechLevel: hold }, { fixedRuns: 7 }); return r.finalLevel + r.finalExp / 100; };
+  assert.ok(farLow(280) > farLow(285), `285 아래에서는 즉시가 더 멀리 가야 한다 ${farLow(280)} vs ${farLow(285)}`);
+
+  // 후보는 경계와 즉시 사용뿐이라 비용이 시뮬레이션 몇 회로 끝난다.
+  assert.deepEqual(pageModule.MECH_HOLD_CANDIDATES, [280, 285, 290, 295]);
+  const settings = pageModule.createDefaultSettings("2026-08-30");
+  const started = performance.now();
+  pageModule.runPlanningImmediately(settings);
+  const elapsed = performance.now() - started;
+  assert.ok(elapsed < 2_000, `자동 선택 포함 계획 계산이 ${elapsed.toFixed(1)}ms`);
+  assert.equal(settings.mechHoldAuto, true);
+
+  // 고른 값이 실제 계획에 쓰여야 한다. 예측 모드가 선택값을 버린 적이 있다.
+  for (const mode of ["target", "forecast"]) {
+    const probe = { ...at(286, 74, mode), targetLevel: 290 };
+    const picked = pageModule.pickMechHoldLevel(probe);
+    const plan = pageModule.runPlanningImmediately(probe).basePlan.result;
+    assert.equal(plan.momentumMechLevel, picked, `${mode} 모드가 선택값을 버렸다`);
+  }
 });

@@ -701,3 +701,7 @@ footer p { margin: 0; color: #65636c; font-size: 12px; text-align: center; }
 .advice-body span { color: #6c5cb2; font-size: 12px; }
 .advice-panel .pre-disclaimer { color: #4f4b58; font-size: 12px; }
 @media (max-width: 760px) { .advice-row { grid-template-columns: 1fr; } .advice-body { text-align: left; } .advice-panel { padding: 16px 14px 12px; } }
+
+.advice-verdict { margin: 12px 0 4px; padding: 11px 13px; display: flex; flex-direction: column; gap: 4px; border: 1px solid #cbbdf0; border-radius: 12px; background: #f3effd; }
+.advice-verdict b { color: #3d2f78; font-size: 13px; }
+.advice-verdict span { color: #5b5470; font-size: 12px; line-height: 1.6; }
