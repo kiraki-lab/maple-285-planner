@@ -1899,3 +1899,49 @@ test("picks the hoarding moment by running candidates instead of a formula", asy
     assert.equal(plan.momentumMechLevel, picked, `${mode} 모드가 선택값을 버렸다`);
   }
 });
+
+test("shows how far 9/16 reaches while planning a goal, with the same number both modes give", async () => {
+  const pageModule = await importBuiltPage("season-ceiling");
+  const source = await readFile(new URL("app/page.tsx", root), "utf8");
+  const at = (level, exp, calcMode, targetLevel) => ({
+    ...pageModule.createDefaultSettings("2026-08-30"),
+    level, exp, calcMode, targetLevel,
+  });
+
+  // 목표 모드에서 알려 주는 한계가 예측 모드의 결과와 같아야 한다.
+  // 다르면 모드를 바꿀 때마다 숫자가 흔들려 어느 쪽을 믿을지 알 수 없다.
+  for (const [level, exp] of [[286, 74], [286, 0], [283, 50], [290, 10]]) {
+    const target = pageModule.runPlanningImmediately(at(level, exp, "target", 295));
+    const forecast = pageModule.runPlanningImmediately(at(level, exp, "forecast", 295));
+    assert.equal(target.seasonCeiling.level, forecast.seasonCeiling.level, `Lv.${level} ${exp}% 한계 레벨이 모드마다 다르다`);
+    assert.ok(Math.abs(target.seasonCeiling.exp - forecast.seasonCeiling.exp) < 0.05, `Lv.${level} ${exp}% 한계 경험치가 모드마다 다르다`);
+    assert.equal(forecast.seasonCeiling.level, forecast.basePlan.result.finalLevel);
+  }
+
+  // 한계는 목표를 바꿔도 흔들리지 않아야 한다. 목표에 맞춰 줄어들면 더 갈 수 있다는 사실이 가려진다.
+  const ceilings = [287, 290, 295].map(goal => pageModule.runPlanningImmediately(at(286, 74, "target", goal)).seasonCeiling.level);
+  assert.equal(new Set(ceilings).size, 1, `목표에 따라 한계가 달라졌다 ${ceilings.join(",")}`);
+
+  // Lv.286 74%는 9/16까지 288에 닿는다. 목표 기본값 287만 보고 288을 포기하던 사례다.
+  const ceiling = pageModule.runPlanningImmediately(at(286, 74, "target", 287)).seasonCeiling;
+  assert.equal(ceiling.level, 288);
+  assert.equal(pageModule.clampTargetLevel(285, 286), 287);
+  assert.ok(ceiling.level > pageModule.clampTargetLevel(285, 286), "기본 목표보다 위를 알려 줘야 의미가 있다");
+
+  // 화면에 실제로 나와야 한다. 한계 위 목표는 고르기 전에 표시하고, 한 번에 맞추는 길을 준다.
+  assert.match(source, /9\/16까지 Lv\.\$\{planning\.seasonCeiling\.level\}/);
+  assert.match(source, /level > ceilingLevel \? " · 달성 불가"/);
+  assert.match(source, /goal-snap/);
+  assert.match(source, /goalBelowCeiling/);
+  // 입력을 고치고 재계산 전이면 옛 한계로 옵션을 표시하면 안 된다. TARGET_LEVEL_MAX 로 올려 아무 것도 막지 않는다.
+  assert.match(source, /const ceilingKnown = !hasPendingChanges;/);
+  assert.match(source, /const ceilingLevel = ceilingKnown \? planning\.seasonCeiling\.level : TARGET_LEVEL_MAX;/);
+  assert.ok(!/hasPendingChanges\s*\?\s*"계산하면/.test(source), "안내 문구만 막고 옵션 표시를 남기면 안 된다");
+  const css = await readFile(new URL("app/globals.css", root), "utf8");
+  assert.match(css, /\.goal-snap/);
+
+  // 한계 계산을 얹어도 계산이 느려지면 안 된다.
+  const started = performance.now();
+  pageModule.runPlanningImmediately(at(286, 74, "target", 295));
+  assert.ok(performance.now() - started < 2_000, "한계 계산을 얹은 뒤 계획 계산이 2초를 넘었다");
+});

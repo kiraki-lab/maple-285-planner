@@ -178,6 +178,8 @@ type Planning = {
   recommendedPlansByWeek: PullPlan[][];
   bestPlansByWeek: PullPlan[];
   basePlan: PullPlan;
+  // 9/16까지 실제로 닿는 지점. 목표 모드에서도 예측 모드와 같은 기준으로 계산해 목표 선택을 돕는다.
+  seasonCeiling: { level: number; exp: number };
   maxPullWeeks: number;
   deadline: Date;
 };
@@ -1674,7 +1676,7 @@ function* buildPlanningSteps(settings: Settings): Generator<number, Planning, vo
       both: [{ ...basePlan, strategy: "both" }],
     };
     const recommendedPlansByWeek = [[basePlan]];
-    return { sunday, free, allSeven, strategyPlans, recommendedPlansByWeek, bestPlansByWeek: [basePlan], basePlan, maxPullWeeks: 0, deadline };
+    return { sunday, free, allSeven, strategyPlans, recommendedPlansByWeek, bestPlansByWeek: [basePlan], basePlan, maxPullWeeks: 0, deadline, seasonCeiling: { level: forecast.finalLevel, exp: forecast.finalExp } };
   }
   const availableShopWeekCount = availableShopWeeksForStart(start).length;
   const availableShopItemCount = availableShopWeekCount * SHOP_WEEKLY_ITEM_LIMIT;
@@ -1767,7 +1769,11 @@ function* buildPlanningSteps(settings: Settings): Generator<number, Planning, vo
     });
   });
   const bestPlansByWeek = recommendedPlansByWeek.map((plans, pullWeeks) => strategyPlans.monsterPark[pullWeeks]?.feasible ? strategyPlans.monsterPark[pullWeeks] : plans[0] || strategyPlans.monsterPark[pullWeeks]);
-  return { sunday, free, allSeven, strategyPlans, recommendedPlansByWeek, bestPlansByWeek, basePlan, maxPullWeeks, deadline };
+  // 목표 모드에서도 9/16 한계를 같이 알려준다. 예측 모드와 같은 호출이라 두 화면의 숫자가 어긋나지 않는다.
+  const ceilingSettings = { ...s, calcMode: "forecast" as const };
+  const ceilingHoldLevel = s.mechHoldAuto ? pickMechHoldLevel(ceilingSettings) : s.momentumMechLevel;
+  const ceilingRun = simulate({ ...ceilingSettings, momentumMechLevel: ceilingHoldLevel }, { fixedRuns: s.paidMonsterPark ? 7 : 2 }); yield ++completed;
+  return { sunday, free, allSeven, strategyPlans, recommendedPlansByWeek, bestPlansByWeek, basePlan, maxPullWeeks, deadline, seasonCeiling: { level: ceilingRun.finalLevel, exp: ceilingRun.finalExp } };
 }
 
 function runPlanningImmediately(settings: Settings): Planning {
@@ -2111,6 +2117,14 @@ export default function Home() {
   const r = calc.selected;
   const targetLevel = calculatedSettings.targetLevel;
   const forecastMode = calculatedSettings.calcMode === "forecast";
+  // 9/16까지 실제로 닿는 곳을 목표 드롭다운 옆에 붙여 준다. 모드를 바꾸거나 하나씩 눌러 볼 필요가 없다.
+  // 입력을 고치고 아직 계산하지 않았으면 옛 한계다. 그 상태에서는 아무 것도 단정하지 않는다.
+  const ceilingKnown = !hasPendingChanges;
+  const ceilingLevel = ceilingKnown ? planning.seasonCeiling.level : TARGET_LEVEL_MAX;
+  const goalBelowCeiling = ceilingKnown && s.calcMode === "target" && clampTargetLevel(s.targetLevel, s.level) < ceilingLevel;
+  const ceilingLabel = ceilingKnown
+    ? `9/16까지 Lv.${planning.seasonCeiling.level} ${planning.seasonCeiling.exp.toFixed(1)}%`
+    : "계산하면 9/16까지 어디까지 가는지 표시합니다.";
   const pullDays = r.reached && calc.basePlan.result.reached ? Math.max(0, Math.round((calc.basePlan.result.reached.getTime() - r.reached.getTime()) / 86400000)) : 0;
   const recommendedPrefix = r.sevenUntil < r.start ? "평일 2판 · 일요일 7판" : `${shortDate(r.sevenUntil)}까지만 평일 7판`;
   const selectedStrategy = pullStrategies.find(strategy => strategy.id === calc.selectedPlan.strategy) || pullStrategies[0];
@@ -2307,7 +2321,7 @@ export default function Home() {
       <aside className="controls">
         <div className="section-heading"><span>입력</span><div><p>현재 캐릭터</p><h2>{s.targetLevel} 계산 조건</h2></div></div>
         <div className="field-grid compact">
-          <label className="field"><span>계산 모드</span><select value={s.calcMode} onChange={e => set("calcMode", e.target.value as "target" | "forecast")}><option value="target">목표 레벨 도달일</option><option value="forecast">9/16 종료 예상</option></select></label><label className="field"><span>목표 레벨</span><select value={clampTargetLevel(s.targetLevel, s.level)} disabled={s.calcMode === "forecast"} onChange={e => set("targetLevel", Number(e.target.value))}>{Array.from({ length: TARGET_LEVEL_MAX - TARGET_LEVEL_MIN + 1 }, (_, index) => index + TARGET_LEVEL_MIN).filter(level => level > s.level).map(level => <option key={level}>{level}</option>)}</select></label>
+          <label className="field"><span>계산 모드</span><select value={s.calcMode} onChange={e => set("calcMode", e.target.value as "target" | "forecast")}><option value="target">목표 레벨 도달일</option><option value="forecast">9/16 종료 예상</option></select></label><label className="field goal-field"><span>목표 레벨</span><select value={clampTargetLevel(s.targetLevel, s.level)} disabled={s.calcMode === "forecast"} onChange={e => set("targetLevel", Number(e.target.value))}>{Array.from({ length: TARGET_LEVEL_MAX - TARGET_LEVEL_MIN + 1 }, (_, index) => index + TARGET_LEVEL_MIN).filter(level => level > s.level).map(level => <option key={level} value={level}>{level}{level > ceilingLevel ? " · 달성 불가" : ""}</option>)}</select><small className="goal-hint">{ceilingLabel}{goalBelowCeiling ? <button type="button" className="goal-snap" onClick={() => set("targetLevel", ceilingLevel)}>{ceilingLevel}로 맞추기</button> : null}</small></label>
           <label className="field"><span>현재 레벨</span><select value={Math.min(s.level, TARGET_LEVEL_MAX - 1)} onChange={e => set("level", Number(e.target.value))}>{Array.from({ length: TARGET_LEVEL_MAX - 280 }, (_, index) => index + 280).map(level => <option key={level}>{level}</option>)}</select></label>
           <InputField label="현재 경험치 %" value={s.exp} min={0} max={99.999} step={0.001} onChange={v => set("exp", Number(v))} />
           <InputField label="계산 시작일" value={s.start} type="date" onChange={v => set("start", v)} />
