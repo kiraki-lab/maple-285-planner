@@ -715,3 +715,6 @@ footer p { margin: 0; color: #65636c; font-size: 12px; text-align: center; }
 .goal-hint { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: -1px; color: #6b6478; font-size: 11px; font-weight: 700; letter-spacing: -.01em; }
 .goal-snap { padding: 2px 8px; border: 1px solid var(--purple); border-radius: 999px; color: var(--purple); background: white; font-size: 11px; font-weight: 800; cursor: pointer; }
 .goal-snap:hover { color: white; background: var(--purple); }
+.current-inventory { margin: 20px 0; padding: 18px; border: 1px solid #7357ff; border-radius: 14px; background: #f7f5ff; }
+.current-inventory h3 { margin: 0 0 8px; font-size: 18px; color: #242633; }
+.current-inventory p { margin: 0 0 14px; font-size: 14px; line-height: 1.6; color: #454052; }

@@ -267,7 +267,7 @@ const shortDate = (date: Date | null) => { if (!date) return "미도달"; const 
 const longDate = (date: Date | null) => { if (!date) return "계산 범위 내 미도달"; const value = kstView(date); return `${value.getUTCMonth() + 1}월 ${value.getUTCDate()}일`; };
 const addDays = (date: Date, days: number) => new Date(date.getTime() + days * 86400000);
 const dayOfWeek = (date: Date) => kstView(date).getUTCDay();
-const customRewardTypes: CustomRewardType[] = ["adv", "mech", "blue", "sauna", "potion279"];
+const customRewardTypes: CustomRewardType[] = ["adv", "crimson", "mech", "blue", "sauna", "potion279"];
 const CUSTOM_REWARD_META: Record<CustomRewardType, { label: string; unit: string; ownedField: "ownedAdv" | "ownedMech" | "ownedCrimson" | "ownedBlue" | "ownedSauna" | "ownedPotion279"; step: number; extraDefault: number }> = {
   adv: { label: "상급 EXP 쿠폰", unit: "장", ownedField: "ownedAdv", step: 1, extraDefault: 1000 },
   mech: { label: "메카베리", unit: "개", ownedField: "ownedMech", step: 1, extraDefault: 1 },
@@ -544,7 +544,7 @@ export function calculateMayrinRoi({
     marginal: compare(previousMaplePoints, previousHardWeeks),
   };
 }
-const localDateInputValue = (date = new Date()) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+const localDateInputValue = (date = new Date()) => iso(date);
 const ultimaProgressBefore = (start: string) => {
   const target = parseDate(start);
   let date = parseDate(ULTIMA_ATTENDANCE_START);
@@ -664,6 +664,7 @@ export const mechHoldLevelForTarget = (targetLevel: number) => {
 export const MOMENTUM_MECH_DEADLINE = "2026-09-16";
 
 const createDefaultSettings = (start = SSR_DEFAULT_START): Settings => {
+  const manualInventoryDefault = start >= "2026-09-14";
   const ultimaProgress = ultimaProgressBefore(start);
   const momentumPass1Level = momentumUnlockedLevelOn(parseDate(start), MOMENTUM_PASS_1_START);
   const momentumPass2Level = momentumPlusUnlockedLevel(Math.floor((parseDate(start).getTime() - parseDate(MOMENTUM_PASS_2_START).getTime()) / (7 * 86400000)));
@@ -692,9 +693,9 @@ const createDefaultSettings = (start = SSR_DEFAULT_START): Settings => {
   core25Bonus: 10, epicArtifactDate: "2026-08-13", epicArtifact: 180, epicCore6: 40,
   epicCore6Artifact: 190, ownedBlue: 0, ownedPotion279: 0,
   ownedMech: 0,
-  ownedCrimson: claimed2.crimson,
-  ownedSauna: claimed2.sauna,
-  ownedAdv: claimed2.adv,
+  ownedCrimson: manualInventoryDefault ? 0 : claimed2.crimson,
+  ownedSauna: manualInventoryDefault ? 0 : claimed2.sauna,
+  ownedAdv: manualInventoryDefault ? 0 : claimed2.adv,
   customRewards: [],
   excludedExperienceSources: [],
   });
@@ -902,8 +903,8 @@ const ITEM_CONVERSION_LEVEL_MIN = 260;
 const ITEM_CONVERSION_LEVEL_MAX = 295;
 const ITEM_CONVERSION_UPPER_BOUND = ITEM_CONVERSION_LEVEL_MAX + 1;
 const LEGENDARY_GROWTH_POTION_RAW = LEVEL_280_REQUIRED_EXP * 0.49505;
-const itemConversionOrder: CustomRewardType[] = ["blue", "mech", "sauna", "potion279", "adv"];
-const emptyItemConversionInventory = (): ItemConversionInventory => ({ adv: 0, mech: 0, blue: 0, sauna: 0, potion279: 0 });
+const itemConversionOrder: CustomRewardType[] = ["blue", "mech", "crimson", "sauna", "potion279", "adv"];
+const emptyItemConversionInventory = (): ItemConversionInventory => ({ adv: 0, mech: 0, crimson: 0, blue: 0, sauna: 0, potion279: 0 });
 
 export const itemConversionRequiredExperience = (level: number) => {
   if (level >= 280) return Number(REQUIRED_EXP[level] || 0n);
@@ -1219,7 +1220,8 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
   const forecastMode = s.calcMode === "forecast";
   const forecastEnd = parseDate("2026-09-16");
   const targetLevel = forecastMode ? 296 : clampTargetLevel(s.targetLevel, s.level);
-  const horizonDays = forecastMode ? Math.max(0, Math.floor((forecastEnd.getTime() - start.getTime()) / 86400000) + 1) : 120;
+  // Challenger growth ends with the season; never project recurring rewards beyond it.
+  const horizonDays = Math.max(0, Math.min(120, Math.floor((forecastEnd.getTime() - start.getTime()) / 86400000) + 1));
   let level = Math.max(280, Math.min(targetLevel - 1, s.level));
   let xp = req(level) * Math.max(0, Math.min(99.999, s.exp)) / 100;
   const carcionActive = (date: Date, currentLevel = level) => carcionContentActive(date, s.start, currentLevel);
@@ -1304,7 +1306,9 @@ function simulate(s: Settings, schedule: { sevenUntil?: Date; fixedRuns?: number
     }
   };
   if (s.momentumPass1Enabled) scheduleMomentumSeason(1, s.momentumPass1Level, s.momentumPrime1, MOMENTUM_PASS_1_START, MOMENTUM_PASS_1_END);
-  if (s.momentumPass2Enabled) scheduleMomentumSeason(2, s.momentumPass2Level, s.momentumPrime2, MOMENTUM_PASS_2_START, MOMENTUM_PASS_2_END, s.momentumPrime2 ? "prime" : s.momentumPremium2 ? "premium" : "free");
+  // In the final week, unclaimed rewards must be entered explicitly: elapsed weeks
+  // do not prove that missions were completed or paid catch-up points purchased.
+  if (s.momentumPass2Enabled && s.start < "2026-09-14") scheduleMomentumSeason(2, s.momentumPass2Level, s.momentumPrime2, MOMENTUM_PASS_2_START, MOMENTUM_PASS_2_END, s.momentumPrime2 ? "prime" : s.momentumPremium2 ? "premium" : "free");
   if (s.shardEvent && s.shardDate) {
     const shardRewardDate = parseDate(s.shardDate);
     if (shardRewardDate >= start) addReward(shardRewardDate, { label: "울티마 스쿼드 상점 EXP 5,000장 (예상)", adv: s.shardAdv });
@@ -2188,6 +2192,7 @@ export default function Home() {
     : [];
   const itemConversionExp = Math.max(0, Math.min(99.999, Number(itemConversionExpInput) || 0));
   const itemConversionInventory: ItemConversionInventory = {
+    crimson: currentInventoryTotal(s, "crimson"),
     adv: currentInventoryTotal(s, "adv"),
     mech: currentInventoryTotal(s, "mech"),
     blue: currentInventoryTotal(s, "blue"),
@@ -2197,6 +2202,7 @@ export default function Home() {
   const itemConversionResult = simulateItemInventoryConversion({ level: efficiencyLevel, exp: itemConversionExp, inventory: itemConversionInventory });
   const itemConversionGain = (itemConversionResult.level - itemConversionResult.startLevel) * 100 + itemConversionResult.exp - itemConversionResult.startExp;
   const itemConversionRows = [
+    { type: "crimson" as const, mark: "CR", iconSrc: "", label: "크림슨 메카베리 농장", amount: itemConversionInventory.crimson, unit: "개", sampleAmount: 1, sampleUnit: "1개" },
     { type: "mech" as const, mark: "ME", iconSrc: "/efficiency-icons/mekaberry.png", label: "메카베리 농장", amount: itemConversionInventory.mech, unit: "개", sampleAmount: 1, sampleUnit: "1개" },
     { type: "blue" as const, mark: "BL", iconSrc: "/efficiency-icons/blueberry.png", label: "블루베리 농장", amount: itemConversionInventory.blue, unit: "개", sampleAmount: 1, sampleUnit: "1개" },
     { type: "potion279" as const, mark: "비약", iconSrc: "", label: "전설 성장의 비약", amount: itemConversionInventory.potion279, unit: "개", sampleAmount: 1, sampleUnit: "1개" },
@@ -2242,6 +2248,7 @@ export default function Home() {
       <div className="eyebrow"><span /> CHALLENGERS {targetLevel} CALCULATOR</div>
       <h1>{forecastMode ? "9월 16일, 어디까지 갈까?" : `${targetLevel}, 언제 찍을까?`}</h1>
       <p>{forecastMode ? "받을 수 있는 보상을 전부 받는 것이 기준입니다. 안 받을 것만 끄면 그만큼 빠집니다." : `현재 레벨과 보유 보상을 입력하면 ${targetLevel} 달성일, 필요한 몬파 횟수와 메포를 계산합니다.`}</p>
+      <div className="callout-mini" role="status">{s.start > "2026-09-16" ? "챌섭 육성 계산은 9/16까지입니다. 지난 날짜로 계산하거나 경험치 효율 탭에서 보유 아이템을 환산하세요. 본섭 성장 일정은 아직 포함하지 않습니다." : "9/16까지 남은 기간만 계산합니다. 이미 쓴 보상은 제외하고, 아래에 실제 남은 수량을 입력하세요. 이번 주 익몬·악몽선경을 받았다면 미완료 설정을 꺼 주세요."}</div>
       <div className="hero-grid">
         {forecastMode ? <>
           <article className="hero-card primary"><div className="card-label">9/16 시즌 종료 예상</div><strong>{forecastProgress}</strong><span>{forecastBasisLabel}</span><div className="card-meta"><b>{formatMP(r.maplePoints)}</b><em>몬파·메포샵 합계</em></div></article>
@@ -2332,6 +2339,11 @@ export default function Home() {
           <QuickChoice label="추가 몬파" checked={s.paidMonsterPark} onChange={v => set("paidMonsterPark", v)} />
           <QuickChoice label="코어 6레벨 일괄" checked={core6MasterEnabled} onChange={setCore6Master} />
         </div>
+        <section className="current-inventory" aria-label="실제 남은 보상">
+          <h3>실제 남은 보상</h3>
+          <p>패스에서 이미 받은 것까지 합쳐 입력하세요. 사용한 보상은 넣지 않습니다. {s.start >= "2026-09-14" && "마지막 주 PLUS 미수령 보상은 자동 지급하지 않습니다. 실제 받을 수 있는 수량만 여기에 더해 주세요. PLUS 토글을 꺼도 직접 입력한 보유분은 유지됩니다."}</p>
+          <div className="field-grid compact">{customRewardTypes.map(type => <InputField key={type} label={`${CUSTOM_REWARD_META[type].label} (${CUSTOM_REWARD_META[type].unit})`} value={currentInventoryTotal(s, type)} min={0} step={CUSTOM_REWARD_META[type].step} onChange={v => setS(current => overwriteInventoryAmount(current, type, Number(v)))} />)}</div>
+        </section>
         <section className={`custom-reward-scheduler ${manualInventoryOpen ? "open" : ""}`} aria-labelledby="manual-inventory-title">
           <div className="custom-reward-head">
             <div><span>보유량 수정</span><b id="manual-inventory-title">현재 보상 수동 입력</b><small>상급 EXP처럼 실제로 남은 수량이 다르면 바로 고칩니다.</small></div>

@@ -16,6 +16,21 @@ import {
 
 const root = new URL("../", import.meta.url);
 
+test("final-week inputs do not invent held PLUS rewards or grow beyond season end", async () => {
+  const page = await importBuiltPage("final-week");
+  const settings = page.createDefaultSettings("2026-09-14");
+  assert.equal(settings.ownedCrimson, 0);
+  assert.equal(settings.ownedAdv, 0);
+  const result = page.simulate({ ...settings, momentumPass2Level: 0 });
+  assert.ok(result.rows.every(row => row.key <= "2026-09-16"));
+  assert.ok(result.rows.every(row => row.events.every(event => !event.startsWith("모멘텀 PLUS"))));
+  assert.equal(page.simulate({ ...settings, start: "2026-09-17" }).rows.length, 0);
+  const manual = page.overwriteInventoryAmount(settings, "crimson", 3);
+  assert.equal(page.currentInventoryTotal(manual, "crimson"), 3);
+  assert.equal(page.normalizeCustomRewards([{ id: "crimson", type: "crimson", amount: 3, useDate: "2026-09-14", origin: "extra" }]).length, 1);
+  assert.equal(page.localDateInputValue(new Date("2026-09-14T16:00:00Z")), "2026-09-15");
+});
+
 const importBuiltPage = async tag => {
   const manifest = JSON.parse(await readFile(new URL("dist/client/.vite/manifest.json", root), "utf8"));
   const pageModuleUrl = new URL(`dist/client/${manifest["app/page.tsx"].file}`, root);
@@ -206,7 +221,7 @@ test("keeps verified calculator constants visible in source", async () => {
   assert.match(page, /const momentumPass1Level = momentumUnlockedLevelOn\(parseDate\(start\), MOMENTUM_PASS_1_START\)/);
   assert.match(page, /const momentumPass2Level = momentumPlusUnlockedLevel/);
   // 이미 받은 패스 보상은 아직 손에 있는 것으로 본다
-  assert.match(page, /ownedCrimson: claimed2.crimson/);
+  assert.match(page, /ownedCrimson: manualInventoryDefault \? 0 : claimed2.crimson/);
   // 1차 모멘텀 패스는 8/19 종료. 기본값에서 빠지고 받은 분량만 보유 보상으로 남는다.
   assert.match(page, /momentumPass1Enabled: false/);
   // 1차는 8/20 오전 2시 사용 마감으로 아이템까지 소멸했다. 보유 보상 시드에 남으면 안 된다.
@@ -216,7 +231,7 @@ test("keeps verified calculator constants visible in source", async () => {
   assert.doesNotMatch(page, /모멘텀 1차 프라임 · 49,800 넥슨캐시/);
   assert.match(page, /모멘텀 PLUS 프리미엄 · 29,800 넥슨캐시/);
   assert.match(page, /모멘텀 PLUS 프라임 · 39,800 넥슨캐시/);
-  assert.match(page, /ownedAdv: claimed2.adv/);
+  assert.match(page, /ownedAdv: manualInventoryDefault \? 0 : claimed2.adv/);
   assert.match(page, /label: "현재 보유분".*deferMech: deferMomentumMech/);
   assert.match(page, /momentumPrime1: true, momentumPrime2: true/);
   assert.match(page, /shopMech: true, shopBlue: true/);
@@ -1658,14 +1673,14 @@ test("pins the 9/16 forecast selection while preserving the 285 strategy input",
   }
 });
 
-test("keeps the target 285 simulation on the 120-day fast horizon", async () => {
+test("caps target simulation at the season deadline and remains fast", async () => {
   const pageModule = await importBuiltPage("target-285-fast-horizon");
   const started = performance.now();
   const planning = pageModule.runPlanningImmediately(pageModule.createDefaultSettings("2026-07-27"));
   const elapsed = performance.now() - started;
 
-  assert.equal(planning.basePlan.result.horizonDays, 120);
-  assert.ok(planning.basePlan.result.rows.length <= 120);
+  assert.equal(planning.basePlan.result.horizonDays, 52);
+  assert.ok(planning.basePlan.result.rows.length <= 52);
   assert.equal(pageModule.simulationDateKey(planning.basePlan.result.reached), "2026-09-03");
   assert.ok(elapsed < 2_000, `target 285 planning took ${elapsed.toFixed(1)}ms`);
 });
@@ -1768,8 +1783,8 @@ test("supports any goal level and defers rewards later as the goal rises", async
   const to286 = pageModule.runPlanningImmediately({ ...base, targetLevel: 286 }).basePlan.result;
   const to288 = pageModule.runPlanningImmediately({ ...base, targetLevel: 288 }).basePlan.result;
   assert.ok(to286.reached);
-  assert.ok(to288.reached);
-  assert.ok(to288.reached.getTime() > to286.reached.getTime());
+  assert.equal(to288.reached, null);
+  assert.equal(to288.rows.at(-1).key, "2026-09-16");
 
   // 목표가 높을수록 보상을 더 늦게 쓰는 것이 이득이다.
   const mechAt = target => pageModule.rewardUsageAdvice(285, target).find(item => item.type === "mech");
