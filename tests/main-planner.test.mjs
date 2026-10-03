@@ -581,7 +581,7 @@ test("퍼스널이 이미 끝난 기간만 계산하면 '시작하지 않아' �
 test("등급 비교와 시점 비교도 입력 경고를 잃지 않는다", () => {
   const real = createMainContext();
   const base = defaultMainInput("2026-10-04");
-  const bad = { ...base, level: 279, items: { ...base.items, crimson: 1 } };
+  const bad = { ...base, level: 279, items: { ...base.items, crimson: 1 }, plus: { ...base.plus, tier: "free" } };
   const has = result => result.warnings.filter(text => text.includes("280~295")).length;
   assert.equal(has(analyzeMain(bad, real).best.result), 1, "기준 계산에는 경고가 한 번 있다");
   const tiers = compareTiers(bad, real);
@@ -602,4 +602,9 @@ test("기본 보스 구성은 검밑솔 + 하드 세렌 + 이지 카링이고 �
   const result = simulateMain(input, real);
   assert.equal(result.boss.clears, 10 * 7, "10개 × (시작 주 1회 + 목요일 6회)");
   assert.ok(result.sourceRaw.boss > 0);
+});
+
+test("기본 PLUS는 프라임이고 기준일까지 열린 레벨은 이미 받은 것으로 본다", () => {
+  assert.deepEqual(defaultMainInput("2026-10-04").plus, { enabled: true, tier: "prime", claimedLevel: 10 });
+  assert.deepEqual(defaultMainInput("2026-09-17").plus, { enabled: true, tier: "prime", claimedLevel: 3 });
 });
