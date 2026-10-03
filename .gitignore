@@ -40,4 +40,9 @@ next-env.d.ts
 /dist/
 /.wrangler/
 /outputs/
-/work/
+/work/
+
+# 이전 시즌(챌섭) 작업 기록과 로컬 서버 로그. 저장소에는 올리지 않는다.
+/archive/
+*.log
+tsconfig.tsbuildinfo

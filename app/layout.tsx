@@ -8,19 +8,19 @@ const ogImage = new URL("og.png", siteBase);
 
 export const metadata: Metadata = {
   metadataBase: siteBase,
-  title: "285 플래너 · 290 성장 전략 계산기",
-  description: "챌린저스 EXP 패스, 모멘텀 패스, 몬스터파크와 메이린 보상까지 반영한 285·290레벨 도달 전략 계산기",
+  title: "퍼스널 버닝 플래너 · 본섭 성장 계산기",
+  description: "본섭 퍼스널 버닝 성장 미션·플레임·교환권·보스 미션과 모멘텀 패스 PLUS를 한 타임라인에 올려 11월 18일 마감 위치와 단계별 도달일을 계산합니다. 하루1소재 표 기준.",
   openGraph: {
-    title: "285·290, 언제 찍을까?",
-    description: "몬파 7판을 필요한 날까지만. 285 마일스톤과 290 도달일을 함께 계산합니다.",
+    title: "퍼스널 버닝, 언제 어디까지?",
+    description: "성장 미션 단계, 플레임, 교환권, 보스 미션을 11월 18일 마감까지 한 번에 계산합니다.",
     type: "website",
     url: siteBase,
-    images: [{ url: ogImage, width: 1536, height: 1024, alt: "285·290 플래너 전략 계산기" }],
+    images: [{ url: ogImage, width: 1536, height: 1024, alt: "퍼스널 버닝 플래너: 11월 18일 마감 위치와 단계별 도달일 계산" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "285·290, 언제 찍을까?",
-    description: "모멘텀 패스 성장 전략 계산기",
+    title: "퍼스널 버닝, 언제 어디까지?",
+    description: "본섭 퍼스널 버닝 · 모멘텀 PLUS 성장 계산기",
     images: [ogImage],
   },
 };
