@@ -342,6 +342,7 @@ test("실제 표로 기본 입력을 돌려 앞뒤가 맞는 결과가 나온다
 test("실제 표로 보스 프리셋을 넣으면 보스 경험치가 원천에 잡힌다", () => {
   const real = createMainContext();
   const input = defaultMainInput("2026-10-04");
+  input.personal.bosses = [];
   const without = simulateMain(input, real);
   const withBosses = simulateMain({ ...input, personal: { ...input.personal, bosses: bossPreset({ cutoffId: "bellona-hard" }) } }, real);
   assert.ok(!without.sourceRaw.boss);
@@ -419,6 +420,7 @@ const isolated = () => {
   x.plus.enabled = false;
   x.personal.mission.stepsDone = 30;
   x.personal.flame.killsPerWeek = 0;
+  x.personal.bosses = [];
   return x;
 };
 
@@ -588,4 +590,16 @@ test("등급 비교와 시점 비교도 입력 경고를 잃지 않는다", () =
   const designation = compareDesignation({ ...bad, personal: { ...bad.personal, designated: false, designDate: "2026-10-06" } }, real);
   assert.equal(designation.length, 3);
   designation.forEach(row => assert.equal(has(row.result), 1));
+});
+
+test("기본 보스 구성은 검밑솔 + 하드 세렌 + 이지 카링이고 솔로 10종이다", () => {
+  const real = createMainContext();
+  const input = defaultMainInput("2026-10-04");
+  const ids = input.personal.bosses.map(boss => boss.id);
+  assert.equal(ids.length, 10);
+  ["damien-hard", "lotus-hard", "lucid-hard", "will-hard", "dunkel-hard", "hilla-hard", "dusk-chaos", "gas-chaos", "seren-hard", "kaling-easy"].forEach(id => assert.ok(ids.includes(id), id));
+  assert.ok(input.personal.bosses.every(boss => boss.party === 1 && boss.doneThisWeek === false));
+  const result = simulateMain(input, real);
+  assert.equal(result.boss.clears, 10 * 7, "10개 × (시작 주 1회 + 목요일 6회)");
+  assert.ok(result.sourceRaw.boss > 0);
 });

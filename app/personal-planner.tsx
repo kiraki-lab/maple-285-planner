@@ -79,7 +79,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
   const [bossCutoff, setBossCutoff] = useState("");
   const [bossParty, setBossParty] = useState<"solo" | "max">("solo");
   const [bossAdd, setBossAdd] = useState(BOSS_LADDER[0].id);
-  const [communityPreset, setCommunityPreset] = useState("");
+  const [communityPreset, setCommunityPreset] = useState("minimum");
 
   const analysis = useMemo(() => analyzeMain(input, ctx), [input, ctx]);
   const chosen = useMemo(() => {

@@ -219,7 +219,7 @@ test("보스 구간 프리셋은 상한 이하에서 보스마다 가장 센 난
 });
 
 test("커뮤니티 보스 구성은 퍼스널 대상 35개 안에서 보스당 난이도 하나이고 12개를 넘지 않는다", () => {
-  assert.deepEqual(BOSS_COMMUNITY_PRESETS.map(preset => [preset.label, preset.ids.length]), [["검밑솔", 8], ["노세이칼", 10], ["하세이칼", 10], ["하세이적자", 11], ["노칼이카", 12]]);
+  assert.deepEqual(BOSS_COMMUNITY_PRESETS.map(preset => [preset.label, preset.ids.length]), [["검밑솔", 8], ["최소 구성", 10], ["노세이칼", 10], ["하세이칼", 10], ["하세이적자", 11], ["노칼이카", 12]]);
   BOSS_COMMUNITY_PRESETS.forEach(preset => {
     preset.ids.forEach(id => assert.ok(bossEntry(id), `${preset.label}: ${id} 가 표에 없다`));
     assert.equal(new Set(preset.ids.map(id => bossEntry(id).boss)).size, preset.ids.length, `${preset.label}: 같은 보스가 두 난이도`);
