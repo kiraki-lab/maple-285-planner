@@ -157,7 +157,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
   assumed.push("퍼스널 EXP 교환권은 레벨의 몬스터 기본 경험치 × 480으로 계산했습니다(하루1소재·메이플로드 교환권 표와 같음). 본섭에서 한 장씩 써서 확인한 값은 아닙니다.");
   assumed.push("보스 미션 경험치는 하루1소재 표(보스별 고정 경험치, 경험치를 받는 파티원 수로 나눔)입니다. 공식 공지에는 보스별 수치가 없습니다. 본섭 9/27 보스 미션 화면의 5개 값(세렌 노멀·하드, 칼로스 이지, 대적자 이지, 카링 이지)은 표와 정확히 일치했고, 나머지 30개는 화면과 대조하지 못했습니다.");
   if (bosses.length === 0) assumed.push("보스 미션을 넣지 않았습니다. 위에서 보스 상한을 고르면 한 번에 채워집니다.");
-  if (!(input.routine.measuredPercentPerDay > 0)) assumed.push("하루 일과(몬스터파크·그란디스)는 하루1소재·메이플로드 표를 그대로 썼고, 챌섭 에테리온 보너스는 넣지 않았습니다. 본섭 실측이 아닙니다.");
+  if (!(input.routine.measuredPercentPerDay > 0)) assumed.push("하루 일과(몬스터파크·그란디스)는 하루1소재·메이플로드 표에 아르고호의 가호 전술 마법(입력값)만 더했고, 챌섭 에테리온 보너스는 넣지 않았습니다. 본섭 실측이 아닙니다.");
   if (!(input.routine.weeklyMeasuredPercent > 0) && (input.routine.extreme || input.routine.epic)) assumed.push("주간 컨텐츠(익스트림 몬파·에픽 던전)는 하루1소재·메이플로드 표를 그대로 썼습니다. 에픽 던전은 289레벨까지 악몽선경, 290레벨부터 아우룸 레기스(악몽선경의 1.5배)이고 보상 배수는 입력값입니다. 본섭 실측이 아닙니다.");
 
   const stale = input.start < today;
@@ -288,6 +288,8 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
       <div className="field-grid compact">
         <NumField label="몬스터파크 하루 판수" value={input.routine.runsPerDay} min={0} max={7} step={1} onChange={value => upd((draft: MainInput) => { draft.routine.runsPerDay = value; })} hint="무료 기준 2판 (추가 이용권 최대 +5판)" />
         <label className="field"><span>에픽 던전 보상 배수</span><select value={input.routine.epicMult} onChange={event => upd((draft: MainInput) => { draft.routine.epicMult = Number(event.target.value); })}><option value={1}>1배 (보너스 없음)</option><option value={5}>5배 (EXP 1단계 · 흔히 4배, 기본 + 400% 추가)</option><option value={9}>9배 (EXP 2단계 · 흔히 8배)</option></select></label>
+        <NumField label="가호: 몬스터파크 경험치 %" value={input.routine.argoMonsterPark} min={0} max={50} step={5} onChange={value => upd((draft: MainInput) => { draft.routine.argoMonsterPark = value; })} hint="아르고호의 가호 전술 마법. Lv1~6 = 5·10·20·30·40·50%" />
+        <NumField label="가호: 그란디스 일퀘 경험치 %" value={input.routine.argoGrandis} min={0} max={50} step={5} onChange={value => upd((draft: MainInput) => { draft.routine.argoGrandis = value; })} hint="같은 전술 마법. Lv2 = 10%, 최대 50%" />
         <NumField label="하루 일과 직접 입력 %" value={input.routine.measuredPercentPerDay} min={0} step={0.01} onChange={value => upd((draft: MainInput) => { draft.routine.measuredPercentPerDay = value; })} hint="몬파·그란디스 대신 쓸 하루 값. 0이면 표" />
         <NumField label="주간 컨텐츠 직접 입력 %" value={input.routine.weeklyMeasuredPercent} min={0} step={0.01} onChange={value => upd((draft: MainInput) => { draft.routine.weeklyMeasuredPercent = value; })} hint="익몬·에픽 던전 대신 쓸 주간 값. 0이면 표" />
       </div>

@@ -614,3 +614,27 @@ test("기본 PLUS는 프라임 + 몰아쓰기라 기준일까지 열린 보상�
   assert.ok(result.best.result.items.crimsonUsed > 10, "프라임 크림슨이 들어와 쓰인다");
   assert.ok(result.best.summary.progress > result.immediate.summary.progress);
 });
+
+test("아르고호의 가호: 몬스터파크·그란디스 경험치 증가가 그 두 원천에만 곱해진다", () => {
+  const real = createMainContext();
+  const make = (mp, gr) => {
+    const x = isolated();
+    Object.assign(x, { end: "2026-10-10" });
+    Object.assign(x.routine, { runsPerDay: 2, grandis: true, argoMonsterPark: mp, argoGrandis: gr });
+    return simulateMain(x, real);
+  };
+  const none = make(0, 0);
+  const mp50 = make(50, 0);
+  const gr10 = make(0, 10);
+  assert.ok(none.sourceRaw.monsterPark > 0 && none.sourceRaw.grandis > 0);
+  assert.ok(Math.abs(mp50.sourceRaw.monsterPark / none.sourceRaw.monsterPark - 1.5) < 1e-9);
+  assert.ok(Math.abs(mp50.sourceRaw.grandis - none.sourceRaw.grandis) < 1e-6, "몬파 증가는 그란디스에 영향이 없다");
+  assert.ok(Math.abs(gr10.sourceRaw.grandis / none.sourceRaw.grandis - 1.1) < 1e-9);
+  assert.ok(Math.abs(gr10.sourceRaw.monsterPark - none.sourceRaw.monsterPark) < 1e-6);
+  // 기본값은 대표 화면(몬파 Lv6 = 50%, 그란디스 Lv2 = 10%)이고 범위 밖은 끝값으로 바로잡는다.
+  const d = defaultMainInput("2026-10-04").routine;
+  assert.equal(d.argoMonsterPark, 50);
+  assert.equal(d.argoGrandis, 10);
+  const wild = simulateMain({ ...isolated(), end: "2026-10-05", routine: { ...isolated().routine, argoMonsterPark: 999, argoGrandis: -5 } }, real);
+  assert.ok(Number.isFinite(wild.progress));
+});
