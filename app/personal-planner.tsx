@@ -122,7 +122,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
     .filter(row => row.raw > 0)
     .sort((a, b) => b.raw - a.raw);
   const sourceLabels: Record<string, string> = {
-    monsterPark: "몬스터파크", grandis: "그란디스 일퀘", extreme: "익스트림 몬파(주간)", epic: "악몽선경(주간)", routine: "일과(직접 입력)", weekly: "주간 컨텐츠(직접 입력)",
+    monsterPark: "몬스터파크", grandis: "그란디스 일퀘", extreme: "익스트림 몬파(주간)", epic: "에픽 던전(주간)", routine: "일과(직접 입력)", weekly: "주간 컨텐츠(직접 입력)",
     flame: "퍼스널 플레임", coupon: "퍼스널 EXP 교환권", boss: "퍼스널 보스 미션", missionReward: "성장 미션 단계 보상",
     crimson: "크림슨 메카베리", adv: "상급 EXP 교환권", sauna: "VIP 사우나", blue: "블루베리", mech: "메카베리", potion: "성장의 비약",
   };
@@ -158,7 +158,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
   assumed.push("보스 미션 경험치는 하루1소재 표(보스별 고정 경험치, 경험치를 받는 파티원 수로 나눔)입니다. 공식 공지에는 보스별 수치가 없습니다. 본섭 9/27 보스 미션 화면의 5개 값(세렌 노멀·하드, 칼로스 이지, 대적자 이지, 카링 이지)은 표와 정확히 일치했고, 나머지 30개는 화면과 대조하지 못했습니다.");
   if (bosses.length === 0) assumed.push("보스 미션을 넣지 않았습니다. 위에서 보스 상한을 고르면 한 번에 채워집니다.");
   if (!(input.routine.measuredPercentPerDay > 0)) assumed.push("하루 일과(몬스터파크·그란디스)는 하루1소재·메이플로드 표를 그대로 썼고, 챌섭 에테리온 보너스는 넣지 않았습니다. 본섭 실측이 아닙니다.");
-  if (!(input.routine.weeklyMeasuredPercent > 0) && (input.routine.extreme || input.routine.epic)) assumed.push("주간 컨텐츠(익스트림 몬파·악몽선경)는 하루1소재·메이플로드 표를 그대로 썼고 악몽선경 보상 배수는 입력값입니다. 본섭 실측이 아닙니다.");
+  if (!(input.routine.weeklyMeasuredPercent > 0) && (input.routine.extreme || input.routine.epic)) assumed.push("주간 컨텐츠(익스트림 몬파·에픽 던전)는 하루1소재·메이플로드 표를 그대로 썼습니다. 에픽 던전은 289레벨까지 악몽선경, 290레벨부터 아우룸 레기스(악몽선경의 1.5배)이고 보상 배수는 입력값입니다. 본섭 실측이 아닙니다.");
 
   const stale = input.start < today;
   const crimsonOptions: { label: string; value: "auto" | number }[] = [
@@ -287,14 +287,14 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
       <h3 className="pb-group">일과</h3>
       <div className="field-grid compact">
         <NumField label="몬스터파크 하루 판수" value={input.routine.runsPerDay} min={0} max={7} step={1} onChange={value => upd((draft: MainInput) => { draft.routine.runsPerDay = value; })} hint="무료 기준 2판 (추가 이용권 최대 +5판)" />
-        <label className="field"><span>악몽선경 보상 배수</span><select value={input.routine.epicMult} onChange={event => upd((draft: MainInput) => { draft.routine.epicMult = Number(event.target.value); })}><option value={1}>1배</option><option value={5}>5배</option><option value={9}>9배</option></select></label>
+        <label className="field"><span>에픽 던전 보상 배수</span><select value={input.routine.epicMult} onChange={event => upd((draft: MainInput) => { draft.routine.epicMult = Number(event.target.value); })}><option value={1}>1배 (보너스 없음)</option><option value={5}>5배 (EXP 1단계 · 흔히 4배, 기본 + 400% 추가)</option><option value={9}>9배 (EXP 2단계 · 흔히 8배)</option></select></label>
         <NumField label="하루 일과 직접 입력 %" value={input.routine.measuredPercentPerDay} min={0} step={0.01} onChange={value => upd((draft: MainInput) => { draft.routine.measuredPercentPerDay = value; })} hint="몬파·그란디스 대신 쓸 하루 값. 0이면 표" />
-        <NumField label="주간 컨텐츠 직접 입력 %" value={input.routine.weeklyMeasuredPercent} min={0} step={0.01} onChange={value => upd((draft: MainInput) => { draft.routine.weeklyMeasuredPercent = value; })} hint="익몬·악몽선경 대신 쓸 주간 값. 0이면 표" />
+        <NumField label="주간 컨텐츠 직접 입력 %" value={input.routine.weeklyMeasuredPercent} min={0} step={0.01} onChange={value => upd((draft: MainInput) => { draft.routine.weeklyMeasuredPercent = value; })} hint="익몬·에픽 던전 대신 쓸 주간 값. 0이면 표" />
       </div>
       <div className="pb-checks">
         <Check label="그란디스 일퀘" checked={input.routine.grandis} onChange={value => upd((draft: MainInput) => { draft.routine.grandis = value; })} />
         <Check label="익스트림 몬파(주간)" checked={input.routine.extreme} onChange={value => upd((draft: MainInput) => { draft.routine.extreme = value; })} />
-        <Check label="악몽선경(주간)" checked={input.routine.epic} onChange={value => upd((draft: MainInput) => { draft.routine.epic = value; })} />
+        <Check label="에픽 던전(주간)" checked={input.routine.epic} onChange={value => upd((draft: MainInput) => { draft.routine.epic = value; })} />
         <Check label="오늘 일과 아직 안 함" checked={input.routine.todayPending} onChange={value => upd((draft: MainInput) => { draft.routine.todayPending = value; })} />
         <Check label="이번 주 주간 컨텐츠 아직 안 함" checked={input.routine.weeklyPending} onChange={value => upd((draft: MainInput) => { draft.routine.weeklyPending = value; })} />
       </div>

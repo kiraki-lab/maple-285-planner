@@ -3,6 +3,7 @@ import test from "node:test";
 import { monsterParkExperiencePercent } from "../lib/calculator-core.mjs";
 import {
   createMainContext,
+  epicDungeonBaseRaw,
   itemConversionPercent,
   itemConversionRawExperience,
   MOMENTUM_PLUS_FREE,
@@ -259,4 +260,32 @@ test("어댑터가 필요 경험치와 일과 값을 표 그대로 돌려준다"
   assert.equal(ctx.weeklyRaw({ level: 292, epicMult: 1 }).extreme, POST_290_EFFICIENCY_RAW[292].extreme);
   assert.equal(ctx.plusReward(7, "premium").adv, 1600);
   assert.equal(ctx.itemRaw("adv", 285) * 1000, itemConversionRawExperience("adv", 285) * 1000);
+});
+
+test("에픽 던전: 285~289는 악몽선경(×2), 290부터는 아우룸 레기스(×3)이고 5배는 기본 + 400% 추가다", () => {
+  const real = createMainContext();
+  const weekly = (level, epicMult) => real.weeklyRaw({ level, epicMult }).epic;
+  // 하루1소재 에픽던전 표(1배 환산)와 챌섭 계산기 값이 285~289에서 같다.
+  assert.equal(epicDungeonBaseRaw(285), 1_228_800_000_000);
+  assert.equal(epicDungeonBaseRaw(288), 1_275_400_000_000);
+  assert.equal(weekly(288, 5), 1_275_400_000_000 * 5);
+  // 290에서 던전이 바뀌어 한 번에 1.5배로 뛴다: 289→290 표 증가율(1.1237)보다 훨씬 크다.
+  assert.ok(Math.abs(weekly(290, 1) / weekly(289, 1) - (0.7248 * 3) / (0.645 * 2)) < 1e-9);
+  assert.ok(weekly(290, 1) / weekly(289, 1) > 1.68);
+  // 하루1소재 표 stage1 = 5 × stage0 (기본 + 4배 추가), stage2 = 9 × stage0.
+  assert.equal(weekly(293, 5), epicDungeonBaseRaw(293) * 5);
+  assert.ok(Math.abs(weekly(295, 5) - 2.5599e12 * 5) < 1e8, "295는 아우룸 ×3, 이전 값(294와 같은 1.519조)이 아니다");
+  assert.ok(weekly(295, 5) > weekly(294, 5));
+  // 커뮤니티 296레벨 계산(에픽던전 4배 1.353%)과 295레벨 환산이 같은 자릿수다.
+  const pct = weekly(295, 5) / real.reqRaw(295) * 100;
+  assert.ok(pct > 1.4 && pct < 1.6, `295레벨 에픽 5배 ${pct.toFixed(3)}%`);
+});
+
+test("295레벨부터 몬스터파크는 기어드락 값을 쓴다", () => {
+  const real = createMainContext();
+  const run = level => real.routineRaw({ level, runs: 1, sundayKind: "none", grandis: false }).monsterPark;
+  assert.equal(run(289), 156_017_856_000);
+  assert.equal(run(290), 218_575_316_000);
+  assert.equal(run(294), 218_575_316_000);
+  assert.equal(run(295), 316_934_208_200);
 });

@@ -63,6 +63,7 @@ const GRANDIS_DAILY_GEARDRAK = 105_300_000_000;
 const ARTERIA_MONSTER_PARK_PER_RUN = 107_204_000_000;
 const CARCION_MONSTER_PARK_PER_RUN = 156_017_856_000;
 const TALLAHART_MONSTER_PARK_PER_RUN = 218_575_316_000;
+const GEARDRAK_MONSTER_PARK_PER_RUN = 316_934_208_200;
 export const WEEKLY_CONTENT_RAW: Record<number, { extreme: number; epic: number; sauna: number; adv1000: number }> = {
   285: { extreme: 1_036_056_075_000, epic: 1_228_800_000_000, sauna: 370_542_408_480, adv1000: 914_168_000_000 },
   286: { extreme: 1_048_127_520_000, epic: 1_243_000_000_000, sauna: 374_859_725_040, adv1000: 924_819_000_000 },
@@ -71,8 +72,29 @@ export const WEEKLY_CONTENT_RAW: Record<number, { extreme: number; epic: number;
   289: { extreme: 1_087_699_695_000, epic: 1_290_000_000_000, sauna: 389_012_597_280, adv1000: 959_736_000_000 },
   290: { extreme: 1_222_296_090_000, epic: 1_449_600_000_000, sauna: 437_150_602_080, adv1000: 1_078_497_000_000 },
 };
+// 에픽 던전 1배 기준 경험치(하루1소재 에픽던전 표 stage0, 하이마운틴 환산). 던전별 배수: 악몽선경(280~289) 2, 아우룸 레기스(290~) 3.
+// 290레벨부터는 아우룸 레기스가 최선이라 악몽선경 값에 1.5배가 붙는다. 보상 배수 5(= EXP 1단계, 기본 + 400% 추가)는 입력으로 곱한다.
+const EPIC_DUNGEON_BASE_RAW: Record<number, number> = {
+  280: 519_600_000_000,
+  281: 526_700_000_000,
+  282: 533_000_000_000,
+  283: 540_100_000_000,
+  284: 546_500_000_000,
+  285: 614_400_000_000,
+  286: 621_500_000_000,
+  287: 629_600_000_000,
+  288: 637_700_000_000,
+  289: 645_000_000_000,
+  290: 724_800_000_000,
+  291: 732_900_000_000,
+  292: 742_100_000_000,
+  293: 751_400_000_000,
+  294: 759_600_000_000,
+  295: 853_300_000_000,
+};
+export const epicDungeonBaseRaw = (level: number) => EPIC_DUNGEON_BASE_RAW[level] * (level >= 290 ? 3 : 2);
 export const monsterParkRawForLevel = (level: number, carcionActive = true, tallahartActive = true) =>
-  level >= 290 && tallahartActive ? TALLAHART_MONSTER_PARK_PER_RUN : level >= 285 && carcionActive ? CARCION_MONSTER_PARK_PER_RUN : ARTERIA_MONSTER_PARK_PER_RUN;
+  level >= 295 && tallahartActive ? GEARDRAK_MONSTER_PARK_PER_RUN : level >= 290 && tallahartActive ? TALLAHART_MONSTER_PARK_PER_RUN : level >= 285 && carcionActive ? CARCION_MONSTER_PARK_PER_RUN : ARTERIA_MONSTER_PARK_PER_RUN;
 export const grandisDailyRawForLevel = (level: number, carcionActive = true) => GRANDIS_DAILY_BASE
   + (level >= 285 && carcionActive ? GRANDIS_DAILY_CARCION : 0)
   + (level >= 290 ? GRANDIS_DAILY_TALLAHART : 0)
@@ -350,8 +372,8 @@ export const createMainContext = () => ({
     return { monsterPark, grandis: grandisRaw };
   },
   weeklyRaw: ({ level, epicMult }: { level: number; epicMult: number }) => {
-    if (level >= 291) return { extreme: POST_290_EFFICIENCY_RAW[level].extreme, epic: POST_290_EFFICIENCY_RAW[level].epic * epicMult };
-    if (level >= 285) return { extreme: WEEKLY_CONTENT_RAW[level].extreme, epic: WEEKLY_CONTENT_RAW[level].epic * epicMult };
+    if (level >= 291) return { extreme: POST_290_EFFICIENCY_RAW[level].extreme, epic: epicDungeonBaseRaw(level) * epicMult };
+    if (level >= 285) return { extreme: WEEKLY_CONTENT_RAW[level].extreme, epic: epicDungeonBaseRaw(level) * epicMult };
     const required = itemConversionRequiredExperience(level);
     return { extreme: required * efficiency[level].extreme / 100, epic: required * efficiency[level].epic / 100 * epicMult };
   },
