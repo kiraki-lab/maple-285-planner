@@ -286,7 +286,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
 
       <h3 className="pb-group">일과</h3>
       <div className="field-grid compact">
-        <NumField label="몬스터파크 하루 판수" value={input.routine.runsPerDay} min={0} max={7} step={1} onChange={value => upd((draft: MainInput) => { draft.routine.runsPerDay = value; })} hint="무료 2판 + 추가 최대 5판" />
+        <NumField label="몬스터파크 하루 판수" value={input.routine.runsPerDay} min={0} max={7} step={1} onChange={value => upd((draft: MainInput) => { draft.routine.runsPerDay = value; })} hint="무료 기준 2판 (추가 이용권 최대 +5판)" />
         <label className="field"><span>악몽선경 보상 배수</span><select value={input.routine.epicMult} onChange={event => upd((draft: MainInput) => { draft.routine.epicMult = Number(event.target.value); })}><option value={1}>1배</option><option value={5}>5배</option><option value={9}>9배</option></select></label>
         <NumField label="하루 일과 직접 입력 %" value={input.routine.measuredPercentPerDay} min={0} step={0.01} onChange={value => upd((draft: MainInput) => { draft.routine.measuredPercentPerDay = value; })} hint="몬파·그란디스 대신 쓸 하루 값. 0이면 표" />
         <NumField label="주간 컨텐츠 직접 입력 %" value={input.routine.weeklyMeasuredPercent} min={0} step={0.01} onChange={value => upd((draft: MainInput) => { draft.routine.weeklyMeasuredPercent = value; })} hint="익몬·악몽선경 대신 쓸 주간 값. 0이면 표" />
@@ -303,7 +303,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
       <div className="pb-checks"><Check label="PLUS 참여 중 (10/21까지)" checked={input.plus.enabled} onChange={value => upd((draft: MainInput) => { draft.plus.enabled = value; })} /></div>
       <div className="field-grid compact">
         <label className="field"><span>보유 등급</span><select value={input.plus.tier} disabled={!input.plus.enabled} onChange={event => upd((draft: MainInput) => { draft.plus.tier = event.target.value as Tier; })}><option value="free">무료</option><option value="premium">프리미엄</option><option value="prime">프라임</option></select></label>
-        <NumField label="수령한 PLUS 레벨" value={input.plus.claimedLevel} min={0} max={10} step={1} onChange={value => upd((draft: MainInput) => { draft.plus.claimedLevel = value; })} hint="0~10" />
+        <NumField label="수령한 PLUS 레벨" value={input.plus.claimedLevel} min={0} max={10} step={1} onChange={value => upd((draft: MainInput) => { draft.plus.claimedLevel = value; })} hint="0 = 아직 못 받음·모아 둠(기본) · 10 = 전부 받아 씀" />
         <NumField label="크림슨 메카베리 농장" value={input.items.crimson} min={0} step={1} onChange={value => upd((draft: MainInput) => { draft.items.crimson = value; })} hint="장" />
         <NumField label="상급 EXP 교환권" value={input.items.adv} min={0} step={100} onChange={value => upd((draft: MainInput) => { draft.items.adv = value; })} hint="장" />
         <NumField label="VIP 사우나" value={input.items.sauna} min={0} step={0.5} onChange={value => upd((draft: MainInput) => { draft.items.sauna = value; })} hint="시간" />

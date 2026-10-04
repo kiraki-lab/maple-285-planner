@@ -106,7 +106,7 @@ test("저장된 입력을 되살리는 규칙: 깨졌거나 옛 형식이면 기
   assert.equal(merged.personal.flame.stock, 5);
   assert.deepEqual(merged.personal.flame.alloc, { shard: 0, exp: 3, erda: 0 });
   assert.deepEqual(merged.personal.bosses.map(boss => boss.id), ["bellona-hard"]);
-  assert.equal(merged.plus.claimedLevel, 10);
+  assert.equal(merged.plus.claimedLevel, 0);
   // 형식이 틀린 값(문자열 숫자, null, 깨진 날짜)은 화면이 죽지 않게 엔진 규칙으로 바로잡는다.
   const fixed = parseSaved(JSON.stringify({ version: 2, input: { exp: "45", level: "288", start: "bad" } }), today);
   assert.equal(fixed.exp, 45);

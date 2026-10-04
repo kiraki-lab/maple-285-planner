@@ -520,14 +520,15 @@ test("커스텀 포인트가 정확히 3이 아니면 플레임이 소환되지 
 test("숫자 문자열과 깨진 값을 같은 규칙으로 정리한다", () => {
   const real = createMainContext();
   const base = defaultMainInput("2026-10-04");
-  const strings = simulateMain({ ...base, level: "288", exp: "45", items: { ...base.items, crimson: "2" } }, real);
-  const numbers = simulateMain({ ...base, level: 288, exp: 45, items: { ...base.items, crimson: 2 } }, real);
+  const received = { ...base.plus, claimedLevel: 10 };
+  const strings = simulateMain({ ...base, level: "288", exp: "45", plus: received, items: { ...base.items, crimson: "2" } }, real);
+  const numbers = simulateMain({ ...base, level: 288, exp: 45, plus: received, items: { ...base.items, crimson: 2 } }, real);
   assert.equal(strings.level, numbers.level);
   assert.equal(strings.progress, numbers.progress);
   assert.equal(strings.items.crimsonUsed, 2);
   // 등급 비교에서 문자열이 수량에 이어 붙지 않는다.
   const tiers = compareTiers({ ...base, items: { ...base.items, crimson: "2" }, plus: { ...base.plus, claimedLevel: 10 } }, real);
-  const reference = analyzeMain({ ...base, items: { ...base.items, crimson: 2 } }, real);
+  const reference = analyzeMain({ ...base, plus: received, items: { ...base.items, crimson: 2 } }, real);
   assert.equal(tiers[0].summary.progress, reference.best.summary.progress);
   // 음수·NaN·모르는 값
   const odd = simulateMain({ ...base, personal: { ...base.personal, mission: { ...base.personal.mission, stepsDone: -2 }, flame: { ...base.personal.flame, stock: "bad", couponsOwned: "bad" }, bosses: [null, 3, { id: "lotus-hard", party: "2" }] } }, real);
@@ -604,7 +605,12 @@ test("기본 보스 구성은 검밑솔 + 하드 세렌 + 이지 카링이고 �
   assert.ok(result.sourceRaw.boss > 0);
 });
 
-test("기본 PLUS는 프라임이고 기준일까지 열린 레벨은 이미 받은 것으로 본다", () => {
-  assert.deepEqual(defaultMainInput("2026-10-04").plus, { enabled: true, tier: "prime", claimedLevel: 10 });
-  assert.deepEqual(defaultMainInput("2026-09-17").plus, { enabled: true, tier: "prime", claimedLevel: 3 });
+test("기본 PLUS는 프라임 + 몰아쓰기라 기준일까지 열린 보상을 전부 모아 둔 것으로 본다", () => {
+  const real = createMainContext();
+  assert.deepEqual(defaultMainInput("2026-10-04").plus, { enabled: true, tier: "prime", claimedLevel: 0 });
+  assert.deepEqual(defaultMainInput("2026-09-17").plus, { enabled: true, tier: "prime", claimedLevel: 0 });
+  const result = analyzeMain(defaultMainInput("2026-10-04"), real);
+  assert.ok(result.best.crimsonHold > 0, "추천은 모아서 쓰는 쪽");
+  assert.ok(result.best.result.items.crimsonUsed > 10, "프라임 크림슨이 들어와 쓰인다");
+  assert.ok(result.best.summary.progress > result.immediate.summary.progress);
 });
