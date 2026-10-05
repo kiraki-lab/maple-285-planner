@@ -150,7 +150,8 @@ test("보스 프리셋과 사냥터 선택이 화면에 연결돼 있다", async
   assert.match(planner, />다음 목표 직접 입력</);
   assert.match(planner, />지정 당시 상태로 추정</);
   assert.doesNotMatch(planner, /\(정확\)/, "추정 모형을 정확하다고 쓰지 않는다");
-  assert.match(planner, /본섭 한 표본에서 마지막 단계가 0\.1%p 안팎 어긋났습니다/);
+  assert.match(planner, /본섭 두 캐릭터\(286·287레벨 지정\)의 30단계 목표가 0\.01%p 안쪽으로 맞습니다/);
+  assert.match(planner, /몬스터 기본 경험치 × 502,828\.8/);
   assert.match(planner, /모멘텀 PLUS는 이벤트 시작부터 주 2,500포인트를 모두 채웠다고/);
   assert.match(planner, /주간 사냥 시간/);
   assert.match(planner, /사냥 추가 경험치 %/);

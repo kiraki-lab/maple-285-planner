@@ -19,9 +19,10 @@ import {
   plusUnlockedLevel,
   simulateMain,
   stepRawForLevel,
+  stepRewardRawForLevel,
 } from "../lib/main-planner.mjs";
 import { createMainContext } from "../lib/exp-tables.ts";
-import { PERSONAL_BOSS_TABLE } from "../lib/personal-data.mjs";
+import { MOB_BASE_EXP, PERSONAL_BOSS_TABLE } from "../lib/personal-data.mjs";
 
 
 // 필요 경험치는 app/page.tsx 의 표를 그대로 옮긴 값이다. 표가 바뀌면 아래 연동 테스트가 먼저 깨진다.
@@ -109,17 +110,65 @@ test("9/11 테섭 표본 285 이상 6개를 0.007레벨 안쪽으로 맞춘다",
   });
 });
 
-test("보상은 단계 간격의 일정한 비율이다 (기대값은 본섭 표본에서 관측한 범위)", () => {
-  // 본섭 표본의 보상 ÷ 그 레벨 단계 간격을 직접 구해 범위를 잡는다. 코드 상수를 기대값으로 쓰지 않는다.
-  const observed = SAMPLE_REWARD_RAW.map((raw, index) => raw / stepRawForLevel(SAMPLE_TARGETS[index][0]));
-  const lo = Math.min(...observed), hi = Math.max(...observed);
-  assert.ok(lo > 0.1813 && hi < 0.1818, `표본 비율 ${lo.toFixed(5)}~${hi.toFixed(5)}`);
-  const built = buildMissionTable({ mode: "model", designLevel: 288, designExp: 10, stepsDone: 0 }, ctx);
-  built.steps.forEach(step => {
-    const ratio = step.rewardRaw / stepRawForLevel(step.level);
-    assert.ok(ratio >= lo - 1e-4 && ratio <= hi + 1e-4, `모형 비율 ${ratio.toFixed(5)}`);
-    assert.ok(Math.abs(ratio - built.steps[0].rewardRaw / stepRawForLevel(built.steps[0].level)) < 1e-12, "모든 단계가 같은 비율");
+test("단계 보상은 레벨의 몬스터 기본 경험치 × 502,828.8이다 (본섭 화면 네 레벨)", () => {
+  // 본섭 화면의 보상 원값. 286은 대표 캐릭터(286레벨 지정), 287~289는 9/17 지정 287레벨 캐릭터.
+  const screen = { 286: 2_066_779_207_004, 287: 2_093_653_887_402, 288: 2_120_693_506_122, 289: 2_144_810_694_332 };
+  Object.entries(screen).forEach(([level, rawReward]) => {
+    const multiple = rawReward / MOB_BASE_EXP[level];
+    assert.ok(Math.abs(multiple - 502_828.8) < 0.02, `${level}레벨 배수 ${multiple}`);
+    assert.ok(Math.abs(stepRewardRawForLevel(Number(level)) - rawReward) / rawReward < 1e-7);
   });
+  // 커뮤니티 296레벨 계산의 보상 0.300%(필요 경험치 957.54조 기준)도 같은 배수의 반올림 범위다.
+  const req296 = 2.5911e12 / 0.002706;
+  assert.ok(Math.abs(stepRewardRawForLevel(296) / req296 * 100 - 0.300) < 0.0005);
+  // 단계표의 보상은 이 값을 그대로 쓴다.
+  const built = buildMissionTable({ mode: "model", designLevel: 290, designExp: 6.3, stepsDone: 0 }, ctx);
+  built.steps.forEach(step => assert.equal(step.rewardRaw, stepRewardRawForLevel(step.level)));
+});
+
+test("단계 간격은 구간마다 몬스터 기본 경험치의 배수다", () => {
+  const multiple = level => stepRawForLevel(level) / MOB_BASE_EXP[level];
+  // 286~289 실측 간격은 배수 2,766,980~2,772,069
+  [286, 287, 288, 289].forEach(level => assert.ok(multiple(level) > 2_766_000 && multiple(level) < 2_773_000, `${level}: ${multiple(level)}`));
+  assert.ok(Math.abs(multiple(285) - 2_779_473) < 1);
+  [290, 291, 292, 293, 294].forEach(level => assert.ok(Math.abs(multiple(level) - 3_068_366) < 1));
+  [295, 296, 299].forEach(level => assert.ok(Math.abs(multiple(level) - 3_119_741) < 1));
+  [280, 284].forEach(level => assert.ok(Math.abs(multiple(level) - 2_730_206) < 1));
+  // 커뮤니티 296레벨 계산의 단계 간격 1.861%
+  const req296 = 2.5911e12 / 0.002706;
+  assert.ok(Math.abs(stepRawForLevel(296) / req296 * 100 - 1.861) < 0.0005);
+  // 이전 모형은 295에서 간격이 뛰지 않아 295 이상 목표를 약 11% 가깝게 잡았다.
+  assert.ok(stepRawForLevel(295) / stepRawForLevel(294) > 1.13);
+});
+
+test("본섭 286레벨 캐릭터의 미션 화면을 다음 목표 하나로 재현한다 (5~9단계, 30단계)", () => {
+  const real = createMainContext();
+  // 화면: 4단계 완료, 5단계 목표 286·69.714%(보상 1.888%), 6·7단계 80.123%·90.532%, 8·9단계 287·0.866%·10.446%, 30단계 289·2.496%
+  const built = buildMissionTable({ mode: "screen", stepsDone: 4, nextTarget: { level: 286, exp: 69.714 }, nextRewardPct: 1.888 }, real);
+  const at = index => built.steps.find(step => step.index === index);
+  const expected = { 5: [286, 69.714], 6: [286, 80.123], 7: [286, 90.532], 8: [287, 0.866], 9: [287, 10.446], 30: [289, 2.496] };
+  Object.entries(expected).forEach(([index, [level, exp]]) => {
+    const step = at(Number(index));
+    assert.equal(step.level, level, `${index}단계 레벨`);
+    assert.ok(Math.abs(step.exp - exp) < 0.01, `${index}단계 ${step.exp.toFixed(3)}% vs 화면 ${exp}%`);
+  });
+  assert.equal(built.steps.length, 26);
+  assert.equal(built.scale, 1, "화면 보상 %의 반올림 차이로는 보상을 조정하지 않는다");
+  assert.equal(built.warnings.length, 0);
+  // 보상: 화면 5단계 2조 667억 7920만 7004, 8단계 2조 936억 5388만 7402, 30단계 2조 1448억 1069만 4332
+  assert.ok(Math.abs(at(8).rewardRaw - 2_093_653_887_402) / 2_093_653_887_402 < 1e-7);
+  assert.ok(Math.abs(at(30).rewardRaw - 2_144_810_694_332) / 2_144_810_694_332 < 1e-7);
+  assert.ok(Math.abs(at(5).rewardRaw - 2_066_779_207_004) / 2_066_779_207_004 < 2e-4, "5단계는 입력한 % 그대로(반올림 오차)");
+});
+
+test("입력한 보상이 표와 크게 다르면 입력값 쪽으로 맞추고 알린다", () => {
+  const real = createMainContext();
+  const built = buildMissionTable({ mode: "screen", stepsDone: 4, nextTarget: { level: 286, exp: 69.714 }, nextRewardPct: 2.5 }, real);
+  assert.ok(built.scale > 1.3);
+  assert.ok(built.warnings.some(text => text.includes("입력한 단계 보상이 표")));
+  const sixth = built.steps.find(step => step.index === 6);
+  assert.ok(Math.abs(sixth.exp - 80.123) < 0.01, "목표 위치는 표의 간격 그대로");
+  assert.ok(Math.abs(sixth.rewardRaw / stepRewardRawForLevel(286) - built.scale) < 1e-9);
 });
 
 const baseInput = (patch = {}) => {
