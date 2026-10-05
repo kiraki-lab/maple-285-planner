@@ -249,7 +249,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
           {FIELD_REGIONS.map(region => <optgroup key={region} label={region}>{FIELD_OPTIONS.filter(option => option.region === region).map(option => <option key={option.key} value={option.key}>{option.label}</option>)}</optgroup>)}
         </select></label>
       <div className="field-grid compact">
-        <NumField label="몬스터 레벨 직접 입력" value={flame.fieldLevel} min={0} max={299} step={1} onChange={value => upd((draft: MainInput) => { draft.personal.flame.fieldLevel = value; draft.personal.flame.fieldKey = ""; })} hint="아케인 지역 등. 0이면 위 선택" />
+        <NumField label="몬스터 레벨 직접 입력" value={flame.fieldLevel} min={0} max={299} step={1} onChange={value => upd((draft: MainInput) => { draft.personal.flame.fieldLevel = value; draft.personal.flame.fieldKey = ""; })} hint="260~299. 0이면 위 선택" />
         <NumField label="플레임 1마리 경험치" value={flame.expPerKill} min={0} step={1000} onChange={value => upd((draft: MainInput) => { draft.personal.flame.expPerKill = value; })} hint="경험치 로그 숫자. 0이면 표" />
         <NumField label="커스텀 · 조각" value={flame.alloc.shard} min={0} max={3} step={1} onChange={value => upd((draft: MainInput) => { draft.personal.flame.alloc.shard = value; })} />
         <NumField label="커스텀 · EXP" value={flame.alloc.exp} min={0} max={3} step={1} onChange={value => upd((draft: MainInput) => { draft.personal.flame.alloc.exp = value; })} />
@@ -258,7 +258,9 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
         <NumField label="보유 퍼스널 EXP 포인트" value={flame.expPointsOwned} min={0} step={100} onChange={value => upd((draft: MainInput) => { draft.personal.flame.expPointsOwned = value; })} hint="아직 교환 안 한 포인트. 100P = 교환권 1장" />
       </div>
       <div className="pb-formula" aria-label="플레임과 교환권 계산">
-        <p><b>플레임 1마리</b> = 몬스터 Lv.{flameFieldLevel} 기본 경험치 {fmtInt(mobBaseExp(flameFieldLevel))} × {PERSONAL_FLAME_MULTIPLE} = <b>{fmtEok(flameRaw)}</b></p>
+        {flame.expPerKill > 0
+          ? <p><b>플레임 1마리</b> = 직접 넣은 값 <b>{fmtInt(flame.expPerKill)} EXP</b> (표 계산 대신 이 값을 씁니다)</p>
+          : <p><b>플레임 1마리</b> = 몬스터 Lv.{flameFieldLevel} 기본 경험치 {fmtInt(mobBaseExp(flameFieldLevel))} × {PERSONAL_FLAME_MULTIPLE} = <b>{fmtEok(flameRaw)}</b></p>}
         <p><b>교환권 1장</b> = Lv.{startLevel} 기본 경험치 {fmtInt(mobBaseExp(startLevel))} × {PERSONAL_COUPON_MULTIPLE} = <b>{fmtEok(couponAtStart)}</b> ({(couponAtStart / ctx.reqRaw(startLevel) * 100).toFixed(4)}%)</p>
         <p><b>주 24,000마리</b> = {fmtJo(weeklyFlameRaw, 2)} + 교환권 {fmtInt(weeklyCoupons)}장 {fmtJo(weeklyCouponRaw, 2)} = <b>{(((weeklyFlameRaw + weeklyCouponRaw) / ctx.reqRaw(startLevel)) * 100).toFixed(1)}%p</b>/주 (Lv.{startLevel} 기준)</p>
       </div>

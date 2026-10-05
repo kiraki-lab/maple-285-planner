@@ -986,3 +986,67 @@ test("다음 단계 목표가 한 단계 넘게 멀면 알린다 (레벨만 바�
   // 기본 예시값(288레벨 45%, 다음 목표 288레벨 49.948%)은 한 단계 안쪽이라 경고가 없다.
   assert.ok(!simulateMain(defaultMainInput("2026-10-05"), real).warnings.some(text => text.includes("다음 단계 목표(")));
 });
+
+test("레벨 경계에 걸친 다음 목표는 한 단계 안쪽이면 경고하지 않는다", () => {
+  const real = createMainContext();
+  const make = (level, exp, target) => {
+    const x = defaultMainInput("2026-10-05");
+    Object.assign(x, { level, exp });
+    x.personal.mission = { ...x.personal.mission, mode: "screen", stepsDone: 10, nextTarget: target, nextRewardPct: 0 };
+    return simulateMain(x, real).warnings.filter(text => text.includes("다음 단계 목표("));
+  };
+  // 289·99.9% → 290·4.936%, 294·99.9% → 295·1.966% 는 레벨별 간격으로 딱 한 단계다.
+  assert.deepEqual(make(289, 99.9, { level: 290, exp: 4.936 }), []);
+  assert.deepEqual(make(294, 99.9, { level: 295, exp: 1.966 }), []);
+  assert.deepEqual(make(288, 45, { level: 288, exp: 53.8 }), []);
+  // 한 단계를 분명히 넘으면 경고하고, 단계 수를 레벨별로 센다: 289·50% → 290·4.936% 는 50/8.1008 + 4.936/4.987… ≈ 7.2단계
+  const far = make(289, 50, { level: 290, exp: 4.936 });
+  assert.equal(far.length, 1);
+  assert.match(far[0], /7\.[0-9]단계만큼/);
+});
+
+test("하루 안에서 레벨이 오르면 남은 사냥과 플레임은 새 사냥터 몬스터 값으로 계산한다", () => {
+  const real = createMainContext();
+  // 10/5 하루, 289레벨 99.99%, 사냥 주 4시간·추가 300%. 기대값은 코덱스가 레벨업 지점에서 나눠 따로 계산한 값.
+  const hunt = isolated();
+  Object.assign(hunt, { start: "2026-10-05", end: "2026-10-05", level: 289, exp: 99.99 });
+  hunt.personal.enabled = false;
+  hunt.plus.enabled = false;
+  Object.assign(hunt.routine, { huntHoursPerWeek: 4, huntBonusPct: 300, todayPending: true });
+  const h = simulateMain(hunt, real);
+  assert.equal(h.level, 290);
+  assert.ok(Math.abs(h.sourceRaw.hunt - 241_346_231_454.38) < 1, `사냥 ${h.sourceRaw.hunt}`);
+  // 플레임 1,000마리: 289레벨 몬스터로 잡다가 290이 되면 294레벨 몬스터 값
+  const fl = isolated();
+  Object.assign(fl, { start: "2026-10-05", end: "2026-10-05", level: 289, exp: 99.99 });
+  fl.personal.designDate = "2026-10-05";
+  fl.plus.enabled = false;
+  Object.assign(fl.personal.flame, { stock: 1000, killsPerWeek: 7000, alloc: { shard: 3, exp: 0, erda: 0 } });
+  const f = simulateMain(fl, real);
+  assert.ok(Math.abs(f.sourceRaw.flame - 359_102_253_989.34) < 1, `플레임 ${f.sourceRaw.flame}`);
+  assert.equal(f.flame.killed, 1000);
+});
+
+test("표에 없는 사냥터 레벨은 260~299로 바꾸고 알리며, 사냥과 플레임이 같은 레벨을 쓴다", () => {
+  const real = createMainContext();
+  const x = isolated();
+  Object.assign(x, { start: "2026-10-05", end: "2026-10-06", level: 288, exp: 0 });
+  x.personal.designDate = "2026-10-05";
+  Object.assign(x.personal.flame, { stock: 7, killsPerWeek: 7, fieldLevel: 259, alloc: { shard: 3, exp: 0, erda: 0 } });
+  Object.assign(x.routine, { huntHoursPerWeek: 7, huntBonusPct: 0 });
+  const r = simulateMain(x, real);
+  assert.ok(r.warnings.some(text => text.includes("사냥터 몬스터 레벨은 260~299만")));
+  assert.ok(Math.abs(r.sourceRaw.flame - r.flame.killed * flameModelRaw(260)) < 1);
+  assert.ok(r.sourceRaw.hunt > 0, "사냥도 260레벨 몬스터로 계산된다");
+  assert.equal(normalizeInput({ ...x, personal: { ...x.personal, flame: { ...x.personal.flame, fieldLevel: 5000 } } }, real).personal.flame.fieldLevel, 299);
+  assert.equal(normalizeInput({ ...x, personal: { ...x.personal, flame: { ...x.personal.flame, fieldLevel: 0 } } }, real).personal.flame.fieldLevel, 0);
+});
+
+test("배분을 일부만 적으면 나머지는 0이다 (기본 조각 3과 섞이지 않는다)", () => {
+  const real = createMainContext();
+  const base = defaultMainInput("2026-10-05");
+  const partial = normalizeInput({ ...base, personal: { ...base.personal, flame: { ...base.personal.flame, alloc: { exp: 3 } } } }, real).personal.flame.alloc;
+  assert.deepEqual(partial, { shard: 0, exp: 3, erda: 0 });
+  const none = normalizeInput({ ...base, personal: { ...base.personal, flame: { stock: 5 } } }, real).personal.flame.alloc;
+  assert.deepEqual(none, { shard: 3, exp: 0, erda: 0 });
+});

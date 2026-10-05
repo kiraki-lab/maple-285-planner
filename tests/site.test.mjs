@@ -112,6 +112,9 @@ test("저장된 입력을 되살리는 규칙: 깨졌거나 옛 형식이면 기
   assert.equal(mergeSaved({ start: "2026-10-05", routine: { runsPerDay: 7 } }, "2026-10-05").routine.sundayRuns, 7);
   assert.equal(mergeSaved({ routine: { runsPerDay: 7, sundayRuns: 2 } }, today).routine.sundayRuns, 2, "저장된 값이 있으면 그대로");
   assert.equal(mergeSaved({}, today).routine.sundayRuns, 2);
+  // 배분이 일부만 저장돼 있으면 나머지는 0: 기본 조각 3과 합쳐져 합계 6이 되면 플레임이 계산에서 빠진다.
+  assert.deepEqual(mergeSaved({ personal: { flame: { alloc: { exp: 3 } } } }, "2026-10-05").personal.flame.alloc, { shard: 0, exp: 3, erda: 0 });
+  assert.deepEqual(mergeSaved({ personal: { flame: { alloc: { shard: 1, exp: 1, erda: 1 } } } }, today).personal.flame.alloc, { shard: 1, exp: 1, erda: 1 });
   // 형식이 틀린 값(문자열 숫자, null, 깨진 날짜)은 화면이 죽지 않게 엔진 규칙으로 바로잡는다.
   const fixed = parseSaved(JSON.stringify({ version: 2, input: { exp: "45", level: "288", start: "bad" } }), today);
   assert.equal(fixed.exp, 45);
