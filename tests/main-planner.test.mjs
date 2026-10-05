@@ -754,3 +754,14 @@ test("익스트림 몬스터파크와 에픽 던전에도 추가 경험치가 �
   assert.ok(Math.abs(make({ epicBonus: 20 }).sourceRaw.epic / base.sourceRaw.epic - 1.2) < 1e-9);
   assert.ok(Math.abs(make({ argoMonsterPark: 40 }).sourceRaw.epic - base.sourceRaw.epic) < 1e-6, "몬파 추가 경험치는 에픽 던전에 안 붙는다");
 });
+
+test("기본 플레임 보유량은 다음 목요일 충전까지 남은 날 수만큼이라 기본값에서 소실이 없다", () => {
+  const real = createMainContext();
+  assert.equal(defaultMainInput("2026-10-08").personal.flame.stock, 24_000, "목요일(충전일)");
+  assert.equal(defaultMainInput("2026-10-05").personal.flame.stock, Math.round(24_000 * 3 / 7), "월요일");
+  assert.equal(defaultMainInput("2026-10-07").personal.flame.stock, Math.round(24_000 * 1 / 7), "수요일");
+  ["2026-10-04", "2026-10-05", "2026-10-06", "2026-10-07", "2026-10-08", "2026-10-09", "2026-10-10"].forEach(day => {
+    const result = analyzeMain(defaultMainInput(day), real).best.result;
+    assert.ok(result.flame.overflowLost < 1, `${day}: 소실 ${result.flame.overflowLost}`);
+  });
+});

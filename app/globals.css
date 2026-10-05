@@ -272,9 +272,12 @@ footer p { margin: 0; color: #65636c; font-size: 12px; text-align: center; }
 .pb-boss-name { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 2px; }
 .pb-boss-name b { font-size: 13px; }
 .pb-boss-name small { color: #67636e; font-size: 11px; }
-.pb-boss-add { margin: 10px 0 6px; display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+.pb-boss-add { margin: 10px 0 6px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; }
 .pb-boss-add select { min-height: 42px; padding: 0 10px; border: 1px solid var(--line); border-radius: 10px; background: white; font-size: 12px; font-weight: 700; }
 .pb-boss-add .pb-add { width: auto; padding: 0 14px; }
 .pb-add:disabled { opacity: .45; cursor: not-allowed; }
 .pb-note.light { color: rgba(255,255,255,.72); }
 .passes-panel .pb-table-wrap { max-height: 560px; }
+.pb-controls { overflow-x: hidden; }
+.pb-boss-add select { flex: 1 1 0; min-width: 0; max-width: 100%; }
+.pb-controls select, .pb-controls input { max-width: 100%; }

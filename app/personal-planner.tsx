@@ -271,10 +271,11 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
       <div className="pb-boss-add">
         <select aria-label="자주 쓰는 보스 구성" value={communityPreset} onChange={event => setCommunityPreset(event.target.value)}>
           <option value="">자주 쓰는 구성 (검밑솔·노세이칼…)</option>
-          {BOSS_COMMUNITY_PRESETS.map(preset => <option key={preset.id} value={preset.id}>{preset.label} {preset.ids.length}종 · {preset.detail}</option>)}
+          {BOSS_COMMUNITY_PRESETS.map(preset => <option key={preset.id} value={preset.id}>{preset.label} {preset.ids.length}종</option>)}
         </select>
         <button type="button" className="pb-add" disabled={!communityPreset} onClick={applyCommunityPreset}>채우기</button>
       </div>
+      {communityPreset ? <p className="pb-note">{BOSS_COMMUNITY_PRESETS.find(preset => preset.id === communityPreset)?.detail}</p> : null}
       {bosses.map((boss, index) => {
         const entry = bossEntry(boss.id);
         return <div className="pb-boss" key={boss.id}>
