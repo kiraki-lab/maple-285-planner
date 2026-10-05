@@ -893,3 +893,9 @@ test("사냥으로 레벨 상한에 닿으면 4배 쿠폰과 부스터를 더 �
   assert.ok(Math.abs(r.items.plusReceived.booster - r.items.huntItemsUsed.booster - r.items.expired.booster) < 1e-9);
   assert.ok(r.items.expired.coupon4x > 3.9 && r.items.expired.booster > 19, `상한 직후라 거의 전부 남는다: 쿠폰 ${r.items.expired.coupon4x}, 부스터 ${r.items.expired.booster}`);
 });
+
+test("단계 보상 배수와 화면 값의 차이는 3.2만 EXP 안쪽이다 (화면 문구의 근거)", () => {
+  const screen = { 286: 2_066_779_207_004, 287: 2_093_653_887_402, 288: 2_120_693_506_122, 289: 2_144_810_694_332 };
+  const worst = Math.max(...Object.entries(screen).map(([level, raw]) => Math.abs(stepRewardRawForLevel(Number(level)) - raw)));
+  assert.ok(worst > 30_000 && worst < 32_000, `가장 큰 차이 ${worst}`);
+});
