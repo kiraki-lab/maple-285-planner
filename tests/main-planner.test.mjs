@@ -1096,3 +1096,20 @@ test("경험치가 0으로 들어가는 아이템은 쓰지 않은 것으로 센
   assert.equal(r.items.expired.booster, 10);
   assert.ok(!r.sourceRaw.booster);
 });
+
+test("끊어 계산해도 다 잡은 플레임은 정수로 세어 교환권이 한 장 덜 생기지 않는다", () => {
+  const real = createMainContext();
+  // 11/18 하루, 291레벨 98.99%, 29단계 완료, 다음 목표 291·99.09%, 플레임 3,500마리, 조각 2·EXP 1 → 3,500포인트 = 교환권 35장
+  const x = isolated();
+  Object.assign(x, { start: "2026-11-18", end: "2026-11-18", level: 291, exp: 98.99 });
+  x.personal.designDate = "2026-11-18";
+  x.plus.enabled = false;
+  x.personal.mission = { ...x.personal.mission, mode: "screen", stepsDone: 29, nextTarget: { level: 291, exp: 99.09 }, nextRewardPct: 0 };
+  Object.assign(x.personal.flame, { stock: 3500, killsPerWeek: 24_500, alloc: { shard: 2, exp: 1, erda: 0 } });
+  const r = simulateMain(x, real);
+  assert.ok(!r.atCap);
+  assert.equal(r.flame.killed, 3500);
+  assert.equal(r.flame.endStock, 0);
+  assert.equal(r.coupons.made, 35);
+  assert.ok(r.flame.expPoints < 1e-6);
+});
