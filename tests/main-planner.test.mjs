@@ -1050,3 +1050,49 @@ test("배분을 일부만 적으면 나머지는 0이다 (기본 조각 3과 섞
   const none = normalizeInput({ ...base, personal: { ...base.personal, flame: { stock: 5 } } }, real).personal.flame.alloc;
   assert.deepEqual(none, { shard: 3, exp: 0, erda: 0 });
 });
+
+test("미션 목표를 넘어 보상으로 레벨이 오르면 남은 플레임은 새 값으로 계산한다", () => {
+  const real = createMainContext();
+  // 10/5 하루, 289레벨 98.99%, 29단계 완료, 다음 목표 289·99%(보상 1.472%), 플레임 1,000마리·조각 3. 기대값은 코덱스가 따로 계산.
+  const x = isolated();
+  Object.assign(x, { start: "2026-10-05", end: "2026-10-05", level: 289, exp: 98.99 });
+  x.personal.designDate = "2026-10-05";
+  x.plus.enabled = false;
+  x.personal.mission = { ...x.personal.mission, mode: "screen", stepsDone: 29, nextTarget: { level: 289, exp: 99 }, nextRewardPct: 1.472 };
+  Object.assign(x.personal.flame, { stock: 1000, killsPerWeek: 7000, alloc: { shard: 3, exp: 0, erda: 0 } });
+  const r = simulateMain(x, real);
+  assert.equal(r.level, 290);
+  assert.ok(Math.abs(r.sourceRaw.flame - 359_102_253_989.34) < 1, `플레임 ${r.sourceRaw.flame}`);
+  assert.ok(Math.abs(r.exp - 0.350730) < 1e-5, `최종 ${r.exp}`);
+  assert.equal(r.mission.stepsCleared, 30);
+});
+
+test("레벨 상한에 닿으면 그 뒤 플레임은 잡지 않은 것으로 센다", () => {
+  const real = createMainContext();
+  // 10/21 하루, 295레벨 99.999%, 플레임 재고 1,000·EXP 3. 상한까지 약 20.447483마리.
+  const x = isolated();
+  Object.assign(x, { start: "2026-10-21", end: "2026-10-21", level: 295, exp: 99.999 });
+  x.personal.designDate = "2026-10-21";
+  x.plus.enabled = false;
+  Object.assign(x.personal.flame, { stock: 1000, killsPerWeek: 7000, alloc: { shard: 0, exp: 3, erda: 0 } });
+  const r = simulateMain(x, real);
+  assert.ok(r.atCap);
+  assert.ok(Math.abs(r.flame.killed - 20.447483) < 1e-4, `처치 ${r.flame.killed}`);
+  assert.ok(Math.abs(r.flame.endStock - (1000 - r.flame.killed)) < 1e-9);
+  assert.equal(r.coupons.made, 0, "20마리 × 3포인트 = 61포인트라 교환권이 안 된다");
+  assert.ok(Math.abs(r.sourceRaw.flame - r.flame.killed * flameModelRaw(299)) < 1);
+});
+
+test("경험치가 0으로 들어가는 아이템은 쓰지 않은 것으로 센다", () => {
+  const tiny = makeCtx({ huntRaw: () => 1, boosterRaw: () => 1e-8, huntKillsPer30Min: 9600, boosterKills: 1710 });
+  const x = isolated();
+  Object.assign(x, { start: "2026-10-21", end: "2026-10-21" });
+  x.personal.enabled = false;
+  x.plus.enabled = false;
+  x.items.booster = 10;
+  Object.assign(x.routine, { huntHoursPerWeek: 4, huntBonusPct: 0, todayPending: true });
+  const r = simulateMain(x, tiny);
+  assert.equal(r.items.huntItemsUsed.booster, 0);
+  assert.equal(r.items.expired.booster, 10);
+  assert.ok(!r.sourceRaw.booster);
+});
