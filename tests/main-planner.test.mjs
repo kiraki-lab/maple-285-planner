@@ -16,6 +16,7 @@ import {
   FLAME_WEEKLY_ADD,
   MAIN_SCHEDULE,
   MISSION_STEPS,
+  normalizeInput,
   plusUnlockedLevel,
   simulateMain,
   stepRawForLevel,
@@ -685,8 +686,14 @@ test("아르고호의 가호: 몬스터파크·그란디스 경험치 증가가 
   const d = defaultMainInput("2026-10-04").routine;
   assert.equal(d.argoMonsterPark, 50);
   assert.equal(d.argoGrandis, 10);
-  const wild = simulateMain({ ...isolated(), end: "2026-10-05", routine: { ...isolated().routine, argoMonsterPark: 999, argoGrandis: -5 } }, real);
-  assert.ok(Number.isFinite(wild.progress));
+  // 범위 밖 값은 50%와 0%로 바로잡힌다: 결과가 경계 입력과 같아야 한다.
+  const fixed = normalizeInput({ ...isolated(), routine: { ...isolated().routine, argoMonsterPark: 999, argoGrandis: -5 } }, real).routine;
+  assert.equal(fixed.argoMonsterPark, 50);
+  assert.equal(fixed.argoGrandis, 0);
+  const wild = make(999, -5);
+  const edge = make(50, 0);
+  assert.equal(wild.sourceRaw.monsterPark, edge.sourceRaw.monsterPark);
+  assert.equal(wild.sourceRaw.grandis, edge.sourceRaw.grandis);
 });
 
 test("사냥 경험치는 시간과 추가 경험치에 비례하고 0시간이면 없다", () => {
@@ -783,4 +790,65 @@ test("일요일 판수를 따로 넣을 수 있고, 값이 없으면 평일 판�
   assert.ok(Math.abs(same.sourceRaw.monsterPark - perRun * (5 * 2 * 1.4 + 2 * 1.9)) / same.sourceRaw.monsterPark < 1e-9);
   const legacy = (() => { const x = isolated(); Object.assign(x, { start: "2026-10-05", end: "2026-10-11" }); x.personal.designDate = "2026-10-05"; Object.assign(x.routine, { runsPerDay: 3, argoMonsterPark: 40 }); delete x.routine.sundayRuns; return simulateMain(x, real); })();
   assert.ok(Math.abs(legacy.sourceRaw.monsterPark - perRun * (5 * 3 * 1.4 + 3 * 1.9)) / legacy.sourceRaw.monsterPark < 1e-9, "옛 저장값은 평일 판수");
+});
+
+test("같은 날 앞 컨텐츠로 레벨이 오르면 다음 컨텐츠는 새 레벨 값으로 계산한다", () => {
+  const real = createMainContext();
+  // 10/8(목) 289레벨 99.5%: 익몬으로 290이 되면 에픽 던전은 아우룸 레기스 1배 2,174,400,000,000
+  const weekly = isolated();
+  Object.assign(weekly, { start: "2026-10-08", end: "2026-10-08", level: 289, exp: 99.5 });
+  weekly.personal.designDate = "2026-10-08";
+  Object.assign(weekly.routine, { extreme: true, epic: true, epicMult: 1, weeklyPending: true, argoMonsterPark: 0, epicBonus: 0 });
+  const w = simulateMain(weekly, real);
+  assert.equal(w.level, 290);
+  assert.equal(w.sourceRaw.epic, 2_174_400_000_000);
+  // 10/5 294레벨 99.95%: 몬파 1판으로 295가 되면 그란디스 일퀘는 기어드락까지 더한 370,429,319,424
+  const daily = isolated();
+  Object.assign(daily, { start: "2026-10-05", end: "2026-10-05", level: 294, exp: 99.95 });
+  daily.personal.designDate = "2026-10-05";
+  Object.assign(daily.routine, { runsPerDay: 1, sundayRuns: 1, grandis: true, todayPending: true, argoMonsterPark: 0, argoGrandis: 0 });
+  const d = simulateMain(daily, real);
+  assert.equal(d.level, 295);
+  assert.equal(d.sourceRaw.grandis, 370_429_319_424);
+});
+
+test("추천은 가장 좋은 위치에서 0.05%p 안쪽인 후보 가운데서만 늦게 쓰는 쪽을 고른다", () => {
+  const real = createMainContext();
+  const input = defaultMainInput("2026-10-20");
+  Object.assign(input, { level: 294, exp: 86.039 });
+  input.plus.enabled = false;
+  input.items.crimson = 11;
+  input.personal.bosses = [];
+  input.personal.mission.stepsDone = 30;
+  input.personal.flame.couponsOwned = 2924;
+  input.personal.flame.killsPerWeek = 13_071;
+  Object.assign(input.routine, { epicMult: 1, weeklyPending: true, huntHoursPerWeek: 0 });
+  const analysis = analyzeMain(input, real);
+  const top = Math.max(...analysis.options.filter(option => option.summary.stepsCleared === analysis.best.summary.stepsCleared).map(option => option.summary.progress));
+  assert.ok(top - analysis.best.summary.progress <= 0.0005 + 1e-12, `추천이 최고보다 ${((top - analysis.best.summary.progress) * 100).toFixed(4)}%p 낮다`);
+  // 모든 기본 시작일에서도 같은 성질이 성립한다.
+  ["2026-09-17", "2026-10-05", "2026-10-15", "2026-10-22", "2026-11-10"].forEach(day => {
+    const a = analyzeMain(defaultMainInput(day), real);
+    const steps = Math.max(...a.options.map(option => option.summary.stepsCleared));
+    assert.equal(a.best.summary.stepsCleared, steps);
+    const best = Math.max(...a.options.filter(option => option.summary.stepsCleared === steps).map(option => option.summary.progress));
+    assert.ok(best - a.best.summary.progress <= 0.0005 + 1e-12, day);
+  });
+});
+
+test("아르고호의 가호는 11/25까지만 붙는다", () => {
+  const real = createMainContext();
+  const make = day => {
+    const x = isolated();
+    Object.assign(x, { start: day, end: day, level: 288, exp: 0 });
+    x.personal.designDate = day;
+    Object.assign(x.routine, { runsPerDay: 2, sundayRuns: 2, grandis: true, todayPending: true, argoMonsterPark: 50, argoGrandis: 10 });
+    return simulateMain(x, real);
+  };
+  const on = make("2026-11-25");
+  assert.ok(Math.abs(on.sourceRaw.monsterPark - 468_053_568_000) < 1);
+  assert.ok(Math.abs(on.sourceRaw.grandis - 192_972_251_366.4) < 1);
+  const off = make("2026-11-26");
+  assert.equal(off.sourceRaw.monsterPark, 312_035_712_000);
+  assert.equal(off.sourceRaw.grandis, 175_429_319_424);
 });
