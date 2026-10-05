@@ -758,7 +758,10 @@ test("익스트림 몬스터파크와 에픽 던전에도 추가 경험치가 �
   const base = make({});
   assert.ok(Math.abs(base.sourceRaw.extreme - real.weeklyRaw({ level: 288, epicMult: 5 }).extreme) < 1);
   assert.ok(Math.abs(make({ argoMonsterPark: 40 }).sourceRaw.extreme / base.sourceRaw.extreme - 1.4) < 1e-9, "커뮤니티 계산의 익스트림 0.1873% = 기본 0.1338% × 1.4");
-  assert.ok(Math.abs(make({ epicBonus: 20 }).sourceRaw.epic / base.sourceRaw.epic - 1.2) < 1e-9);
+  // 에픽 던전 추가 경험치는 1배 보상에 한 번만: 288레벨 악몽선경 1배 1,275,400,000,000 × (5 + 0.2) = 6,632,080,000,000 (하루1소재 식)
+  assert.equal(base.sourceRaw.epic, 6_377_000_000_000);
+  assert.equal(make({ epicBonus: 20 }).sourceRaw.epic, 6_632_080_000_000);
+  assert.equal(make({ epicBonus: 20, epicMult: 1 }).sourceRaw.epic, 1_530_480_000_000);
   assert.ok(Math.abs(make({ argoMonsterPark: 40 }).sourceRaw.epic - base.sourceRaw.epic) < 1e-6, "몬파 추가 경험치는 에픽 던전에 안 붙는다");
 });
 
@@ -851,4 +854,42 @@ test("아르고호의 가호는 11/25까지만 붙는다", () => {
   const off = make("2026-11-26");
   assert.equal(off.sourceRaw.monsterPark, 312_035_712_000);
   assert.equal(off.sourceRaw.grandis, 175_429_319_424);
+});
+
+test("등급을 올릴 때 이미 받은 레벨의 VIP 부스터와 4배 쿠폰도 함께 받는다", () => {
+  const real = createMainContext();
+  const x = isolated();
+  Object.assign(x, { start: "2026-10-05", end: "2026-10-21", level: 288, exp: 0 });
+  x.personal.enabled = false;
+  x.plus = { enabled: true, tier: "free", claimedLevel: 10 };
+  Object.assign(x.routine, { huntHoursPerWeek: 7, huntBonusPct: 0 });
+  const rows = compareTiers(x, real);
+  const by = Object.fromEntries(rows.map(row => [row.tier, row]));
+  // 공식 813 표: 프리미엄 부스터 20·쿠폰 4, 프라임까지 부스터 40·쿠폰 10
+  assert.deepEqual([by.free.extra.booster, by.free.extra.coupon4x], [0, 0]);
+  assert.deepEqual([by.premium.extra.booster, by.premium.extra.coupon4x], [20, 4]);
+  assert.deepEqual([by.prime.extra.booster, by.prime.extra.coupon4x], [40, 10]);
+  const used = tier => by[tier].analysis.best.result.items.huntItemsUsed;
+  assert.ok(Math.abs(used("premium").coupon4x - 4) < 1e-9 && Math.abs(used("premium").booster - 20) < 1e-9);
+  assert.ok(Math.abs(used("prime").coupon4x - 10) < 1e-9 && Math.abs(used("prime").booster - 40) < 1e-9);
+  assert.ok(by.prime.analysis.best.result.sourceRaw.booster > by.premium.analysis.best.result.sourceRaw.booster);
+});
+
+test("사냥으로 레벨 상한에 닿으면 4배 쿠폰과 부스터를 더 쓰지 않는다", () => {
+  const real = createMainContext();
+  const x = isolated();
+  Object.assign(x, { start: "2026-09-17", end: "2026-10-21", level: 295, exp: 99.95 });
+  x.personal.enabled = false;
+  x.plus = { enabled: true, tier: "premium", claimedLevel: 0 };
+  Object.assign(x.routine, { huntHoursPerWeek: 4, huntBonusPct: 300 });
+  const r = simulateMain(x, real);
+  assert.ok(r.atCap);
+  // 쓴 만큼만 경험치가 있어야 한다: 상한 뒤에 차감된 것이 없으면 사용량 × 단위 경험치 = 원천 합계
+  const perSession = real.huntRaw({ level: 295, fieldLevel: 295 });
+  assert.ok(Math.abs((r.sourceRaw.coupon4x || 0) - r.items.huntItemsUsed.coupon4x * 3 * perSession) < 1);
+  assert.ok(Math.abs((r.sourceRaw.booster || 0) - r.items.huntItemsUsed.booster * real.boosterRaw(295)) < 1);
+  // 받은 것 = 쓴 것 + 소멸
+  assert.ok(Math.abs(r.items.plusReceived.coupon4x - r.items.huntItemsUsed.coupon4x - r.items.expired.coupon4x) < 1e-9);
+  assert.ok(Math.abs(r.items.plusReceived.booster - r.items.huntItemsUsed.booster - r.items.expired.booster) < 1e-9);
+  assert.ok(r.items.expired.coupon4x > 3.9 && r.items.expired.booster > 19, `상한 직후라 거의 전부 남는다: 쿠폰 ${r.items.expired.coupon4x}, 부스터 ${r.items.expired.booster}`);
 });

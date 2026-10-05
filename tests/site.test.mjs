@@ -107,6 +107,11 @@ test("저장된 입력을 되살리는 규칙: 깨졌거나 옛 형식이면 기
   assert.deepEqual(merged.personal.flame.alloc, { shard: 0, exp: 3, erda: 0 });
   assert.deepEqual(merged.personal.bosses.map(boss => boss.id), ["bellona-hard"]);
   assert.equal(merged.plus.claimedLevel, 0);
+  // 일요일 판수가 없던 때 저장한 값은 평일 판수를 따른다(기본값 2로 덮지 않는다).
+  assert.equal(merged.routine.sundayRuns, 3);
+  assert.equal(mergeSaved({ start: "2026-10-05", routine: { runsPerDay: 7 } }, "2026-10-05").routine.sundayRuns, 7);
+  assert.equal(mergeSaved({ routine: { runsPerDay: 7, sundayRuns: 2 } }, today).routine.sundayRuns, 2, "저장된 값이 있으면 그대로");
+  assert.equal(mergeSaved({}, today).routine.sundayRuns, 2);
   // 형식이 틀린 값(문자열 숫자, null, 깨진 날짜)은 화면이 죽지 않게 엔진 규칙으로 바로잡는다.
   const fixed = parseSaved(JSON.stringify({ version: 2, input: { exp: "45", level: "288", start: "bad" } }), today);
   assert.equal(fixed.exp, 45);
