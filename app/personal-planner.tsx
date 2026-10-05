@@ -294,7 +294,8 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
 
       <h3 className="pb-group">일과</h3>
       <div className="field-grid compact">
-        <NumField label="몬스터파크 하루 판수" value={input.routine.runsPerDay} min={0} max={7} step={1} onChange={value => upd((draft: MainInput) => { draft.routine.runsPerDay = value; })} hint="무료 기준 2판 (추가 이용권 최대 +5판)" />
+        <NumField label="몬스터파크 하루 판수" value={input.routine.runsPerDay} min={0} max={7} step={1} onChange={value => upd((draft: MainInput) => { draft.routine.runsPerDay = value; })} hint="무료 2판. 이용권·메이플포인트로 하루 7판까지" />
+        <NumField label="일요일 판수" value={input.routine.sundayRuns} min={0} max={7} step={1} onChange={value => upd((draft: MainInput) => { draft.routine.sundayRuns = value; })} hint="일요일은 경험치 1.5배. 일요일만 7판 돌면 7" />
         <label className="field"><span>에픽 던전 보상 배수</span><select value={input.routine.epicMult} onChange={event => upd((draft: MainInput) => { draft.routine.epicMult = Number(event.target.value); })}><option value={1}>1배 (보너스 없음)</option><option value={5}>5배 (EXP 1단계 · 흔히 4배, 기본 + 400% 추가)</option><option value={9}>9배 (EXP 2단계 · 흔히 8배)</option></select></label>
         <NumField label="몬스터파크 추가 경험치 %" value={input.routine.argoMonsterPark} min={0} max={50} step={5} onChange={value => upd((draft: MainInput) => { draft.routine.argoMonsterPark = value; })} hint="아르고호의 가호 Lv1~6 = 5·10·20·30·40·50%. 익스트림 몬파에도 붙음" />
         <NumField label="그란디스 일퀘 추가 경험치 %" value={input.routine.argoGrandis} min={0} max={50} step={5} onChange={value => upd((draft: MainInput) => { draft.routine.argoGrandis = value; })} hint="아르고호의 가호. Lv2 = 10%, 최대 50%" />

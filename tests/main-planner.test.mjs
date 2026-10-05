@@ -765,3 +765,22 @@ test("기본 플레임 보유량은 다음 목요일 충전까지 남은 날 수
     assert.ok(result.flame.overflowLost < 1, `${day}: 소실 ${result.flame.overflowLost}`);
   });
 });
+
+test("일요일 판수를 따로 넣을 수 있고, 값이 없으면 평일 판수를 따른다", () => {
+  const real = createMainContext();
+  const make = routine => {
+    const x = isolated();
+    Object.assign(x, { start: "2026-10-05", end: "2026-10-11" });
+    x.personal.designDate = "2026-10-05";
+    Object.assign(x.routine, { runsPerDay: 2, argoMonsterPark: 40, ...routine });
+    return simulateMain(x, real);
+  };
+  const perRun = real.routineRaw({ level: 288, runs: 1, sundayKind: "none", grandis: false }).monsterPark;
+  // 10/6(화)~10/10(토) 5일 × 2판 × 1.4 + 10/11(일) 7판 × (1 + 0.5 + 0.4)
+  const week = make({ sundayRuns: 7 });
+  assert.ok(Math.abs(week.sourceRaw.monsterPark - perRun * (5 * 2 * 1.4 + 7 * 1.9)) / week.sourceRaw.monsterPark < 1e-9);
+  const same = make({ sundayRuns: 2 });
+  assert.ok(Math.abs(same.sourceRaw.monsterPark - perRun * (5 * 2 * 1.4 + 2 * 1.9)) / same.sourceRaw.monsterPark < 1e-9);
+  const legacy = (() => { const x = isolated(); Object.assign(x, { start: "2026-10-05", end: "2026-10-11" }); x.personal.designDate = "2026-10-05"; Object.assign(x.routine, { runsPerDay: 3, argoMonsterPark: 40 }); delete x.routine.sundayRuns; return simulateMain(x, real); })();
+  assert.ok(Math.abs(legacy.sourceRaw.monsterPark - perRun * (5 * 3 * 1.4 + 3 * 1.9)) / legacy.sourceRaw.monsterPark < 1e-9, "옛 저장값은 평일 판수");
+});
