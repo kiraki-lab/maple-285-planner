@@ -104,7 +104,7 @@ test("저장된 입력을 되살리는 규칙: 깨졌거나 옛 형식이면 기
   assert.equal(merged.routine.runsPerDay, 3);
   assert.equal(merged.routine.weeklyMeasuredPercent, 0, "나중에 생긴 항목은 기본값으로 채운다");
   assert.equal(merged.personal.flame.stock, 5);
-  assert.deepEqual(merged.personal.flame.alloc, { shard: 0, exp: 3, erda: 0 });
+  assert.deepEqual(merged.personal.flame.alloc, { shard: 3, exp: 0, erda: 0 });
   assert.deepEqual(merged.personal.bosses.map(boss => boss.id), ["bellona-hard"]);
   assert.equal(merged.plus.claimedLevel, 0);
   // 일요일 판수가 없던 때 저장한 값은 평일 판수를 따른다(기본값 2로 덮지 않는다).
@@ -159,6 +159,12 @@ test("보스 프리셋과 사냥터 선택이 화면에 연결돼 있다", async
   assert.match(planner, /몬스터 기본 경험치 × 502,828\.8/);
   assert.match(planner, /모멘텀 PLUS는 이벤트 시작부터 주 2,500포인트를 모두 채웠다고/);
   assert.match(planner, /주간 사냥 시간/);
+  assert.match(planner, /커스텀 포인트 배분/);
+  assert.match(planner, /compareAlloc\(input, ctx\)/);
+  assert.match(planner, /이 배분으로/);
+  assert.match(planner, /추천: 갈 수 있는 지역의 가장 높은 몬스터/);
+  assert.match(planner, /<option value="same">내 레벨과 같은 몬스터/);
+  assert.match(planner, /보유 퍼스널 EXP 포인트/);
   assert.match(planner, /사냥 추가 경험치 %/);
   assert.match(planner, /몬스터파크 추가 경험치 %/);
   assert.match(planner, /에픽 던전 추가 경험치 %/);

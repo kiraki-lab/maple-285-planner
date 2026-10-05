@@ -7,7 +7,10 @@ import {
   bossPreset,
   flameModelRaw,
   buildMissionTable,
+  compareAlloc,
   compareDesignation,
+  huntFieldLevelFor,
+  recommendedFieldLevel,
   compareTiers,
   couponRawForLevel,
   defaultMainInput,
@@ -174,7 +177,8 @@ test("입력한 보상이 표와 크게 다르면 입력값 쪽으로 맞추고 
 
 const baseInput = (patch = {}) => {
   const input = defaultMainInput("2026-10-04");
-  return { ...input, ...patch, personal: { ...input.personal, ...(patch.personal || {}), flame: { ...input.personal.flame, ...(patch.personal?.flame || {}) } } };
+  // 이 묶음의 테스트는 교환권이 쌓이는 배분(EXP 3)을 전제로 한다. 기본값은 조각 3이다.
+  return { ...input, ...patch, personal: { ...input.personal, ...(patch.personal || {}), flame: { ...input.personal.flame, alloc: { shard: 0, exp: 3, erda: 0 }, ...(patch.personal?.flame || {}) } } };
 };
 
 test("플레임 보유량은 36,000을 넘지 않고 넘친 만큼 소실로 센다", () => {
@@ -406,6 +410,7 @@ test("실제 표로 보스 프리셋을 넣으면 보스 경험치가 원천에 
 test("플레임은 몬스터 기본 경험치 ×72, 교환권은 레벨의 기본 경험치 ×480으로 쌓인다", () => {
   const real = createMainContext();
   const input = defaultMainInput("2026-10-04");
+  Object.assign(input.personal.flame, { fieldLevel: 288, alloc: { shard: 0, exp: 3, erda: 0 } });
   const result = simulateMain(input, real);
   const killed = result.flame.killed;
   assert.ok(Math.abs(result.sourceRaw.flame - killed * flameModelRaw(288)) / result.sourceRaw.flame < 1e-9);
@@ -707,7 +712,8 @@ test("사냥 경험치는 시간과 추가 경험치에 비례하고 0시간이�
   assert.ok(!make(0, 300).sourceRaw.hunt);
   const pure = make(7, 0);
   // 하루 1시간(30분 2번) × 13일(시작일 제외) × 288레벨 순수 30분 경험치
-  const perSession = real.huntRaw({ level: 288, fieldLevel: 288 });
+  // 사냥터를 고르지 않으면 288레벨이 갈 수 있는 지역의 가장 높은 몬스터(289)를 잡는다.
+  const perSession = real.huntRaw({ level: 288, fieldLevel: 289 });
   assert.ok(Math.abs(pure.sourceRaw.hunt - perSession * 2 * 13) / pure.sourceRaw.hunt < 1e-9, "레벨이 그대로인 동안은 단순 곱");
   assert.ok(Math.abs(make(7, 300).sourceRaw.hunt / pure.sourceRaw.hunt - 4) < 1e-9);
   assert.ok(Math.abs(make(14, 0).sourceRaw.hunt / pure.sourceRaw.hunt - 2) < 1e-9);
@@ -898,4 +904,85 @@ test("단계 보상 배수와 화면 값의 차이는 3.2만 EXP 안쪽이다 (�
   const screen = { 286: 2_066_779_207_004, 287: 2_093_653_887_402, 288: 2_120_693_506_122, 289: 2_144_810_694_332 };
   const worst = Math.max(...Object.entries(screen).map(([level, raw]) => Math.abs(stepRewardRawForLevel(Number(level)) - raw)));
   assert.ok(worst > 30_000 && worst < 32_000, `가장 큰 차이 ${worst}`);
+});
+
+test("사냥터를 고르지 않으면 레벨을 따라 지역의 가장 높은 몬스터를 잡는다", () => {
+  const real = createMainContext();
+  assert.deepEqual([280, 284, 285, 286, 289, 290, 294, 295, 299].map(recommendedFieldLevel), [284, 284, 289, 289, 289, 294, 294, 299, 299]);
+  assert.equal(huntFieldLevelFor({ fieldLevel: 0, fieldKey: "" }, 286), 289);
+  assert.equal(huntFieldLevelFor({ fieldLevel: 0, fieldKey: "same" }, 286), 286);
+  assert.equal(huntFieldLevelFor({ fieldLevel: 273, fieldKey: "x" }, 286), 273);
+  // 289레벨 99%에서 시작해 290이 되면 플레임도 294레벨 몬스터 값으로 바뀐다(고정이면 289 값 그대로).
+  const make = flamePatch => {
+    const x = isolated();
+    Object.assign(x, { start: "2026-10-05", end: "2026-10-08", level: 289, exp: 99.9 });
+    x.personal.designDate = "2026-10-05";
+    Object.assign(x.personal.flame, { stock: 3000, killsPerWeek: 7000, alloc: { shard: 3, exp: 0, erda: 0 }, ...flamePatch });
+    return simulateMain(x, real);
+  };
+  const follow = make({});
+  assert.equal(follow.level, 290);
+  assert.ok(follow.sourceRaw.flame > follow.flame.killed * flameModelRaw(289) * 1.05, "레벨업 뒤에는 294레벨 몬스터 값");
+  assert.ok(follow.sourceRaw.flame < follow.flame.killed * flameModelRaw(294) + 1);
+  const fixed = make({ fieldLevel: 289 });
+  assert.ok(Math.abs(fixed.sourceRaw.flame - fixed.flame.killed * flameModelRaw(289)) < 1);
+  const same = make({ fieldKey: "same" });
+  assert.ok(same.sourceRaw.flame < follow.sourceRaw.flame, "내 레벨과 같은 몬스터(289→290)는 추천(289→294)보다 낮다");
+});
+
+test("커스텀 포인트 비교: 30단계를 넘는 사람은 조각 3, 못 넘는 사람은 필요한 만큼만 EXP", () => {
+  const real = createMainContext();
+  // 프라임·몰아쓰기 기본값은 EXP에 하나도 안 줘도 30단계를 넘는다.
+  const rich = compareAlloc(defaultMainInput("2026-10-05"), real);
+  assert.equal(rich.length, 4);
+  assert.deepEqual(rich.map(row => row.alloc.exp), [0, 1, 2, 3]);
+  assert.ok(rich.every(row => row.summary.stepsCleared === 30));
+  assert.deepEqual(rich.find(row => row.recommended).alloc, { shard: 3, exp: 0, erda: 0 });
+  // EXP에 많이 줄수록 교환권은 늘고 조각은 준다. 마감 위치는 줄지 않는다.
+  for (let i = 1; i < 4; i += 1) {
+    assert.ok(rich[i].couponsMade > rich[i - 1].couponsMade);
+    assert.ok(rich[i].shardFragments < rich[i - 1].shardFragments);
+    assert.ok(rich[i].summary.progress >= rich[i - 1].summary.progress - 1e-9);
+  }
+  assert.equal(rich[0].couponsMade, 0);
+  assert.ok(Math.abs(rich[0].shardFragments - rich[0].flameKilled * 3 / 1500) < 1e-9);
+  // 무료 등급의 286레벨 캐릭터(대표 화면: 68.287%, 4단계 완료)는 30단계에 못 닿으니 단계가 가장 많은 배분을 고른다.
+  const poor = defaultMainInput("2026-10-05");
+  Object.assign(poor, { level: 286, exp: 68.287 });
+  poor.plus.tier = "free";
+  poor.personal.mission = { ...poor.personal.mission, mode: "screen", stepsDone: 4, nextTarget: { level: 286, exp: 69.714 }, nextRewardPct: 1.888 };
+  const rows = compareAlloc(poor, real);
+  const top = Math.max(...rows.map(row => row.summary.stepsCleared));
+  assert.ok(top < 30);
+  const pick = rows.find(row => row.recommended);
+  assert.equal(pick.summary.stepsCleared, top);
+  assert.ok(rows.filter(row => row.alloc.exp < pick.alloc.exp).every(row => row.summary.stepsCleared < top), "같은 단계라면 EXP에 덜 준 쪽");
+  assert.ok(rows[3].summary.stepsCleared > rows[0].summary.stepsCleared, "이 캐릭터는 EXP에 줘야 단계가 는다");
+  // 아직 교환하지 않은 EXP 포인트도 교환권으로 센다.
+  const owned = defaultMainInput("2026-10-05");
+  owned.personal.flame.expPointsOwned = 1234;
+  const r = simulateMain(owned, real);
+  assert.equal(r.coupons.used + r.coupons.expired, 12);
+});
+
+test("다음 단계 목표가 한 단계 넘게 멀면 알린다 (레벨만 바꾸고 예시 목표를 그대로 둔 경우)", () => {
+  const real = createMainContext();
+  // 대표 화면에서 실제로 있었던 입력: 286레벨 45%인데 다음 목표가 예시값 288레벨 49.948% 그대로
+  const stale = defaultMainInput("2026-10-05");
+  Object.assign(stale, { level: 286, exp: 45 });
+  const far = simulateMain(stale, real);
+  assert.ok(far.warnings.some(text => text.includes("다음 단계 목표(288레벨 49.948%)") && text.includes("통과한 단계 수를 바꿔도")), far.warnings.join(" | "));
+  // 통과 단계 수만 바꾸면 마감 위치가 같다(그래서 알려야 한다). 무료 등급처럼 끝까지 못 가는 경우.
+  const at = stepsDone => { const x = structuredClone(stale); x.plus.tier = "free"; x.personal.mission.stepsDone = stepsDone; return simulateMain(x, real).progress; };
+  assert.equal(at(4), at(10));
+  // 화면 값을 제대로 넣으면 경고가 없고, 통과 단계 수가 적을수록(남은 보상이 많을수록) 프라임 기본값의 마감 위치가 높다.
+  const good = structuredClone(stale);
+  Object.assign(good, { level: 286, exp: 68.287 });
+  good.personal.mission = { ...good.personal.mission, stepsDone: 4, nextTarget: { level: 286, exp: 69.714 }, nextRewardPct: 1.888 };
+  const ok = simulateMain(good, real);
+  assert.ok(!ok.warnings.some(text => text.includes("다음 단계 목표(")), ok.warnings.join(" | "));
+  const end = stepsDone => { const x = structuredClone(good); x.personal.mission.stepsDone = stepsDone; return analyzeMain(x, real).best.summary.progress; };
+  assert.ok(end(4) > end(15) && end(15) > end(25));
+  // 기본 예시값(288레벨 45%, 다음 목표 288레벨 49.948%)은 한 단계 안쪽이라 경고가 없다.
+  assert.ok(!simulateMain(defaultMainInput("2026-10-05"), real).warnings.some(text => text.includes("다음 단계 목표(")));
 });

@@ -11,6 +11,7 @@ import {
   bossPreset,
   bossRaw,
   COINS_PER_STEP,
+  compareAlloc,
   compareDesignation,
   compareTiers,
   couponRawForLevel,
@@ -19,6 +20,7 @@ import {
   FLAME_WEEKLY_ADD,
   flameModelRaw,
   MAIN_SCHEDULE,
+  huntFieldLevelFor,
   MISSION_STEPS,
   mobBaseExp,
   simulateMain,
@@ -94,12 +96,13 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
   const plusAvailable = input.plus.enabled && diffDays(MAIN_SCHEDULE.plusLastUseDay, input.start) >= 0;
   const tiers = useMemo(() => (plusAvailable ? compareTiers(input, ctx) : []), [plusAvailable, input, ctx]);
   const designations = useMemo(() => compareDesignation(input, ctx), [input, ctx]);
+  const allocRows = useMemo(() => compareAlloc(input, ctx), [input, ctx]);
   const eventOver = diffDays(input.start, MAIN_SCHEDULE.personalEnd) > 0;
   const startLevel = Math.max(280, Math.min(295, Math.floor(input.level)));
   const days = r.rows.length;
 
   const flame = input.personal.flame;
-  const flameFieldLevel = flame.fieldLevel > 0 ? flame.fieldLevel : startLevel;
+  const flameFieldLevel = huntFieldLevelFor(flame, startLevel);
   const flameRaw = flame.expPerKill > 0 ? flame.expPerKill : flameModelRaw(flameFieldLevel);
   const couponAtStart = couponRawForLevel(startLevel);
   const weeklyFlameRaw = Math.min(flame.killsPerWeek, FLAME_WEEKLY_ADD) * flameRaw;
@@ -147,7 +150,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
   if (r.coupons.expired > 0) advices.push({ tone: "warn", text: `교환권 ${fmtInt(r.coupons.expired)}장을 마감까지 쓰지 못합니다. 11/19 02:00에 소멸합니다.` });
   if (allocTotal > 3 + 1e-9) advices.push({ tone: "warn", text: "커스텀 포인트 합계가 3을 넘습니다. 게임에서는 3개를 나눠 씁니다." });
   if (allocTotal < 3 - 1e-9) advices.push({ tone: "info", text: "커스텀 포인트를 모두 쓰지 않으면 플레임을 소환할 수 없습니다. 합계를 3으로 맞추세요." });
-  r.warnings.forEach((text: string) => advices.push({ tone: "info", text }));
+  r.warnings.forEach((text: string) => advices.push({ tone: text.startsWith("다음 단계 목표(") ? "warn" : "info", text }));
   if (r.atCap) advices.push({ tone: "info", text: "296레벨에 닿았습니다. 이후 경험치는 계산하지 않습니다." });
 
   const assumed: string[] = [];
@@ -155,6 +158,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
   else if (input.personal.mission.mode === "screen") assumed.push("성장 미션은 입력한 다음 단계 목표에서 시작해 레벨별 단계 간격으로 이었습니다. 본섭 두 캐릭터(286·287레벨 지정)의 30단계 목표가 0.01%p 안쪽으로 맞습니다. 285 미만과 290 이상의 간격은 표본에서 구한 추정입니다.");
   else assumed.push("성장 미션 단계표를 지정 당시 레벨·경험치에서 만들었습니다. 미션 화면의 다음 목표를 직접 넣으면 지정 당시 값을 몰라도 됩니다.");
   assumed.push("단계 보상은 레벨의 몬스터 기본 경험치 × 502,828.8로 계산했습니다. 본섭 286~289레벨 화면의 보상 네 값에서 구한 배수이고, 네 값과의 차이는 약 3.2만 EXP(2조가 넘는 보상의 0.000002%) 안쪽입니다.");
+  if (!(flame.fieldLevel > 0)) assumed.push(flame.fieldKey === "same" ? "사냥터는 내 레벨과 같은 몬스터로, 레벨이 오르면 몬스터 레벨도 따라 오른다고 봤습니다." : "사냥터는 지금 레벨에서 갈 수 있는 지역의 가장 높은 몬스터(285~289레벨은 289, 290~294는 294, 295부터는 299)로 봤고, 레벨이 올라 다음 지역이 열리면 그쪽으로 옮긴다고 계산했습니다. 어센틱포스가 모자라 그 사냥터를 못 가면 사냥터를 직접 고르세요.");
   if (!(flame.expPerKill > 0)) assumed.push("플레임 1마리 경험치는 사냥터 몬스터 기본 경험치(하루1소재 표) × 72로 계산했습니다. ×72는 본섭 9/23 로그 3건으로 확인한 값이고 하루1소재에 플레임 계산식은 없습니다. 9/24 공지 수정 이후 같은 조건의 재측정은 하지 못했습니다.");
   if (input.plus.enabled) assumed.push("모멘텀 PLUS는 이벤트 시작부터 주 2,500포인트를 모두 채웠다고 보고, 해금된 레벨의 보상을 시작일에 바로 받는 것으로 계산합니다(1주 Lv.3, 2주 Lv.6, 3주 Lv.10). 실제 수령 레벨이 다르면 「수령한 PLUS 레벨」에 넣으세요.");
   if (input.routine.huntHoursPerWeek > 0) assumed.push("사냥은 하루1소재 사냥 식을 썼습니다: 30분에 7.5초 리젠 240번 × 40마리 × 몬스터 기본 경험치 × 레벨 차 보정. 여기에 입력한 「사냥 추가 경험치 %」(룬·쿠폰·버프·가호 합계)를 곱합니다. 사냥터 마릿수와 원킬 여부에 따라 실제는 다릅니다. 주간 사냥 시간은 매일 같은 양으로 나눠 계산합니다.");
@@ -220,7 +224,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
           <button type="button" className={input.personal.mission.mode === "model" ? "on" : ""} onClick={() => upd((draft: MainInput) => { draft.personal.mission.mode = "model"; })}>지정 당시 상태로 추정</button>
         </div>
         {input.personal.mission.mode === "screen" ? <div className="field-grid compact">
-          <NumField label="통과한 단계 수" value={input.personal.mission.stepsDone} min={0} max={30} step={1} onChange={value => upd((draft: MainInput) => { draft.personal.mission.stepsDone = value; })} hint="0~30" />
+          <NumField label="통과한 단계 수" value={input.personal.mission.stepsDone} min={0} max={30} step={1} onChange={value => upd((draft: MainInput) => { draft.personal.mission.stepsDone = value; })} hint="남은 단계 개수만 정합니다. 목표 위치는 아래 다음 목표로 정해집니다" />
           <NumField label="다음 단계 보상 %" value={input.personal.mission.nextRewardPct} min={0} step={0.001} onChange={value => upd((draft: MainInput) => { draft.personal.mission.nextRewardPct = value; })} hint="화면의 경험치 보상 %" />
           <NumField label="다음 단계 목표 레벨" value={input.personal.mission.nextTarget.level} min={280} max={295} step={1} onChange={value => upd((draft: MainInput) => { draft.personal.mission.nextTarget.level = value; })} />
           <NumField label="다음 단계 목표 %" value={input.personal.mission.nextTarget.exp} min={0} max={99.999} step={0.001} onChange={value => upd((draft: MainInput) => { draft.personal.mission.nextTarget.exp = value; })} />
@@ -240,7 +244,8 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
       </div>
       <label className="field pb-wide"><span>사냥터 (몬스터 레벨이 경험치를 정합니다)</span>
         <select value={flame.fieldKey || ""} onChange={event => { const option = FIELD_OPTIONS.find(item => item.key === event.target.value); upd((draft: MainInput) => { draft.personal.flame.fieldKey = event.target.value; draft.personal.flame.fieldLevel = option ? option.level : 0; }); }}>
-          <option value="">내 레벨과 같은 몬스터 (Lv.{startLevel})</option>
+          <option value="">추천: 갈 수 있는 지역의 가장 높은 몬스터 (지금 Lv.{huntFieldLevelFor({ fieldLevel: 0, fieldKey: "" }, startLevel)}, 레벨업하면 따라감)</option>
+          <option value="same">내 레벨과 같은 몬스터 (지금 Lv.{startLevel}, 레벨업하면 따라감)</option>
           {FIELD_REGIONS.map(region => <optgroup key={region} label={region}>{FIELD_OPTIONS.filter(option => option.region === region).map(option => <option key={option.key} value={option.key}>{option.label}</option>)}</optgroup>)}
         </select></label>
       <div className="field-grid compact">
@@ -250,6 +255,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
         <NumField label="커스텀 · EXP" value={flame.alloc.exp} min={0} max={3} step={1} onChange={value => upd((draft: MainInput) => { draft.personal.flame.alloc.exp = value; })} />
         <NumField label="커스텀 · 솔 에르다" value={flame.alloc.erda} min={0} max={3} step={1} onChange={value => upd((draft: MainInput) => { draft.personal.flame.alloc.erda = value; })} />
         <NumField label="보유 EXP 교환권" value={flame.couponsOwned} min={0} step={1} onChange={value => upd((draft: MainInput) => { draft.personal.flame.couponsOwned = value; })} />
+        <NumField label="보유 퍼스널 EXP 포인트" value={flame.expPointsOwned} min={0} step={100} onChange={value => upd((draft: MainInput) => { draft.personal.flame.expPointsOwned = value; })} hint="아직 교환 안 한 포인트. 100P = 교환권 1장" />
       </div>
       <div className="pb-formula" aria-label="플레임과 교환권 계산">
         <p><b>플레임 1마리</b> = 몬스터 Lv.{flameFieldLevel} 기본 경험치 {fmtInt(mobBaseExp(flameFieldLevel))} × {PERSONAL_FLAME_MULTIPLE} = <b>{fmtEok(flameRaw)}</b></p>
@@ -377,6 +383,21 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
               <td>{row.cash ? `${fmtInt(row.cash)}` : "-"}</td><td>{place(row.summary.level, row.summary.exp)}</td><td>{row.summary.stepsCleared}</td>
               <td>{row.tier === input.plus.tier ? "기준" : `+${row.gainProgress.toFixed(2)}%p${row.gainSteps ? ` · +${row.gainSteps}단계` : ""}${row.cash && row.gainProgress > 0 ? ` · 1%p당 ${fmtInt(row.cash / row.gainProgress)}캐시` : ""}`}</td></tr>)}</tbody>
           </table></div>
+        </>}
+
+        {allocRows.length > 0 && <>
+          <h3 className="pb-title">커스텀 포인트 배분</h3>
+          <p className="pb-note">플레임 한 마리마다 리워드 포인트 3개를 어디에 줄지 고릅니다. 30단계를 어차피 넘으면 솔 에르다 조각에 다 주고, 못 넘으면 넘는 데 필요한 만큼만 퍼스널 EXP에 주는 쪽을 추천합니다. 나머지는 조각으로 계산했습니다.</p>
+          <div className="pb-table-wrap"><table className="hold-table pb-table">
+            <thead><tr><th>배분</th><th>마감 위치</th><th>단계</th><th>교환권</th><th>조각</th><th></th></tr></thead>
+            <tbody>{allocRows.map((row: { alloc: { shard: number; exp: number; erda: number }; summary: { level: number; exp: number; stepsCleared: number }; couponsMade: number; shardFragments: number; recommended: boolean }) => {
+              const current = flame.alloc.exp === row.alloc.exp && flame.alloc.shard === row.alloc.shard && flame.alloc.erda === 0;
+              return <tr key={row.alloc.exp} className={row.recommended ? "best" : ""}>
+                <td>EXP {row.alloc.exp} · 조각 {row.alloc.shard}{row.recommended ? " · 추천" : ""}</td><td>{place(row.summary.level, row.summary.exp)}</td><td>{row.summary.stepsCleared}</td><td>{fmtInt(row.couponsMade)}장</td><td>{fmtInt(row.shardFragments)}개</td>
+                <td>{current ? "지금 설정" : <button type="button" className="pb-link" onClick={() => upd((draft: MainInput) => { draft.personal.flame.alloc = { ...row.alloc }; })}>이 배분으로</button>}</td></tr>;
+            })}</tbody>
+          </table></div>
+          <p className="pb-note">게임에서는 배분을 초기화해 다시 정할 수 있지만, 여기서는 마감까지 같은 배분으로 계산합니다. 솔 에르다에 주는 경우는 표에 넣지 않았습니다(위 입력칸에서 직접 넣을 수 있습니다).</p>
         </>}
 
         {designations.length > 0 && <>
