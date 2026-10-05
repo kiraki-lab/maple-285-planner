@@ -1,6 +1,7 @@
 // 경험치 표와 계산 보조 함수. 화면(app/)과 분리해 두어 테스트가 빌드 없이 바로 불러온다.
 // 출처: 하루1소재(haru1sojae.kr) 경험치 효율표·몬스터 기본 경험치·퍼스널 보스 표, 메이플로드, 넥슨 공식 공지.
 import { monsterParkExperiencePercent } from "./calculator-core.mjs";
+import { MOB_BASE_EXP } from "./personal-data.mjs";
 
 export type CustomRewardType = "adv" | "mech" | "crimson" | "blue" | "sauna" | "potion279";
 export type ItemConversionInventory = Record<CustomRewardType, number>;
@@ -15,7 +16,7 @@ export type ItemConversionResult = {
   reachedUpperLimit: boolean;
 };
 
-type PlusReward = { deferMech: boolean; crimson: number; adv: number; sauna: number; coupon4x: number };
+type PlusReward = { deferMech: boolean; crimson: number; adv: number; sauna: number; coupon4x: number; booster: number };
 
 export const efficiency: Record<number, Record<string, number>> = {
   280: { grandis: 0.3857, mp7: 2.2302, extreme: 2.604, epic: 3.0885, adv100: 0.22977, sauna: 0.9313, blue: 6.4818, mech: 9.7053 },
@@ -148,11 +149,13 @@ export const MOMENTUM_MAX_LEVEL = 10;
 export const MOMENTUM_PLUS_FREE: Record<number, { crimson?: number; adv?: number; sauna?: number }> = {
   1: { crimson: 1 }, 2: { sauna: 0.5 }, 4: { adv: 100 }, 5: { sauna: 0.5 }, 7: { adv: 100 }, 8: { sauna: 0.5 }, 10: { adv: 300 },
 };
-export const MOMENTUM_PLUS_PREMIUM: Record<number, { crimson?: number; adv?: number; coupon4x?: number }> = {
-  2: { crimson: 1 }, 3: { coupon4x: 2 }, 4: { adv: 1500 }, 5: { crimson: 2 }, 7: { adv: 1500 }, 8: { crimson: 2 }, 9: { coupon4x: 2 }, 10: { adv: 1500 },
+// 공식 813 표: 프리미엄 1·6레벨 VIP 부스터 10개, 3·9레벨 경험치 4배 쿠폰 2개.
+export const MOMENTUM_PLUS_PREMIUM: Record<number, { crimson?: number; adv?: number; coupon4x?: number; booster?: number }> = {
+  1: { booster: 10 }, 2: { crimson: 1 }, 3: { coupon4x: 2 }, 4: { adv: 1500 }, 5: { crimson: 2 }, 6: { booster: 10 }, 7: { adv: 1500 }, 8: { crimson: 2 }, 9: { coupon4x: 2 }, 10: { adv: 1500 },
 };
-export const MOMENTUM_PLUS_PRIME: Record<number, { crimson?: number; adv?: number; coupon4x?: number }> = {
-  1: { coupon4x: 2 }, 2: { adv: 3000 }, 3: { crimson: 3 }, 4: { coupon4x: 2 }, 5: { adv: 3000 }, 6: { crimson: 4 }, 7: { coupon4x: 2 }, 8: { adv: 3000 }, 10: { crimson: 4 },
+// 공식 813 표: 프라임 1·4·7레벨 경험치 4배 쿠폰 2개, 9레벨 VIP 부스터 20개.
+export const MOMENTUM_PLUS_PRIME: Record<number, { crimson?: number; adv?: number; coupon4x?: number; booster?: number }> = {
+  1: { coupon4x: 2 }, 2: { adv: 3000 }, 3: { crimson: 3 }, 4: { coupon4x: 2 }, 5: { adv: 3000 }, 6: { crimson: 4 }, 7: { coupon4x: 2 }, 8: { adv: 3000 }, 9: { booster: 20 }, 10: { crimson: 4 },
 };
 export type MomentumTier = "free" | "premium" | "prime";
 export const MOMENTUM_PLUS_PREMIUM_CASH = 29_800;
@@ -166,9 +169,9 @@ export const momentumPlusRewardForLevel = (level: number, tier: MomentumTier, de
   const tables = [MOMENTUM_PLUS_FREE as Record<number, Record<string, number>>];
   if (tier !== "free") tables.push(MOMENTUM_PLUS_PREMIUM as Record<number, Record<string, number>>);
   if (tier === "prime") tables.push(MOMENTUM_PLUS_PRIME as Record<number, Record<string, number>>);
-  const total = { crimson: 0, adv: 0, sauna: 0, coupon4x: 0 };
+  const total = { crimson: 0, adv: 0, sauna: 0, coupon4x: 0, booster: 0 };
   tables.forEach(table => Object.entries(table[level] || {}).forEach(([key, value]) => { total[key as keyof typeof total] += value; }));
-  return { deferMech, crimson: total.crimson, adv: total.adv, sauna: total.sauna, coupon4x: total.coupon4x };
+  return { deferMech, crimson: total.crimson, adv: total.adv, sauna: total.sauna, coupon4x: total.coupon4x, booster: total.booster };
 };
 
 
@@ -357,17 +360,27 @@ export const formatItemConversionExperience = (raw: number) => {
 };
 
 
+// 사냥 모형 상수(하루1소재). 한 번에 잡는 마릿수는 285레벨 이상 사냥터 대부분이 40(일부 36)이라 40으로 둔다.
+export const HUNT_SPAWNS_PER_30MIN = 240;
+export const HUNT_MOBS_PER_SPAWN = 40;
+export const VIP_BOOSTER_KILLS = 1_710;
+export const VIP_BOOSTER_MULTIPLE = 10;
+// 캐릭터 레벨 − 몬스터 레벨에 따른 경험치 배율(하루1소재 사냥 식 그대로).
+export const huntLevelFactor = (gap: number) => (gap >= 40 ? 0.7 : gap >= 21 ? (110 - gap) / 100 : gap >= 19 ? 0.95 : gap >= 17 ? 0.96 : gap >= 15 ? 0.97 : gap >= 13 ? 0.98 : gap >= 11 ? 0.99
+  : gap === 10 ? 1 : gap >= 5 ? 1.05 : gap >= 2 ? 1.1 : gap >= -1 ? 1.2 : gap >= -4 ? 1.1 : gap >= -9 ? 1.05 : gap >= -20 ? (110 + gap) / 100 : gap >= -35 ? (4 * gap + 154) / 100 : gap >= -39 ? 0.1 : 0);
+
 // 본섭 퍼스널 버닝 계산용 경험치 표 어댑터. 엔진(lib/main-planner.mjs)은 표를 모르고 이 함수로만 받는다.
 // 일과·아이템 값은 챌섭 계산기에서 검증한 표를 그대로 쓰되, 챌섭 전용 보너스(에테리온 코어 %)는 넣지 않는다.
 export const createMainContext = () => ({
   levelCap: 296,
   reqRaw: (level: number) => itemConversionRequiredExperience(level),
-  routineRaw: ({ level, runs, sundayKind, grandis }: { level: number; runs: number; sundayKind: "none" | "normal" | "special"; grandis: boolean }) => {
+  // 몬스터파크 추가 경험치(하루1소재의 「보약」, 아르고호의 가호 등)는 썬데이 보너스와 더해진다: 기본 × (1 + 썬데이 + 추가%).
+  routineRaw: ({ level, runs, sundayKind, grandis, monsterParkBonusPct = 0 }: { level: number; runs: number; sundayKind: "none" | "normal" | "special"; grandis: boolean; monsterParkBonusPct?: number }) => {
     const sundayBonus = sundayKind === "special" ? 3 : sundayKind === "normal" ? 0.5 : 0;
     const required = itemConversionRequiredExperience(level);
     const monsterPark = level >= 285
-      ? monsterParkRawForLevel(level, true, true) * runs * (1 + sundayBonus)
-      : required * monsterParkExperiencePercent({ baseSevenRunPercent: efficiency[level].mp7, runs, contentBonusPercent: 0, sundayKind }) / 100;
+      ? monsterParkRawForLevel(level, true, true) * runs * (1 + sundayBonus + monsterParkBonusPct / 100)
+      : required * monsterParkExperiencePercent({ baseSevenRunPercent: efficiency[level].mp7, runs, contentBonusPercent: monsterParkBonusPct, sundayKind }) / 100;
     const grandisRaw = !grandis ? 0 : level >= 285 ? grandisDailyRawForLevel(level, true) : required * efficiency[level].grandis / 100;
     return { monsterPark, grandis: grandisRaw };
   },
@@ -380,6 +393,13 @@ export const createMainContext = () => ({
   itemRaw: (type: string, level: number) => itemConversionRawExperience(type as CustomRewardType, level),
   plusReward: (level: number, tier: MomentumTier) => {
     const reward = momentumPlusRewardForLevel(level, tier, false);
-    return { crimson: Number(reward.crimson || 0), adv: Number(reward.adv || 0), sauna: Number(reward.sauna || 0) };
+    return { crimson: Number(reward.crimson || 0), adv: Number(reward.adv || 0), sauna: Number(reward.sauna || 0), coupon4x: Number(reward.coupon4x || 0), booster: Number(reward.booster || 0) };
   },
+  // 사냥 30분의 순수 경험치(버프·쿠폰 없음): 7.5초 리젠 240번 × 한 번에 잡는 마릿수 × 몬스터 기본 경험치 × 레벨 차 보정. 하루1소재 사냥 식.
+  huntRaw: ({ level, fieldLevel, mobsPerSpawn = HUNT_MOBS_PER_SPAWN }: { level: number; fieldLevel: number; mobsPerSpawn?: number }) =>
+    HUNT_SPAWNS_PER_30MIN * mobsPerSpawn * ((MOB_BASE_EXP as Record<number, number>)[fieldLevel] ?? 0) * huntLevelFactor(level - fieldLevel),
+  // VIP 부스터 1개: 몬스터 1,710마리에 기본 경험치의 10배가 더 붙는다(하루1소재 식).
+  boosterRaw: (fieldLevel: number) => VIP_BOOSTER_MULTIPLE * VIP_BOOSTER_KILLS * ((MOB_BASE_EXP as Record<number, number>)[fieldLevel] ?? 0),
+  huntKillsPer30Min: HUNT_SPAWNS_PER_30MIN * HUNT_MOBS_PER_SPAWN,
+  boosterKills: VIP_BOOSTER_KILLS,
 });

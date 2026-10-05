@@ -125,6 +125,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
     monsterPark: "몬스터파크", grandis: "그란디스 일퀘", extreme: "익스트림 몬파(주간)", epic: "에픽 던전(주간)", routine: "일과(직접 입력)", weekly: "주간 컨텐츠(직접 입력)",
     flame: "퍼스널 플레임", coupon: "퍼스널 EXP 교환권", boss: "퍼스널 보스 미션", missionReward: "성장 미션 단계 보상",
     crimson: "크림슨 메카베리", adv: "상급 EXP 교환권", sauna: "VIP 사우나", blue: "블루베리", mech: "메카베리", potion: "성장의 비약",
+    hunt: "사냥", coupon4x: "경험치 4배 쿠폰(PLUS)", booster: "VIP 부스터(PLUS)",
   };
   const totalRaw = sourceRows.reduce((sum, row) => sum + row.raw, 0) || 1;
 
@@ -141,6 +142,8 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
   }
   const expiredPlus = r.items.expired.crimson + r.items.expired.adv + r.items.expired.sauna;
   if (expiredPlus > 0) advices.push({ tone: "warn", text: `PLUS 아이템이 10/22 02:00에 소멸합니다. 크림슨 ${fmtInt(r.items.expired.crimson)}장, 상급 EXP ${fmtInt(r.items.expired.adv)}장, 사우나 ${r.items.expired.sauna.toFixed(1)}시간이 남습니다. 레벨 상한(296)에 닿아 쓸 수 없는 경우만 해당합니다.` });
+  const unusedHuntItems = (r.items.expired.coupon4x || 0) + (r.items.expired.booster || 0);
+  if (unusedHuntItems > 0.01) advices.push({ tone: "warn", text: `PLUS로 받은 경험치 4배 쿠폰 ${(r.items.expired.coupon4x || 0).toFixed(1)}장, VIP 부스터 ${(r.items.expired.booster || 0).toFixed(1)}개를 10/21까지 다 쓰지 못합니다. 둘 다 사냥하는 동안에만 쓸 수 있으니 「주간 사냥 시간」을 늘려야 합니다(쿠폰은 30분에 1장).` });
   if (r.coupons.expired > 0) advices.push({ tone: "warn", text: `교환권 ${fmtInt(r.coupons.expired)}장을 마감까지 쓰지 못합니다. 11/19 02:00에 소멸합니다.` });
   if (allocTotal > 3 + 1e-9) advices.push({ tone: "warn", text: "커스텀 포인트 합계가 3을 넘습니다. 게임에서는 3개를 나눠 씁니다." });
   if (allocTotal < 3 - 1e-9) advices.push({ tone: "info", text: "커스텀 포인트를 모두 쓰지 않으면 플레임을 소환할 수 없습니다. 합계를 3으로 맞추세요." });
@@ -153,7 +156,10 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
   else assumed.push("성장 미션 단계표를 지정 당시 레벨·경험치에서 표본 모형으로 만들었습니다. 모형은 본섭 287레벨 한 표본(과 9/11 테섭 표본)에 맞춘 것입니다. 미션 화면의 다음 목표를 직접 넣으면 더 가깝습니다.");
   if (!(flame.expPerKill > 0)) assumed.push("플레임 1마리 경험치는 사냥터 몬스터 기본 경험치(하루1소재 표) × 72로 계산했습니다. ×72는 본섭 9/23 로그 3건으로 확인한 값이고 하루1소재에 플레임 계산식은 없습니다. 9/24 공지 수정 이후 같은 조건의 재측정은 하지 못했습니다.");
   if (input.plus.enabled) assumed.push("모멘텀 PLUS는 이벤트 시작부터 주 2,500포인트를 모두 채웠다고 보고, 해금된 레벨의 보상을 시작일에 바로 받는 것으로 계산합니다(1주 Lv.3, 2주 Lv.6, 3주 Lv.10). 실제 수령 레벨이 다르면 「수령한 PLUS 레벨」에 넣으세요.");
-  assumed.push("경험치 4배 쿠폰은 사냥 시간이 있어야 쓸 수 있어 계산에 넣지 않았습니다. 마감 다음 날 00:00~02:00(10/22, 11/19)에 쓸 수 있는 시간도 빼고 10/21·11/18을 마지막 날로 봅니다.");
+  if (input.routine.huntHoursPerWeek > 0) assumed.push("사냥은 하루1소재 사냥 식을 썼습니다: 30분에 7.5초 리젠 240번 × 40마리 × 몬스터 기본 경험치 × 레벨 차 보정. 여기에 입력한 「사냥 추가 경험치 %」(룬·쿠폰·버프·가호 합계)를 곱합니다. 사냥터 마릿수와 원킬 여부에 따라 실제는 다릅니다.");
+  else assumed.push("주간 사냥 시간이 0이라 사냥 경험치와 PLUS의 경험치 4배 쿠폰·VIP 부스터는 계산에 넣지 않았습니다.");
+  if (input.plus.enabled && input.plus.tier !== "free" && input.routine.huntHoursPerWeek > 0) assumed.push("PLUS의 경험치 4배 쿠폰(30분, 순수 사냥 경험치의 3배가 더 붙음)과 VIP 부스터(1,710마리에 기본 경험치 10배)는 사냥하는 동안 10/21까지 쓰는 것으로 계산했습니다. 값은 하루1소재 식이고 다른 추가 경험치와 겹치는 효과는 넣지 않았습니다.");
+  assumed.push("마감 다음 날 00:00~02:00(10/22, 11/19)에 쓸 수 있는 시간은 빼고 10/21·11/18을 마지막 날로 봅니다.");
   assumed.push("퍼스널 EXP 교환권은 레벨의 몬스터 기본 경험치 × 480으로 계산했습니다(하루1소재·메이플로드 교환권 표와 같음). 본섭에서 한 장씩 써서 확인한 값은 아닙니다.");
   assumed.push("보스 미션 경험치는 하루1소재 표(보스별 고정 경험치, 경험치를 받는 파티원 수로 나눔)입니다. 공식 공지에는 보스별 수치가 없습니다. 본섭 9/27 보스 미션 화면의 5개 값(세렌 노멀·하드, 칼로스 이지, 대적자 이지, 카링 이지)은 표와 정확히 일치했고, 나머지 30개는 화면과 대조하지 못했습니다.");
   if (bosses.length === 0) assumed.push("보스 미션을 넣지 않았습니다. 위에서 보스 상한을 고르면 한 번에 채워집니다.");
@@ -288,8 +294,11 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
       <div className="field-grid compact">
         <NumField label="몬스터파크 하루 판수" value={input.routine.runsPerDay} min={0} max={7} step={1} onChange={value => upd((draft: MainInput) => { draft.routine.runsPerDay = value; })} hint="무료 기준 2판 (추가 이용권 최대 +5판)" />
         <label className="field"><span>에픽 던전 보상 배수</span><select value={input.routine.epicMult} onChange={event => upd((draft: MainInput) => { draft.routine.epicMult = Number(event.target.value); })}><option value={1}>1배 (보너스 없음)</option><option value={5}>5배 (EXP 1단계 · 흔히 4배, 기본 + 400% 추가)</option><option value={9}>9배 (EXP 2단계 · 흔히 8배)</option></select></label>
-        <NumField label="가호: 몬스터파크 경험치 %" value={input.routine.argoMonsterPark} min={0} max={50} step={5} onChange={value => upd((draft: MainInput) => { draft.routine.argoMonsterPark = value; })} hint="아르고호의 가호 전술 마법. Lv1~6 = 5·10·20·30·40·50%" />
-        <NumField label="가호: 그란디스 일퀘 경험치 %" value={input.routine.argoGrandis} min={0} max={50} step={5} onChange={value => upd((draft: MainInput) => { draft.routine.argoGrandis = value; })} hint="같은 전술 마법. Lv2 = 10%, 최대 50%" />
+        <NumField label="몬스터파크 추가 경험치 %" value={input.routine.argoMonsterPark} min={0} max={50} step={5} onChange={value => upd((draft: MainInput) => { draft.routine.argoMonsterPark = value; })} hint="아르고호의 가호 Lv1~6 = 5·10·20·30·40·50%. 익스트림 몬파에도 붙음" />
+        <NumField label="그란디스 일퀘 추가 경험치 %" value={input.routine.argoGrandis} min={0} max={50} step={5} onChange={value => upd((draft: MainInput) => { draft.routine.argoGrandis = value; })} hint="아르고호의 가호. Lv2 = 10%, 최대 50%" />
+        <NumField label="에픽 던전 추가 경험치 %" value={input.routine.epicBonus} min={0} max={200} step={5} onChange={value => upd((draft: MainInput) => { draft.routine.epicBonus = value; })} hint="따로 받는 추가 경험치가 있을 때만. 없으면 0" />
+        <NumField label="주간 사냥 시간" value={input.routine.huntHoursPerWeek} min={0} max={168} step={0.5} onChange={value => upd((draft: MainInput) => { draft.routine.huntHoursPerWeek = value; })} hint="시간. 위에서 고른 사냥터 기준. 0이면 사냥 없음" />
+        <NumField label="사냥 추가 경험치 %" value={input.routine.huntBonusPct} min={0} max={3000} step={10} onChange={value => upd((draft: MainInput) => { draft.routine.huntBonusPct = value; })} hint="룬·경험치 쿠폰·버프·가호 합계. 0이면 순수 경험치" />
         <NumField label="하루 일과 직접 입력 %" value={input.routine.measuredPercentPerDay} min={0} step={0.01} onChange={value => upd((draft: MainInput) => { draft.routine.measuredPercentPerDay = value; })} hint="몬파·그란디스 대신 쓸 하루 값. 0이면 표" />
         <NumField label="주간 컨텐츠 직접 입력 %" value={input.routine.weeklyMeasuredPercent} min={0} step={0.01} onChange={value => upd((draft: MainInput) => { draft.routine.weeklyMeasuredPercent = value; })} hint="익몬·에픽 던전 대신 쓸 주간 값. 0이면 표" />
       </div>

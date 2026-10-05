@@ -152,7 +152,12 @@ test("보스 프리셋과 사냥터 선택이 화면에 연결돼 있다", async
   assert.doesNotMatch(planner, /\(정확\)/, "추정 모형을 정확하다고 쓰지 않는다");
   assert.match(planner, /본섭 한 표본에서 마지막 단계가 0\.1%p 안팎 어긋났습니다/);
   assert.match(planner, /모멘텀 PLUS는 이벤트 시작부터 주 2,500포인트를 모두 채웠다고/);
-  assert.match(planner, /경험치 4배 쿠폰은 사냥 시간이 있어야 쓸 수 있어 계산에 넣지 않았습니다/);
+  assert.match(planner, /주간 사냥 시간/);
+  assert.match(planner, /사냥 추가 경험치 %/);
+  assert.match(planner, /몬스터파크 추가 경험치 %/);
+  assert.match(planner, /에픽 던전 추가 경험치 %/);
+  assert.match(planner, /PLUS의 경험치 4배 쿠폰\(30분, 순수 사냥 경험치의 3배가 더 붙음\)과 VIP 부스터/);
+  assert.match(planner, /hunt: "사냥", coupon4x: "경험치 4배 쿠폰\(PLUS\)", booster: "VIP 부스터\(PLUS\)"/);
   assert.match(planner, /주간 컨텐츠 직접 입력 %/);
   assert.match(planner, /이미 완료/);
   assert.match(planner, /나머지 30개는 화면과 대조하지 못했습니다/);

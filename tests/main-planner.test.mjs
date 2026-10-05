@@ -421,6 +421,7 @@ const isolated = () => {
   x.personal.mission.stepsDone = 30;
   x.personal.flame.killsPerWeek = 0;
   x.personal.bosses = [];
+  x.routine.huntHoursPerWeek = 0;
   return x;
 };
 
@@ -637,4 +638,70 @@ test("아르고호의 가호: 몬스터파크·그란디스 경험치 증가가 
   assert.equal(d.argoGrandis, 10);
   const wild = simulateMain({ ...isolated(), end: "2026-10-05", routine: { ...isolated().routine, argoMonsterPark: 999, argoGrandis: -5 } }, real);
   assert.ok(Number.isFinite(wild.progress));
+});
+
+test("사냥 경험치는 시간과 추가 경험치에 비례하고 0시간이면 없다", () => {
+  const real = createMainContext();
+  const make = (hours, bonus) => {
+    const x = isolated();
+    Object.assign(x, { end: "2026-10-17" });
+    Object.assign(x.routine, { huntHoursPerWeek: hours, huntBonusPct: bonus });
+    return simulateMain(x, real);
+  };
+  assert.ok(!make(0, 300).sourceRaw.hunt);
+  const pure = make(7, 0);
+  // 하루 1시간(30분 2번) × 13일(시작일 제외) × 288레벨 순수 30분 경험치
+  const perSession = real.huntRaw({ level: 288, fieldLevel: 288 });
+  assert.ok(Math.abs(pure.sourceRaw.hunt - perSession * 2 * 13) / pure.sourceRaw.hunt < 1e-9, "레벨이 그대로인 동안은 단순 곱");
+  assert.ok(Math.abs(make(7, 300).sourceRaw.hunt / pure.sourceRaw.hunt - 4) < 1e-9);
+  assert.ok(Math.abs(make(14, 0).sourceRaw.hunt / pure.sourceRaw.hunt - 2) < 1e-9);
+});
+
+test("PLUS의 4배 쿠폰과 VIP 부스터는 사냥해야 쓰이고, 안 쓰면 10/21에 소멸로 센다", () => {
+  const real = createMainContext();
+  const make = hours => {
+    const x = isolated();
+    Object.assign(x, { end: "2026-10-25" });
+    x.plus = { enabled: true, tier: "prime", claimedLevel: 0 };
+    x.crimsonHold = 999;
+    Object.assign(x.routine, { huntHoursPerWeek: hours, huntBonusPct: 0 });
+    return simulateMain(x, real);
+  };
+  const none = make(0);
+  assert.equal(none.items.plusReceived.coupon4x, 10);
+  assert.equal(none.items.plusReceived.booster, 40);
+  assert.equal(none.items.expired.coupon4x, 10);
+  assert.equal(none.items.expired.booster, 40);
+  assert.ok(!none.sourceRaw.coupon4x && !none.sourceRaw.booster);
+  // 주 7시간(하루 30분 2번): 10/5~10/21 17일 동안 쿠폰 10장과 부스터 40개를 모두 쓴다.
+  const some = make(7);
+  assert.ok(Math.abs(some.items.huntItemsUsed.coupon4x - 10) < 1e-9);
+  assert.ok(Math.abs(some.items.huntItemsUsed.booster - 40) < 1e-9);
+  assert.equal(some.items.expired.coupon4x, 0);
+  assert.ok(some.sourceRaw.coupon4x > 0 && some.sourceRaw.booster > 0);
+  // 주 30분만 사냥하면 다 못 쓴다: 쿠폰은 30분당 1장, 부스터는 30분(9,600마리)당 9600/1710개.
+  const little = make(0.5);
+  const sessions = 17 / 7;
+  assert.ok(Math.abs(little.items.huntItemsUsed.coupon4x - sessions) < 1e-9);
+  assert.ok(Math.abs(little.items.huntItemsUsed.booster - sessions * 9600 / 1710) < 1e-9);
+  assert.ok(Math.abs(little.items.expired.coupon4x - (10 - sessions)) < 1e-9);
+  // 무료 등급은 둘 다 받지 않는다.
+  const free = (() => { const x = isolated(); x.end = "2026-10-25"; x.plus = { enabled: true, tier: "free", claimedLevel: 0 }; x.routine.huntHoursPerWeek = 7; return simulateMain(x, real); })();
+  assert.equal(free.items.plusReceived.booster, 0);
+  assert.equal(free.items.plusReceived.coupon4x, 0);
+});
+
+test("익스트림 몬스터파크와 에픽 던전에도 추가 경험치가 붙는다", () => {
+  const real = createMainContext();
+  const make = patch => {
+    const x = isolated();
+    Object.assign(x, { end: "2026-10-08" });
+    Object.assign(x.routine, { extreme: true, epic: true, epicMult: 5, argoMonsterPark: 0, epicBonus: 0, ...patch });
+    return simulateMain(x, real);
+  };
+  const base = make({});
+  assert.ok(Math.abs(base.sourceRaw.extreme - real.weeklyRaw({ level: 288, epicMult: 5 }).extreme) < 1);
+  assert.ok(Math.abs(make({ argoMonsterPark: 40 }).sourceRaw.extreme / base.sourceRaw.extreme - 1.4) < 1e-9, "커뮤니티 계산의 익스트림 0.1873% = 기본 0.1338% × 1.4");
+  assert.ok(Math.abs(make({ epicBonus: 20 }).sourceRaw.epic / base.sourceRaw.epic - 1.2) < 1e-9);
+  assert.ok(Math.abs(make({ argoMonsterPark: 40 }).sourceRaw.epic - base.sourceRaw.epic) < 1e-6, "몬파 추가 경험치는 에픽 던전에 안 붙는다");
 });

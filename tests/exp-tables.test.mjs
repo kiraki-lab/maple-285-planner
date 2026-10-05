@@ -4,6 +4,7 @@ import { monsterParkExperiencePercent } from "../lib/calculator-core.mjs";
 import {
   createMainContext,
   epicDungeonBaseRaw,
+  huntLevelFactor,
   itemConversionPercent,
   itemConversionRawExperience,
   MOMENTUM_PLUS_FREE,
@@ -92,10 +93,17 @@ test("크림슨 메카베리는 레벨 구간별 동렙몹 마릿수 비율로 �
 // ── 모멘텀 패스 PLUS 표 (넥슨 공지 update-813, 2026-10-03 대조) ───────────
 
 test("PLUS 레벨별 보상표가 공식 표와 같다", () => {
-  // 경험치로 쓰이는 것만 적는다: 크림슨 입장권, 상급 EXP 교환권, VIP 사우나(1개=0.5시간), 4배 쿠폰.
+  // 경험치로 쓰이는 것만 적는다: 크림슨 입장권, 상급 EXP 교환권, VIP 사우나(1개=0.5시간), 4배 쿠폰, VIP 부스터.
   assert.deepEqual(MOMENTUM_PLUS_FREE, { 1: { crimson: 1 }, 2: { sauna: 0.5 }, 4: { adv: 100 }, 5: { sauna: 0.5 }, 7: { adv: 100 }, 8: { sauna: 0.5 }, 10: { adv: 300 } });
-  assert.deepEqual(MOMENTUM_PLUS_PREMIUM, { 2: { crimson: 1 }, 3: { coupon4x: 2 }, 4: { adv: 1500 }, 5: { crimson: 2 }, 7: { adv: 1500 }, 8: { crimson: 2 }, 9: { coupon4x: 2 }, 10: { adv: 1500 } });
-  assert.deepEqual(MOMENTUM_PLUS_PRIME, { 1: { coupon4x: 2 }, 2: { adv: 3000 }, 3: { crimson: 3 }, 4: { coupon4x: 2 }, 5: { adv: 3000 }, 6: { crimson: 4 }, 7: { coupon4x: 2 }, 8: { adv: 3000 }, 10: { crimson: 4 } });
+  assert.deepEqual(MOMENTUM_PLUS_PREMIUM, { 1: { booster: 10 }, 2: { crimson: 1 }, 3: { coupon4x: 2 }, 4: { adv: 1500 }, 5: { crimson: 2 }, 6: { booster: 10 }, 7: { adv: 1500 }, 8: { crimson: 2 }, 9: { coupon4x: 2 }, 10: { adv: 1500 } });
+  assert.deepEqual(MOMENTUM_PLUS_PRIME, { 1: { coupon4x: 2 }, 2: { adv: 3000 }, 3: { crimson: 3 }, 4: { coupon4x: 2 }, 5: { adv: 3000 }, 6: { crimson: 4 }, 7: { coupon4x: 2 }, 8: { adv: 3000 }, 9: { booster: 20 }, 10: { crimson: 4 } });
+  // 등급별 합계: 프리미엄 부스터 20·4배 쿠폰 4, 프라임까지 부스터 40·4배 쿠폰 10 (커뮤니티 정리의 「VIP 부스터 40개」와 같다).
+  const sumOf = (tier, key) => Array.from({ length: 10 }, (_, i) => momentumPlusRewardForLevel(i + 1, tier, false)[key]).reduce((a, b) => a + b, 0);
+  assert.equal(sumOf("free", "booster"), 0);
+  assert.equal(sumOf("premium", "booster"), 20);
+  assert.equal(sumOf("prime", "booster"), 40);
+  assert.equal(sumOf("premium", "coupon4x"), 4);
+  assert.equal(sumOf("prime", "coupon4x"), 10);
 });
 
 test("프리미엄 상급 EXP는 6레벨이 아니라 7레벨이다", () => {
@@ -288,4 +296,30 @@ test("295레벨부터 몬스터파크는 기어드락 값을 쓴다", () => {
   assert.equal(run(290), 218_575_316_000);
   assert.equal(run(294), 218_575_316_000);
   assert.equal(run(295), 316_934_208_200);
+});
+
+test("몬스터파크 추가 경험치는 썬데이 보너스와 더해진다 (하루1소재 식)", () => {
+  const real = createMainContext();
+  const run = (sundayKind, bonus) => real.routineRaw({ level: 288, runs: 1, sundayKind, grandis: false, monsterParkBonusPct: bonus }).monsterPark;
+  const base = 156_017_856_000;
+  assert.equal(run("none", 0), base);
+  assert.ok(Math.abs(run("none", 50) - base * 1.5) < 1);
+  assert.ok(Math.abs(run("normal", 0) - base * 1.5) < 1);
+  assert.ok(Math.abs(run("normal", 50) - base * 2) < 1, "썬데이 +50%와 가호 +50%는 곱이 아니라 합(2배)");
+  assert.ok(Math.abs(run("special", 40) - base * 4.4) < 1);
+  // 커뮤니티 296레벨 계산(평일 2판 × 6일 + 썬데이 7판, 가호 +40%) = 30.1판 분량과 같은 식이다.
+  assert.ok(Math.abs((12 * 1.4 + 7 * 1.9) - 30.1) < 1e-9);
+});
+
+test("사냥 30분 순수 경험치와 VIP 부스터가 하루1소재 식과 같다", () => {
+  const real = createMainContext();
+  // 288레벨이 288레벨 몬스터를 잡으면 레벨 차 보정 1.2: 240 × 40 × 4,217,526 × 1.2
+  assert.equal(MOB_BASE_EXP[288], 4_217_526);
+  assert.ok(Math.abs(real.huntRaw({ level: 288, fieldLevel: 288 }) - 240 * 40 * 4_217_526 * 1.2) < 1);
+  assert.equal(real.boosterRaw(288), 10 * 1710 * 4_217_526);
+  assert.equal(real.huntKillsPer30Min, 9600);
+  // 레벨 차 보정 구간
+  const cases = [[0, 1.2], [-1, 1.2], [2, 1.1], [5, 1.05], [10, 1], [11, 0.99], [21, 0.89], [40, 0.7], [-2, 1.1], [-5, 1.05], [-10, 1], [-20, 0.9], [-21, 0.7], [-35, 0.14], [-39, 0.1], [-40, 0]];
+  cases.forEach(([gap, factor]) => assert.ok(Math.abs(huntLevelFactor(gap) - factor) < 1e-12, `레벨 차 ${gap}`));
+  assert.equal(real.huntRaw({ level: 288, fieldLevel: 999 }), 0, "표에 없는 몬스터 레벨은 0");
 });

@@ -18,14 +18,14 @@ const PLUS_LEVEL_ROWS: { level: number; free: string; premium: string; prime: st
   { level: 10, free: "상급 EXP 300", premium: "상급 EXP 1,500", prime: "크림슨 메카베리 농장 4" },
 ];
 
-type Rewards = Record<number, { crimson?: number; adv?: number; sauna?: number; coupon4x?: number }>;
+type Rewards = Record<number, { crimson?: number; adv?: number; sauna?: number; coupon4x?: number; booster?: number }>;
 const total = (...tables: Rewards[]) => {
-  const sum = { crimson: 0, adv: 0, sauna: 0, coupon4x: 0 };
-  tables.forEach(table => Object.values(table).forEach(row => { sum.crimson += row.crimson || 0; sum.adv += row.adv || 0; sum.sauna += row.sauna || 0; sum.coupon4x += row.coupon4x || 0; }));
+  const sum = { crimson: 0, adv: 0, sauna: 0, coupon4x: 0, booster: 0 };
+  tables.forEach(table => Object.values(table).forEach(row => { sum.crimson += row.crimson || 0; sum.adv += row.adv || 0; sum.sauna += row.sauna || 0; sum.coupon4x += row.coupon4x || 0; sum.booster += row.booster || 0; }));
   return sum;
 };
 const fmt = (n: number) => n.toLocaleString("ko-KR");
-const totalText = (sum: ReturnType<typeof total>) => `크림슨 ${sum.crimson} · 사우나 ${sum.sauna}시간 · 상급 EXP ${fmt(sum.adv)}${sum.coupon4x ? ` · 4배 쿠폰 ${sum.coupon4x}` : ""}`;
+const totalText = (sum: ReturnType<typeof total>) => `크림슨 ${sum.crimson} · 사우나 ${sum.sauna}시간 · 상급 EXP ${fmt(sum.adv)}${sum.coupon4x ? ` · 4배 쿠폰 ${sum.coupon4x}` : ""}${sum.booster ? ` · VIP 부스터 ${sum.booster}` : ""}`;
 
 const LEVEL_ROWS = Array.from({ length: 20 }, (_, index) => 280 + index);
 const jo = (raw: number, digits = 2) => `${(raw / 1e12).toFixed(digits)}조`;
