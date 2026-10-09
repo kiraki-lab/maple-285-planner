@@ -483,6 +483,82 @@ const isolated = () => {
   return x;
 };
 
+const rewardOnly = (date = "2026-10-22", level = 286, exp = 0) => {
+  const x = isolated();
+  Object.assign(x, { start: date, end: date, level, exp });
+  Object.assign(x.routine, { sundayRuns: 0, todayPending: true, weeklyPending: false });
+  x.personal.enabled = false;
+  return x;
+};
+
+test("출석 보상은 PLUS가 끝난 10/22에도 쓰고 11/18까지만 쓴다", () => {
+  const real = createMainContext();
+  for (const date of ["2026-10-21", "2026-10-22", "2026-11-18", "2026-11-19"]) {
+    const x = rewardOnly(date);
+    x.attendance = { potion269: 1, potion279: 1, adv: 6000, booster: 0, sauna: 4 };
+    x.items.adv = 1000;
+    const r = simulateMain(x, real);
+    const open = date !== "2026-11-19";
+    assert.equal(r.sourceRaw.attendanceAdv || 0, open ? 5_548_914_000_000 : 0);
+    assert.equal(r.sourceRaw.attendanceSauna || 0, open ? 1_499_438_900_160 : 0);
+    assert.equal(r.sourceRaw.attendancePotion269 || 0, open ? 2_438_047_518_853 : 0);
+    assert.equal(r.sourceRaw.attendancePotion279 || 0, open ? 16_657_228_589_191 : 0);
+    assert.equal(r.sourceRaw.adv || 0, date === "2026-10-21" ? 924_819_000_000 : 0);
+    assert.equal(r.attendance.used.adv + r.attendance.expired.adv + r.attendance.leftover.adv, 6000);
+    if (!open) assert.deepEqual(r.attendance.expired, { potion269: 1, potion279: 1, adv: 6000, booster: 0, sauna: 4 });
+  }
+});
+
+test("PLUS 부스터와 출석 부스터는 같은 사냥 시간에 중복되지 않고 먼저 만료되는 것부터 쓴다", () => {
+  const real = createMainContext();
+  const x = rewardOnly("2026-10-21");
+  Object.assign(x.routine, { huntHoursPerWeek: 3.5, huntBonusPct: 0 });
+  x.personal.flame.fieldLevel = 289;
+  x.items.booster = 10;
+  x.attendance.booster = 40;
+  const r = simulateMain(x, real);
+  assert.ok(Math.abs(r.sourceRaw.booster - 409_486_944_000) < 1);
+  assert.equal(r.sourceRaw.attendanceBooster || 0, 0);
+  assert.ok(Math.abs(r.items.huntItemsUsed.booster - 5.614035087719298) < 1e-10);
+  assert.equal(r.attendance.leftover.booster, 40);
+  x.start = x.end = "2026-10-22";
+  const after = simulateMain(x, real);
+  assert.equal(after.sourceRaw.booster || 0, 0);
+  assert.ok(Math.abs(after.sourceRaw.attendanceBooster - 409_486_944_000) < 1);
+});
+
+test("출석 사우나와 부스터는 296 직전 실제 들어간 만큼 쓰고 남은 것을 만료로 센다", () => {
+  const real = createMainContext();
+  const sauna = rewardOnly("2026-11-18", 295, 99.999);
+  sauna.attendance.sauna = 4;
+  const a = simulateMain(sauna, real);
+  assert.equal(a.level, 296);
+  assert.ok(Math.abs(a.sourceRaw.attendanceSauna - 8_704_031_325) < 1);
+  assert.ok(a.attendance.used.sauna > 0 && a.attendance.used.sauna < 0.03);
+  assert.ok(Math.abs(a.attendance.used.sauna + a.attendance.expired.sauna - 4) < 1e-12);
+  const booster = rewardOnly("2026-11-18", 295, 99.999);
+  booster.routine.huntHoursPerWeek = 3.5;
+  booster.routine.huntBonusPct = 0;
+  booster.attendance.booster = 40;
+  const b = simulateMain(booster, { ...real, huntRaw: () => 1 });
+  assert.equal(b.level, 296);
+  assert.ok(Math.abs(b.sourceRaw.attendanceBooster - 8_704_031_324) < 2);
+  assert.ok(b.attendance.used.booster > 0 && b.attendance.used.booster < 0.1);
+  assert.ok(Math.abs(b.attendance.used.booster + b.attendance.expired.booster - 40) < 1e-10);
+});
+
+test("출석 부스터는 그날 PLUS를 쓰고 남은 사냥 마릿수만큼 사용한다", () => {
+  const x = rewardOnly("2026-10-21");
+  x.routine.huntHoursPerWeek = 3.5;
+  x.personal.flame.fieldLevel = 289;
+  x.items.booster = 1; x.attendance.booster = 40;
+  const r = simulateMain(x, createMainContext());
+  assert.equal(r.items.huntItemsUsed.booster, 1);
+  assert.ok(Math.abs(r.sourceRaw.booster - 72_939_861_900) < 1);
+  assert.ok(Math.abs(r.sourceRaw.attendanceBooster - 336_547_082_100) < 1);
+  assert.ok(Math.abs(r.attendance.used.booster - 4.614035087719298) < 1e-10);
+});
+
 test("아이템을 쓰는 도중 미션 보상으로 레벨이 오르면 남은 아이템은 새 레벨 값으로 쓴다", () => {
   const real = createMainContext();
   const input = isolated();
@@ -1136,4 +1212,3 @@ test("에픽 던전 EXP 1단계가 더해 주는 양은 교환권 장수로 딱 
   assert.deepEqual(P.epicBonusStage1Info(289), { name: "악몽선경", maplePoint: 12_500 });
   assert.deepEqual(P.epicBonusStage1Info(290), { name: "아우룸 레기스", maplePoint: 15_000 });
 });
-

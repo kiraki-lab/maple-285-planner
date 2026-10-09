@@ -3,7 +3,7 @@
 import { monsterParkExperiencePercent } from "./calculator-core.mjs";
 import { MOB_BASE_EXP } from "./personal-data.mjs";
 
-export type CustomRewardType = "adv" | "mech" | "crimson" | "blue" | "sauna" | "potion279";
+export type CustomRewardType = "adv" | "mech" | "crimson" | "blue" | "sauna" | "potion269" | "potion279";
 export type ItemConversionInventory = Record<CustomRewardType, number>;
 export type ItemConversionResult = {
   startLevel: number;
@@ -56,7 +56,6 @@ export const REQUIRED_EXP: Record<number, bigint> = {
   294: 430_892_639_851_830n,
   295: 870_403_132_500_696n,
 };
-const LEVEL_280_REQUIRED_EXP = Number(REQUIRED_EXP[280]);
 const GRANDIS_DAILY_BASE = 129_794_096_544;
 const GRANDIS_DAILY_CARCION = 45_635_222_880;
 const GRANDIS_DAILY_TALLAHART = 89_700_000_000;
@@ -261,9 +260,13 @@ Object.keys(pre280Content).map(Number).forEach(level => {
 const ITEM_CONVERSION_LEVEL_MIN = 260;
 const ITEM_CONVERSION_LEVEL_MAX = 295;
 const ITEM_CONVERSION_UPPER_BOUND = ITEM_CONVERSION_LEVEL_MAX + 1;
-const LEGENDARY_GROWTH_POTION_RAW = LEVEL_280_REQUIRED_EXP * 0.49505;
-export const itemConversionOrder: CustomRewardType[] = ["blue", "mech", "crimson", "sauna", "potion279", "adv"];
-const emptyItemConversionInventory = (): ItemConversionInventory => ({ adv: 0, mech: 0, crimson: 0, blue: 0, sauna: 0, potion279: 0 });
+// 범위를 넘어서 쓰는 성장의 비약은 범위 마지막 레벨의 필요 경험치를 준다.
+// 메이플로드 https://mapleroad.kr/utils/elixir 효율 표(269/279 이전 100%, 이후 고정 경험치) 및
+// 필요 경험치 표와 대조: 269 = 2,438,047,518,853 / 279 = 16,657,228,589,191.
+// 공식 813은 지급 수량·기한만 명시하고, 하루1소재 공개 번들에서는 비약 식을 찾지 못했다.
+export const GROWTH_POTION_RAW = Object.freeze({ potion269: 2_438_047_518_853, potion279: 16_657_228_589_191 });
+export const itemConversionOrder: CustomRewardType[] = ["blue", "mech", "crimson", "sauna", "potion269", "potion279", "adv"];
+const emptyItemConversionInventory = (): ItemConversionInventory => ({ adv: 0, mech: 0, crimson: 0, blue: 0, sauna: 0, potion269: 0, potion279: 0 });
 
 export const itemConversionRequiredExperience = (level: number) => {
   if (level >= 280) return Number(REQUIRED_EXP[level] || 0n);
@@ -273,7 +276,8 @@ export const itemConversionRequiredExperience = (level: number) => {
 export const itemConversionRawExperience = (type: CustomRewardType, level: number) => {
   const required = itemConversionRequiredExperience(level);
   if (!required || !efficiency[level]) return 0;
-  if (type === "potion279") return level < 280 ? required : LEGENDARY_GROWTH_POTION_RAW;
+  if (type === "potion269") return level <= 269 ? required : GROWTH_POTION_RAW.potion269;
+  if (type === "potion279") return level <= 279 ? required : GROWTH_POTION_RAW.potion279;
   if (type === "adv") return required * efficiency[level].adv100 / 10_000;
   if (type === "crimson") return level < 280 ? 0 : required * crimsonPercentForLevel(efficiency[level].mech, level) / 100;
   if (type === "mech" && level < 280) return 0;

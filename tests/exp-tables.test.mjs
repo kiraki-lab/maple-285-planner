@@ -32,6 +32,20 @@ import {
 } from "../lib/personal-data.mjs";
 import { bossCommunityPreset, bossEntry, bossLabel, bossPreset, bossRaw, couponRawForLevel, flameModelRaw, mobBaseExp } from "../lib/main-planner.mjs";
 
+test("269용과279용 비약은 범위 밖에서 마지막 레벨 필요 경험치의 정확한 정수를 준다", () => {
+  assert.equal(itemConversionRawExperience("potion269", 269), 2_438_047_518_853);
+  assert.equal(itemConversionRawExperience("potion269", 270), 2_438_047_518_853);
+  assert.equal(itemConversionRawExperience("potion269", 286), 2_438_047_518_853);
+  assert.equal(itemConversionRawExperience("potion279", 279), 16_657_228_589_191);
+  assert.equal(itemConversionRawExperience("potion279", 288), 16_657_228_589_191);
+  assert.equal(Number(itemConversionPercent("potion269", 286).toFixed(3)), 2.227);
+  assert.equal(Number(itemConversionPercent("potion279", 288).toFixed(3)), 12.576);
+  const r = simulateItemInventoryConversion({ level: 288, exp: 45, inventory: { potion269: 1, potion279: 1 } });
+  assert.equal(r.totalRawExperience, 19_095_276_108_044);
+  assert.equal(Number(r.exp.toFixed(6)), 59.416893);
+  assert.equal(r.remaining.potion269 + r.remaining.potion279, 0);
+});
+
 test("몬스터파크는 선데이 보너스를 더하는 방식으로 계산한다", () => {
   const mapleRoad280 = { baseSevenRunPercent: 2.2302, runs: 7, contentBonusPercent: 0 };
   const common = { baseSevenRunPercent: 2.0272, runs: 7, contentBonusPercent: 86 };
