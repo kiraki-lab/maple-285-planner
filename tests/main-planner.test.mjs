@@ -135,7 +135,10 @@ test("단계 간격은 구간마다 몬스터 기본 경험치의 배수다", ()
   // 286~289 실측 간격은 배수 2,766,980~2,772,069
   [286, 287, 288, 289].forEach(level => assert.ok(multiple(level) > 2_766_000 && multiple(level) < 2_773_000, `${level}: ${multiple(level)}`));
   assert.ok(Math.abs(multiple(285) - 2_779_473) < 1);
-  [290, 291, 292, 293, 294].forEach(level => assert.ok(Math.abs(multiple(level) - 3_068_366) < 1));
+  // 290~294는 레벨별 배수(본섭 단계표 역산, 294는 추정). 293레벨 연속 목표 간격 3.886571%p 를 재현한다.
+  Object.entries({ 290: 3_072_742, 291: 3_069_898, 292: 3_066_893, 293: 3_063_910, 294: 3_060_950 }).forEach(([level, expected]) => assert.ok(Math.abs(multiple(Number(level)) - expected) < 1, level));
+  assert.ok(Math.abs(stepRawForLevel(293) / 391_721_000_000_000 * 100 - 3.886571) < 0.0005);
+  assert.ok(Math.abs(stepRawForLevel(292) / 356_110_000_000_000 * 100 - 4.226714) < 0.0005);
   [295, 296, 299].forEach(level => assert.ok(Math.abs(multiple(level) - 3_119_741) < 1));
   [280, 284].forEach(level => assert.ok(Math.abs(multiple(level) - 2_730_206) < 1));
   // 커뮤니티 296레벨 계산의 단계 간격 1.861%

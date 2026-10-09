@@ -50,7 +50,7 @@ test("285~290 정수 경험치 표와 몬파·주간 상수를 그대로 쓴다"
   assert.equal(cumulative, 607_531_788_867_827n);
   assert.equal(monsterParkRawForLevel(285, true) * 7, 1_092_124_992_000);
   assert.equal(monsterParkRawForLevel(290, true, true) * 7, 1_530_027_212_000);
-  assert.equal(monsterParkRawForLevel(284, true), 107_204_000_000);
+  assert.equal(monsterParkRawForLevel(284, true), 107_204_032_000);
   assert.equal(grandisDailyRawForLevel(285, true), 129_794_096_544 + 45_635_222_880);
   assert.equal(grandisDailyRawForLevel(290, true), 129_794_096_544 + 45_635_222_880 + 89_700_000_000);
   assert.equal(POST_290_EFFICIENCY_RAW[291].monsterParkPerRun, 218_575_316_000);
@@ -228,7 +228,7 @@ test("보스 구간 프리셋은 상한 이하에서 보스마다 가장 센 난
 });
 
 test("커뮤니티 보스 구성은 퍼스널 대상 35개 안에서 보스당 난이도 하나이고 12개를 넘지 않는다", () => {
-  assert.deepEqual(BOSS_COMMUNITY_PRESETS.map(preset => [preset.label, preset.ids.length]), [["검밑솔", 8], ["최소 구성", 10], ["노세이칼", 10], ["하세이칼", 10], ["하세이적자", 11], ["노칼이카", 12]]);
+  assert.deepEqual(BOSS_COMMUNITY_PRESETS.map(preset => [preset.label, preset.ids.length]), [["검밑솔", 8], ["하세이카", 10], ["노세이칼", 10], ["하세이칼", 10], ["하세이적자", 11], ["노칼이카", 12]]);
   BOSS_COMMUNITY_PRESETS.forEach(preset => {
     preset.ids.forEach(id => assert.ok(bossEntry(id), `${preset.label}: ${id} 가 표에 없다`));
     assert.equal(new Set(preset.ids.map(id => bossEntry(id).boss)).size, preset.ids.length, `${preset.label}: 같은 보스가 두 난이도`);

@@ -338,3 +338,4 @@ footer p { margin: 0; color: #65636c; font-size: 12px; text-align: center; }
   .pb-shell { padding-bottom: 72px; }
   .pb-results { scroll-margin-top: 12px; }
 }
+.pb-cond { margin: 0 0 12px; padding: 9px 12px; border-radius: 10px; color: #4e4b56; background: #f1efe8; font-size: 12px; line-height: 1.6; }
