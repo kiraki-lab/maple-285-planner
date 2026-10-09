@@ -5,6 +5,24 @@ import test from "node:test";
 const root = new URL("../", import.meta.url);
 const read = path => readFile(new URL(path, root), "utf8");
 
+test("옛 PLUS 저장값은 저장한 날의 진행도로 복구하고 새 진행도·두 목표 입력은 그대로 되살린다", async () => {
+  const { mergeSaved, parseSaved, serializeSaved } = await import(new URL("lib/saved-input.mjs", root).href);
+  const old = mergeSaved({ start: "2026-09-17", plus: { tier: "prime", claimedLevel: 0 } }, "2026-10-10");
+  assert.equal(old.plus.currentLevel, 3);
+  assert.equal(old.plus.levelPoints, 250);
+  assert.equal(old.plus.weeklyPoints, 2500);
+  assert.equal(old.plus.thisWeekRemaining, 0);
+  assert.equal(old.personal.mission.intervalEnabled, false);
+  assert.equal(old.personal.mission.secondTarget, null);
+  const before = mergeSaved({ start: "2026-09-17", plus: { claimedLevel: 10 } }, "2026-10-10");
+  assert.equal(before.plus.currentLevel, 10, "이미 받아 썼다는 옛 입력을 낮추지 않는다");
+  const actual = mergeSaved({ start: "2026-10-09", plus: { currentLevel: "2", claimedLevel: "1", levelPoints: "500", weeklyPoints: "1000", thisWeekRemaining: "250" }, personal: { mission: { intervalEnabled: true, secondTarget: { level: "290", exp: "91.978" } } } }, "2026-10-10");
+  assert.deepEqual(actual.plus, { enabled: true, tier: "prime", currentLevel: 2, claimedLevel: 1, levelPoints: 500, weeklyPoints: 1000, thisWeekRemaining: 250 });
+  assert.deepEqual(actual.personal.mission.secondTarget, { level: 290, exp: 91.978 });
+  assert.deepEqual(parseSaved(serializeSaved(actual), "2026-10-11"), actual);
+  assert.equal(mergeSaved({ start: "2026-09-17", plus: { currentLevel: 2 } }, "2026-10-10").plus.levelPoints, 0, "명시한 진행도에 옛 최대 포인트 잔량을 섞지 않는다");
+});
+
 const renderBuiltSsrHtml = async tag => {
   const workerUrl = new URL("dist/server/index.js", root);
   const worker = await import(`${workerUrl.href}?${tag}-${Date.now()}`);
@@ -52,7 +70,9 @@ test("실제 서버 화면에서 입력과 결과는 버튼으로 한 묶음씩�
   assert.match(html, /플레임에서 받을 조각/);
   assert.match(html, /출석 보상 전부 넣기/);
   assert.match(html, /이 캐릭터에 쓸 남은 것만 넣어 주세요/);
-  assert.match(html, /보유량에서 따로 셀 PLUS 레벨/);
+  assert.match(html, /지금 PLUS 레벨/);
+  assert.match(html, /그중 이미 받은 보상 레벨/);
+  assert.match(html, /주간 획득 포인트/);
   assert.match(html, /그다음 목표도 넣기/);
   assert.doesNotMatch(html, /290레벨부터는 예상 목표가 조금 다를 수 있어요|PLUS는 매주 2,500포인트를 채운 기준으로 계산해요/);
   assert.match(html, /평소 사냥터 몬스터/);

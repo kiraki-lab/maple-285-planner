@@ -27,6 +27,7 @@ import {
   huntFieldLevelFor,
   MISSION_STEPS,
   mobBaseExp,
+  plusLevelSchedule,
   simulateMain,
 } from "@/lib/main-planner.mjs";
 import { BOSS_COMMUNITY_PRESETS, HUNTING_FIELDS, PERSONAL_BOSS_TABLE, PERSONAL_COUPON_MULTIPLE, PERSONAL_FLAME_MULTIPLE, WEEKLY_BOSS_LIMIT } from "@/lib/personal-data.mjs";
@@ -118,6 +119,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
 
   const r: Result = chosen.result;
   const plusAvailable = input.plus.enabled && diffDays(MAIN_SCHEDULE.plusLastUseDay, input.start) >= 0;
+  const plusPlan = useMemo(() => plusLevelSchedule(input.plus, input.start), [input.plus, input.start]);
   const tiers = useMemo(() => (plusAvailable ? compareTiers(input, ctx) : []), [plusAvailable, input, ctx]);
   const designations = useMemo(() => compareDesignation(input, ctx), [input, ctx]);
   const allocRows = useMemo(() => compareAlloc(input, ctx), [input, ctx]);
@@ -287,7 +289,16 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
       <div className="pb-checks"><Check label="PLUS 참여 중 (10/21까지)" checked={input.plus.enabled} onChange={value => upd((draft: MainInput) => { draft.plus.enabled = value; })} /></div>
       <div className="field-grid compact">
         <label className="field"><span>보유 등급</span><select value={input.plus.tier} disabled={!input.plus.enabled} onChange={event => upd((draft: MainInput) => { draft.plus.tier = event.target.value as Tier; })}><option value="free">무료</option><option value="premium">프리미엄</option><option value="prime">프라임</option></select></label>
-        <NumField label="보유량에서 따로 셀 PLUS 레벨" value={input.plus.claimedLevel} min={0} max={10} step={1} onChange={value => upd((draft: MainInput) => { draft.plus.claimedLevel = value; })} hint="이 레벨까지는 자동 지급에서 뺍니다. 남은 것만 아래 입력. 0이면 열린 보상을 전부 자동으로 더함" />
+        <NumField label="지금 PLUS 레벨" value={input.plus.currentLevel} min={0} max={10} step={1} onChange={value => upd((draft: MainInput) => { draft.plus.currentLevel = Math.max(0, Math.min(10, Math.floor(value))); draft.plus.claimedLevel = Math.min(draft.plus.claimedLevel, draft.plus.currentLevel); draft.plus.levelPoints = 0; })} hint="게임의 패스 화면에 표시된 레벨" />
+        <NumField label="그중 이미 받은 보상 레벨" value={input.plus.claimedLevel} min={0} max={input.plus.currentLevel} step={1} onChange={value => upd((draft: MainInput) => { draft.plus.claimedLevel = value; })} hint="받은 보상 중 남은 것만 아래에 넣어 주세요" />
+        <NumField label="주간 획득 포인트" value={input.plus.weeklyPoints} min={0} max={2500} step={100} onChange={value => upd((draft: MainInput) => { draft.plus.weeklyPoints = value; })} hint="다음 목요일부터 매주 받을 포인트 · 최대 2,500" />
+      </div>
+      <details className="pb-more"><summary>레벨 안의 포인트 · 이번 주 남은 포인트</summary><div className="field-grid compact">
+        <NumField label="지금 레벨 안에 쌓인 포인트" value={input.plus.levelPoints} min={0} max={749} step={1} onChange={value => upd((draft: MainInput) => { draft.plus.levelPoints = value; })} hint="패스 화면의 포인트 · 750을 채우면 다음 레벨" />
+        <NumField label="이번 주 더 받을 포인트" value={input.plus.thisWeekRemaining} min={0} max={2500} step={100} onChange={value => upd((draft: MainInput) => { draft.plus.thisWeekRemaining = value; })} hint="이 수량은 이번 수요일에 더해요" />
+      </div></details>
+      {plusAvailable && <p className="pb-note">10/21 예상 PLUS Lv.{plusPlan.at(-1)?.level ?? input.plus.currentLevel}</p>}
+      <div className="field-grid compact">
         <NumField label="크림슨 메카베리 농장" value={input.items.crimson} min={0} step={1} onChange={value => upd((draft: MainInput) => { draft.items.crimson = value; })} hint="장" />
         <NumField label="상급 EXP 교환권" value={input.items.adv} min={0} step={100} onChange={value => upd((draft: MainInput) => { draft.items.adv = value; })} hint="장" />
         <NumField label="VIP 사우나" value={input.items.sauna} min={0} step={0.5} onChange={value => upd((draft: MainInput) => { draft.items.sauna = value; })} hint="시간" />
@@ -296,7 +307,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
         <NumField label="PLUS VIP 부스터" value={input.items.booster || 0} min={0} step={1} onChange={value => upd((draft: MainInput) => { draft.items.booster = value; })} hint="개 · 10/21까지 사냥할 때 사용" />
         <NumField label="PLUS 경험치 4배 쿠폰" value={input.items.coupon4x || 0} min={0} step={1} onChange={value => upd((draft: MainInput) => { draft.items.coupon4x = value; })} hint="장 · 10/21까지 사냥할 때 사용" />
       </div>
-      <p className="pb-note"> 예: Lv.10 보상을 전부 모아 뒀다면 0 + 보유량 0, 이미 일부 썼다면 10 + 실제 남은 수량을 넣으세요. 자동 보상과 보유량에 같은 아이템을 두 번 넣지 마세요.</p>
+      <p className="pb-note">아직 안 받은 보상은 레벨에 맞춰 더해요. 이미 받은 보상은 아래 남은 수량만 계산해요.</p>
       </div>
       <div className="pb-pane" role="tabpanel" id="pb-pane-s3" aria-labelledby="pb-tab-s3" hidden={sec !== "s3"}>
         <p className="pb-note">이 캐릭터에 쓸 남은 것만 넣어 주세요. 출석 보상은 명의 내 지정한 메이플ID 한 곳에서만 받습니다. 이미 쓴 보상이나 다른 캐릭터에 줄 보상은 빼 주세요.</p>

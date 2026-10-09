@@ -22,6 +22,7 @@ import {
   MISSION_STEPS,
   normalizeInput,
   plusUnlockedLevel,
+  plusLevelSchedule,
   simulateMain,
   stepRawForLevel,
   stepRewardRawForLevel,
@@ -61,6 +62,61 @@ const makeCtx = (overrides = {}) => ({
   ...overrides,
 });
 const ctx = makeCtx();
+
+test("PLUS는 지금 레벨과 750포인트 이월로 올라가며 시작 주 추가분은 따로 센다", () => {
+  const plan = plusLevelSchedule({ enabled: true, currentLevel: 2, levelPoints: 500, weeklyPoints: 1000, thisWeekRemaining: 250 }, "2026-10-09");
+  assert.deepEqual(plan, [
+    { date: "2026-10-09", level: 2, levelPoints: 500 },
+    { date: "2026-10-14", level: 3, levelPoints: 0 },
+    { date: "2026-10-15", level: 4, levelPoints: 250 },
+  ]);
+  // 749+1은 마지막 수요일에도 Lv.10이 된다. 10/22에는 새 보상이 없다.
+  assert.deepEqual(plusLevelSchedule({ enabled: true, currentLevel: 9, levelPoints: 749, weeklyPoints: 0, thisWeekRemaining: 1 }, "2026-10-21"), [{ date: "2026-10-21", level: 10, levelPoints: 0 }]);
+  assert.deepEqual(plusLevelSchedule({ enabled: true, currentLevel: 9, levelPoints: 749, weeklyPoints: 2500, thisWeekRemaining: 1 }, "2026-10-22"), []);
+  assert.deepEqual(plusLevelSchedule({ enabled: false, currentLevel: 10, weeklyPoints: 2500 }, "2026-10-09"), []);
+});
+
+test("PLUS 진행도가 낮으면 못 연 레벨의 보상을 지급하지 않는다", () => {
+  const input = isolated();
+  Object.assign(input, { start: "2026-10-09", end: "2026-10-21" });
+  input.plus = { enabled: true, tier: "free", currentLevel: 2, claimedLevel: 2, levelPoints: 500, weeklyPoints: 1000, thisWeekRemaining: 250 };
+  const r = simulateMain(input, createMainContext());
+  assert.deepEqual(r.items.plusReceived, { crimson: 0, adv: 100, sauna: 0, coupon4x: 0, booster: 0 });
+  assert.ok(r.sourceRaw.adv > 0);
+  input.plus = { ...input.plus, tier: "prime", currentLevel: 0, claimedLevel: 0, levelPoints: 0, weeklyPoints: 0, thisWeekRemaining: 0 };
+  assert.deepEqual(simulateMain(input, createMainContext()).items.plusReceived, { crimson: 0, adv: 0, sauna: 0, coupon4x: 0, booster: 0 });
+});
+
+test("PLUS 등급 비교는 실제로 받은 레벨까지만 위 등급 보상을 더한다", () => {
+  const input = isolated();
+  input.plus = { enabled: true, tier: "free", currentLevel: 2, claimedLevel: 2, levelPoints: 0, weeklyPoints: 0, thisWeekRemaining: 0 };
+  const rows = compareTiers(input, createMainContext());
+  assert.deepEqual(rows[1].extra, { crimson: 1, adv: 0, sauna: 0, coupon4x: 0, booster: 10 });
+  assert.deepEqual(rows[2].extra, { crimson: 1, adv: 3000, sauna: 0, coupon4x: 2, booster: 10 });
+});
+
+test("PLUS와 두 목표 입력도 숫자 문자열·범위를 정리하고 받은 레벨은 지금 레벨을 넘지 않는다", () => {
+  const r = normalizeInput({ start: "2026-10-09", plus: { currentLevel: "2", claimedLevel: "10", levelPoints: "900", weeklyPoints: "3000", thisWeekRemaining: "-10" }, personal: { mission: { intervalEnabled: true, secondTarget: { level: "290", exp: "91.978" } } } }, ctx);
+  assert.deepEqual(r.plus, { enabled: true, tier: "free", currentLevel: 2, claimedLevel: 2, levelPoints: 749, weeklyPoints: 2500, thisWeekRemaining: 0 });
+  assert.deepEqual(r.personal.mission.secondTarget, { level: 290, exp: 91.978 });
+  assert.equal(normalizeInput({ plus: { currentLevel: 10, levelPoints: 749 } }, ctx).plus.levelPoints, 0);
+  assert.equal(normalizeInput({ personal: { mission: { secondTarget: null } } }, ctx).personal.mission.secondTarget, null);
+});
+
+test("두 대표 사례는 새 입력의 기본값에서도 결과가 변하지 않는다", () => {
+  const real = createMainContext();
+  const main = defaultMainInput("2026-10-09");
+  const a = analyzeMain(main, real).best.summary;
+  assert.equal(a.level, 290);
+  assert.ok(Math.abs(a.exp - 31.774253828273974) < 1e-9);
+  assert.equal(a.stepsCleared, 30);
+  Object.assign(main, { level: 286, exp: 68 }); main.plus.tier = "free";
+  main.personal.mission = { ...main.personal.mission, stepsDone: 4, nextTarget: { level: 286, exp: 69.714 }, nextRewardPct: 1.888 };
+  const b = analyzeMain(main, real).best.summary;
+  assert.equal(b.level, 288);
+  assert.ok(Math.abs(b.exp - 3.895705542847875) < 1e-9);
+  assert.equal(b.stepsCleared, 18);
+});
 
 test("직접 옮긴 두 목표의 경험치 간격을 반복한다: 290레벨 4.178%p", () => {
   const r = buildMissionTable({ mode: "screen", stepsDone: 0, nextTarget: { level: 290, exp: 87.8 }, secondTarget: { level: 290, exp: 91.978 }, intervalEnabled: true, nextRewardPct: 0.819 }, createMainContext());
@@ -885,8 +941,8 @@ test("기본 보스 구성은 검밑솔 + 하드 세렌 + 이지 카링이고 �
 
 test("기본 PLUS는 프라임 + 몰아쓰기라 기준일까지 열린 보상을 전부 모아 둔 것으로 본다", () => {
   const real = createMainContext();
-  assert.deepEqual(defaultMainInput("2026-10-04").plus, { enabled: true, tier: "prime", claimedLevel: 0 });
-  assert.deepEqual(defaultMainInput("2026-09-17").plus, { enabled: true, tier: "prime", claimedLevel: 0 });
+  assert.deepEqual(defaultMainInput("2026-10-04").plus, { enabled: true, tier: "prime", claimedLevel: 0, currentLevel: 10, levelPoints: 0, weeklyPoints: 2500, thisWeekRemaining: 0 });
+  assert.deepEqual(defaultMainInput("2026-09-17").plus, { enabled: true, tier: "prime", claimedLevel: 0, currentLevel: 3, levelPoints: 250, weeklyPoints: 2500, thisWeekRemaining: 0 });
   const result = analyzeMain(defaultMainInput("2026-10-04"), real);
   assert.ok(result.best.crimsonHold > 0, "추천은 모아서 쓰는 쪽");
   assert.ok(result.best.result.items.crimsonUsed > 10, "프라임 크림슨이 들어와 쓰인다");
