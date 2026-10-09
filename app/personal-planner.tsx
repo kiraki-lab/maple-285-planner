@@ -12,6 +12,8 @@ import {
   bossRaw,
   COINS_PER_STEP,
   compareAlloc,
+  epicBonusStage1Info,
+  eventWeek,
   compareDesignation,
   compareTiers,
   couponRawForLevel,
@@ -108,6 +110,15 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
   const weeklyFlameRaw = Math.min(flame.killsPerWeek, FLAME_WEEKLY_ADD) * flameRaw;
   const weeklyCoupons = Math.min(flame.killsPerWeek, FLAME_WEEKLY_ADD) * flame.alloc.exp / 100;
   const weeklyCouponRaw = weeklyCoupons * couponAtStart;
+  const weekInfo = eventWeek(input.start);
+  // EXP 보너스 1단계가 더해 주는 양(기본 보상의 4배)을 교환권 장수로 바꿔 보여 준다.
+  const epicStage1 = epicBonusStage1Info(startLevel);
+  const epicStage1AddRaw = ctx.weeklyRaw({ level: startLevel, epicMult: 5 }).epic - ctx.weeklyRaw({ level: startLevel, epicMult: 1 }).epic;
+  const epicStage1Coupons = epicStage1AddRaw / couponAtStart;
+  const couponsPerPointWeek = FLAME_WEEKLY_ADD / 100;
+  const flameOwnRaw = flameModelRaw(startLevel);
+  const flameTopLevel = huntFieldLevelFor({ fieldLevel: 0, fieldKey: "" }, startLevel);
+  const flameTopRaw = flameModelRaw(flameTopLevel);
   const bosses = input.personal.bosses as { id: string; party: number; doneThisWeek: boolean }[];
   const weeklyBossRaw = bossListWeeklyRaw(bosses.slice(0, WEEKLY_BOSS_LIMIT));
 
@@ -212,6 +223,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
         <label className="field"><span>현재 레벨</span><select value={startLevel} onChange={event => upd((draft: MainInput) => { draft.level = Number(event.target.value); })}>{Array.from({ length: 16 }, (_, index) => index + 280).map(level => <option key={level}>{level}</option>)}</select></label>
         <NumField label="현재 경험치 %" value={input.exp} min={0} max={99.999} step={0.001} onChange={value => upd((draft: MainInput) => { draft.exp = value; })} />
       </div>
+      {weekInfo.week > 0 && <p className="pb-note">기준일은 이벤트 <b>{weekInfo.week}주차</b>(전체 {weekInfo.total}주)입니다. 마감 11/18까지 {weekInfo.daysLeft}일, 플레임 충전은 {weekInfo.refillsLeft}번 남았습니다.</p>}
 
       <h3 className="pb-group">퍼스널 성장 미션</h3>
       <div className="pb-choice" role="group" aria-label="지정 여부">
@@ -262,6 +274,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
           ? <p><b>플레임 1마리</b> = 직접 넣은 값 <b>{fmtInt(flame.expPerKill)} EXP</b> (표 계산 대신 이 값을 씁니다)</p>
           : <p><b>플레임 1마리</b> = 몬스터 Lv.{flameFieldLevel} 기본 경험치 {fmtInt(mobBaseExp(flameFieldLevel))} × {PERSONAL_FLAME_MULTIPLE} = <b>{fmtEok(flameRaw)}</b></p>}
         <p><b>교환권 1장</b> = Lv.{startLevel} 기본 경험치 {fmtInt(mobBaseExp(startLevel))} × {PERSONAL_COUPON_MULTIPLE} = <b>{fmtEok(couponAtStart)}</b> ({(couponAtStart / ctx.reqRaw(startLevel) * 100).toFixed(4)}%)</p>
+        {!(flame.expPerKill > 0) && flameTopLevel > startLevel && <p><b>사냥터 차이</b> = 주 24,000마리를 Lv.{flameTopLevel} 몬스터로 잡으면 {(FLAME_WEEKLY_ADD * flameTopRaw / ctx.reqRaw(startLevel) * 100).toFixed(2)}%, 내 레벨(Lv.{startLevel}) 몬스터로 잡으면 {(FLAME_WEEKLY_ADD * flameOwnRaw / ctx.reqRaw(startLevel) * 100).toFixed(2)}%. 차이 <b>{(FLAME_WEEKLY_ADD * (flameTopRaw - flameOwnRaw) / ctx.reqRaw(startLevel) * 100).toFixed(2)}%p</b>/주</p>}
         <p><b>주 24,000마리</b> = {fmtJo(weeklyFlameRaw, 2)} + 교환권 {fmtInt(weeklyCoupons)}장 {fmtJo(weeklyCouponRaw, 2)} = <b>{(((weeklyFlameRaw + weeklyCouponRaw) / ctx.reqRaw(startLevel)) * 100).toFixed(1)}%p</b>/주 (Lv.{startLevel} 기준)</p>
       </div>
 
@@ -399,6 +412,11 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
                 <td>{current ? "지금 설정" : <button type="button" className="pb-link" onClick={() => upd((draft: MainInput) => { draft.personal.flame.alloc = { ...row.alloc }; })}>이 배분으로</button>}</td></tr>;
             })}</tbody>
           </table></div>
+          {epicStage1AddRaw > 0 && <div className="pb-formula" aria-label="교환권과 에픽 던전 비교">
+            <p><b>EXP에 1개</b> 줄 때마다 주 {fmtInt(couponsPerPointWeek)}장 = Lv.{startLevel}에서 <b>{(couponsPerPointWeek * couponAtStart / ctx.reqRaw(startLevel) * 100).toFixed(2)}%</b>, 대신 조각 {fmtInt(FLAME_WEEKLY_ADD / 1500)}개를 덜 받습니다.</p>
+            <p><b>{epicStage1.name} EXP 1단계</b>({fmtInt(epicStage1.maplePoint)} 메이플포인트, 주 1회)가 더해 주는 경험치 = {fmtJo(epicStage1AddRaw, 2)} = <b>{(epicStage1AddRaw / ctx.reqRaw(startLevel) * 100).toFixed(2)}%</b> = 교환권 <b>{fmtInt(epicStage1Coupons)}장</b>어치</p>
+            <p>EXP 3으로 한 주에 받는 {fmtInt(couponsPerPointWeek * 3)}장은 {epicStage1.name} 1단계 한 번의 <b>{(couponsPerPointWeek * 3 / epicStage1Coupons * 100).toFixed(0)}%</b>입니다. 1단계 한 번과 같아지려면 EXP 3으로 {(epicStage1Coupons / (couponsPerPointWeek * 3)).toFixed(1)}주, 조각으로는 {fmtInt(epicStage1Coupons / 15)}개를 포기해야 합니다.</p>
+          </div>}
           <p className="pb-note">게임에서는 배분을 초기화해 다시 정할 수 있지만, 여기서는 마감까지 같은 배분으로 계산합니다. 솔 에르다에 주는 경우는 표에 넣지 않았습니다(위 입력칸에서 직접 넣을 수 있습니다).</p>
         </>}
 

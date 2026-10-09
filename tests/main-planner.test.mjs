@@ -1113,3 +1113,24 @@ test("끊어 계산해도 다 잡은 플레임은 정수로 세어 교환권이 
   assert.equal(r.coupons.made, 35);
   assert.ok(r.flame.expPoints < 1e-6);
 });
+
+test("이벤트 주차: 9/17이 1주차, 목요일마다 넘어가고 11/18이 9주차다", async () => {
+  const P = await import("../lib/main-planner.mjs");
+  assert.deepEqual(P.eventWeek("2026-09-17"), { week: 1, total: 9, daysLeft: 62, refillsLeft: 8 });
+  assert.equal(P.eventWeek("2026-09-23").week, 1);
+  assert.equal(P.eventWeek("2026-09-24").week, 2);
+  assert.deepEqual(P.eventWeek("2026-10-09"), { week: 4, total: 9, daysLeft: 40, refillsLeft: 5 });
+  assert.deepEqual(P.eventWeek("2026-11-18"), { week: 9, total: 9, daysLeft: 0, refillsLeft: 0 });
+  assert.equal(P.eventWeek("2026-09-16").week, 0);
+  assert.equal(P.eventWeek("2026-11-19").week, 0);
+});
+
+test("에픽 던전 EXP 1단계가 더해 주는 양은 교환권 장수로 딱 떨어진다: 악몽선경 2,520장, 아우룸 레기스 3,780장", async () => {
+  const P = await import("../lib/main-planner.mjs");
+  const T = await import("../lib/exp-tables.ts");
+  for (const level of [285, 286, 287, 288, 289]) assert.ok(Math.abs(4 * T.epicDungeonBaseRaw(level) / P.couponRawForLevel(level) - 2520) < 1, `${level}`);
+  for (const level of [290, 292, 294]) assert.ok(Math.abs(4 * T.epicDungeonBaseRaw(level) / P.couponRawForLevel(level) - 3780) < 1.5, `${level}`);
+  assert.deepEqual(P.epicBonusStage1Info(289), { name: "악몽선경", maplePoint: 12_500 });
+  assert.deepEqual(P.epicBonusStage1Info(290), { name: "아우룸 레기스", maplePoint: 15_000 });
+});
+
