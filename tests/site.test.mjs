@@ -262,3 +262,12 @@ test("배포 경로와 메타데이터가 퍼스널 버닝을 가리킨다", asy
   assert.match(pkg, /tests\/main-planner\.test\.mjs/);
   assert.match(pkg, /tests\/site\.test\.mjs/);
 });
+
+test("꼭 알아야 할 전제 두 가지는 화면에 한 줄씩 남아 있고 버튼 줄은 방향키로 옮겨 간다", async () => {
+  const planner = await read("app/personal-planner.tsx");
+  assert.match(planner, /PLUS는 매주 2,500포인트를 채운 기준으로 계산해요/);
+  assert.match(planner, /startLevel >= 290 && <p className="pb-note">290레벨부터는 예상 목표가 게임 화면과 조금 다를 수 있어요/);
+  assert.match(planner, /id="pb-tab-s0" aria-controls="pb-pane-s0" tabIndex=\{sec === "s0" \? 0 : -1\} onKeyDown=\{tabKeys\}/);
+  assert.match(planner, /id="pb-pane-s0" aria-labelledby="pb-tab-s0"/);
+  assert.match(planner, /"ArrowRight", "ArrowLeft", "Home", "End"/);
+});
