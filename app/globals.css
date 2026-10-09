@@ -339,3 +339,7 @@ footer p { margin: 0; color: #65636c; font-size: 12px; text-align: center; }
   .pb-results { scroll-margin-top: 12px; }
 }
 .pb-cond { margin: 0 0 12px; padding: 9px 12px; border-radius: 10px; color: #4e4b56; background: #f1efe8; font-size: 12px; line-height: 1.6; }
+.pb-result-section { margin: 16px 0; padding: 0 16px; border: 1px solid var(--soft-line); border-radius: 14px; background: white; }
+.pb-result-section > summary { min-height: 48px; padding: 14px 0; font-size: 15px; font-weight: 850; cursor: pointer; }
+.pb-result-section[open] { padding-bottom: 16px; }
+.pb-result-section > summary:focus-visible { outline: 3px solid rgba(115,87,255,.35); outline-offset: 2px; }

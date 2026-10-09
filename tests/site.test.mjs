@@ -15,6 +15,46 @@ const renderBuiltSsrHtml = async tag => {
   return response.text();
 };
 
+test("저장 입력은 PLUS 수량을 출석분으로 복제하지 않고 비약만 한 번 옮긴다", async () => {
+  const { mergeSaved, parseSaved, serializeSaved } = await import(new URL("lib/saved-input.mjs", root).href);
+  const old = { level: 286, items: { adv: "6000", sauna: "4", booster: "40", potion279: "1" }, routine: { huntHoursPerWeek: 4 } };
+  const r = mergeSaved(old, "2026-10-09");
+  assert.equal(r.items.adv, 6000);
+  assert.equal(r.items.sauna, 4);
+  assert.equal(r.items.booster, 40);
+  assert.equal(r.items.potion279, 0);
+  assert.deepEqual(r.attendance, { potion269: 0, potion279: 1, adv: 0, booster: 0, sauna: 0 });
+  assert.equal(r.routine.huntFieldKey, "flame");
+  assert.equal(r.routine.huntFieldLevel, 286);
+  assert.equal(r.routine.huntMeasuredEokPer30Min, 0);
+  assert.deepEqual(parseSaved(serializeSaved(r), "2026-10-10"), r, "재저장해도 옮기거나 더하지 않는다");
+  const fresh = mergeSaved({ ...old, attendance: { adv: "2000", potion269: "1" }, routine: { huntFieldKey: "direct", huntFieldLevel: "293", huntMeasuredEokPer30Min: "1000" } }, "2026-10-09");
+  assert.equal(fresh.items.adv, 6000);
+  assert.equal(fresh.attendance.adv, 2000);
+  assert.equal(fresh.attendance.potion269, 1);
+  assert.equal(fresh.routine.huntFieldLevel, 293);
+  assert.equal(fresh.routine.huntMeasuredEokPer30Min, 1000);
+});
+
+test("실제 서버 화면에서 출석 입력은 접히고 배분·주차 결과만 처음 펼쳐진다", async () => {
+  const html = await renderBuiltSsrHtml("reward-sections");
+  // JSX 문자열이 아니라 실제 details의 open 속성을 검사한다.
+  const sections = [...html.matchAll(/<details([^>]*)>\s*<summary[^>]*>([^<]*)/g)].map(m => ({ open: /\bopen(?:\s|=|$)/.test(m[1]), title: m[2] }));
+  const find = title => { const section = sections.find(row => row.title === title); assert.ok(section, title); return section; };
+  assert.equal(find("남은 출석·보유 보상").open, false);
+  assert.equal(find("커스텀 포인트 배분").open, true);
+  assert.equal(find("주차별 진행").open, true);
+  for (const title of ["시점 비교", "성장 미션 단계표", "경험치 내역", "이 계산이 기대는 가정"]) assert.equal(find(title).open, false, title);
+  assert.match(html, /앞으로 받을 코인/);
+  assert.match(html, /플레임에서 받을 조각/);
+  assert.match(html, /출석 보상 전부 넣기/);
+  assert.match(html, /이 캐릭터에 쓸 남은 것만 넣어 주세요/);
+  assert.match(html, /보유량에서 따로 셀 PLUS 레벨/);
+  assert.match(html, /평소 사냥터 몬스터/);
+  assert.match(html, /30분 사냥으로 실제 얻은 경험치\(억\)/);
+  assert.match(html, /value="flame" selected=""/);
+});
+
 test("탭은 퍼스널 버닝, 아이템 환산, 보상표·자료 세 개뿐이다", async () => {
   const page = await read("app/page.tsx");
   assert.match(page, /type ViewTab = "personal" \| "items" \| "reference"/);
@@ -51,7 +91,7 @@ test("서버 렌더 첫 화면은 퍼스널 버닝 탭이고 고정 날짜로 �
   // 입력과 결과가 서버 렌더에도 있다.
   assert.match(html, /11\/18 마감 위치/);
   assert.match(html, /성장 미션/);
-  assert.match(html, /보스 상한/);
+  assert.match(html, /가장 센 보스/);
   assert.match(html, /사냥터/);
   assert.match(html, /이 계산이 기대는 가정/);
 });
@@ -142,7 +182,7 @@ test("저장소가 던져도 loadSaved/persistSaved 는 죽지 않는다", async
 
 test("보스 프리셋과 사냥터 선택이 화면에 연결돼 있다", async () => {
   const planner = await read("app/personal-planner.tsx");
-  assert.match(planner, /보스 상한 \(여기까지 잡음\)/);
+  assert.match(planner, /가장 센 보스 \(여기까지 잡음\)/);
   assert.match(planner, /이하로 채우기/);
   assert.match(planner, /bossPreset\(\{ cutoffId: bossCutoff, partyMode: bossParty \}\)/);
   assert.match(planner, /aria-label="자주 쓰는 보스 구성"/);

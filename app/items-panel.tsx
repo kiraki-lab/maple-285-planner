@@ -19,6 +19,7 @@ const ROWS: { type: CustomRewardType; mark: string; iconSrc: string; label: stri
   { type: "mech", mark: "ME", iconSrc: "/efficiency-icons/mekaberry.png", label: "메카베리 농장", unit: "개", sampleAmount: 1, sampleUnit: "1개" },
   { type: "blue", mark: "BL", iconSrc: "/efficiency-icons/blueberry.png", label: "블루베리 농장", unit: "개", sampleAmount: 1, sampleUnit: "1개" },
   { type: "potion279", mark: "비약", iconSrc: "", label: "전설 성장의 비약", unit: "개", sampleAmount: 1, sampleUnit: "1개" },
+  { type: "potion269", mark: "비약", iconSrc: "", label: "성장의 비약 (200~269)", unit: "개", sampleAmount: 1, sampleUnit: "1개" },
   { type: "sauna", mark: "VIP", iconSrc: "/efficiency-icons/vip-sauna.png", label: "VIP 사우나", unit: "시간", sampleAmount: 1, sampleUnit: "1시간" },
   { type: "adv", mark: "EXP", iconSrc: "", label: "상급 EXP 교환권", unit: "장", sampleAmount: 1000, sampleUnit: "1,000장" },
 ];
@@ -34,8 +35,9 @@ export default function ItemsPanel({ state, goPersonal }: { state: MainInputStat
   const level = clampLevel(levelText === null ? input.level : Number(levelText));
   const exp = clampExp(expText === null ? input.exp : Number(expText));
   const inventory = {
-    crimson: Math.max(0, input.items.crimson), adv: Math.max(0, input.items.adv), mech: Math.max(0, input.items.mech),
-    blue: Math.max(0, input.items.blue), sauna: Math.max(0, input.items.sauna), potion279: Math.max(0, input.items.potion279),
+    crimson: Math.max(0, input.items.crimson), adv: Math.max(0, input.items.adv) + input.attendance.adv, mech: Math.max(0, input.items.mech),
+    blue: Math.max(0, input.items.blue), sauna: Math.max(0, input.items.sauna) + input.attendance.sauna, potion279: Math.max(0, input.items.potion279) + input.attendance.potion279,
+    potion269: input.attendance.potion269,
   };
   const result = simulateItemInventoryConversion({ level, exp, inventory });
   const gain = (result.level - result.startLevel) * 100 + result.exp - result.startExp;
@@ -74,10 +76,10 @@ export default function ItemsPanel({ state, goPersonal }: { state: MainInputStat
           </article>;
         })}
       </div>
-      {!hasInventory && <div className="item-conversion-empty"><p>보유량이 0이라 결과가 그대로입니다. 퍼스널 버닝 탭의 「모멘텀 패스 PLUS · 보유 아이템」에 실제 남은 수량을 입력해 주세요.</p><button type="button" onClick={goPersonal}>퍼스널 버닝 탭으로 이동</button></div>}
+      {!hasInventory && <div className="item-conversion-empty"><p>보유량이 0이라 결과가 그대로입니다. 퍼스널 버닝 탭의 PLUS와 「남은 출석·보유 보상」에 실제 남은 수량을 입력해 주세요.</p><button type="button" onClick={goPersonal}>퍼스널 버닝 탭으로 이동</button></div>}
       <div className="item-conversion-notes">
-        <p><b>사용 순서:</b> 블루베리 → 메카베리 → 크림슨 → VIP 사우나 → 전설 성장의 비약 → 상급 EXP. 크림슨은 메카베리와 같은 농장이지만 동렙몹 마릿수가 고정입니다.</p>
-        <p><b>보유량:</b> 퍼스널 버닝 탭의 입력값입니다. PLUS 아이템은 10/22 02:00에 사라지니 이 탭은 사용 가능한 기간 안에 쓸 때의 환산입니다.</p>
+        <p><b>사용 순서:</b> 블루베리 → 메카베리 → 크림슨 → VIP 사우나 → 비약(269) → 비약(279) → 상급 EXP. 크림슨은 메카베리와 같은 농장이지만 동렙몹 마릿수가 고정입니다.</p>
+        <p><b>보유량:</b> PLUS 보유분과 출석·보유 보상 입력을 합한 값입니다. PLUS는 10/22 02:00, 출석 보상은 11/19 02:00까지 사용 가능합니다. 이 탭은 기한 안에 전부 쓰는 경험치 환산이며 자동으로 받을 PLUS 보상·사냥용 부스터·4배 쿠폰은 포함하지 않습니다.</p>
         {level < 280 && <p><b>260~279:</b> 이 표는 아이템 자체 경험치 환산입니다.</p>}
         <a href="https://maplescouter.com/ko/exp/item" target="_blank" rel="noreferrer">메이플스카우터 소비아이템 환산과 대조</a>
       </div>

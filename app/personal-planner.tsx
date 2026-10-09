@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import {
   addDay,
   analyzeMain,
+  ATTENDANCE_REWARDS,
   bossEntry,
   bossCommunityPreset,
   bossLabel,
@@ -146,6 +147,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
     flame: "퍼스널 플레임", coupon: "퍼스널 EXP 교환권", boss: "퍼스널 보스 미션", missionReward: "성장 미션 단계 보상",
     crimson: "크림슨 메카베리", adv: "상급 EXP 교환권", sauna: "VIP 사우나", blue: "블루베리", mech: "메카베리", potion: "성장의 비약",
     hunt: "사냥", coupon4x: "경험치 4배 쿠폰(PLUS)", booster: "VIP 부스터(PLUS)",
+    attendanceAdv: "상급 EXP(출석·보유)", attendanceSauna: "VIP 사우나(출석·보유)", attendanceBooster: "VIP 부스터(출석·보유)", attendancePotion269: "성장의 비약(200~269)", attendancePotion279: "성장의 비약(200~279)",
   };
   const totalRaw = sourceRows.reduce((sum, row) => sum + row.raw, 0) || 1;
 
@@ -161,7 +163,8 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
     });
   }
   const expiredPlus = r.items.expired.crimson + r.items.expired.adv + r.items.expired.sauna;
-  if (expiredPlus > 0) advices.push({ tone: "warn", text: `PLUS 아이템이 10/22 02:00에 소멸합니다. 크림슨 ${fmtInt(r.items.expired.crimson)}장, 상급 EXP ${fmtInt(r.items.expired.adv)}장, 사우나 ${r.items.expired.sauna.toFixed(1)}시간이 남습니다. 레벨 상한(296)에 닿아 쓸 수 없는 경우만 해당합니다.` });
+  if (expiredPlus > 0) advices.push({ tone: "warn", text: `PLUS 아이템이 10/22 02:00에 소멸합니다. 크림슨 ${fmtInt(r.items.expired.crimson)}장, 상급 EXP ${fmtInt(r.items.expired.adv)}장, 사우나 ${r.items.expired.sauna.toFixed(1)}시간이 남습니다. 296레벨에 닿으면 더 쓸 수 없습니다.` });
+  if (Object.values(r.attendance.expired).some(value => Number(value) > 0)) advices.push({ tone: "warn", text: `출석·보유 보상을 마감까지 다 쓰지 못합니다. 비약(269) ${fmtInt(r.attendance.expired.potion269)}개 · 비약(279) ${fmtInt(r.attendance.expired.potion279)}개 · 상급 EXP ${fmtInt(r.attendance.expired.adv)}장 · 부스터 ${r.attendance.expired.booster.toFixed(1)}개 · 사우나 ${r.attendance.expired.sauna.toFixed(1)}시간. 사용 기한은 11/19 02:00입니다.` });
   const unusedHuntItems = (r.items.expired.coupon4x || 0) + (r.items.expired.booster || 0);
   if (unusedHuntItems > 0.01) advices.push({ tone: "warn", text: `PLUS로 받은 경험치 4배 쿠폰 ${(r.items.expired.coupon4x || 0).toFixed(1)}장, VIP 부스터 ${(r.items.expired.booster || 0).toFixed(1)}개를 10/21까지 다 쓰지 못합니다. 둘 다 사냥하는 동안에만 쓸 수 있으니 「주간 사냥 시간」을 늘려야 합니다(쿠폰은 30분에 1장).` });
   if (r.coupons.expired > 0) advices.push({ tone: "warn", text: `교환권 ${fmtInt(r.coupons.expired)}장을 마감까지 쓰지 못합니다. 11/19 02:00에 소멸합니다.` });
@@ -177,14 +180,17 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
   assumed.push("단계 보상은 레벨의 몬스터 기본 경험치 × 502,828.8로 계산했습니다. 본섭 286~289레벨 화면의 보상 네 값에서 구한 배수이고, 네 값과의 차이는 약 3.2만 EXP(2조가 넘는 보상의 0.000002%) 안쪽입니다.");
   if (!(flame.fieldLevel > 0)) assumed.push(flame.fieldKey === "same" ? "사냥터는 내 레벨과 같은 몬스터로, 레벨이 오르면 몬스터 레벨도 따라 오른다고 봤습니다." : "사냥터는 지금 레벨에서 갈 수 있는 지역의 가장 높은 몬스터(285~289레벨은 289, 290~294는 294, 295부터는 299)로 봤고, 레벨이 올라 다음 지역이 열리면 그쪽으로 옮긴다고 계산했습니다. 어센틱포스가 모자라 그 사냥터를 못 가면 사냥터를 직접 고르세요.");
   if (!(flame.expPerKill > 0)) assumed.push("플레임 1마리 경험치는 사냥터 몬스터 기본 경험치(하루1소재 표) × 72로 계산했습니다. ×72는 본섭 9/23 로그 3건으로 확인한 값이고 하루1소재에 플레임 계산식은 없습니다. 9/24 공지 수정 이후 같은 조건의 재측정은 하지 못했습니다.");
-  if (input.plus.enabled) assumed.push("모멘텀 PLUS는 이벤트 시작부터 주 2,500포인트를 모두 채웠다고 보고, 해금된 레벨의 보상을 시작일에 바로 받는 것으로 계산합니다(1주 Lv.3, 2주 Lv.6, 3주 Lv.10). 실제 수령 레벨이 다르면 「수령한 PLUS 레벨」에 넣으세요.");
-  if (input.routine.huntHoursPerWeek > 0) assumed.push("사냥은 하루1소재 사냥 식을 썼습니다: 30분에 7.5초 리젠 240번 × 40마리 × 몬스터 기본 경험치 × 레벨 차 보정. 여기에 입력한 「사냥 추가 경험치 %」(룬·쿠폰·버프·가호 합계)를 곱합니다. 사냥터 마릿수와 원킬 여부에 따라 실제는 다릅니다. 주간 사냥 시간은 매일 같은 양으로 나눠 계산합니다.");
+  if (input.plus.enabled) assumed.push("모멘텀 PLUS는 이벤트 시작부터 주 2,500포인트를 모두 채웠다고 보고, 해금된 레벨의 보상을 시작일에 바로 받는 것으로 계산합니다(1주 Lv.3, 2주 Lv.6, 3주 Lv.10). 「보유량에서 따로 셀 PLUS 레벨」까지의 보상은 자동으로 더하지 않습니다. 그중 남은 아이템만 PLUS 보유량에 넣으세요.");
+  assumed.push("출석·보유 보상은 입력한 남은 수량을 기준일에 보유한 것으로 보고, 비약·상급 EXP·사우나는 바로 씁니다. 아직 받지 않은 출석 보상은 받을 때까지 기다리는 과정 없이 계산하니, 「전부 넣기」는 전체 보상을 이미 확보한 경우에 쓰세요. 공식 813에서 사용 기한은 모두 11/19 02:00이며, PLUS와 별도로 11/18까지 계산합니다. 부스터는 사냥할 때 PLUS분부터 쓰고, 같은 사냥 시간에 중복하지 않습니다.");
+  assumed.push("성장의 비약은 269용 2,438,047,518,853 EXP, 279용 16,657,228,589,191 EXP를 줍니다(범위를 넘는 레벨 기준). 메이플로드 비약 효율 표와 필요 경험치로 확인했습니다. 공식 813에는 비약 경험치 식이 없고 하루1소재에서도 찾지 못했습니다. 옛 저장값의 EXP·사우나·부스터는 출처를 알 수 없어 기존 PLUS 기한을 유지하며, 출석분이었다면 수량을 새 보유 보상 칸으로 옮겨 주세요.");
+  if (input.routine.huntHoursPerWeek > 0 && input.routine.huntMeasuredEokPer30Min > 0) assumed.push("평소 사냥 경험치는 입력한 30분 실측값을 그대로 썼고, 마릿수·사냥 추가 경험치 %를 다시 곱하지 않습니다. 레벨이 올라도 같은 30분 값으로 봅니다. 주간 시간은 매일 고르게 나눕니다. 4배 쿠폰·부스터의 추가분은 평소 사냥터 몬스터와 30분 9,600마리 기준으로 별도 추정하므로 실측할 때 두 아이템을 빼 주세요.");
+  else if (input.routine.huntHoursPerWeek > 0) assumed.push("사냥은 하루1소재 사냥 식을 썼습니다: 30분에 7.5초 리젠 240번 × 40마리 × 평소 사냥터 몬스터 기본 경험치 × 레벨 차 보정. 여기에 입력한 「사냥 추가 경험치 %」(룬·쿠폰·버프·가호 합계)를 곱합니다. 사냥터 마릿수와 원킬 여부에 따라 실제는 다릅니다. 주간 사냥 시간은 매일 같은 양으로 나눠 계산합니다.");
   else assumed.push("주간 사냥 시간이 0이라 사냥 경험치와 PLUS의 경험치 4배 쿠폰·VIP 부스터는 계산에 넣지 않았습니다.");
   if (input.plus.enabled && input.plus.tier !== "free" && input.routine.huntHoursPerWeek > 0) assumed.push("PLUS의 경험치 4배 쿠폰(30분, 순수 사냥 경험치의 3배가 더 붙음)과 VIP 부스터(1,710마리에 기본 경험치 10배)는 사냥하는 동안 10/21까지 쓰는 것으로 계산했습니다. 값은 하루1소재 식이고 다른 추가 경험치와 겹치는 효과는 넣지 않았습니다. 하루 사냥량에 맞춰 조금씩 쓰는 평균 계산이라 실제로 쓰는 날짜·개수와는 다릅니다.");
   assumed.push("마감 다음 날 00:00~02:00(10/22, 11/19)에 쓸 수 있는 시간은 빼고 10/21·11/18을 마지막 날로 봅니다.");
   assumed.push("퍼스널 EXP 교환권은 레벨의 몬스터 기본 경험치 × 480으로 계산했습니다(하루1소재·메이플로드 교환권 표와 같음). 본섭에서 한 장씩 써서 확인한 값은 아닙니다.");
   assumed.push("보스 미션 경험치는 하루1소재 표(보스별 고정 경험치, 경험치를 받는 파티원 수로 나눔)입니다. 공식 공지에는 보스별 수치가 없습니다. 본섭 9/27 보스 미션 화면의 5개 값(세렌 노멀·하드, 칼로스 이지, 대적자 이지, 카링 이지)은 표와 정확히 일치했고, 나머지 30개는 화면과 대조하지 못했습니다.");
-  if (bosses.length === 0) assumed.push("보스 미션을 넣지 않았습니다. 위에서 보스 상한을 고르면 한 번에 채워집니다.");
+  if (bosses.length === 0) assumed.push("보스 미션을 넣지 않았습니다. 보스 묶음에서 평소 잡는 보스들을 한 번에 고를 수 있습니다.");
   if (input.routine.argoMonsterPark > 0 || input.routine.argoGrandis > 0) assumed.push("아르고호의 가호는 입력한 %를 기준일부터 11/25까지 그대로 적용합니다. 포인트를 모아 레벨을 올려 가는 과정은 계산하지 않으니, 아직 올리는 중이면 지금 레벨의 %를 넣으세요. 가호는 몬스터파크·익스트림 몬스터파크·그란디스 일퀘에만 붙고 에픽 던전에는 붙지 않습니다.");
   if (!(input.routine.measuredPercentPerDay > 0)) assumed.push("하루 일과(몬스터파크·그란디스)는 하루1소재·메이플로드 표에 아르고호의 가호 전술 마법(입력값)만 더했고, 챌섭 에테리온 보너스는 넣지 않았습니다. 본섭 실측이 아닙니다.");
   if (!(input.routine.weeklyMeasuredPercent > 0) && (input.routine.extreme || input.routine.epic)) assumed.push("주간 컨텐츠(익스트림 몬파·에픽 던전)는 하루1소재·메이플로드 표를 그대로 썼습니다. 에픽 던전은 289레벨까지 악몽선경, 290레벨부터 아우룸 레기스(악몽선경의 1.5배)이고 보상 배수는 입력값입니다. 본섭 실측이 아닙니다.");
@@ -263,18 +269,33 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
       </div>}
       </details>
       <details className="pb-sec" open>
-        <summary>모멘텀 패스 PLUS · 보유 아이템<span>{input.plus.enabled ? ({ free: "무료", premium: "프리미엄", prime: "프라임" } as Record<string, string>)[input.plus.tier] : "참여 안 함"}</span></summary>
+        <summary>모멘텀 패스 PLUS<span>{input.plus.enabled ? ({ free: "무료", premium: "프리미엄", prime: "프라임" } as Record<string, string>)[input.plus.tier] : "참여 안 함"}</span></summary>
       <div className="pb-checks"><Check label="PLUS 참여 중 (10/21까지)" checked={input.plus.enabled} onChange={value => upd((draft: MainInput) => { draft.plus.enabled = value; })} /></div>
       <div className="field-grid compact">
         <label className="field"><span>보유 등급</span><select value={input.plus.tier} disabled={!input.plus.enabled} onChange={event => upd((draft: MainInput) => { draft.plus.tier = event.target.value as Tier; })}><option value="free">무료</option><option value="premium">프리미엄</option><option value="prime">프라임</option></select></label>
-        <NumField label="수령한 PLUS 레벨" value={input.plus.claimedLevel} min={0} max={10} step={1} onChange={value => upd((draft: MainInput) => { draft.plus.claimedLevel = value; })} hint="0 = 아직 못 받음·모아 둠(기본) · 10 = 전부 받아 씀" />
+        <NumField label="보유량에서 따로 셀 PLUS 레벨" value={input.plus.claimedLevel} min={0} max={10} step={1} onChange={value => upd((draft: MainInput) => { draft.plus.claimedLevel = value; })} hint="이 레벨까지는 자동 지급에서 뺍니다. 남은 것만 아래 입력. 0이면 열린 보상을 전부 자동으로 더함" />
         <NumField label="크림슨 메카베리 농장" value={input.items.crimson} min={0} step={1} onChange={value => upd((draft: MainInput) => { draft.items.crimson = value; })} hint="장" />
         <NumField label="상급 EXP 교환권" value={input.items.adv} min={0} step={100} onChange={value => upd((draft: MainInput) => { draft.items.adv = value; })} hint="장" />
         <NumField label="VIP 사우나" value={input.items.sauna} min={0} step={0.5} onChange={value => upd((draft: MainInput) => { draft.items.sauna = value; })} hint="시간" />
         <NumField label="메카베리 농장" value={input.items.mech} min={0} step={1} onChange={value => upd((draft: MainInput) => { draft.items.mech = value; })} hint="장" />
         <NumField label="블루베리 농장" value={input.items.blue} min={0} step={1} onChange={value => upd((draft: MainInput) => { draft.items.blue = value; })} hint="장" />
-        <NumField label="전설 성장의 비약" value={input.items.potion279} min={0} step={1} onChange={value => upd((draft: MainInput) => { draft.items.potion279 = value; })} hint="개" />
+        <NumField label="PLUS VIP 부스터" value={input.items.booster || 0} min={0} step={1} onChange={value => upd((draft: MainInput) => { draft.items.booster = value; })} hint="개 · 10/21까지 사냥할 때 사용" />
+        <NumField label="PLUS 경험치 4배 쿠폰" value={input.items.coupon4x || 0} min={0} step={1} onChange={value => upd((draft: MainInput) => { draft.items.coupon4x = value; })} hint="장 · 10/21까지 사냥할 때 사용" />
       </div>
+      <p className="pb-note">이전 「수령한 PLUS 레벨」과 같은 입력입니다. 예: Lv.10 보상을 전부 모아 뒀다면 0 + 보유량 0, 이미 일부 썼다면 10 + 실제 남은 수량을 넣으세요. 자동 보상과 보유량에 같은 아이템을 두 번 넣지 마세요.</p>
+      </details>
+      <details className="pb-sec">
+        <summary>남은 출석·보유 보상<span>11/18까지 사용</span></summary>
+        <p className="pb-note">이 캐릭터에 쓸 남은 것만 넣어 주세요. 출석 보상은 명의 내 지정한 메이플ID 한 곳에서만 받습니다. 이미 쓴 보상이나 다른 캐릭터에 줄 보상은 빼 주세요.</p>
+        <button type="button" className="pb-add" onClick={() => upd((draft: MainInput) => { draft.attendance = { ...ATTENDANCE_REWARDS }; })}>출석 보상 전부 넣기</button>
+        <p className="pb-note">40일 전체 수량으로 바꿉니다. 아직 못 받은 것도 있으니, 이 캐릭터에 남아 있는 양으로 다시 맞춰 주세요. 사용 기한은 모두 11/19 02:00입니다.</p>
+        <div className="field-grid compact">
+          <NumField label="성장의 비약 (200~269)" value={input.attendance.potion269} min={0} step={1} onChange={value => upd((draft: MainInput) => { draft.attendance.potion269 = value; })} hint="개" />
+          <NumField label="성장의 비약 (200~279)" value={input.attendance.potion279} min={0} step={1} onChange={value => upd((draft: MainInput) => { draft.attendance.potion279 = value; })} hint="개" />
+          <NumField label="상급 EXP 교환권" value={input.attendance.adv} min={0} step={100} onChange={value => upd((draft: MainInput) => { draft.attendance.adv = value; })} hint="장" />
+          <NumField label="VIP 부스터" value={input.attendance.booster} min={0} step={1} onChange={value => upd((draft: MainInput) => { draft.attendance.booster = value; })} hint="개 · 사냥할 때만 사용" />
+          <NumField label="VIP 사우나" value={input.attendance.sauna} min={0} step={0.5} onChange={value => upd((draft: MainInput) => { draft.attendance.sauna = value; })} hint="시간 · 이용권 1개 = 0.5시간" />
+        </div>
       </details>
       <details className="pb-sec">
         <summary>퍼스널 보스 미션<span>{`${Math.min(bosses.length, WEEKLY_BOSS_LIMIT)}/${WEEKLY_BOSS_LIMIT}마리 · 주 ${fmtJo(weeklyBossRaw, 2)}`}</span></summary>
@@ -308,13 +329,13 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
       <details className="pb-more">
         <summary>가장 센 보스만 골라 한 번에 채우기</summary>
         <div className="field-grid compact">
-          <label className="field"><span>보스 상한 (여기까지 잡음)</span>
+          <label className="field"><span>가장 센 보스 (여기까지 잡음)</span>
             <select value={bossCutoff} onChange={event => setBossCutoff(event.target.value)}>
               <option value="">선택 안 함</option>
               {BOSS_LADDER.map(entry => <option key={entry.id} value={entry.id}>{entry.boss} {entry.difficulty} · {fmtJo(entry.unitExp * 10_000, 2)}</option>)}
             </select></label>
         </div>
-        <button type="button" className="pb-add" disabled={!bossCutoff} onClick={applyBossPreset}>{bossCutoff ? `${bossLabel(bossCutoff)} 이하로 채우기` : "보스 상한을 고르면 채울 수 있어요"}</button>
+        <button type="button" className="pb-add" disabled={!bossCutoff} onClick={applyBossPreset}>{bossCutoff ? `${bossLabel(bossCutoff)} 이하로 채우기` : "가장 센 보스를 고르면 채울 수 있어요"}</button>
         <p className="pb-note">고른 보스 이하에서 보스마다 가장 센 난이도를 경험치 높은 순으로 {WEEKLY_BOSS_LIMIT}마리까지 채웁니다.</p>
       </details>
       </details>
@@ -328,10 +349,15 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
         <NumField label="그란디스 일퀘 추가 경험치 %" value={input.routine.argoGrandis} min={0} max={50} step={5} onChange={value => upd((draft: MainInput) => { draft.routine.argoGrandis = value; })} hint="아르고호의 가호. Lv2 = 10%, 최대 50%" />
         <NumField label="에픽 던전 추가 경험치 %" value={input.routine.epicBonus} min={0} max={200} step={5} onChange={value => upd((draft: MainInput) => { draft.routine.epicBonus = value; })} hint="따로 받는 추가 경험치가 있을 때만. 없으면 0" />
         <NumField label="주간 사냥 시간" value={input.routine.huntHoursPerWeek} min={0} max={168} step={0.5} onChange={value => upd((draft: MainInput) => { draft.routine.huntHoursPerWeek = value; })} hint="시간. 위에서 고른 사냥터 기준. 0이면 사냥 없음" />
+        <label className="field"><span>평소 사냥터 몬스터</span><select value={input.routine.huntFieldKey} onChange={event => upd((draft: MainInput) => { draft.routine.huntFieldKey = event.target.value; if (event.target.value === "direct" && !draft.routine.huntFieldLevel) draft.routine.huntFieldLevel = startLevel; })}><option value="flame">플레임과 같게</option><option value="same">내 레벨 몬스터 (레벨업하면 따라감)</option><option value="direct">몬스터 레벨 직접 입력</option></select></label>
+        {input.routine.huntFieldKey === "direct" && <NumField label="평소 사냥터 몬스터 레벨" value={input.routine.huntFieldLevel || startLevel} min={260} max={299} step={1} onChange={value => upd((draft: MainInput) => { draft.routine.huntFieldLevel = value; })} hint="260~299 · 플레임 사냥터는 바뀌지 않음" />}
         <NumField label="사냥 추가 경험치 %" value={input.routine.huntBonusPct} min={0} max={3000} step={10} onChange={value => upd((draft: MainInput) => { draft.routine.huntBonusPct = value; })} hint="룬·경험치 쿠폰·버프·가호 합계. 0이면 순수 경험치" />
         <NumField label="하루 일과 직접 입력 %" value={input.routine.measuredPercentPerDay} min={0} step={0.01} onChange={value => upd((draft: MainInput) => { draft.routine.measuredPercentPerDay = value; })} hint="몬파·그란디스 대신 쓸 하루 값. 0이면 표" />
         <NumField label="주간 컨텐츠 직접 입력 %" value={input.routine.weeklyMeasuredPercent} min={0} step={0.01} onChange={value => upd((draft: MainInput) => { draft.routine.weeklyMeasuredPercent = value; })} hint="익몬·에픽 던전 대신 쓸 주간 값. 0이면 표" />
       </div>
+      <details className="pb-more"><summary>실제로 얻은 사냥 경험치로 계산</summary>
+        <NumField label="30분 사냥으로 실제 얻은 경험치(억)" value={input.routine.huntMeasuredEokPer30Min} min={0} step={1} onChange={value => upd((draft: MainInput) => { draft.routine.huntMeasuredEokPer30Min = value; })} hint="0이면 몬스터 표로 계산. 4배 쿠폰·부스터를 빼고 측정한 값. 사냥 추가 경험치 %를 다시 곱하지 않음" />
+      </details>
       <div className="pb-checks">
         <Check label="그란디스 일퀘" checked={input.routine.grandis} onChange={value => upd((draft: MainInput) => { draft.routine.grandis = value; })} />
         <Check label="익스트림 몬파(주간)" checked={input.routine.extreme} onChange={value => upd((draft: MainInput) => { draft.routine.extreme = value; })} />
@@ -389,8 +415,8 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
         <p className="pb-cond">계산 조건 · PLUS {input.plus.enabled ? ({ free: "무료", premium: "프리미엄", prime: "프라임" } as Record<string, string>)[input.plus.tier] : "참여 안 함"} · 보스 {Math.min(bosses.length, WEEKLY_BOSS_LIMIT)}마리 주 {fmtJo(weeklyBossRaw, 2)} · 몬파 하루 {input.routine.runsPerDay}판 · 에픽 던전 {!input.routine.epic ? "안 함" : input.routine.epicMult > 1 ? `${input.routine.epicMult}배(주 ${fmtInt(epicStage1.maplePoint * (input.routine.epicMult >= 9 ? 4 : 1))} 메이플포인트 사용)` : "보너스 없음"} · 사냥 주 {input.routine.huntHoursPerWeek}시간 · 커스텀 조각 {flame.alloc.shard}·EXP {flame.alloc.exp}</p>
         <div className="pb-cards">
           <article className="pb-card primary"><span>11/18 마감 위치</span><strong>{place(r.level, r.exp)}</strong><em>시작 {place(startLevel, input.exp)} · +{(r.progress - r.startPosition).toFixed(2)}레벨</em></article>
-          <article className="pb-card"><span>성장 미션</span><strong>{r.mission.stepsCleared}/{MISSION_STEPS}단계</strong><em>{r.mission.newlyCleared.length ? `이번에 +${r.mission.newlyCleared.length}단계 · 코인 +${fmtInt(r.mission.coins)}` : "새로 넘는 단계 없음"}</em></article>
-          <article className="pb-card"><span>플레임 · 교환권 · 보스</span><strong>{fmtInt(r.flame.killed)}마리</strong><em>{r.flame.overflowLost > 0 ? `소실 ${fmtInt(r.flame.overflowLost)}마리 · ` : ""}교환권 {fmtInt(r.coupons.used)}장 · 보스 {fmtInt(r.boss.clears)}회</em></article>
+          <article className="pb-card"><span>성장 미션</span><strong>{r.mission.stepsCleared}/{MISSION_STEPS}단계</strong><em>앞으로 받을 코인 {fmtInt(r.mission.coins)}개 · 새로 {r.mission.newlyCleared.length}단계</em></article>
+          <article className="pb-card"><span>플레임에서 받을 조각</span><strong>{Math.floor(r.flame.shardFragments + 1e-9).toLocaleString("ko-KR")}개</strong><em>플레임 {fmtInt(r.flame.killed)}마리 · 교환권 {fmtInt(r.coupons.used)}장 · 코인샵 조각은 별도</em></article>
         </div>
 
         {advices.length > 0 && <div className="pb-advice" aria-label="확인할 것">{advices.map((advice, index) => <p key={index} className={advice.tone}>{advice.text}</p>)}</div>}
@@ -399,7 +425,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
           {nextLevels.map(level => { const date = reachDate(level); return <span key={level}><b>Lv.{level}</b>{date ? `${md(date)}(${dow(date)}) 도달` : "마감까지 못 닿음"}</span>; })}
         </div>
 
-        <h3 className="pb-title">시점 비교</h3>
+        <details className="pb-result-section"><summary>시점 비교</summary>
         <p className="pb-note">크림슨 농장 사용 시점과 교환권 사용 시점을 모두 돌려 통과 단계, 마감 위치 순으로 골랐습니다. 선택은 왼쪽 「사용 시점」에서 바꿉니다.</p>
         {hasCrimson && <div className="pb-table-wrap"><table className="hold-table pb-table">
           <thead><tr><th>크림슨 사용</th><th>마감 위치</th><th>단계</th><th>차이</th></tr></thead>
@@ -416,8 +442,9 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
         </table></div>
         <p className="pb-note">교환권 한 장은 쓰는 시점의 레벨에 따라 경험치가 달라집니다(레벨의 몬스터 기본 경험치 × 480). 마감일(11/18) 안에 쓰면 소멸하지 않으므로 먼저 쓸지 몰아 쓸지는 이 표의 차이로 고르세요.</p>
 
-        {tiers.length > 1 && <>
-          <h3 className="pb-title">PLUS 등급 비교</h3>
+        </details>
+        {tiers.length > 1 && <details className="pb-result-section">
+          <summary>PLUS 등급 비교</summary>
           <p className="pb-note">지금 {input.plus.tier === "free" ? "무료" : input.plus.tier === "premium" ? "프리미엄" : "프라임"} 등급에서 올릴 때입니다. 이미 받은 레벨의 위 등급 보상도 구매하면 받을 수 있다고 봤습니다. 구매 전에 인게임 표기를 확인하세요.</p>
           <div className="pb-table-wrap"><table className="hold-table pb-table">
             <thead><tr><th>등급</th><th>캐시</th><th>마감 위치</th><th>단계</th><th>차이</th></tr></thead>
@@ -426,10 +453,10 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
               <td>{row.cash ? `${fmtInt(row.cash)}` : "-"}</td><td>{place(row.summary.level, row.summary.exp)}</td><td>{row.summary.stepsCleared}</td>
               <td>{row.tier === input.plus.tier ? "기준" : `+${row.gainProgress.toFixed(2)}%p${row.gainSteps ? ` · +${row.gainSteps}단계` : ""}${row.cash && row.gainProgress > 0 ? ` · 1%p당 ${fmtInt(row.cash / row.gainProgress)}캐시` : ""}`}</td></tr>)}</tbody>
           </table></div>
-        </>}
+        </details>}
 
-        {allocRows.length > 0 && <>
-          <h3 className="pb-title">커스텀 포인트 배분</h3>
+        {allocRows.length > 0 && <details className="pb-result-section" open>
+          <summary>커스텀 포인트 배분</summary>
           <p className="pb-note">플레임 한 마리마다 리워드 포인트 3개를 어디에 줄지 고릅니다. 30단계를 어차피 넘으면 솔 에르다 조각에 다 주고, 못 넘으면 넘는 데 필요한 만큼만 퍼스널 EXP에 주는 쪽을 추천합니다. 나머지는 조각으로 계산했습니다.</p>
           <div className="pb-table-wrap"><table className="hold-table pb-table">
             <thead><tr><th>배분</th><th>마감 위치</th><th>단계</th><th>교환권</th><th>조각</th><th></th></tr></thead>
@@ -446,19 +473,19 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
             <p>EXP 3으로 한 주에 받는 {fmtInt(couponsPerPointWeek * 3)}장은 {epicStage1.name} 1단계 한 번의 <b>{(couponsPerPointWeek * 3 / epicStage1Coupons * 100).toFixed(0)}%</b>입니다. 1단계 한 번과 같아지려면 EXP 3으로 {(epicStage1Coupons / (couponsPerPointWeek * 3)).toFixed(1)}주, 조각으로는 {fmtInt(epicStage1Coupons / 15)}개를 포기해야 합니다.</p>
           </div>}
           <p className="pb-note">게임에서는 배분을 초기화해 다시 정할 수 있지만, 여기서는 마감까지 같은 배분으로 계산합니다. 솔 에르다에 주는 경우는 표에 넣지 않았습니다(위 입력칸에서 직접 넣을 수 있습니다).</p>
-        </>}
+        </details>}
 
-        {designations.length > 0 && <>
-          <h3 className="pb-title">지정 시점 비교</h3>
+        {designations.length > 0 && <details className="pb-result-section">
+          <summary>지정 시점 비교</summary>
           <p className="pb-note">지정 전에는 플레임·미션·보스가 돌지 않습니다. 지정하면 되돌릴 수 없고 명의당 1캐릭터입니다.</p>
           <div className="pb-table-wrap"><table className="hold-table pb-table">
             <thead><tr><th>지정일</th><th>마감 위치</th><th>단계</th><th>플레임</th></tr></thead>
             <tbody>{designations.map((row: { designDate: string; summary: { level: number; exp: number; stepsCleared: number }; flameKilled: number }) => <tr key={row.designDate} className={row.designDate === input.personal.designDate ? "best" : ""}>
               <td>{md(row.designDate)}({dow(row.designDate)}){row.designDate === input.personal.designDate ? " · 선택" : ""}</td><td>{place(row.summary.level, row.summary.exp)}</td><td>{row.summary.stepsCleared}</td><td>{fmtInt(row.flameKilled)}마리</td></tr>)}</tbody>
           </table></div>
-        </>}
+        </details>}
 
-        <h3 className="pb-title">주차별 진행</h3>
+        <details className="pb-result-section" open><summary>주차별 진행</summary>
         <div className="pb-table-wrap"><table className="hold-table pb-table pb-weeks">
           <thead><tr><th>시작</th><th>플레임</th><th>보스</th><th>교환권</th><th>주말 위치</th><th>누적 단계</th></tr></thead>
           <tbody>{r.weeks.map((week: { start: string; kills: number; overflow: number; bosses: number; couponsUsed: number; levelEnd: number; expEnd: number; steps: number }) => <tr key={week.start}>
@@ -467,7 +494,8 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
         </table></div>
         <p className="pb-note">마감: PLUS 수령 10/21 23:59 · 사용 10/22 02:00 / 퍼스널 단계·코인샵 11/18 23:59 · 보상 사용 11/19 02:00. {nextRefill ? `남은 플레임 추가는 ${md(nextRefill)}(목)부터 매주 목요일 0시입니다.` : "기준일 이후에는 플레임 추가가 없습니다."}</p>
 
-        <h3 className="pb-title">성장 미션 단계표</h3>
+        </details>
+        <details className="pb-result-section"><summary>성장 미션 단계표</summary>
         <div className="pb-steps">
           {r.mission.steps.map((step: { index: number; level: number; exp: number; rewardRaw: number }) => {
             const date = clearedDates.get(step.index);
@@ -479,12 +507,14 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
           {r.mission.stepsAtStart > 0 && <p className="pb-note">1~{r.mission.stepsAtStart}단계는 이미 통과한 단계라 표에서 뺐습니다.</p>}
         </div>
 
-        <h3 className="pb-title">경험치가 어디서 오나</h3>
+        </details>
+        <details className="pb-result-section"><summary>경험치 내역</summary>
         <div className="pb-sources">{sourceRows.map(row => <div key={row.id} className="pb-source"><span>{sourceLabels[row.id] || row.id}</span>
           <i style={{ width: `${Math.max(2, row.raw / totalRaw * 100)}%` }} /><b>{fmtJo(row.raw)} · {(row.raw / ctx.reqRaw(startLevel) * 100).toFixed(1)}%p</b></div>)}</div>
         <p className="pb-note">%p는 시작 레벨({startLevel}) 필요 경험치 기준이라 레벨이 오른 뒤 얻은 경험치는 실제 표시 %보다 크게 보일 수 있습니다.</p>
 
-        {assumed.length > 0 && <div className="pb-assume"><h3>이 계산이 기대는 가정</h3><ul>{assumed.map(text => <li key={text}>{text}</li>)}</ul></div>}
+        </details>
+        {assumed.length > 0 && <details className="pb-result-section"><summary>이 계산이 기대는 가정</summary><div className="pb-assume"><ul>{assumed.map(text => <li key={text}>{text}</li>)}</ul></div></details>}
       </>}
     </div>
   </section>;
