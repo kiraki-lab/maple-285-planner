@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import {
   addDay,
@@ -60,6 +61,51 @@ const makeCtx = (overrides = {}) => ({
   ...overrides,
 });
 const ctx = makeCtx();
+
+test("직접 옮긴 두 목표의 경험치 간격을 반복한다: 290레벨 4.178%p", () => {
+  const r = buildMissionTable({ mode: "screen", stepsDone: 0, nextTarget: { level: 290, exp: 87.8 }, secondTarget: { level: 290, exp: 91.978 }, intervalEnabled: true, nextRewardPct: 0.819 }, createMainContext());
+  assert.equal(r.steps[0].exp, 87.8);
+  assert.ok(Math.abs(r.steps[1].exp - 91.978) < 1e-9);
+  assert.ok(Math.abs(r.steps[2].exp - 96.156) < 1e-9);
+  assert.ok(Math.abs(r.intervalRaw - 12_296_082_571_552.2) < 1);
+});
+
+test("레벨을 넘는 두 목표는 양쪽 필요 경험치를 더해 잇는다", () => {
+  const r = buildMissionTable({ mode: "screen", stepsDone: 25, nextTarget: { level: 289, exp: 99 }, secondTarget: { level: 290, exp: 1 }, intervalEnabled: true }, createMainContext());
+  assert.ok(Math.abs(r.intervalRaw - 4_400_012_484_784.47) < 1);
+  assert.equal(r.steps[1].level, 290);
+  assert.ok(Math.abs(r.steps[1].exp - 1) < 1e-9);
+  assert.ok(Math.abs(r.steps[2].exp - 2.495049504950495) < 1e-9);
+  assert.ok(Math.abs(r.steps[3].exp - 3.99009900990099) < 1e-9);
+});
+
+test("원문 캐릭터 표 다섯 개의 첫 두 목표를 직접 입력하면 그대로 재현한다", () => {
+  const { samples } = JSON.parse(readFileSync(new URL("../docs/research/maple-ai-mission-samples.json", import.meta.url), "utf8"));
+  assert.equal(samples.length, 5);
+  for (const sample of samples) {
+    assert.equal(sample.stages.length, 30);
+    const [first, second] = sample.stages;
+    const r = buildMissionTable({ mode: "screen", stepsDone: 0, nextTarget: { level: first.level, exp: first.percent }, secondTarget: { level: second.level, exp: second.percent }, intervalEnabled: true }, createMainContext());
+    assert.ok(Math.abs(r.steps[0].exp - first.percent) < 1e-8);
+    assert.equal(r.steps[1].level, second.level);
+    assert.ok(Math.abs(r.steps[1].exp - second.percent) < 1e-8);
+  }
+});
+
+test("두 목표 입력을 끄거나 잘못 넣으면 자동 간격을 유지하고 입력 오류만 알린다", () => {
+  const mission = { mode: "screen", stepsDone: 25, nextTarget: { level: 289, exp: 99 }, nextRewardPct: 1.472 };
+  const automatic = buildMissionTable(mission, ctx);
+  assert.deepEqual(buildMissionTable({ ...mission, secondTarget: { level: 290, exp: 1 }, intervalEnabled: false }, ctx).steps, automatic.steps);
+  for (const secondTarget of [{ level: 289, exp: 99 }, { level: 288, exp: 90 }]) {
+    const r = buildMissionTable({ ...mission, intervalEnabled: true, secondTarget }, ctx);
+    assert.deepEqual(r.steps, automatic.steps);
+    assert.match(r.warnings[0], /그다음 목표는 다음 목표보다 뒤/);
+  }
+  const capped = buildMissionTable({ mode: "screen", stepsDone: 27, nextTarget: { level: 295, exp: 99 }, secondTarget: { level: 295, exp: 99.9 }, intervalEnabled: true }, ctx);
+  assert.equal(capped.steps.length, 2);
+  assert.equal(capped.steps.at(-1).index, 29);
+  assert.match(capped.warnings[0], /30단계부터/);
+});
 
 // 9/17 본섭에서 지정한 287레벨·20.162% 캐릭터의 30단계 표 (게시자 표 + 화면 캡처). 08a 조사 원문 §1.
 const SAMPLE_TARGETS = [

@@ -1,0 +1,3657 @@
+{
+  "fetchedAt": "2026-10-10",
+  "samples": [
+    {
+      "source": "https://maple.ai.kr/_next/static/chunks/eddec45464324ed0.js",
+      "declaredStartLevel": 285,
+      "declaredStartPercent": 69.303,
+      "designationConfirmed": false,
+      "stages": [
+        {
+          "stage": 1,
+          "level": 285,
+          "percent": 80.628,
+          "rewardPercent": 2.053
+        },
+        {
+          "stage": 2,
+          "level": 285,
+          "percent": 91.953,
+          "rewardPercent": 2.053
+        },
+        {
+          "stage": 3,
+          "level": 286,
+          "percent": 3.012,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 4,
+          "level": 286,
+          "percent": 13.421,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 5,
+          "level": 286,
+          "percent": 23.83,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 6,
+          "level": 286,
+          "percent": 34.239,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 7,
+          "level": 286,
+          "percent": 44.648,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 8,
+          "level": 286,
+          "percent": 55.057,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 9,
+          "level": 286,
+          "percent": 65.466,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 10,
+          "level": 286,
+          "percent": 75.875,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 11,
+          "level": 286,
+          "percent": 86.284,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 12,
+          "level": 286,
+          "percent": 96.693,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 13,
+          "level": 287,
+          "percent": 6.536,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 14,
+          "level": 287,
+          "percent": 16.116,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 15,
+          "level": 287,
+          "percent": 25.696,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 16,
+          "level": 287,
+          "percent": 35.276,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 17,
+          "level": 287,
+          "percent": 44.855,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 18,
+          "level": 287,
+          "percent": 54.435,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 19,
+          "level": 287,
+          "percent": 64.014,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 20,
+          "level": 287,
+          "percent": 73.594,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 21,
+          "level": 287,
+          "percent": 83.174,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 22,
+          "level": 287,
+          "percent": 92.753,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 23,
+          "level": 288,
+          "percent": 2.147,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 24,
+          "level": 288,
+          "percent": 10.962,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 25,
+          "level": 288,
+          "percent": 19.778,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 26,
+          "level": 288,
+          "percent": 28.594,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 27,
+          "level": 288,
+          "percent": 37.409,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 28,
+          "level": 288,
+          "percent": 46.225,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 29,
+          "level": 288,
+          "percent": 55.04,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 30,
+          "level": 288,
+          "percent": 63.856,
+          "rewardPercent": 1.601
+        }
+      ],
+      "id": "ai-0"
+    },
+    {
+      "source": "https://maple.ai.kr/_next/static/chunks/eddec45464324ed0.js",
+      "declaredStartLevel": 286,
+      "declaredStartPercent": 26.617,
+      "designationConfirmed": false,
+      "stages": [
+        {
+          "stage": 1,
+          "level": 286,
+          "percent": 10.472,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 2,
+          "level": 286,
+          "percent": 20.881,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 3,
+          "level": 286,
+          "percent": 31.29,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 4,
+          "level": 286,
+          "percent": 41.699,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 5,
+          "level": 286,
+          "percent": 52.108,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 6,
+          "level": 286,
+          "percent": 62.517,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 7,
+          "level": 286,
+          "percent": 72.926,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 8,
+          "level": 286,
+          "percent": 83.335,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 9,
+          "level": 286,
+          "percent": 93.744,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 10,
+          "level": 287,
+          "percent": 3.822,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 11,
+          "level": 287,
+          "percent": 13.402,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 12,
+          "level": 287,
+          "percent": 22.981,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 13,
+          "level": 287,
+          "percent": 32.561,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 14,
+          "level": 287,
+          "percent": 42.141,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 15,
+          "level": 287,
+          "percent": 51.72,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 16,
+          "level": 287,
+          "percent": 61.3,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 17,
+          "level": 287,
+          "percent": 70.88,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 18,
+          "level": 287,
+          "percent": 80.459,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 19,
+          "level": 287,
+          "percent": 90.039,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 20,
+          "level": 287,
+          "percent": 99.618,
+          "rewardPercent": 1.756
+        },
+        {
+          "stage": 21,
+          "level": 288,
+          "percent": 8.464,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 22,
+          "level": 288,
+          "percent": 17.28,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 23,
+          "level": 288,
+          "percent": 26.096,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 24,
+          "level": 288,
+          "percent": 34.911,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 25,
+          "level": 288,
+          "percent": 43.727,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 26,
+          "level": 288,
+          "percent": 52.542,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 27,
+          "level": 288,
+          "percent": 61.358,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 28,
+          "level": 288,
+          "percent": 70.174,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 29,
+          "level": 288,
+          "percent": 78.989,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 30,
+          "level": 288,
+          "percent": 87.805,
+          "rewardPercent": 1.601
+        }
+      ],
+      "id": "ai-1"
+    },
+    {
+      "source": "https://maple.ai.kr/_next/static/chunks/eddec45464324ed0.js",
+      "declaredStartLevel": 288,
+      "declaredStartPercent": 72.212,
+      "designationConfirmed": false,
+      "stages": [
+        {
+          "stage": 1,
+          "level": 288,
+          "percent": 72.212,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 2,
+          "level": 288,
+          "percent": 81.028,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 3,
+          "level": 288,
+          "percent": 89.844,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 4,
+          "level": 288,
+          "percent": 98.659,
+          "rewardPercent": 1.604
+        },
+        {
+          "stage": 5,
+          "level": 289,
+          "percent": 6.869,
+          "rewardPercent": 1.472
+        },
+        {
+          "stage": 6,
+          "level": 289,
+          "percent": 14.97,
+          "rewardPercent": 1.472
+        },
+        {
+          "stage": 7,
+          "level": 289,
+          "percent": 23.071,
+          "rewardPercent": 1.472
+        },
+        {
+          "stage": 8,
+          "level": 289,
+          "percent": 31.172,
+          "rewardPercent": 1.472
+        },
+        {
+          "stage": 9,
+          "level": 289,
+          "percent": 39.272,
+          "rewardPercent": 1.472
+        },
+        {
+          "stage": 10,
+          "level": 289,
+          "percent": 47.373,
+          "rewardPercent": 1.472
+        },
+        {
+          "stage": 11,
+          "level": 289,
+          "percent": 55.474,
+          "rewardPercent": 1.472
+        },
+        {
+          "stage": 12,
+          "level": 289,
+          "percent": 63.575,
+          "rewardPercent": 1.472
+        },
+        {
+          "stage": 13,
+          "level": 289,
+          "percent": 71.676,
+          "rewardPercent": 1.472
+        },
+        {
+          "stage": 14,
+          "level": 289,
+          "percent": 79.777,
+          "rewardPercent": 1.472
+        },
+        {
+          "stage": 15,
+          "level": 289,
+          "percent": 87.878,
+          "rewardPercent": 1.472
+        },
+        {
+          "stage": 16,
+          "level": 289,
+          "percent": 95.979,
+          "rewardPercent": 1.472
+        },
+        {
+          "stage": 17,
+          "level": 290,
+          "percent": 2.52,
+          "rewardPercent": 0.819
+        },
+        {
+          "stage": 18,
+          "level": 290,
+          "percent": 7.525,
+          "rewardPercent": 0.819
+        },
+        {
+          "stage": 19,
+          "level": 290,
+          "percent": 12.529,
+          "rewardPercent": 0.819
+        },
+        {
+          "stage": 20,
+          "level": 290,
+          "percent": 17.534,
+          "rewardPercent": 0.819
+        },
+        {
+          "stage": 21,
+          "level": 290,
+          "percent": 22.538,
+          "rewardPercent": 0.819
+        },
+        {
+          "stage": 22,
+          "level": 290,
+          "percent": 27.543,
+          "rewardPercent": 0.819
+        },
+        {
+          "stage": 23,
+          "level": 290,
+          "percent": 32.547,
+          "rewardPercent": 0.819
+        },
+        {
+          "stage": 24,
+          "level": 290,
+          "percent": 37.552,
+          "rewardPercent": 0.819
+        },
+        {
+          "stage": 25,
+          "level": 290,
+          "percent": 42.556,
+          "rewardPercent": 0.819
+        },
+        {
+          "stage": 26,
+          "level": 290,
+          "percent": 47.561,
+          "rewardPercent": 0.819
+        },
+        {
+          "stage": 27,
+          "level": 290,
+          "percent": 52.565,
+          "rewardPercent": 0.819
+        },
+        {
+          "stage": 28,
+          "level": 290,
+          "percent": 57.57,
+          "rewardPercent": 0.819
+        },
+        {
+          "stage": 29,
+          "level": 290,
+          "percent": 62.574,
+          "rewardPercent": 0.819
+        },
+        {
+          "stage": 30,
+          "level": 290,
+          "percent": 67.579,
+          "rewardPercent": 0.819
+        }
+      ],
+      "id": "ai-2"
+    },
+    {
+      "source": "https://maple.ai.kr/_next/static/chunks/eddec45464324ed0.js",
+      "declaredStartLevel": 290,
+      "declaredStartPercent": 85.386,
+      "designationConfirmed": false,
+      "stages": [
+        {
+          "stage": 1,
+          "level": 290,
+          "percent": 87.8,
+          "rewardPercent": 0.819
+        },
+        {
+          "stage": 2,
+          "level": 290,
+          "percent": 91.978,
+          "rewardPercent": 0.819
+        },
+        {
+          "stage": 3,
+          "level": 290,
+          "percent": 96.156,
+          "rewardPercent": 0.819
+        },
+        {
+          "stage": 4,
+          "level": 291,
+          "percent": 0.368,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 5,
+          "level": 291,
+          "percent": 4.964,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 6,
+          "level": 291,
+          "percent": 9.56,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 7,
+          "level": 291,
+          "percent": 14.156,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 8,
+          "level": 291,
+          "percent": 18.752,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 9,
+          "level": 291,
+          "percent": 23.349,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 10,
+          "level": 291,
+          "percent": 27.945,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 11,
+          "level": 291,
+          "percent": 32.541,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 12,
+          "level": 291,
+          "percent": 37.138,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 13,
+          "level": 291,
+          "percent": 41.734,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 14,
+          "level": 291,
+          "percent": 46.33,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 15,
+          "level": 291,
+          "percent": 50.927,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 16,
+          "level": 291,
+          "percent": 55.523,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 17,
+          "level": 291,
+          "percent": 60.119,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 18,
+          "level": 291,
+          "percent": 64.715,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 19,
+          "level": 291,
+          "percent": 69.312,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 20,
+          "level": 291,
+          "percent": 73.908,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 21,
+          "level": 291,
+          "percent": 78.504,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 22,
+          "level": 291,
+          "percent": 83.101,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 23,
+          "level": 291,
+          "percent": 87.697,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 24,
+          "level": 291,
+          "percent": 92.293,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 25,
+          "level": 291,
+          "percent": 96.89,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 26,
+          "level": 292,
+          "percent": 1.367,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 27,
+          "level": 292,
+          "percent": 5.593,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 28,
+          "level": 292,
+          "percent": 9.82,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 29,
+          "level": 292,
+          "percent": 14.047,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 30,
+          "level": 292,
+          "percent": 18.273,
+          "rewardPercent": 0.693
+        }
+      ],
+      "id": "ai-3"
+    },
+    {
+      "source": "https://maple.ai.kr/_next/static/chunks/eddec45464324ed0.js",
+      "declaredStartLevel": 292,
+      "declaredStartPercent": 15.327,
+      "designationConfirmed": false,
+      "stages": [
+        {
+          "stage": 1,
+          "level": 292,
+          "percent": 8.878,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 2,
+          "level": 292,
+          "percent": 13.105,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 3,
+          "level": 292,
+          "percent": 17.332,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 4,
+          "level": 292,
+          "percent": 21.559,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 5,
+          "level": 292,
+          "percent": 25.785,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 6,
+          "level": 292,
+          "percent": 30.012,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 7,
+          "level": 292,
+          "percent": 34.239,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 8,
+          "level": 292,
+          "percent": 38.465,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 9,
+          "level": 292,
+          "percent": 42.692,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 10,
+          "level": 292,
+          "percent": 46.919,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 11,
+          "level": 292,
+          "percent": 51.145,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 12,
+          "level": 292,
+          "percent": 55.372,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 13,
+          "level": 292,
+          "percent": 59.599,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 14,
+          "level": 292,
+          "percent": 63.825,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 15,
+          "level": 292,
+          "percent": 68.052,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 16,
+          "level": 292,
+          "percent": 72.279,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 17,
+          "level": 292,
+          "percent": 76.505,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 18,
+          "level": 292,
+          "percent": 80.732,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 19,
+          "level": 292,
+          "percent": 84.959,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 20,
+          "level": 292,
+          "percent": 89.185,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 21,
+          "level": 292,
+          "percent": 93.412,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 22,
+          "level": 292,
+          "percent": 97.639,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 23,
+          "level": 293,
+          "percent": 1.715,
+          "rewardPercent": 0.638
+        },
+        {
+          "stage": 24,
+          "level": 293,
+          "percent": 5.602,
+          "rewardPercent": 0.638
+        },
+        {
+          "stage": 25,
+          "level": 293,
+          "percent": 9.488,
+          "rewardPercent": 0.638
+        },
+        {
+          "stage": 26,
+          "level": 293,
+          "percent": 13.375,
+          "rewardPercent": 0.638
+        },
+        {
+          "stage": 27,
+          "level": 293,
+          "percent": 17.261,
+          "rewardPercent": 0.638
+        },
+        {
+          "stage": 28,
+          "level": 293,
+          "percent": 21.148,
+          "rewardPercent": 0.638
+        },
+        {
+          "stage": 29,
+          "level": 293,
+          "percent": 25.034,
+          "rewardPercent": 0.638
+        },
+        {
+          "stage": 30,
+          "level": 293,
+          "percent": 28.921,
+          "rewardPercent": 0.638
+        }
+      ],
+      "id": "ai-4"
+    },
+    {
+      "source": "https://gnswo1207.tistory.com/105",
+      "designationConfirmed": true,
+      "designation": {
+        "level": 287,
+        "percent": 20.162
+      },
+      "stages": [
+        {
+          "stage": 1,
+          "level": 287,
+          "percent": 29.741,
+          "rewardRaw": 2093653887402
+        },
+        {
+          "stage": 2,
+          "level": 287,
+          "percent": 39.321,
+          "rewardRaw": 2093653887402
+        },
+        {
+          "stage": 3,
+          "level": 287,
+          "percent": 48.9,
+          "rewardRaw": 2093653887402
+        },
+        {
+          "stage": 4,
+          "level": 287,
+          "percent": 58.48,
+          "rewardRaw": 2093653887402
+        },
+        {
+          "stage": 5,
+          "level": 287,
+          "percent": 68.06,
+          "rewardRaw": 2093653887402
+        },
+        {
+          "stage": 6,
+          "level": 287,
+          "percent": 77.639,
+          "rewardRaw": 2093653887402
+        },
+        {
+          "stage": 7,
+          "level": 287,
+          "percent": 87.219,
+          "rewardRaw": 2093653887402
+        },
+        {
+          "stage": 8,
+          "level": 287,
+          "percent": 96.799,
+          "rewardRaw": 2093653887402
+        },
+        {
+          "stage": 9,
+          "level": 288,
+          "percent": 5.87,
+          "rewardRaw": 2120693506122
+        },
+        {
+          "stage": 10,
+          "level": 288,
+          "percent": 14.685,
+          "rewardRaw": 2120693506122
+        },
+        {
+          "stage": 11,
+          "level": 288,
+          "percent": 23.501,
+          "rewardRaw": 2120693506122
+        },
+        {
+          "stage": 12,
+          "level": 288,
+          "percent": 32.316,
+          "rewardRaw": 2120693506122
+        },
+        {
+          "stage": 13,
+          "level": 288,
+          "percent": 41.132,
+          "rewardRaw": 2120693506122
+        },
+        {
+          "stage": 14,
+          "level": 288,
+          "percent": 49.948,
+          "rewardRaw": 2120693506122
+        },
+        {
+          "stage": 15,
+          "level": 288,
+          "percent": 58.763,
+          "rewardRaw": 2120693506122
+        },
+        {
+          "stage": 16,
+          "level": 288,
+          "percent": 67.579,
+          "rewardRaw": 2120693506122
+        },
+        {
+          "stage": 17,
+          "level": 288,
+          "percent": 76.394,
+          "rewardRaw": 2120693506122
+        },
+        {
+          "stage": 18,
+          "level": 288,
+          "percent": 85.21,
+          "rewardRaw": 2120693506122
+        },
+        {
+          "stage": 19,
+          "level": 288,
+          "percent": 94.026,
+          "rewardRaw": 2120693506122
+        },
+        {
+          "stage": 20,
+          "level": 289,
+          "percent": 2.611,
+          "rewardRaw": 2144810694332
+        },
+        {
+          "stage": 21,
+          "level": 289,
+          "percent": 10.712,
+          "rewardRaw": 2144810694332
+        },
+        {
+          "stage": 22,
+          "level": 289,
+          "percent": 18.813,
+          "rewardRaw": 2144810694332
+        },
+        {
+          "stage": 23,
+          "level": 289,
+          "percent": 26.914,
+          "rewardRaw": 2144810694332
+        },
+        {
+          "stage": 24,
+          "level": 289,
+          "percent": 35.015,
+          "rewardRaw": 2144810694332
+        },
+        {
+          "stage": 25,
+          "level": 289,
+          "percent": 43.115,
+          "rewardRaw": 2144810694332
+        },
+        {
+          "stage": 26,
+          "level": 289,
+          "percent": 51.216,
+          "rewardRaw": 2144810694332
+        },
+        {
+          "stage": 27,
+          "level": 289,
+          "percent": 59.317,
+          "rewardRaw": 2144810694332
+        },
+        {
+          "stage": 28,
+          "level": 289,
+          "percent": 67.418,
+          "rewardRaw": 2144810694332
+        },
+        {
+          "stage": 29,
+          "level": 289,
+          "percent": 75.519,
+          "rewardRaw": 2144810694332
+        },
+        {
+          "stage": 30,
+          "level": 289,
+          "percent": 83.62,
+          "rewardRaw": 2144810694332
+        }
+      ],
+      "id": "live-287"
+    },
+    {
+      "source": "representative in-game screen, literal regression sample in tests/main-planner.test.mjs",
+      "designationConfirmed": false,
+      "current": {
+        "level": 286,
+        "percent": 68,
+        "stepsDone": 4
+      },
+      "stages": [
+        {
+          "stage": 5,
+          "level": 286,
+          "percent": 69.714
+        },
+        {
+          "stage": 6,
+          "level": 286,
+          "percent": 80.123
+        },
+        {
+          "stage": 7,
+          "level": 286,
+          "percent": 90.532
+        },
+        {
+          "stage": 8,
+          "level": 287,
+          "percent": 0.866
+        },
+        {
+          "stage": 9,
+          "level": 287,
+          "percent": 10.446
+        },
+        {
+          "stage": 30,
+          "level": 289,
+          "percent": 2.496
+        }
+      ],
+      "id": "live-286"
+    }
+  ],
+  "finalTargets": [
+    {
+      "source": "https://www.inven.co.kr/board/maple/5974/7170777",
+      "server": "KMST 1.2.206, 2026-09-11",
+      "designation": {
+        "level": 260,
+        "percent": 0
+      },
+      "target": {
+        "stage": 30,
+        "level": 283,
+        "percent": 23
+      }
+    },
+    {
+      "source": "https://www.inven.co.kr/board/maple/5974/7170777",
+      "server": "KMST 1.2.206, 2026-09-11",
+      "designation": {
+        "level": 270,
+        "percent": 5
+      },
+      "target": {
+        "stage": 30,
+        "level": 284,
+        "percent": 15
+      }
+    },
+    {
+      "source": "https://www.inven.co.kr/board/maple/5974/7170777",
+      "server": "KMST 1.2.206, 2026-09-11",
+      "designation": {
+        "level": 275,
+        "percent": 6.9
+      },
+      "target": {
+        "stage": 30,
+        "level": 285,
+        "percent": 0.9
+      }
+    },
+    {
+      "source": "https://www.inven.co.kr/board/maple/5974/7170777",
+      "server": "KMST 1.2.206, 2026-09-11",
+      "designation": {
+        "level": 280,
+        "percent": 11
+      },
+      "target": {
+        "stage": 30,
+        "level": 286,
+        "percent": 3
+      }
+    },
+    {
+      "source": "https://www.inven.co.kr/board/maple/5974/7170777",
+      "server": "KMST 1.2.206, 2026-09-11",
+      "designation": {
+        "level": 285,
+        "percent": 71.5
+      },
+      "target": {
+        "stage": 30,
+        "level": 288,
+        "percent": 65.61
+      }
+    },
+    {
+      "source": "https://www.inven.co.kr/board/maple/5974/7170777",
+      "server": "KMST 1.2.206, 2026-09-11",
+      "designation": {
+        "level": 286,
+        "percent": 0
+      },
+      "target": {
+        "stage": 30,
+        "level": 288,
+        "percent": 87.75
+      }
+    },
+    {
+      "source": "https://www.inven.co.kr/board/maple/5974/7170777",
+      "server": "KMST 1.2.206, 2026-09-11",
+      "designation": {
+        "level": 290,
+        "percent": 6.3
+      },
+      "target": {
+        "stage": 30,
+        "level": 291,
+        "percent": 51.851
+      }
+    },
+    {
+      "source": "https://www.inven.co.kr/board/maple/5974/7170777",
+      "server": "KMST 1.2.206, 2026-09-11",
+      "designation": {
+        "level": 291,
+        "percent": 0
+      },
+      "target": {
+        "stage": 30,
+        "level": 292,
+        "percent": 34.842
+      }
+    },
+    {
+      "source": "https://www.inven.co.kr/board/maple/5974/7170777",
+      "server": "KMST 1.2.206, 2026-09-11",
+      "designation": {
+        "level": 293,
+        "percent": 8.4
+      },
+      "target": {
+        "stage": 30,
+        "level": 294,
+        "percent": 22.975
+      }
+    },
+    {
+      "source": "https://www.inven.co.kr/board/maple/5974/7170777",
+      "server": "KMST 1.2.206, 2026-09-11",
+      "designation": {
+        "level": 294,
+        "percent": 0
+      },
+      "target": {
+        "stage": 30,
+        "level": 295,
+        "percent": 4.01
+      }
+    }
+  ],
+  "intervals": [
+    {
+      "sample": "ai-0",
+      "fromStage": 1,
+      "toStage": 2,
+      "fromLevel": 285,
+      "toLevel": 285,
+      "raw": 11269753990808.01,
+      "gapPct": 11.325000000000003,
+      "rewardSubtractedRaw": 9226778175416.01
+    },
+    {
+      "sample": "ai-0",
+      "fromStage": 2,
+      "toStage": 3,
+      "fromLevel": 285,
+      "toLevel": 286,
+      "raw": 11304782276942.771,
+      "gapPct": null,
+      "rewardSubtractedRaw": 9261806461550.771
+    },
+    {
+      "sample": "ai-0",
+      "fromStage": 3,
+      "toStage": 4,
+      "fromLevel": 286,
+      "toLevel": 286,
+      "raw": 11394044699280.52,
+      "gapPct": 10.408999999999999,
+      "rewardSubtractedRaw": 9327265471325.32
+    },
+    {
+      "sample": "ai-0",
+      "fromStage": 4,
+      "toStage": 5,
+      "fromLevel": 286,
+      "toLevel": 286,
+      "raw": 11394044699280.52,
+      "gapPct": 10.408999999999999,
+      "rewardSubtractedRaw": 9327265471325.32
+    },
+    {
+      "sample": "ai-0",
+      "fromStage": 5,
+      "toStage": 6,
+      "fromLevel": 286,
+      "toLevel": 286,
+      "raw": 11394044699280.52,
+      "gapPct": 10.408999999999999,
+      "rewardSubtractedRaw": 9327265471325.32
+    },
+    {
+      "sample": "ai-0",
+      "fromStage": 6,
+      "toStage": 7,
+      "fromLevel": 286,
+      "toLevel": 286,
+      "raw": 11394044699280.527,
+      "gapPct": 10.409000000000006,
+      "rewardSubtractedRaw": 9327265471325.328
+    },
+    {
+      "sample": "ai-0",
+      "fromStage": 7,
+      "toStage": 8,
+      "fromLevel": 286,
+      "toLevel": 286,
+      "raw": 11394044699280.52,
+      "gapPct": 10.408999999999999,
+      "rewardSubtractedRaw": 9327265471325.32
+    },
+    {
+      "sample": "ai-0",
+      "fromStage": 8,
+      "toStage": 9,
+      "fromLevel": 286,
+      "toLevel": 286,
+      "raw": 11394044699280.512,
+      "gapPct": 10.408999999999992,
+      "rewardSubtractedRaw": 9327265471325.312
+    },
+    {
+      "sample": "ai-0",
+      "fromStage": 9,
+      "toStage": 10,
+      "fromLevel": 286,
+      "toLevel": 286,
+      "raw": 11394044699280.527,
+      "gapPct": 10.409000000000006,
+      "rewardSubtractedRaw": 9327265471325.328
+    },
+    {
+      "sample": "ai-0",
+      "fromStage": 10,
+      "toStage": 11,
+      "fromLevel": 286,
+      "toLevel": 286,
+      "raw": 11394044699280.527,
+      "gapPct": 10.409000000000006,
+      "rewardSubtractedRaw": 9327265471325.328
+    },
+    {
+      "sample": "ai-0",
+      "fromStage": 11,
+      "toStage": 12,
+      "fromLevel": 286,
+      "toLevel": 286,
+      "raw": 11394044699280.512,
+      "gapPct": 10.408999999999992,
+      "rewardSubtractedRaw": 9327265471325.312
+    },
+    {
+      "sample": "ai-0",
+      "fromStage": 12,
+      "toStage": 13,
+      "fromLevel": 286,
+      "toLevel": 287,
+      "raw": 11489934632574.477,
+      "gapPct": null,
+      "rewardSubtractedRaw": 9423155404619.277
+    },
+    {
+      "sample": "ai-0",
+      "fromStage": 13,
+      "toStage": 14,
+      "fromLevel": 287,
+      "toLevel": 287,
+      "raw": 11535252477761.342,
+      "gapPct": 9.58,
+      "rewardSubtractedRaw": 9441598558932.541
+    },
+    {
+      "sample": "ai-0",
+      "fromStage": 14,
+      "toStage": 15,
+      "fromLevel": 287,
+      "toLevel": 287,
+      "raw": 11535252477761.346,
+      "gapPct": 9.580000000000002,
+      "rewardSubtractedRaw": 9441598558932.545
+    },
+    {
+      "sample": "ai-0",
+      "fromStage": 15,
+      "toStage": 16,
+      "fromLevel": 287,
+      "toLevel": 287,
+      "raw": 11535252477761.346,
+      "gapPct": 9.580000000000002,
+      "rewardSubtractedRaw": 9441598558932.545
+    },
+    {
+      "sample": "ai-0",
+      "fromStage": 16,
+      "toStage": 17,
+      "fromLevel": 287,
+      "toLevel": 287,
+      "raw": 11534048380425.453,
+      "gapPct": 9.578999999999994,
+      "rewardSubtractedRaw": 9440394461596.652
+    },
+    {
+      "sample": "ai-0",
+      "fromStage": 17,
+      "toStage": 18,
+      "fromLevel": 287,
+      "toLevel": 287,
+      "raw": 11535252477761.35,
+      "gapPct": 9.580000000000005,
+      "rewardSubtractedRaw": 9441598558932.549
+    },
+    {
+      "sample": "ai-0",
+      "fromStage": 18,
+      "toStage": 19,
+      "fromLevel": 287,
+      "toLevel": 287,
+      "raw": 11534048380425.453,
+      "gapPct": 9.578999999999994,
+      "rewardSubtractedRaw": 9440394461596.652
+    },
+    {
+      "sample": "ai-0",
+      "fromStage": 19,
+      "toStage": 20,
+      "fromLevel": 287,
+      "toLevel": 287,
+      "raw": 11535252477761.342,
+      "gapPct": 9.579999999999998,
+      "rewardSubtractedRaw": 9441598558932.541
+    },
+    {
+      "sample": "ai-0",
+      "fromStage": 20,
+      "toStage": 21,
+      "fromLevel": 287,
+      "toLevel": 287,
+      "raw": 11535252477761.357,
+      "gapPct": 9.580000000000013,
+      "rewardSubtractedRaw": 9441598558932.557
+    },
+    {
+      "sample": "ai-0",
+      "fromStage": 21,
+      "toStage": 22,
+      "fromLevel": 287,
+      "toLevel": 287,
+      "raw": 11534048380425.453,
+      "gapPct": 9.578999999999994,
+      "rewardSubtractedRaw": 9440394461596.652
+    },
+    {
+      "sample": "ai-0",
+      "fromStage": 22,
+      "toStage": 23,
+      "fromLevel": 287,
+      "toLevel": 288,
+      "raw": 11569810071301.186,
+      "gapPct": null,
+      "rewardSubtractedRaw": 9476156152472.385
+    },
+    {
+      "sample": "ai-0",
+      "fromStage": 23,
+      "toStage": 24,
+      "fromLevel": 288,
+      "toLevel": 288,
+      "raw": 11675529817391.713,
+      "gapPct": 8.815,
+      "rewardSubtractedRaw": 9554836279842.912
+    },
+    {
+      "sample": "ai-0",
+      "fromStage": 24,
+      "toStage": 25,
+      "fromLevel": 288,
+      "toLevel": 288,
+      "raw": 11676854324461.182,
+      "gapPct": 8.815999999999999,
+      "rewardSubtractedRaw": 9556160786912.38
+    },
+    {
+      "sample": "ai-0",
+      "fromStage": 25,
+      "toStage": 26,
+      "fromLevel": 288,
+      "toLevel": 288,
+      "raw": 11676854324461.188,
+      "gapPct": 8.816000000000003,
+      "rewardSubtractedRaw": 9556160786912.387
+    },
+    {
+      "sample": "ai-0",
+      "fromStage": 26,
+      "toStage": 27,
+      "fromLevel": 288,
+      "toLevel": 288,
+      "raw": 11675529817391.71,
+      "gapPct": 8.814999999999998,
+      "rewardSubtractedRaw": 9554836279842.91
+    },
+    {
+      "sample": "ai-0",
+      "fromStage": 27,
+      "toStage": 28,
+      "fromLevel": 288,
+      "toLevel": 288,
+      "raw": 11676854324461.188,
+      "gapPct": 8.816000000000003,
+      "rewardSubtractedRaw": 9556160786912.387
+    },
+    {
+      "sample": "ai-0",
+      "fromStage": 28,
+      "toStage": 29,
+      "fromLevel": 288,
+      "toLevel": 288,
+      "raw": 11675529817391.71,
+      "gapPct": 8.814999999999998,
+      "rewardSubtractedRaw": 9554836279842.91
+    },
+    {
+      "sample": "ai-0",
+      "fromStage": 29,
+      "toStage": 30,
+      "fromLevel": 288,
+      "toLevel": 288,
+      "raw": 11676854324461.188,
+      "gapPct": 8.816000000000003,
+      "rewardSubtractedRaw": 9556160786912.387
+    },
+    {
+      "sample": "ai-1",
+      "fromStage": 1,
+      "toStage": 2,
+      "fromLevel": 286,
+      "toLevel": 286,
+      "raw": 11394044699280.52,
+      "gapPct": 10.409,
+      "rewardSubtractedRaw": 9327265471325.32
+    },
+    {
+      "sample": "ai-1",
+      "fromStage": 2,
+      "toStage": 3,
+      "fromLevel": 286,
+      "toLevel": 286,
+      "raw": 11394044699280.52,
+      "gapPct": 10.408999999999999,
+      "rewardSubtractedRaw": 9327265471325.32
+    },
+    {
+      "sample": "ai-1",
+      "fromStage": 3,
+      "toStage": 4,
+      "fromLevel": 286,
+      "toLevel": 286,
+      "raw": 11394044699280.52,
+      "gapPct": 10.408999999999999,
+      "rewardSubtractedRaw": 9327265471325.32
+    },
+    {
+      "sample": "ai-1",
+      "fromStage": 4,
+      "toStage": 5,
+      "fromLevel": 286,
+      "toLevel": 286,
+      "raw": 11394044699280.52,
+      "gapPct": 10.408999999999999,
+      "rewardSubtractedRaw": 9327265471325.32
+    },
+    {
+      "sample": "ai-1",
+      "fromStage": 5,
+      "toStage": 6,
+      "fromLevel": 286,
+      "toLevel": 286,
+      "raw": 11394044699280.527,
+      "gapPct": 10.409000000000006,
+      "rewardSubtractedRaw": 9327265471325.328
+    },
+    {
+      "sample": "ai-1",
+      "fromStage": 6,
+      "toStage": 7,
+      "fromLevel": 286,
+      "toLevel": 286,
+      "raw": 11394044699280.52,
+      "gapPct": 10.408999999999999,
+      "rewardSubtractedRaw": 9327265471325.32
+    },
+    {
+      "sample": "ai-1",
+      "fromStage": 7,
+      "toStage": 8,
+      "fromLevel": 286,
+      "toLevel": 286,
+      "raw": 11394044699280.512,
+      "gapPct": 10.408999999999992,
+      "rewardSubtractedRaw": 9327265471325.312
+    },
+    {
+      "sample": "ai-1",
+      "fromStage": 8,
+      "toStage": 9,
+      "fromLevel": 286,
+      "toLevel": 286,
+      "raw": 11394044699280.527,
+      "gapPct": 10.409000000000006,
+      "rewardSubtractedRaw": 9327265471325.328
+    },
+    {
+      "sample": "ai-1",
+      "fromStage": 9,
+      "toStage": 10,
+      "fromLevel": 286,
+      "toLevel": 287,
+      "raw": 11450089957096.164,
+      "gapPct": null,
+      "rewardSubtractedRaw": 9383310729140.965
+    },
+    {
+      "sample": "ai-1",
+      "fromStage": 10,
+      "toStage": 11,
+      "fromLevel": 287,
+      "toLevel": 287,
+      "raw": 11535252477761.342,
+      "gapPct": 9.579999999999998,
+      "rewardSubtractedRaw": 9441598558932.541
+    },
+    {
+      "sample": "ai-1",
+      "fromStage": 11,
+      "toStage": 12,
+      "fromLevel": 287,
+      "toLevel": 287,
+      "raw": 11534048380425.463,
+      "gapPct": 9.579000000000002,
+      "rewardSubtractedRaw": 9440394461596.662
+    },
+    {
+      "sample": "ai-1",
+      "fromStage": 12,
+      "toStage": 13,
+      "fromLevel": 287,
+      "toLevel": 287,
+      "raw": 11535252477761.342,
+      "gapPct": 9.579999999999998,
+      "rewardSubtractedRaw": 9441598558932.541
+    },
+    {
+      "sample": "ai-1",
+      "fromStage": 13,
+      "toStage": 14,
+      "fromLevel": 287,
+      "toLevel": 287,
+      "raw": 11535252477761.342,
+      "gapPct": 9.579999999999998,
+      "rewardSubtractedRaw": 9441598558932.541
+    },
+    {
+      "sample": "ai-1",
+      "fromStage": 14,
+      "toStage": 15,
+      "fromLevel": 287,
+      "toLevel": 287,
+      "raw": 11534048380425.46,
+      "gapPct": 9.579,
+      "rewardSubtractedRaw": 9440394461596.66
+    },
+    {
+      "sample": "ai-1",
+      "fromStage": 15,
+      "toStage": 16,
+      "fromLevel": 287,
+      "toLevel": 287,
+      "raw": 11535252477761.342,
+      "gapPct": 9.579999999999998,
+      "rewardSubtractedRaw": 9441598558932.541
+    },
+    {
+      "sample": "ai-1",
+      "fromStage": 16,
+      "toStage": 17,
+      "fromLevel": 287,
+      "toLevel": 287,
+      "raw": 11535252477761.342,
+      "gapPct": 9.579999999999998,
+      "rewardSubtractedRaw": 9441598558932.541
+    },
+    {
+      "sample": "ai-1",
+      "fromStage": 17,
+      "toStage": 18,
+      "fromLevel": 287,
+      "toLevel": 287,
+      "raw": 11534048380425.47,
+      "gapPct": 9.579000000000008,
+      "rewardSubtractedRaw": 9440394461596.67
+    },
+    {
+      "sample": "ai-1",
+      "fromStage": 18,
+      "toStage": 19,
+      "fromLevel": 287,
+      "toLevel": 287,
+      "raw": 11535252477761.342,
+      "gapPct": 9.579999999999998,
+      "rewardSubtractedRaw": 9441598558932.541
+    },
+    {
+      "sample": "ai-1",
+      "fromStage": 19,
+      "toStage": 20,
+      "fromLevel": 287,
+      "toLevel": 287,
+      "raw": 11534048380425.453,
+      "gapPct": 9.578999999999994,
+      "rewardSubtractedRaw": 9440394461596.652
+    },
+    {
+      "sample": "ai-1",
+      "fromStage": 20,
+      "toStage": 21,
+      "fromLevel": 287,
+      "toLevel": 288,
+      "raw": 11670593018314.6,
+      "gapPct": null,
+      "rewardSubtractedRaw": 9576939099485.799
+    },
+    {
+      "sample": "ai-1",
+      "fromStage": 21,
+      "toStage": 22,
+      "fromLevel": 288,
+      "toLevel": 288,
+      "raw": 11676854324461.186,
+      "gapPct": 8.816,
+      "rewardSubtractedRaw": 9556160786912.385
+    },
+    {
+      "sample": "ai-1",
+      "fromStage": 22,
+      "toStage": 23,
+      "fromLevel": 288,
+      "toLevel": 288,
+      "raw": 11676854324461.182,
+      "gapPct": 8.815999999999999,
+      "rewardSubtractedRaw": 9556160786912.38
+    },
+    {
+      "sample": "ai-1",
+      "fromStage": 23,
+      "toStage": 24,
+      "fromLevel": 288,
+      "toLevel": 288,
+      "raw": 11675529817391.715,
+      "gapPct": 8.815000000000001,
+      "rewardSubtractedRaw": 9554836279842.914
+    },
+    {
+      "sample": "ai-1",
+      "fromStage": 24,
+      "toStage": 25,
+      "fromLevel": 288,
+      "toLevel": 288,
+      "raw": 11676854324461.178,
+      "gapPct": 8.815999999999995,
+      "rewardSubtractedRaw": 9556160786912.377
+    },
+    {
+      "sample": "ai-1",
+      "fromStage": 25,
+      "toStage": 26,
+      "fromLevel": 288,
+      "toLevel": 288,
+      "raw": 11675529817391.72,
+      "gapPct": 8.815000000000005,
+      "rewardSubtractedRaw": 9554836279842.92
+    },
+    {
+      "sample": "ai-1",
+      "fromStage": 26,
+      "toStage": 27,
+      "fromLevel": 288,
+      "toLevel": 288,
+      "raw": 11676854324461.178,
+      "gapPct": 8.815999999999995,
+      "rewardSubtractedRaw": 9556160786912.377
+    },
+    {
+      "sample": "ai-1",
+      "fromStage": 27,
+      "toStage": 28,
+      "fromLevel": 288,
+      "toLevel": 288,
+      "raw": 11676854324461.197,
+      "gapPct": 8.81600000000001,
+      "rewardSubtractedRaw": 9556160786912.396
+    },
+    {
+      "sample": "ai-1",
+      "fromStage": 28,
+      "toStage": 29,
+      "fromLevel": 288,
+      "toLevel": 288,
+      "raw": 11675529817391.71,
+      "gapPct": 8.814999999999998,
+      "rewardSubtractedRaw": 9554836279842.91
+    },
+    {
+      "sample": "ai-1",
+      "fromStage": 29,
+      "toStage": 30,
+      "fromLevel": 288,
+      "toLevel": 288,
+      "raw": 11676854324461.188,
+      "gapPct": 8.816000000000003,
+      "rewardSubtractedRaw": 9556160786912.387
+    },
+    {
+      "sample": "ai-2",
+      "fromStage": 1,
+      "toStage": 2,
+      "fromLevel": 288,
+      "toLevel": 288,
+      "raw": 11676854324461.188,
+      "gapPct": 8.816000000000003,
+      "rewardSubtractedRaw": 9556160786912.387
+    },
+    {
+      "sample": "ai-2",
+      "fromStage": 2,
+      "toStage": 3,
+      "fromLevel": 288,
+      "toLevel": 288,
+      "raw": 11676854324461.17,
+      "gapPct": 8.815999999999988,
+      "rewardSubtractedRaw": 9556160786912.37
+    },
+    {
+      "sample": "ai-2",
+      "fromStage": 3,
+      "toStage": 4,
+      "fromLevel": 288,
+      "toLevel": 288,
+      "raw": 11675529817391.73,
+      "gapPct": 8.815000000000012,
+      "rewardSubtractedRaw": 9554836279842.93
+    },
+    {
+      "sample": "ai-2",
+      "fromStage": 4,
+      "toStage": 5,
+      "fromLevel": 288,
+      "toLevel": 289,
+      "raw": 11784006946381.39,
+      "gapPct": null,
+      "rewardSubtractedRaw": 9663313408832.59
+    },
+    {
+      "sample": "ai-2",
+      "fromStage": 5,
+      "toStage": 6,
+      "fromLevel": 289,
+      "toLevel": 289,
+      "raw": 11802814946767.89,
+      "gapPct": 8.101,
+      "rewardSubtractedRaw": 9658004231484.691
+    },
+    {
+      "sample": "ai-2",
+      "fromStage": 6,
+      "toStage": 7,
+      "fromLevel": 289,
+      "toLevel": 289,
+      "raw": 11802814946767.89,
+      "gapPct": 8.101,
+      "rewardSubtractedRaw": 9658004231484.691
+    },
+    {
+      "sample": "ai-2",
+      "fromStage": 7,
+      "toStage": 8,
+      "fromLevel": 289,
+      "toLevel": 289,
+      "raw": 11802814946767.887,
+      "gapPct": 8.100999999999999,
+      "rewardSubtractedRaw": 9658004231484.688
+    },
+    {
+      "sample": "ai-2",
+      "fromStage": 8,
+      "toStage": 9,
+      "fromLevel": 289,
+      "toLevel": 289,
+      "raw": 11801357988991.467,
+      "gapPct": 8.099999999999998,
+      "rewardSubtractedRaw": 9656547273708.268
+    },
+    {
+      "sample": "ai-2",
+      "fromStage": 9,
+      "toStage": 10,
+      "fromLevel": 289,
+      "toLevel": 289,
+      "raw": 11802814946767.887,
+      "gapPct": 8.100999999999999,
+      "rewardSubtractedRaw": 9658004231484.688
+    },
+    {
+      "sample": "ai-2",
+      "fromStage": 10,
+      "toStage": 11,
+      "fromLevel": 289,
+      "toLevel": 289,
+      "raw": 11802814946767.887,
+      "gapPct": 8.100999999999999,
+      "rewardSubtractedRaw": 9658004231484.688
+    },
+    {
+      "sample": "ai-2",
+      "fromStage": 11,
+      "toStage": 12,
+      "fromLevel": 289,
+      "toLevel": 289,
+      "raw": 11802814946767.898,
+      "gapPct": 8.101000000000006,
+      "rewardSubtractedRaw": 9658004231484.7
+    },
+    {
+      "sample": "ai-2",
+      "fromStage": 12,
+      "toStage": 13,
+      "fromLevel": 289,
+      "toLevel": 289,
+      "raw": 11802814946767.887,
+      "gapPct": 8.100999999999999,
+      "rewardSubtractedRaw": 9658004231484.688
+    },
+    {
+      "sample": "ai-2",
+      "fromStage": 13,
+      "toStage": 14,
+      "fromLevel": 289,
+      "toLevel": 289,
+      "raw": 11802814946767.887,
+      "gapPct": 8.100999999999999,
+      "rewardSubtractedRaw": 9658004231484.688
+    },
+    {
+      "sample": "ai-2",
+      "fromStage": 14,
+      "toStage": 15,
+      "fromLevel": 289,
+      "toLevel": 289,
+      "raw": 11802814946767.887,
+      "gapPct": 8.100999999999999,
+      "rewardSubtractedRaw": 9658004231484.688
+    },
+    {
+      "sample": "ai-2",
+      "fromStage": 15,
+      "toStage": 16,
+      "fromLevel": 289,
+      "toLevel": 289,
+      "raw": 11802814946767.887,
+      "gapPct": 8.100999999999999,
+      "rewardSubtractedRaw": 9658004231484.688
+    },
+    {
+      "sample": "ai-2",
+      "fromStage": 16,
+      "toStage": 17,
+      "fromLevel": 289,
+      "toLevel": 290,
+      "raw": 13274925084061.334,
+      "gapPct": null,
+      "rewardSubtractedRaw": 11130114368778.135
+    },
+    {
+      "sample": "ai-2",
+      "fromStage": 17,
+      "toStage": 18,
+      "fromLevel": 290,
+      "toLevel": 290,
+      "raw": 14729988815370.68,
+      "gapPct": 5.005000000000001,
+      "rewardSubtractedRaw": 12319770477412.28
+    },
+    {
+      "sample": "ai-2",
+      "fromStage": 18,
+      "toStage": 19,
+      "fromLevel": 290,
+      "toLevel": 290,
+      "raw": 14727045760662.312,
+      "gapPct": 5.004,
+      "rewardSubtractedRaw": 12316827422703.912
+    },
+    {
+      "sample": "ai-2",
+      "fromStage": 19,
+      "toStage": 20,
+      "fromLevel": 290,
+      "toLevel": 290,
+      "raw": 14729988815370.676,
+      "gapPct": 5.004999999999999,
+      "rewardSubtractedRaw": 12319770477412.275
+    },
+    {
+      "sample": "ai-2",
+      "fromStage": 20,
+      "toStage": 21,
+      "fromLevel": 290,
+      "toLevel": 290,
+      "raw": 14727045760662.318,
+      "gapPct": 5.004000000000001,
+      "rewardSubtractedRaw": 12316827422703.918
+    },
+    {
+      "sample": "ai-2",
+      "fromStage": 21,
+      "toStage": 22,
+      "fromLevel": 290,
+      "toLevel": 290,
+      "raw": 14729988815370.676,
+      "gapPct": 5.004999999999999,
+      "rewardSubtractedRaw": 12319770477412.275
+    },
+    {
+      "sample": "ai-2",
+      "fromStage": 22,
+      "toStage": 23,
+      "fromLevel": 290,
+      "toLevel": 290,
+      "raw": 14727045760662.307,
+      "gapPct": 5.003999999999998,
+      "rewardSubtractedRaw": 12316827422703.906
+    },
+    {
+      "sample": "ai-2",
+      "fromStage": 23,
+      "toStage": 24,
+      "fromLevel": 290,
+      "toLevel": 290,
+      "raw": 14729988815370.688,
+      "gapPct": 5.005000000000003,
+      "rewardSubtractedRaw": 12319770477412.287
+    },
+    {
+      "sample": "ai-2",
+      "fromStage": 24,
+      "toStage": 25,
+      "fromLevel": 290,
+      "toLevel": 290,
+      "raw": 14727045760662.307,
+      "gapPct": 5.003999999999998,
+      "rewardSubtractedRaw": 12316827422703.906
+    },
+    {
+      "sample": "ai-2",
+      "fromStage": 25,
+      "toStage": 26,
+      "fromLevel": 290,
+      "toLevel": 290,
+      "raw": 14729988815370.688,
+      "gapPct": 5.005000000000003,
+      "rewardSubtractedRaw": 12319770477412.287
+    },
+    {
+      "sample": "ai-2",
+      "fromStage": 26,
+      "toStage": 27,
+      "fromLevel": 290,
+      "toLevel": 290,
+      "raw": 14727045760662.307,
+      "gapPct": 5.003999999999998,
+      "rewardSubtractedRaw": 12316827422703.906
+    },
+    {
+      "sample": "ai-2",
+      "fromStage": 27,
+      "toStage": 28,
+      "fromLevel": 290,
+      "toLevel": 290,
+      "raw": 14729988815370.688,
+      "gapPct": 5.005000000000003,
+      "rewardSubtractedRaw": 12319770477412.287
+    },
+    {
+      "sample": "ai-2",
+      "fromStage": 28,
+      "toStage": 29,
+      "fromLevel": 290,
+      "toLevel": 290,
+      "raw": 14727045760662.307,
+      "gapPct": 5.003999999999998,
+      "rewardSubtractedRaw": 12316827422703.906
+    },
+    {
+      "sample": "ai-2",
+      "fromStage": 29,
+      "toStage": 30,
+      "fromLevel": 290,
+      "toLevel": 290,
+      "raw": 14729988815370.664,
+      "gapPct": 5.0049999999999955,
+      "rewardSubtractedRaw": 12319770477412.264
+    },
+    {
+      "sample": "ai-3",
+      "fromStage": 1,
+      "toStage": 2,
+      "fromLevel": 290,
+      "toLevel": 290,
+      "raw": 12296082571552.18,
+      "gapPct": 4.177999999999997,
+      "rewardSubtractedRaw": 9885864233593.78
+    },
+    {
+      "sample": "ai-3",
+      "fromStage": 2,
+      "toStage": 3,
+      "fromLevel": 290,
+      "toLevel": 290,
+      "raw": 12296082571552.22,
+      "gapPct": 4.1780000000000115,
+      "rewardSubtractedRaw": 9885864233593.82
+    },
+    {
+      "sample": "ai-3",
+      "fromStage": 3,
+      "toStage": 4,
+      "fromLevel": 290,
+      "toLevel": 291,
+      "raw": 12504450844904.463,
+      "gapPct": null,
+      "rewardSubtractedRaw": 10094232506946.062
+    },
+    {
+      "sample": "ai-3",
+      "fromStage": 4,
+      "toStage": 5,
+      "fromLevel": 291,
+      "toLevel": 291,
+      "raw": 14878907383613.955,
+      "gapPct": 4.596,
+      "rewardSubtractedRaw": 12441690156068.355
+    },
+    {
+      "sample": "ai-3",
+      "fromStage": 5,
+      "toStage": 6,
+      "fromLevel": 291,
+      "toLevel": 291,
+      "raw": 14878907383613.955,
+      "gapPct": 4.596,
+      "rewardSubtractedRaw": 12441690156068.355
+    },
+    {
+      "sample": "ai-3",
+      "fromStage": 6,
+      "toStage": 7,
+      "fromLevel": 291,
+      "toLevel": 291,
+      "raw": 14878907383613.955,
+      "gapPct": 4.596,
+      "rewardSubtractedRaw": 12441690156068.355
+    },
+    {
+      "sample": "ai-3",
+      "fromStage": 7,
+      "toStage": 8,
+      "fromLevel": 291,
+      "toLevel": 291,
+      "raw": 14878907383613.95,
+      "gapPct": 4.595999999999998,
+      "rewardSubtractedRaw": 12441690156068.35
+    },
+    {
+      "sample": "ai-3",
+      "fromStage": 8,
+      "toStage": 9,
+      "fromLevel": 291,
+      "toLevel": 291,
+      "raw": 14882144743793.16,
+      "gapPct": 4.597000000000001,
+      "rewardSubtractedRaw": 12444927516247.56
+    },
+    {
+      "sample": "ai-3",
+      "fromStage": 9,
+      "toStage": 10,
+      "fromLevel": 291,
+      "toLevel": 291,
+      "raw": 14878907383613.955,
+      "gapPct": 4.596,
+      "rewardSubtractedRaw": 12441690156068.355
+    },
+    {
+      "sample": "ai-3",
+      "fromStage": 10,
+      "toStage": 11,
+      "fromLevel": 291,
+      "toLevel": 291,
+      "raw": 14878907383613.943,
+      "gapPct": 4.5959999999999965,
+      "rewardSubtractedRaw": 12441690156068.344
+    },
+    {
+      "sample": "ai-3",
+      "fromStage": 11,
+      "toStage": 12,
+      "fromLevel": 291,
+      "toLevel": 291,
+      "raw": 14882144743793.16,
+      "gapPct": 4.597000000000001,
+      "rewardSubtractedRaw": 12444927516247.56
+    },
+    {
+      "sample": "ai-3",
+      "fromStage": 12,
+      "toStage": 13,
+      "fromLevel": 291,
+      "toLevel": 291,
+      "raw": 14878907383613.967,
+      "gapPct": 4.596000000000004,
+      "rewardSubtractedRaw": 12441690156068.367
+    },
+    {
+      "sample": "ai-3",
+      "fromStage": 13,
+      "toStage": 14,
+      "fromLevel": 291,
+      "toLevel": 291,
+      "raw": 14878907383613.943,
+      "gapPct": 4.5959999999999965,
+      "rewardSubtractedRaw": 12441690156068.344
+    },
+    {
+      "sample": "ai-3",
+      "fromStage": 14,
+      "toStage": 15,
+      "fromLevel": 291,
+      "toLevel": 291,
+      "raw": 14882144743793.16,
+      "gapPct": 4.597000000000001,
+      "rewardSubtractedRaw": 12444927516247.56
+    },
+    {
+      "sample": "ai-3",
+      "fromStage": 15,
+      "toStage": 16,
+      "fromLevel": 291,
+      "toLevel": 291,
+      "raw": 14878907383613.967,
+      "gapPct": 4.596000000000004,
+      "rewardSubtractedRaw": 12441690156068.367
+    },
+    {
+      "sample": "ai-3",
+      "fromStage": 16,
+      "toStage": 17,
+      "fromLevel": 291,
+      "toLevel": 291,
+      "raw": 14878907383613.943,
+      "gapPct": 4.5959999999999965,
+      "rewardSubtractedRaw": 12441690156068.344
+    },
+    {
+      "sample": "ai-3",
+      "fromStage": 17,
+      "toStage": 18,
+      "fromLevel": 291,
+      "toLevel": 291,
+      "raw": 14878907383613.967,
+      "gapPct": 4.596000000000004,
+      "rewardSubtractedRaw": 12441690156068.367
+    },
+    {
+      "sample": "ai-3",
+      "fromStage": 18,
+      "toStage": 19,
+      "fromLevel": 291,
+      "toLevel": 291,
+      "raw": 14882144743793.137,
+      "gapPct": 4.596999999999994,
+      "rewardSubtractedRaw": 12444927516247.537
+    },
+    {
+      "sample": "ai-3",
+      "fromStage": 19,
+      "toStage": 20,
+      "fromLevel": 291,
+      "toLevel": 291,
+      "raw": 14878907383613.967,
+      "gapPct": 4.596000000000004,
+      "rewardSubtractedRaw": 12441690156068.367
+    },
+    {
+      "sample": "ai-3",
+      "fromStage": 20,
+      "toStage": 21,
+      "fromLevel": 291,
+      "toLevel": 291,
+      "raw": 14878907383613.967,
+      "gapPct": 4.596000000000004,
+      "rewardSubtractedRaw": 12441690156068.367
+    },
+    {
+      "sample": "ai-3",
+      "fromStage": 21,
+      "toStage": 22,
+      "fromLevel": 291,
+      "toLevel": 291,
+      "raw": 14882144743793.137,
+      "gapPct": 4.596999999999994,
+      "rewardSubtractedRaw": 12444927516247.537
+    },
+    {
+      "sample": "ai-3",
+      "fromStage": 22,
+      "toStage": 23,
+      "fromLevel": 291,
+      "toLevel": 291,
+      "raw": 14878907383613.967,
+      "gapPct": 4.596000000000004,
+      "rewardSubtractedRaw": 12441690156068.367
+    },
+    {
+      "sample": "ai-3",
+      "fromStage": 23,
+      "toStage": 24,
+      "fromLevel": 291,
+      "toLevel": 291,
+      "raw": 14878907383613.967,
+      "gapPct": 4.596000000000004,
+      "rewardSubtractedRaw": 12441690156068.367
+    },
+    {
+      "sample": "ai-3",
+      "fromStage": 24,
+      "toStage": 25,
+      "fromLevel": 291,
+      "toLevel": 291,
+      "raw": 14882144743793.137,
+      "gapPct": 4.596999999999994,
+      "rewardSubtractedRaw": 12444927516247.537
+    },
+    {
+      "sample": "ai-3",
+      "fromStage": 25,
+      "toStage": 26,
+      "fromLevel": 291,
+      "toLevel": 292,
+      "raw": 14936208658785.828,
+      "gapPct": null,
+      "rewardSubtractedRaw": 12498991431240.229
+    },
+    {
+      "sample": "ai-3",
+      "fromStage": 26,
+      "toStage": 27,
+      "fromLevel": 292,
+      "toLevel": 292,
+      "raw": 15049192529039.98,
+      "gapPct": 4.226,
+      "rewardSubtractedRaw": 12581403310454.38
+    },
+    {
+      "sample": "ai-3",
+      "fromStage": 27,
+      "toStage": 28,
+      "fromLevel": 292,
+      "toLevel": 292,
+      "raw": 15052753625237.105,
+      "gapPct": 4.227,
+      "rewardSubtractedRaw": 12584964406651.506
+    },
+    {
+      "sample": "ai-3",
+      "fromStage": 28,
+      "toStage": 29,
+      "fromLevel": 292,
+      "toLevel": 292,
+      "raw": 15052753625237.105,
+      "gapPct": 4.227,
+      "rewardSubtractedRaw": 12584964406651.506
+    },
+    {
+      "sample": "ai-3",
+      "fromStage": 29,
+      "toStage": 30,
+      "fromLevel": 292,
+      "toLevel": 292,
+      "raw": 15049192529039.977,
+      "gapPct": 4.225999999999999,
+      "rewardSubtractedRaw": 12581403310454.377
+    },
+    {
+      "sample": "ai-4",
+      "fromStage": 1,
+      "toStage": 2,
+      "fromLevel": 292,
+      "toLevel": 292,
+      "raw": 15052753625237.105,
+      "gapPct": 4.227,
+      "rewardSubtractedRaw": 12584964406651.506
+    },
+    {
+      "sample": "ai-4",
+      "fromStage": 2,
+      "toStage": 3,
+      "fromLevel": 292,
+      "toLevel": 292,
+      "raw": 15052753625237.105,
+      "gapPct": 4.227,
+      "rewardSubtractedRaw": 12584964406651.506
+    },
+    {
+      "sample": "ai-4",
+      "fromStage": 3,
+      "toStage": 4,
+      "fromLevel": 292,
+      "toLevel": 292,
+      "raw": 15052753625237.105,
+      "gapPct": 4.227,
+      "rewardSubtractedRaw": 12584964406651.506
+    },
+    {
+      "sample": "ai-4",
+      "fromStage": 4,
+      "toStage": 5,
+      "fromLevel": 292,
+      "toLevel": 292,
+      "raw": 15049192529039.977,
+      "gapPct": 4.225999999999999,
+      "rewardSubtractedRaw": 12581403310454.377
+    },
+    {
+      "sample": "ai-4",
+      "fromStage": 5,
+      "toStage": 6,
+      "fromLevel": 292,
+      "toLevel": 292,
+      "raw": 15052753625237.105,
+      "gapPct": 4.227,
+      "rewardSubtractedRaw": 12584964406651.506
+    },
+    {
+      "sample": "ai-4",
+      "fromStage": 6,
+      "toStage": 7,
+      "fromLevel": 292,
+      "toLevel": 292,
+      "raw": 15052753625237.092,
+      "gapPct": 4.226999999999997,
+      "rewardSubtractedRaw": 12584964406651.492
+    },
+    {
+      "sample": "ai-4",
+      "fromStage": 7,
+      "toStage": 8,
+      "fromLevel": 292,
+      "toLevel": 292,
+      "raw": 15049192529040.002,
+      "gapPct": 4.226000000000006,
+      "rewardSubtractedRaw": 12581403310454.402
+    },
+    {
+      "sample": "ai-4",
+      "fromStage": 8,
+      "toStage": 9,
+      "fromLevel": 292,
+      "toLevel": 292,
+      "raw": 15052753625237.092,
+      "gapPct": 4.226999999999997,
+      "rewardSubtractedRaw": 12584964406651.492
+    },
+    {
+      "sample": "ai-4",
+      "fromStage": 9,
+      "toStage": 10,
+      "fromLevel": 292,
+      "toLevel": 292,
+      "raw": 15052753625237.092,
+      "gapPct": 4.226999999999997,
+      "rewardSubtractedRaw": 12584964406651.492
+    },
+    {
+      "sample": "ai-4",
+      "fromStage": 10,
+      "toStage": 11,
+      "fromLevel": 292,
+      "toLevel": 292,
+      "raw": 15049192529040.002,
+      "gapPct": 4.226000000000006,
+      "rewardSubtractedRaw": 12581403310454.402
+    },
+    {
+      "sample": "ai-4",
+      "fromStage": 11,
+      "toStage": 12,
+      "fromLevel": 292,
+      "toLevel": 292,
+      "raw": 15052753625237.092,
+      "gapPct": 4.226999999999997,
+      "rewardSubtractedRaw": 12584964406651.492
+    },
+    {
+      "sample": "ai-4",
+      "fromStage": 12,
+      "toStage": 13,
+      "fromLevel": 292,
+      "toLevel": 292,
+      "raw": 15052753625237.092,
+      "gapPct": 4.226999999999997,
+      "rewardSubtractedRaw": 12584964406651.492
+    },
+    {
+      "sample": "ai-4",
+      "fromStage": 13,
+      "toStage": 14,
+      "fromLevel": 292,
+      "toLevel": 292,
+      "raw": 15049192529040.002,
+      "gapPct": 4.226000000000006,
+      "rewardSubtractedRaw": 12581403310454.402
+    },
+    {
+      "sample": "ai-4",
+      "fromStage": 14,
+      "toStage": 15,
+      "fromLevel": 292,
+      "toLevel": 292,
+      "raw": 15052753625237.117,
+      "gapPct": 4.227000000000004,
+      "rewardSubtractedRaw": 12584964406651.518
+    },
+    {
+      "sample": "ai-4",
+      "fromStage": 15,
+      "toStage": 16,
+      "fromLevel": 292,
+      "toLevel": 292,
+      "raw": 15052753625237.068,
+      "gapPct": 4.22699999999999,
+      "rewardSubtractedRaw": 12584964406651.469
+    },
+    {
+      "sample": "ai-4",
+      "fromStage": 16,
+      "toStage": 17,
+      "fromLevel": 292,
+      "toLevel": 292,
+      "raw": 15049192529039.977,
+      "gapPct": 4.225999999999999,
+      "rewardSubtractedRaw": 12581403310454.377
+    },
+    {
+      "sample": "ai-4",
+      "fromStage": 17,
+      "toStage": 18,
+      "fromLevel": 292,
+      "toLevel": 292,
+      "raw": 15052753625237.117,
+      "gapPct": 4.227000000000004,
+      "rewardSubtractedRaw": 12584964406651.518
+    },
+    {
+      "sample": "ai-4",
+      "fromStage": 18,
+      "toStage": 19,
+      "fromLevel": 292,
+      "toLevel": 292,
+      "raw": 15052753625237.117,
+      "gapPct": 4.227000000000004,
+      "rewardSubtractedRaw": 12584964406651.518
+    },
+    {
+      "sample": "ai-4",
+      "fromStage": 19,
+      "toStage": 20,
+      "fromLevel": 292,
+      "toLevel": 292,
+      "raw": 15049192529039.977,
+      "gapPct": 4.225999999999999,
+      "rewardSubtractedRaw": 12581403310454.377
+    },
+    {
+      "sample": "ai-4",
+      "fromStage": 20,
+      "toStage": 21,
+      "fromLevel": 292,
+      "toLevel": 292,
+      "raw": 15052753625237.117,
+      "gapPct": 4.227000000000004,
+      "rewardSubtractedRaw": 12584964406651.518
+    },
+    {
+      "sample": "ai-4",
+      "fromStage": 21,
+      "toStage": 22,
+      "fromLevel": 292,
+      "toLevel": 292,
+      "raw": 15052753625237.068,
+      "gapPct": 4.22699999999999,
+      "rewardSubtractedRaw": 12584964406651.469
+    },
+    {
+      "sample": "ai-4",
+      "fromStage": 22,
+      "toStage": 23,
+      "fromLevel": 292,
+      "toLevel": 293,
+      "raw": 15125756097278.117,
+      "gapPct": null,
+      "rewardSubtractedRaw": 12657966878692.518
+    },
+    {
+      "sample": "ai-4",
+      "fromStage": 23,
+      "toStage": 24,
+      "fromLevel": 293,
+      "toLevel": 293,
+      "raw": 15226179010036.947,
+      "gapPct": 3.8870000000000005,
+      "rewardSubtractedRaw": 12727634267899.348
+    },
+    {
+      "sample": "ai-4",
+      "fromStage": 24,
+      "toStage": 25,
+      "fromLevel": 293,
+      "toLevel": 293,
+      "raw": 15222261804220.107,
+      "gapPct": 3.8859999999999992,
+      "rewardSubtractedRaw": 12723717062082.508
+    },
+    {
+      "sample": "ai-4",
+      "fromStage": 25,
+      "toStage": 26,
+      "fromLevel": 293,
+      "toLevel": 293,
+      "raw": 15226179010036.947,
+      "gapPct": 3.8870000000000005,
+      "rewardSubtractedRaw": 12727634267899.348
+    },
+    {
+      "sample": "ai-4",
+      "fromStage": 26,
+      "toStage": 27,
+      "fromLevel": 293,
+      "toLevel": 293,
+      "raw": 15222261804220.107,
+      "gapPct": 3.8859999999999992,
+      "rewardSubtractedRaw": 12723717062082.508
+    },
+    {
+      "sample": "ai-4",
+      "fromStage": 27,
+      "toStage": 28,
+      "fromLevel": 293,
+      "toLevel": 293,
+      "raw": 15226179010036.947,
+      "gapPct": 3.8870000000000005,
+      "rewardSubtractedRaw": 12727634267899.348
+    },
+    {
+      "sample": "ai-4",
+      "fromStage": 28,
+      "toStage": 29,
+      "fromLevel": 293,
+      "toLevel": 293,
+      "raw": 15222261804220.107,
+      "gapPct": 3.8859999999999992,
+      "rewardSubtractedRaw": 12723717062082.508
+    },
+    {
+      "sample": "ai-4",
+      "fromStage": 29,
+      "toStage": 30,
+      "fromLevel": 293,
+      "toLevel": 293,
+      "raw": 15226179010036.947,
+      "gapPct": 3.8870000000000005,
+      "rewardSubtractedRaw": 12727634267899.348
+    },
+    {
+      "sample": "live-287",
+      "fromStage": 1,
+      "toStage": 2,
+      "fromLevel": 287,
+      "toLevel": 287,
+      "raw": 11535252477761.342,
+      "gapPct": 9.579999999999998,
+      "rewardSubtractedRaw": 9441598590359.342
+    },
+    {
+      "sample": "live-287",
+      "fromStage": 2,
+      "toStage": 3,
+      "fromLevel": 287,
+      "toLevel": 287,
+      "raw": 11534048380425.46,
+      "gapPct": 9.579,
+      "rewardSubtractedRaw": 9440394493023.46
+    },
+    {
+      "sample": "live-287",
+      "fromStage": 3,
+      "toStage": 4,
+      "fromLevel": 287,
+      "toLevel": 287,
+      "raw": 11535252477761.342,
+      "gapPct": 9.579999999999998,
+      "rewardSubtractedRaw": 9441598590359.342
+    },
+    {
+      "sample": "live-287",
+      "fromStage": 4,
+      "toStage": 5,
+      "fromLevel": 287,
+      "toLevel": 287,
+      "raw": 11535252477761.35,
+      "gapPct": 9.580000000000005,
+      "rewardSubtractedRaw": 9441598590359.35
+    },
+    {
+      "sample": "live-287",
+      "fromStage": 5,
+      "toStage": 6,
+      "fromLevel": 287,
+      "toLevel": 287,
+      "raw": 11534048380425.453,
+      "gapPct": 9.578999999999994,
+      "rewardSubtractedRaw": 9440394493023.453
+    },
+    {
+      "sample": "live-287",
+      "fromStage": 6,
+      "toStage": 7,
+      "fromLevel": 287,
+      "toLevel": 287,
+      "raw": 11535252477761.342,
+      "gapPct": 9.579999999999998,
+      "rewardSubtractedRaw": 9441598590359.342
+    },
+    {
+      "sample": "live-287",
+      "fromStage": 7,
+      "toStage": 8,
+      "fromLevel": 287,
+      "toLevel": 287,
+      "raw": 11535252477761.357,
+      "gapPct": 9.580000000000013,
+      "rewardSubtractedRaw": 9441598590359.357
+    },
+    {
+      "sample": "live-287",
+      "fromStage": 8,
+      "toStage": 9,
+      "fromLevel": 287,
+      "toLevel": 288,
+      "raw": 11629172069960.21,
+      "gapPct": null,
+      "rewardSubtractedRaw": 9535518182558.21
+    },
+    {
+      "sample": "live-287",
+      "fromStage": 9,
+      "toStage": 10,
+      "fromLevel": 288,
+      "toLevel": 288,
+      "raw": 11675529817391.715,
+      "gapPct": 8.815000000000001,
+      "rewardSubtractedRaw": 9554836311269.715
+    },
+    {
+      "sample": "live-287",
+      "fromStage": 10,
+      "toStage": 11,
+      "fromLevel": 288,
+      "toLevel": 288,
+      "raw": 11676854324461.186,
+      "gapPct": 8.816,
+      "rewardSubtractedRaw": 9556160818339.186
+    },
+    {
+      "sample": "live-287",
+      "fromStage": 11,
+      "toStage": 12,
+      "fromLevel": 288,
+      "toLevel": 288,
+      "raw": 11675529817391.715,
+      "gapPct": 8.815000000000001,
+      "rewardSubtractedRaw": 9554836311269.715
+    },
+    {
+      "sample": "live-287",
+      "fromStage": 12,
+      "toStage": 13,
+      "fromLevel": 288,
+      "toLevel": 288,
+      "raw": 11676854324461.178,
+      "gapPct": 8.815999999999995,
+      "rewardSubtractedRaw": 9556160818339.178
+    },
+    {
+      "sample": "live-287",
+      "fromStage": 13,
+      "toStage": 14,
+      "fromLevel": 288,
+      "toLevel": 288,
+      "raw": 11676854324461.188,
+      "gapPct": 8.816000000000003,
+      "rewardSubtractedRaw": 9556160818339.188
+    },
+    {
+      "sample": "live-287",
+      "fromStage": 14,
+      "toStage": 15,
+      "fromLevel": 288,
+      "toLevel": 288,
+      "raw": 11675529817391.71,
+      "gapPct": 8.814999999999998,
+      "rewardSubtractedRaw": 9554836311269.71
+    },
+    {
+      "sample": "live-287",
+      "fromStage": 15,
+      "toStage": 16,
+      "fromLevel": 288,
+      "toLevel": 288,
+      "raw": 11676854324461.178,
+      "gapPct": 8.815999999999995,
+      "rewardSubtractedRaw": 9556160818339.178
+    },
+    {
+      "sample": "live-287",
+      "fromStage": 16,
+      "toStage": 17,
+      "fromLevel": 288,
+      "toLevel": 288,
+      "raw": 11675529817391.73,
+      "gapPct": 8.815000000000012,
+      "rewardSubtractedRaw": 9554836311269.73
+    },
+    {
+      "sample": "live-287",
+      "fromStage": 17,
+      "toStage": 18,
+      "fromLevel": 288,
+      "toLevel": 288,
+      "raw": 11676854324461.17,
+      "gapPct": 8.815999999999988,
+      "rewardSubtractedRaw": 9556160818339.17
+    },
+    {
+      "sample": "live-287",
+      "fromStage": 18,
+      "toStage": 19,
+      "fromLevel": 288,
+      "toLevel": 288,
+      "raw": 11676854324461.188,
+      "gapPct": 8.816000000000003,
+      "rewardSubtractedRaw": 9556160818339.188
+    },
+    {
+      "sample": "live-287",
+      "fromStage": 19,
+      "toStage": 20,
+      "fromLevel": 288,
+      "toLevel": 289,
+      "raw": 11716721987252.271,
+      "gapPct": null,
+      "rewardSubtractedRaw": 9596028481130.271
+    },
+    {
+      "sample": "live-287",
+      "fromStage": 20,
+      "toStage": 21,
+      "fromLevel": 289,
+      "toLevel": 289,
+      "raw": 11802814946767.887,
+      "gapPct": 8.100999999999999,
+      "rewardSubtractedRaw": 9658004252435.887
+    },
+    {
+      "sample": "live-287",
+      "fromStage": 21,
+      "toStage": 22,
+      "fromLevel": 289,
+      "toLevel": 289,
+      "raw": 11802814946767.887,
+      "gapPct": 8.100999999999999,
+      "rewardSubtractedRaw": 9658004252435.887
+    },
+    {
+      "sample": "live-287",
+      "fromStage": 22,
+      "toStage": 23,
+      "fromLevel": 289,
+      "toLevel": 289,
+      "raw": 11802814946767.893,
+      "gapPct": 8.101000000000003,
+      "rewardSubtractedRaw": 9658004252435.893
+    },
+    {
+      "sample": "live-287",
+      "fromStage": 23,
+      "toStage": 24,
+      "fromLevel": 289,
+      "toLevel": 289,
+      "raw": 11802814946767.887,
+      "gapPct": 8.100999999999999,
+      "rewardSubtractedRaw": 9658004252435.887
+    },
+    {
+      "sample": "live-287",
+      "fromStage": 24,
+      "toStage": 25,
+      "fromLevel": 289,
+      "toLevel": 289,
+      "raw": 11801357988991.473,
+      "gapPct": 8.100000000000001,
+      "rewardSubtractedRaw": 9656547294659.473
+    },
+    {
+      "sample": "live-287",
+      "fromStage": 25,
+      "toStage": 26,
+      "fromLevel": 289,
+      "toLevel": 289,
+      "raw": 11802814946767.887,
+      "gapPct": 8.100999999999999,
+      "rewardSubtractedRaw": 9658004252435.887
+    },
+    {
+      "sample": "live-287",
+      "fromStage": 26,
+      "toStage": 27,
+      "fromLevel": 289,
+      "toLevel": 289,
+      "raw": 11802814946767.887,
+      "gapPct": 8.100999999999999,
+      "rewardSubtractedRaw": 9658004252435.887
+    },
+    {
+      "sample": "live-287",
+      "fromStage": 27,
+      "toStage": 28,
+      "fromLevel": 289,
+      "toLevel": 289,
+      "raw": 11802814946767.898,
+      "gapPct": 8.101000000000006,
+      "rewardSubtractedRaw": 9658004252435.898
+    },
+    {
+      "sample": "live-287",
+      "fromStage": 28,
+      "toStage": 29,
+      "fromLevel": 289,
+      "toLevel": 289,
+      "raw": 11802814946767.887,
+      "gapPct": 8.100999999999999,
+      "rewardSubtractedRaw": 9658004252435.887
+    },
+    {
+      "sample": "live-287",
+      "fromStage": 29,
+      "toStage": 30,
+      "fromLevel": 289,
+      "toLevel": 289,
+      "raw": 11802814946767.887,
+      "gapPct": 8.100999999999999,
+      "rewardSubtractedRaw": 9658004252435.887
+    },
+    {
+      "sample": "live-286",
+      "fromStage": 5,
+      "toStage": 6,
+      "fromLevel": 286,
+      "toLevel": 286,
+      "raw": 11394044699280.527,
+      "gapPct": 10.409000000000006,
+      "rewardSubtractedRaw": 9327265471325.328
+    },
+    {
+      "sample": "live-286",
+      "fromStage": 6,
+      "toStage": 7,
+      "fromLevel": 286,
+      "toLevel": 286,
+      "raw": 11394044699280.512,
+      "gapPct": 10.408999999999992,
+      "rewardSubtractedRaw": 9327265471325.312
+    },
+    {
+      "sample": "live-286",
+      "fromStage": 7,
+      "toStage": 8,
+      "fromLevel": 286,
+      "toLevel": 287,
+      "raw": 11406742453004.38,
+      "gapPct": null,
+      "rewardSubtractedRaw": 9339963225049.182
+    },
+    {
+      "sample": "live-286",
+      "fromStage": 8,
+      "toStage": 9,
+      "fromLevel": 287,
+      "toLevel": 287,
+      "raw": 11535252477761.342,
+      "gapPct": 9.58,
+      "rewardSubtractedRaw": 9441598558932.541
+    }
+  ],
+  "currentRuleErrors": [
+    {
+      "sample": "ai-0",
+      "maxErrorPctPoints": 0.03734947549827483,
+      "lastErrorPctPoints": 0.03206663334508164
+    },
+    {
+      "sample": "ai-1",
+      "maxErrorPctPoints": 0.0012160735913440135,
+      "lastErrorPctPoints": 0.0008440176117119336
+    },
+    {
+      "sample": "ai-2",
+      "maxErrorPctPoints": 0.0007717417563526396,
+      "lastErrorPctPoints": 0.0003098823791702898
+    },
+    {
+      "sample": "ai-3",
+      "maxErrorPctPoints": 2.2172327616361684,
+      "lastErrorPctPoints": 2.038535478874337
+    },
+    {
+      "sample": "ai-4",
+      "maxErrorPctPoints": 0.0009866853229461015,
+      "lastErrorPctPoints": 0.0005576320524411926
+    },
+    {
+      "sample": "live-287",
+      "maxErrorPctPoints": 0.001318133328084059,
+      "lastErrorPctPoints": 0.0009236580394116345
+    },
+    {
+      "sample": "live-286",
+      "maxErrorPctPoints": 0.0007422186337779912,
+      "lastErrorPctPoints": 0.0007422186337779912
+    }
+  ],
+  "affineFits": {
+    "286-289": {
+      "slope": 2632923.994086475,
+      "interceptRaw": 571959409619.0405,
+      "maxRawResidual": 1309755239.4985,
+      "maxPercentPointResidual": 0.0008989658181570411
+    },
+    "290-293-excluding-conflict": {
+      "slope": 2822915.5728040556,
+      "interceptRaw": 1197295495467.2214,
+      "maxRawResidual": 2441889621.8634243,
+      "maxPercentPointResidual": 0.0006857129059968992
+    },
+    "290-293-all": {
+      "slope": 4656760.305928207,
+      "interceptRaw": -7805207095666.533,
+      "maxRawResidual": 2220043328872.469,
+      "maxPercentPointResidual": 0.7543330141168946
+    }
+  },
+  "roundingChecks": [
+    {
+      "sample": "ai-0",
+      "level": 286,
+      "minGapPercent": 10.408888888888889,
+      "maxGapPercent": 10.40911111111111,
+      "possible": true,
+      "lowerPair": [
+        3,
+        12
+      ],
+      "upperPair": [
+        3,
+        12
+      ]
+    },
+    {
+      "sample": "ai-0",
+      "level": 287,
+      "minGapPercent": 9.579666666666666,
+      "maxGapPercent": 9.579666666666665,
+      "possible": true,
+      "lowerPair": [
+        13,
+        16
+      ],
+      "upperPair": [
+        16,
+        19
+      ]
+    },
+    {
+      "sample": "ai-0",
+      "level": 288,
+      "minGapPercent": 8.815500000000002,
+      "maxGapPercent": 8.815666666666667,
+      "possible": true,
+      "lowerPair": [
+        24,
+        28
+      ],
+      "upperPair": [
+        23,
+        29
+      ]
+    },
+    {
+      "sample": "ai-1",
+      "level": 286,
+      "minGapPercent": 10.408875,
+      "maxGapPercent": 10.409125000000001,
+      "possible": true,
+      "lowerPair": [
+        1,
+        9
+      ],
+      "upperPair": [
+        1,
+        9
+      ]
+    },
+    {
+      "sample": "ai-1",
+      "level": 287,
+      "minGapPercent": 9.5796,
+      "maxGapPercent": 9.579666666666666,
+      "possible": true,
+      "lowerPair": [
+        12,
+        17
+      ],
+      "upperPair": [
+        11,
+        20
+      ]
+    },
+    {
+      "sample": "ai-1",
+      "level": 288,
+      "minGapPercent": 8.81557142857143,
+      "maxGapPercent": 8.815666666666667,
+      "possible": true,
+      "lowerPair": [
+        21,
+        28
+      ],
+      "upperPair": [
+        23,
+        26
+      ]
+    },
+    {
+      "sample": "ai-2",
+      "level": 288,
+      "minGapPercent": 8.815499999999995,
+      "maxGapPercent": 8.816,
+      "possible": true,
+      "lowerPair": [
+        1,
+        3
+      ],
+      "upperPair": [
+        1,
+        4
+      ]
+    },
+    {
+      "sample": "ai-2",
+      "level": 289,
+      "minGapPercent": 8.100857142857143,
+      "maxGapPercent": 8.100999999999997,
+      "possible": true,
+      "lowerPair": [
+        9,
+        16
+      ],
+      "upperPair": [
+        7,
+        11
+      ]
+    },
+    {
+      "sample": "ai-2",
+      "level": 290,
+      "minGapPercent": 5.004461538461538,
+      "maxGapPercent": 5.004545454545454,
+      "possible": true,
+      "lowerPair": [
+        17,
+        30
+      ],
+      "upperPair": [
+        18,
+        29
+      ]
+    },
+    {
+      "sample": "ai-3",
+      "level": 290,
+      "minGapPercent": 4.177500000000005,
+      "maxGapPercent": 4.178500000000004,
+      "possible": true,
+      "lowerPair": [
+        1,
+        3
+      ],
+      "upperPair": [
+        1,
+        3
+      ]
+    },
+    {
+      "sample": "ai-3",
+      "level": 291,
+      "minGapPercent": 4.596294117647059,
+      "maxGapPercent": 4.59625,
+      "possible": false,
+      "lowerPair": [
+        8,
+        25
+      ],
+      "upperPair": [
+        4,
+        8
+      ]
+    },
+    {
+      "sample": "ai-3",
+      "level": 292,
+      "minGapPercent": 4.226500000000001,
+      "maxGapPercent": 4.22675,
+      "possible": true,
+      "lowerPair": [
+        27,
+        29
+      ],
+      "upperPair": [
+        26,
+        30
+      ]
+    },
+    {
+      "sample": "ai-4",
+      "level": 292,
+      "minGapPercent": 4.2266666666666675,
+      "maxGapPercent": 4.226687500000001,
+      "possible": true,
+      "lowerPair": [
+        1,
+        4
+      ],
+      "upperPair": [
+        4,
+        20
+      ]
+    },
+    {
+      "sample": "ai-4",
+      "level": 293,
+      "minGapPercent": 3.886428571428571,
+      "maxGapPercent": 3.8866,
+      "possible": true,
+      "lowerPair": [
+        23,
+        30
+      ],
+      "upperPair": [
+        24,
+        29
+      ]
+    },
+    {
+      "sample": "live-287",
+      "level": 287,
+      "minGapPercent": 9.579600000000003,
+      "maxGapPercent": 9.579749999999999,
+      "possible": true,
+      "lowerPair": [
+        3,
+        8
+      ],
+      "upperPair": [
+        2,
+        6
+      ]
+    },
+    {
+      "sample": "live-287",
+      "level": 288,
+      "minGapPercent": 8.815571428571428,
+      "maxGapPercent": 8.815625,
+      "possible": true,
+      "lowerPair": [
+        12,
+        19
+      ],
+      "upperPair": [
+        9,
+        17
+      ]
+    },
+    {
+      "sample": "live-287",
+      "level": 289,
+      "minGapPercent": 8.100800000000001,
+      "maxGapPercent": 8.100999999999999,
+      "possible": true,
+      "lowerPair": [
+        25,
+        30
+      ],
+      "upperPair": [
+        23,
+        27
+      ]
+    },
+    {
+      "sample": "live-286",
+      "level": 286,
+      "minGapPercent": 10.408499999999998,
+      "maxGapPercent": 10.4095,
+      "possible": true,
+      "lowerPair": [
+        5,
+        7
+      ],
+      "upperPair": [
+        5,
+        7
+      ]
+    }
+  ],
+  "finalTargetErrors": [
+    {
+      "designation": {
+        "level": 260,
+        "percent": 0
+      },
+      "supported": false
+    },
+    {
+      "designation": {
+        "level": 270,
+        "percent": 5
+      },
+      "supported": false
+    },
+    {
+      "designation": {
+        "level": 275,
+        "percent": 6.9
+      },
+      "supported": false
+    },
+    {
+      "designation": {
+        "level": 280,
+        "percent": 11
+      },
+      "supported": true,
+      "predicted": {
+        "level": 286,
+        "percent": 2.9999758780858308
+      },
+      "observed": {
+        "stage": 30,
+        "level": 286,
+        "percent": 3
+      },
+      "errorPercentPoints": -0.000024121914169228376
+    },
+    {
+      "designation": {
+        "level": 285,
+        "percent": 71.5
+      },
+      "supported": true,
+      "predicted": {
+        "level": 288,
+        "percent": 65.61282951905149
+      },
+      "observed": {
+        "stage": 30,
+        "level": 288,
+        "percent": 65.61
+      },
+      "errorPercentPoints": 0.002829519051488205
+    },
+    {
+      "designation": {
+        "level": 286,
+        "percent": 0
+      },
+      "supported": true,
+      "predicted": {
+        "level": 288,
+        "percent": 87.75245286025583
+      },
+      "observed": {
+        "stage": 30,
+        "level": 288,
+        "percent": 87.75
+      },
+      "errorPercentPoints": 0.002452860255829137
+    },
+    {
+      "designation": {
+        "level": 290,
+        "percent": 6.3
+      },
+      "supported": true,
+      "predicted": {
+        "level": 291,
+        "percent": 51.83228460160482
+      },
+      "observed": {
+        "stage": 30,
+        "level": 291,
+        "percent": 51.851
+      },
+      "errorPercentPoints": -0.018715398395180216
+    },
+    {
+      "designation": {
+        "level": 291,
+        "percent": 0
+      },
+      "supported": true,
+      "predicted": {
+        "level": 292,
+        "percent": 34.84207873985987
+      },
+      "observed": {
+        "stage": 30,
+        "level": 292,
+        "percent": 34.842
+      },
+      "errorPercentPoints": 0.000078739859873167
+    },
+    {
+      "designation": {
+        "level": 293,
+        "percent": 8.4
+      },
+      "supported": true,
+      "predicted": {
+        "level": 294,
+        "percent": 22.951776666885248
+      },
+      "observed": {
+        "stage": 30,
+        "level": 294,
+        "percent": 22.975
+      },
+      "errorPercentPoints": -0.02322333311475333
+    },
+    {
+      "designation": {
+        "level": 294,
+        "percent": 0
+      },
+      "supported": true,
+      "predicted": {
+        "level": 295,
+        "percent": 3.9997867360923376
+      },
+      "observed": {
+        "stage": 30,
+        "level": 295,
+        "percent": 4.01
+      },
+      "errorPercentPoints": -0.010213263907662196
+    }
+  ],
+  "representativeInputs": [
+    {
+      "current": {
+        "level": 288,
+        "percent": 45,
+        "stepsDone": 13
+      },
+      "nextTarget": {
+        "level": 288,
+        "percent": 49.948
+      },
+      "rewardPercent": 1.601,
+      "duplicateOf": "live-287"
+    },
+    {
+      "current": {
+        "level": 286,
+        "percent": 68,
+        "stepsDone": 4
+      },
+      "nextTarget": {
+        "level": 286,
+        "percent": 69.714
+      },
+      "rewardPercent": 1.888,
+      "duplicateOf": "live-286"
+    }
+  ],
+  "officialIllustration": {
+    "source": "https://m.maplestory.nexon.com/News/Event/Ongoing/1389",
+    "image": "https://lwi.nexon.com/maplestory/2026/0917_board/260917_WQDV38E75N6S4W24.png",
+    "kind": "official guide illustration, not an independently observed character",
+    "current": {
+      "level": 260,
+      "percent": 0
+    },
+    "stages": [
+      {
+        "stage": 1,
+        "level": 262,
+        "percent": 49.622
+      },
+      {
+        "stage": 2,
+        "level": 265,
+        "percent": 1.33
+      },
+      {
+        "stage": 3,
+        "level": 267,
+        "percent": 21.499
+      },
+      {
+        "stage": 4,
+        "level": 269,
+        "percent": 43.199
+      },
+      {
+        "stage": 5,
+        "level": 270,
+        "percent": 87.889
+      },
+      {
+        "stage": 6,
+        "level": 272,
+        "percent": 6.327
+      },
+      {
+        "stage": 7,
+        "level": 273,
+        "percent": 25.142
+      },
+      {
+        "stage": 8,
+        "level": 274,
+        "percent": 44.34
+      },
+      {
+        "stage": 30,
+        "level": 283,
+        "percent": 23.118
+      }
+    ]
+  },
+  "notes": [
+    "declaredStartLevel/Percent are NOT confirmed designation values",
+    "inven 48328 is a schedule infographic, not target table",
+    "No verified 294/295 adjacent target sample obtained"
+  ]
+}

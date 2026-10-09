@@ -53,6 +53,8 @@ test("실제 서버 화면에서 입력과 결과는 버튼으로 한 묶음씩�
   assert.match(html, /출석 보상 전부 넣기/);
   assert.match(html, /이 캐릭터에 쓸 남은 것만 넣어 주세요/);
   assert.match(html, /보유량에서 따로 셀 PLUS 레벨/);
+  assert.match(html, /그다음 목표도 넣기/);
+  assert.doesNotMatch(html, /290레벨부터는 예상 목표가 조금 다를 수 있어요|PLUS는 매주 2,500포인트를 채운 기준으로 계산해요/);
   assert.match(html, /평소 사냥터 몬스터/);
   assert.match(html, /30분 사냥으로 실제 얻은 경험치\(억\)/);
   assert.match(html, /value="flame" selected=""/);
@@ -200,7 +202,7 @@ test("보스 프리셋과 사냥터 선택이 화면에 연결돼 있다", async
   assert.match(planner, /교환권 1장<\/b> = Lv\./);
   // 입력 방식과 가정이 숨지 않는다.
   assert.match(planner, />다음 목표 직접 입력</);
-  assert.match(planner, />지정 당시 상태로 추정</);
+  assert.match(planner, />지정할 때의 레벨로 입력</);
   assert.doesNotMatch(planner, /\(정확\)/, "추정 모형을 정확하다고 쓰지 않는다");
   assert.match(planner, /주간 사냥 시간/);
   assert.match(planner, /compareAlloc\(input, ctx\)/);

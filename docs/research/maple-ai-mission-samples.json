@@ -1,0 +1,946 @@
+{
+  "fetchedAt": "2026-10-10",
+  "source": "https://maple.ai.kr/_next/static/chunks/eddec45464324ed0.js",
+  "samples": [
+    {
+      "source": "https://maple.ai.kr/_next/static/chunks/eddec45464324ed0.js",
+      "declaredStartLevel": 285,
+      "declaredStartPercent": 69.303,
+      "designationConfirmed": false,
+      "stages": [
+        {
+          "stage": 1,
+          "level": 285,
+          "percent": 80.628,
+          "rewardPercent": 2.053
+        },
+        {
+          "stage": 2,
+          "level": 285,
+          "percent": 91.953,
+          "rewardPercent": 2.053
+        },
+        {
+          "stage": 3,
+          "level": 286,
+          "percent": 3.012,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 4,
+          "level": 286,
+          "percent": 13.421,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 5,
+          "level": 286,
+          "percent": 23.83,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 6,
+          "level": 286,
+          "percent": 34.239,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 7,
+          "level": 286,
+          "percent": 44.648,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 8,
+          "level": 286,
+          "percent": 55.057,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 9,
+          "level": 286,
+          "percent": 65.466,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 10,
+          "level": 286,
+          "percent": 75.875,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 11,
+          "level": 286,
+          "percent": 86.284,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 12,
+          "level": 286,
+          "percent": 96.693,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 13,
+          "level": 287,
+          "percent": 6.536,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 14,
+          "level": 287,
+          "percent": 16.116,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 15,
+          "level": 287,
+          "percent": 25.696,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 16,
+          "level": 287,
+          "percent": 35.276,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 17,
+          "level": 287,
+          "percent": 44.855,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 18,
+          "level": 287,
+          "percent": 54.435,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 19,
+          "level": 287,
+          "percent": 64.014,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 20,
+          "level": 287,
+          "percent": 73.594,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 21,
+          "level": 287,
+          "percent": 83.174,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 22,
+          "level": 287,
+          "percent": 92.753,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 23,
+          "level": 288,
+          "percent": 2.147,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 24,
+          "level": 288,
+          "percent": 10.962,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 25,
+          "level": 288,
+          "percent": 19.778,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 26,
+          "level": 288,
+          "percent": 28.594,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 27,
+          "level": 288,
+          "percent": 37.409,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 28,
+          "level": 288,
+          "percent": 46.225,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 29,
+          "level": 288,
+          "percent": 55.04,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 30,
+          "level": 288,
+          "percent": 63.856,
+          "rewardPercent": 1.601
+        }
+      ]
+    },
+    {
+      "source": "https://maple.ai.kr/_next/static/chunks/eddec45464324ed0.js",
+      "declaredStartLevel": 286,
+      "declaredStartPercent": 26.617,
+      "designationConfirmed": false,
+      "stages": [
+        {
+          "stage": 1,
+          "level": 286,
+          "percent": 10.472,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 2,
+          "level": 286,
+          "percent": 20.881,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 3,
+          "level": 286,
+          "percent": 31.29,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 4,
+          "level": 286,
+          "percent": 41.699,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 5,
+          "level": 286,
+          "percent": 52.108,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 6,
+          "level": 286,
+          "percent": 62.517,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 7,
+          "level": 286,
+          "percent": 72.926,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 8,
+          "level": 286,
+          "percent": 83.335,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 9,
+          "level": 286,
+          "percent": 93.744,
+          "rewardPercent": 1.888
+        },
+        {
+          "stage": 10,
+          "level": 287,
+          "percent": 3.822,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 11,
+          "level": 287,
+          "percent": 13.402,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 12,
+          "level": 287,
+          "percent": 22.981,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 13,
+          "level": 287,
+          "percent": 32.561,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 14,
+          "level": 287,
+          "percent": 42.141,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 15,
+          "level": 287,
+          "percent": 51.72,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 16,
+          "level": 287,
+          "percent": 61.3,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 17,
+          "level": 287,
+          "percent": 70.88,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 18,
+          "level": 287,
+          "percent": 80.459,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 19,
+          "level": 287,
+          "percent": 90.039,
+          "rewardPercent": 1.739
+        },
+        {
+          "stage": 20,
+          "level": 287,
+          "percent": 99.618,
+          "rewardPercent": 1.756
+        },
+        {
+          "stage": 21,
+          "level": 288,
+          "percent": 8.464,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 22,
+          "level": 288,
+          "percent": 17.28,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 23,
+          "level": 288,
+          "percent": 26.096,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 24,
+          "level": 288,
+          "percent": 34.911,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 25,
+          "level": 288,
+          "percent": 43.727,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 26,
+          "level": 288,
+          "percent": 52.542,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 27,
+          "level": 288,
+          "percent": 61.358,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 28,
+          "level": 288,
+          "percent": 70.174,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 29,
+          "level": 288,
+          "percent": 78.989,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 30,
+          "level": 288,
+          "percent": 87.805,
+          "rewardPercent": 1.601
+        }
+      ]
+    },
+    {
+      "source": "https://maple.ai.kr/_next/static/chunks/eddec45464324ed0.js",
+      "declaredStartLevel": 288,
+      "declaredStartPercent": 72.212,
+      "designationConfirmed": false,
+      "stages": [
+        {
+          "stage": 1,
+          "level": 288,
+          "percent": 72.212,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 2,
+          "level": 288,
+          "percent": 81.028,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 3,
+          "level": 288,
+          "percent": 89.844,
+          "rewardPercent": 1.601
+        },
+        {
+          "stage": 4,
+          "level": 288,
+          "percent": 98.659,
+          "rewardPercent": 1.604
+        },
+        {
+          "stage": 5,
+          "level": 289,
+          "percent": 6.869,
+          "rewardPercent": 1.472
+        },
+        {
+          "stage": 6,
+          "level": 289,
+          "percent": 14.97,
+          "rewardPercent": 1.472
+        },
+        {
+          "stage": 7,
+          "level": 289,
+          "percent": 23.071,
+          "rewardPercent": 1.472
+        },
+        {
+          "stage": 8,
+          "level": 289,
+          "percent": 31.172,
+          "rewardPercent": 1.472
+        },
+        {
+          "stage": 9,
+          "level": 289,
+          "percent": 39.272,
+          "rewardPercent": 1.472
+        },
+        {
+          "stage": 10,
+          "level": 289,
+          "percent": 47.373,
+          "rewardPercent": 1.472
+        },
+        {
+          "stage": 11,
+          "level": 289,
+          "percent": 55.474,
+          "rewardPercent": 1.472
+        },
+        {
+          "stage": 12,
+          "level": 289,
+          "percent": 63.575,
+          "rewardPercent": 1.472
+        },
+        {
+          "stage": 13,
+          "level": 289,
+          "percent": 71.676,
+          "rewardPercent": 1.472
+        },
+        {
+          "stage": 14,
+          "level": 289,
+          "percent": 79.777,
+          "rewardPercent": 1.472
+        },
+        {
+          "stage": 15,
+          "level": 289,
+          "percent": 87.878,
+          "rewardPercent": 1.472
+        },
+        {
+          "stage": 16,
+          "level": 289,
+          "percent": 95.979,
+          "rewardPercent": 1.472
+        },
+        {
+          "stage": 17,
+          "level": 290,
+          "percent": 2.52,
+          "rewardPercent": 0.819
+        },
+        {
+          "stage": 18,
+          "level": 290,
+          "percent": 7.525,
+          "rewardPercent": 0.819
+        },
+        {
+          "stage": 19,
+          "level": 290,
+          "percent": 12.529,
+          "rewardPercent": 0.819
+        },
+        {
+          "stage": 20,
+          "level": 290,
+          "percent": 17.534,
+          "rewardPercent": 0.819
+        },
+        {
+          "stage": 21,
+          "level": 290,
+          "percent": 22.538,
+          "rewardPercent": 0.819
+        },
+        {
+          "stage": 22,
+          "level": 290,
+          "percent": 27.543,
+          "rewardPercent": 0.819
+        },
+        {
+          "stage": 23,
+          "level": 290,
+          "percent": 32.547,
+          "rewardPercent": 0.819
+        },
+        {
+          "stage": 24,
+          "level": 290,
+          "percent": 37.552,
+          "rewardPercent": 0.819
+        },
+        {
+          "stage": 25,
+          "level": 290,
+          "percent": 42.556,
+          "rewardPercent": 0.819
+        },
+        {
+          "stage": 26,
+          "level": 290,
+          "percent": 47.561,
+          "rewardPercent": 0.819
+        },
+        {
+          "stage": 27,
+          "level": 290,
+          "percent": 52.565,
+          "rewardPercent": 0.819
+        },
+        {
+          "stage": 28,
+          "level": 290,
+          "percent": 57.57,
+          "rewardPercent": 0.819
+        },
+        {
+          "stage": 29,
+          "level": 290,
+          "percent": 62.574,
+          "rewardPercent": 0.819
+        },
+        {
+          "stage": 30,
+          "level": 290,
+          "percent": 67.579,
+          "rewardPercent": 0.819
+        }
+      ]
+    },
+    {
+      "source": "https://maple.ai.kr/_next/static/chunks/eddec45464324ed0.js",
+      "declaredStartLevel": 290,
+      "declaredStartPercent": 85.386,
+      "designationConfirmed": false,
+      "stages": [
+        {
+          "stage": 1,
+          "level": 290,
+          "percent": 87.8,
+          "rewardPercent": 0.819
+        },
+        {
+          "stage": 2,
+          "level": 290,
+          "percent": 91.978,
+          "rewardPercent": 0.819
+        },
+        {
+          "stage": 3,
+          "level": 290,
+          "percent": 96.156,
+          "rewardPercent": 0.819
+        },
+        {
+          "stage": 4,
+          "level": 291,
+          "percent": 0.368,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 5,
+          "level": 291,
+          "percent": 4.964,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 6,
+          "level": 291,
+          "percent": 9.56,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 7,
+          "level": 291,
+          "percent": 14.156,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 8,
+          "level": 291,
+          "percent": 18.752,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 9,
+          "level": 291,
+          "percent": 23.349,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 10,
+          "level": 291,
+          "percent": 27.945,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 11,
+          "level": 291,
+          "percent": 32.541,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 12,
+          "level": 291,
+          "percent": 37.138,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 13,
+          "level": 291,
+          "percent": 41.734,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 14,
+          "level": 291,
+          "percent": 46.33,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 15,
+          "level": 291,
+          "percent": 50.927,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 16,
+          "level": 291,
+          "percent": 55.523,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 17,
+          "level": 291,
+          "percent": 60.119,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 18,
+          "level": 291,
+          "percent": 64.715,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 19,
+          "level": 291,
+          "percent": 69.312,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 20,
+          "level": 291,
+          "percent": 73.908,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 21,
+          "level": 291,
+          "percent": 78.504,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 22,
+          "level": 291,
+          "percent": 83.101,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 23,
+          "level": 291,
+          "percent": 87.697,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 24,
+          "level": 291,
+          "percent": 92.293,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 25,
+          "level": 291,
+          "percent": 96.89,
+          "rewardPercent": 0.753
+        },
+        {
+          "stage": 26,
+          "level": 292,
+          "percent": 1.367,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 27,
+          "level": 292,
+          "percent": 5.593,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 28,
+          "level": 292,
+          "percent": 9.82,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 29,
+          "level": 292,
+          "percent": 14.047,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 30,
+          "level": 292,
+          "percent": 18.273,
+          "rewardPercent": 0.693
+        }
+      ]
+    },
+    {
+      "source": "https://maple.ai.kr/_next/static/chunks/eddec45464324ed0.js",
+      "declaredStartLevel": 292,
+      "declaredStartPercent": 15.327,
+      "designationConfirmed": false,
+      "stages": [
+        {
+          "stage": 1,
+          "level": 292,
+          "percent": 8.878,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 2,
+          "level": 292,
+          "percent": 13.105,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 3,
+          "level": 292,
+          "percent": 17.332,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 4,
+          "level": 292,
+          "percent": 21.559,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 5,
+          "level": 292,
+          "percent": 25.785,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 6,
+          "level": 292,
+          "percent": 30.012,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 7,
+          "level": 292,
+          "percent": 34.239,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 8,
+          "level": 292,
+          "percent": 38.465,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 9,
+          "level": 292,
+          "percent": 42.692,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 10,
+          "level": 292,
+          "percent": 46.919,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 11,
+          "level": 292,
+          "percent": 51.145,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 12,
+          "level": 292,
+          "percent": 55.372,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 13,
+          "level": 292,
+          "percent": 59.599,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 14,
+          "level": 292,
+          "percent": 63.825,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 15,
+          "level": 292,
+          "percent": 68.052,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 16,
+          "level": 292,
+          "percent": 72.279,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 17,
+          "level": 292,
+          "percent": 76.505,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 18,
+          "level": 292,
+          "percent": 80.732,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 19,
+          "level": 292,
+          "percent": 84.959,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 20,
+          "level": 292,
+          "percent": 89.185,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 21,
+          "level": 292,
+          "percent": 93.412,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 22,
+          "level": 292,
+          "percent": 97.639,
+          "rewardPercent": 0.693
+        },
+        {
+          "stage": 23,
+          "level": 293,
+          "percent": 1.715,
+          "rewardPercent": 0.638
+        },
+        {
+          "stage": 24,
+          "level": 293,
+          "percent": 5.602,
+          "rewardPercent": 0.638
+        },
+        {
+          "stage": 25,
+          "level": 293,
+          "percent": 9.488,
+          "rewardPercent": 0.638
+        },
+        {
+          "stage": 26,
+          "level": 293,
+          "percent": 13.375,
+          "rewardPercent": 0.638
+        },
+        {
+          "stage": 27,
+          "level": 293,
+          "percent": 17.261,
+          "rewardPercent": 0.638
+        },
+        {
+          "stage": 28,
+          "level": 293,
+          "percent": 21.148,
+          "rewardPercent": 0.638
+        },
+        {
+          "stage": 29,
+          "level": 293,
+          "percent": 25.034,
+          "rewardPercent": 0.638
+        },
+        {
+          "stage": 30,
+          "level": 293,
+          "percent": 28.921,
+          "rewardPercent": 0.638
+        }
+      ]
+    }
+  ]
+}

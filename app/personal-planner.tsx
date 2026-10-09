@@ -11,6 +11,7 @@ import {
   bossListWeeklyRaw,
   bossPreset,
   bossRaw,
+  buildMissionTable,
   COINS_PER_STEP,
   compareAlloc,
   epicBonusStage1Info,
@@ -252,14 +253,28 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
       {input.personal.designated ? <>
         <div className="pb-choice" role="group" aria-label="단계표 입력 방식">
           <button type="button" className={input.personal.mission.mode === "screen" ? "on" : ""} onClick={() => upd((draft: MainInput) => { draft.personal.mission.mode = "screen"; })}>다음 목표 직접 입력</button>
-          <button type="button" className={input.personal.mission.mode === "model" ? "on" : ""} onClick={() => upd((draft: MainInput) => { draft.personal.mission.mode = "model"; })}>지정 당시 상태로 추정</button>
+          <button type="button" className={input.personal.mission.mode === "model" ? "on" : ""} onClick={() => upd((draft: MainInput) => { draft.personal.mission.mode = "model"; })}>지정할 때의 레벨로 입력</button>
         </div>
-        {input.personal.mission.mode === "screen" ? <div className="field-grid compact">
+        {input.personal.mission.mode === "screen" ? <><div className="field-grid compact">
           <NumField label="통과한 단계 수" value={input.personal.mission.stepsDone} min={0} max={30} step={1} onChange={value => upd((draft: MainInput) => { draft.personal.mission.stepsDone = value; })} hint="남은 단계 개수만 정합니다. 목표 위치는 아래 다음 목표로 정해집니다" />
           <NumField label="다음 단계 보상 %" value={input.personal.mission.nextRewardPct} min={0} step={0.001} onChange={value => upd((draft: MainInput) => { draft.personal.mission.nextRewardPct = value; })} hint="화면의 경험치 보상 %" />
           <NumField label="다음 단계 목표 레벨" value={input.personal.mission.nextTarget.level} min={280} max={295} step={1} onChange={value => upd((draft: MainInput) => { draft.personal.mission.nextTarget.level = value; })} />
           <NumField label="다음 단계 목표 %" value={input.personal.mission.nextTarget.exp} min={0} max={99.999} step={0.001} onChange={value => upd((draft: MainInput) => { draft.personal.mission.nextTarget.exp = value; })} />
-        </div> : <div className="field-grid compact">
+        </div>
+        {input.personal.mission.stepsDone < 29 && <details className="pb-more"><summary>그다음 목표도 넣기</summary>
+          <Check label="두 목표의 간격으로 계산" checked={Boolean(input.personal.mission.intervalEnabled)} onChange={value => upd((draft: MainInput) => {
+            if (value && !draft.personal.mission.secondTarget) {
+              const second = buildMissionTable({ ...draft.personal.mission, intervalEnabled: false }, ctx).steps[1];
+              if (second) draft.personal.mission.secondTarget = { level: second.level, exp: second.exp };
+            }
+            draft.personal.mission.intervalEnabled = value;
+          })} />
+          <div className="field-grid compact">
+            <NumField label="그다음 목표 레벨" value={input.personal.mission.secondTarget?.level ?? input.personal.mission.nextTarget.level} min={280} max={295} step={1} onChange={value => upd((draft: MainInput) => { draft.personal.mission.secondTarget = { level: value, exp: draft.personal.mission.secondTarget?.exp ?? 0 }; })} />
+            <NumField label="그다음 목표 %" value={input.personal.mission.secondTarget?.exp ?? 0} min={0} max={99.999} step={0.001} onChange={value => upd((draft: MainInput) => { draft.personal.mission.secondTarget = { level: draft.personal.mission.secondTarget?.level ?? draft.personal.mission.nextTarget.level, exp: value }; })} />
+          </div>
+          <p className="pb-note">두 목표 사이의 경험치를 마지막 단계까지 반복합니다.</p>
+        </details>}</> : <div className="field-grid compact">
           <NumField label="통과한 단계 수" value={input.personal.mission.stepsDone} min={0} max={30} step={1} onChange={value => upd((draft: MainInput) => { draft.personal.mission.stepsDone = value; })} />
           <NumField label="지정 당시 레벨" value={input.personal.mission.designLevel} min={280} max={295} step={1} onChange={value => upd((draft: MainInput) => { draft.personal.mission.designLevel = value; })} />
           <NumField label="지정 당시 경험치 %" value={input.personal.mission.designExp} min={0} max={99.999} step={0.001} onChange={value => upd((draft: MainInput) => { draft.personal.mission.designExp = value; })} />
