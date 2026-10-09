@@ -267,10 +267,8 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
       </> : <div className="field-grid compact">
         <label className="field"><span>지정 예정일</span><input type="date" value={input.personal.designDate} min={input.start} max={MAIN_SCHEDULE.personalEnd} onChange={event => event.target.value && upd((draft: MainInput) => { draft.personal.designDate = event.target.value; })} /></label>
       </div>}
-      {startLevel >= 290 && <p className="pb-note">290레벨부터는 예상 목표가 게임 화면과 조금 다를 수 있어요. 294레벨은 확인된 목표가 아직 없어요.</p>}
       </div>
       <div className="pb-pane" role="tabpanel" id="pb-pane-s2" aria-labelledby="pb-tab-s2" hidden={sec !== "s2"}>
-      <p className="pb-note">PLUS는 매주 2,500포인트를 채운 기준으로 계산해요.</p>
       <div className="pb-checks"><Check label="PLUS 참여 중 (10/21까지)" checked={input.plus.enabled} onChange={value => upd((draft: MainInput) => { draft.plus.enabled = value; })} /></div>
       <div className="field-grid compact">
         <label className="field"><span>보유 등급</span><select value={input.plus.tier} disabled={!input.plus.enabled} onChange={event => upd((draft: MainInput) => { draft.plus.tier = event.target.value as Tier; })}><option value="free">무료</option><option value="premium">프리미엄</option><option value="prime">프라임</option></select></label>
