@@ -15,13 +15,13 @@ const LEVEL_MIN = 260;
 const LEVEL_MAX = 295;
 
 const ROWS: { type: CustomRewardType; mark: string; iconSrc: string; label: string; unit: string; sampleAmount: number; sampleUnit: string }[] = [
-  { type: "crimson", mark: "CR", iconSrc: "", label: "크림슨 메카베리 농장", unit: "개", sampleAmount: 1, sampleUnit: "1개" },
+  { type: "crimson", mark: "CR", iconSrc: "/efficiency-icons/crimson-mekaberry.png", label: "크림슨 메카베리 농장", unit: "개", sampleAmount: 1, sampleUnit: "1개" },
   { type: "mech", mark: "ME", iconSrc: "/efficiency-icons/mekaberry.png", label: "메카베리 농장", unit: "개", sampleAmount: 1, sampleUnit: "1개" },
   { type: "blue", mark: "BL", iconSrc: "/efficiency-icons/blueberry.png", label: "블루베리 농장", unit: "개", sampleAmount: 1, sampleUnit: "1개" },
-  { type: "potion279", mark: "비약", iconSrc: "", label: "전설 성장의 비약", unit: "개", sampleAmount: 1, sampleUnit: "1개" },
-  { type: "potion269", mark: "비약", iconSrc: "", label: "성장의 비약 (200~269)", unit: "개", sampleAmount: 1, sampleUnit: "1개" },
+  { type: "potion279", mark: "비약", iconSrc: "/efficiency-icons/growth-potion-279.png", label: "성장의 비약 (200~279)", unit: "개", sampleAmount: 1, sampleUnit: "1개" },
+  { type: "potion269", mark: "비약", iconSrc: "/efficiency-icons/growth-potion-269.png", label: "성장의 비약 (200~269)", unit: "개", sampleAmount: 1, sampleUnit: "1개" },
   { type: "sauna", mark: "VIP", iconSrc: "/efficiency-icons/vip-sauna.png", label: "VIP 사우나", unit: "시간", sampleAmount: 1, sampleUnit: "1시간" },
-  { type: "adv", mark: "EXP", iconSrc: "", label: "상급 EXP 교환권", unit: "장", sampleAmount: 1000, sampleUnit: "1,000장" },
+  { type: "adv", mark: "EXP", iconSrc: "/efficiency-icons/adv-exp-coupon.png", label: "상급 EXP 교환권", unit: "장", sampleAmount: 1000, sampleUnit: "1,000장" },
 ];
 
 const clampLevel = (value: number) => Math.max(LEVEL_MIN, Math.min(LEVEL_MAX, Math.round(Number.isFinite(value) ? value : LEVEL_MIN)));

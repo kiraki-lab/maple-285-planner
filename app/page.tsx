@@ -28,7 +28,6 @@ export default function Home() {
     <section className="hero pb-hero" id="top">
       <div className="eyebrow"><span /> MAIN SERVER · PERSONAL BURNING</div>
       <h1>퍼스널 버닝, 언제 어디까지?</h1>
-      <p>지정한 캐릭터의 성장 미션, 플레임, 교환권, 보스 미션과 모멘텀 PLUS를 한 타임라인에 올려 11월 18일 마감 위치와 단계별 도달일을 계산합니다.</p>
     </section>
 
     <nav className="view-tabs" role="tablist" aria-label="계산기 화면 선택">
@@ -39,6 +38,6 @@ export default function Home() {
     {activeTab === "items" && <ItemsPanel state={state} goPersonal={() => setActiveTab("personal")} />}
     {activeTab === "reference" && <ReferencePanel />}
 
-    <footer><div className="brand"><span className="brand-mark">M</span><span>PERSONAL BURNING PLANNER</span></div><p>경험치 기준 · 하루1소재 · 메이플로드 · 넥슨 공식 공지(update-813) · 2026.10.04 확인</p><div className="source-links"><a href="https://haru1sojae.kr/table" target="_blank" rel="noreferrer">하루1소재</a><a href="https://mapleroad.kr/utils/exp_calculator" target="_blank" rel="noreferrer">메이플로드</a><a href="https://maplestory.nexon.com/news/update/813" target="_blank" rel="noreferrer">본섭 업데이트 공지</a></div></footer>
+    <footer><div className="brand"><span className="brand-mark">M</span><span>PERSONAL BURNING PLANNER</span></div></footer>
   </main>;
 }

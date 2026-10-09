@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import test from "node:test";
 
 const root = new URL("../", import.meta.url);
@@ -36,15 +36,18 @@ test("저장 입력은 PLUS 수량을 출석분으로 복제하지 않고 비약
   assert.equal(fresh.routine.huntMeasuredEokPer30Min, 1000);
 });
 
-test("실제 서버 화면에서 출석 입력은 접히고 배분·주차 결과만 처음 펼쳐진다", async () => {
+test("실제 서버 화면에서 입력과 결과는 버튼으로 한 묶음씩만 보인다", async () => {
   const html = await renderBuiltSsrHtml("reward-sections");
-  // JSX 문자열이 아니라 실제 details의 open 속성을 검사한다.
-  const sections = [...html.matchAll(/<details([^>]*)>\s*<summary[^>]*>([^<]*)/g)].map(m => ({ open: /\bopen(?:\s|=|$)/.test(m[1]), title: m[2] }));
-  const find = title => { const section = sections.find(row => row.title === title); assert.ok(section, title); return section; };
-  assert.equal(find("남은 출석·보유 보상").open, false);
-  assert.equal(find("커스텀 포인트 배분").open, true);
-  assert.equal(find("주차별 진행").open, true);
-  for (const title of ["시점 비교", "성장 미션 단계표", "경험치 내역", "이 계산이 기대는 가정"]) assert.equal(find(title).open, false, title);
+  // 실제 HTML의 hidden 속성을 검사한다: 입력은 첫 묶음, 결과는 포인트 배분만 처음에 보인다.
+  const panes = [...html.matchAll(/<div class="(pb-pane|pb-result-section)" role="tabpanel"([^>]*)>/g)].map(m => ({ kind: m[1], hidden: /\bhidden/.test(m[2]) }));
+  const inputs = panes.filter(row => row.kind === "pb-pane");
+  const results = panes.filter(row => row.kind === "pb-result-section");
+  assert.equal(inputs.length, 8);
+  assert.deepEqual(inputs.map(row => row.hidden), [false, true, true, true, true, true, true, true]);
+  assert.equal(results.filter(row => !row.hidden).length, 1);
+  for (const label of ["캐릭터", "성장 미션", "패스", "보유 보상", "보스", "일과·사냥", "플레임", "사용 시점", "포인트 배분", "주차별", "단계표", "경험치 내역"]) assert.ok(html.includes(`<b>${label}</b>`), label);
+  assert.doesNotMatch(html, /이 계산이 기대는 가정/);
+  assert.doesNotMatch(html, /경험치 기준 · 하루1소재/);
   assert.match(html, /앞으로 받을 코인/);
   assert.match(html, /플레임에서 받을 조각/);
   assert.match(html, /출석 보상 전부 넣기/);
@@ -93,7 +96,6 @@ test("서버 렌더 첫 화면은 퍼스널 버닝 탭이고 고정 날짜로 �
   assert.match(html, /성장 미션/);
   assert.match(html, /가장 센 보스/);
   assert.match(html, /사냥터/);
-  assert.match(html, /이 계산이 기대는 가정/);
 });
 
 test("입력은 이 브라우저에 저장하고, 저장소를 못 써도 계산은 된다", async () => {
@@ -200,11 +202,7 @@ test("보스 프리셋과 사냥터 선택이 화면에 연결돼 있다", async
   assert.match(planner, />다음 목표 직접 입력</);
   assert.match(planner, />지정 당시 상태로 추정</);
   assert.doesNotMatch(planner, /\(정확\)/, "추정 모형을 정확하다고 쓰지 않는다");
-  assert.match(planner, /본섭 두 캐릭터\(286·287레벨 지정\)의 30단계 목표가 0\.01%p 안쪽으로 맞습니다/);
-  assert.match(planner, /몬스터 기본 경험치 × 502,828\.8/);
-  assert.match(planner, /모멘텀 PLUS는 이벤트 시작부터 주 2,500포인트를 모두 채웠다고/);
   assert.match(planner, /주간 사냥 시간/);
-  assert.match(planner, /커스텀 포인트 배분/);
   assert.match(planner, /compareAlloc\(input, ctx\)/);
   assert.match(planner, /이 배분으로/);
   assert.match(planner, /추천: 갈 수 있는 지역의 가장 높은 몬스터/);
@@ -213,12 +211,9 @@ test("보스 프리셋과 사냥터 선택이 화면에 연결돼 있다", async
   assert.match(planner, /사냥 추가 경험치 %/);
   assert.match(planner, /몬스터파크 추가 경험치 %/);
   assert.match(planner, /에픽 던전 추가 경험치 %/);
-  assert.match(planner, /PLUS의 경험치 4배 쿠폰\(30분, 순수 사냥 경험치의 3배가 더 붙음\)과 VIP 부스터/);
   assert.match(planner, /hunt: "사냥", coupon4x: "경험치 4배 쿠폰\(PLUS\)", booster: "VIP 부스터\(PLUS\)"/);
   assert.match(planner, /주간 컨텐츠 직접 입력 %/);
   assert.match(planner, /이미 완료/);
-  assert.match(planner, /나머지 30개는 화면과 대조하지 못했습니다/);
-  assert.match(planner, /하루1소재에 플레임 계산식은 없습니다/);
 });
 
 test("스타일이 퍼스널 화면 부품을 모두 갖고 좁은 화면에서 한 줄로 쌓인다", async () => {
@@ -235,7 +230,8 @@ test("아이템 환산 탭은 퍼스널 탭 입력을 쓰고 이동 버튼을 �
   assert.match(items, /퍼스널 탭 현재값 불러오기/);
   assert.match(items, /simulateItemInventoryConversion\(\{ level, exp, inventory \}\)/);
   assert.match(items, /assetUrl\(row\.iconSrc\)/);
-  assert.match(items, /type: "potion279", mark: "비약", iconSrc: ""/);
+  assert.ok(items.includes('type: "potion279", mark: "비약", iconSrc: "/efficiency-icons/growth-potion-279.png"'));
+  for (const icon of ["crimson-mekaberry", "growth-potion-269", "growth-potion-279", "adv-exp-coupon"]) assert.ok((await stat(new URL(`../public/efficiency-icons/${icon}.png`, import.meta.url))).size > 300, icon);
   assert.match(items, /goPersonal/);
 });
 
