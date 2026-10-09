@@ -55,6 +55,14 @@ const dow = (key: string) => "일월화수목금토"[new Date(`${key}T00:00:00Z`
 
 // 보스 상한 고르기용: 솔로 경험치가 큰 순서.
 const BOSS_LADDER = [...PERSONAL_BOSS_TABLE].sort((a, b) => b.unitExp - a.unitExp);
+type BossRow = (typeof PERSONAL_BOSS_TABLE)[number];
+// 보스 이름별로 묶고(난이도는 쉬운 순), 가장 쉬운 난이도의 경험치가 낮은 보스부터 늘어놓는다.
+const BOSS_GROUPS: { boss: string; entries: BossRow[] }[] = (() => {
+  const map = new Map<string, BossRow[]>();
+  [...PERSONAL_BOSS_TABLE].sort((a, b) => a.unitExp - b.unitExp).forEach(entry => { map.set(entry.boss, [...(map.get(entry.boss) || []), entry]); });
+  return [...map.entries()].map(([boss, entries]) => ({ boss, entries }));
+})();
+const DIFFICULTY_CLASS: Record<string, string> = { 이지: "easy", 노멀: "normal", 하드: "hard", 카오스: "chaos", 익스트림: "extreme" };
 // 사냥터 고르기용 몬스터 목록(지역 → 몬스터).
 const FIELD_OPTIONS = HUNTING_FIELDS.map((field, index) => ({ key: `${index}`, region: field.region, label: `${field.monster} · Lv.${field.level} · ${field.maps.slice(0, 2).join(", ")}${field.maps.length > 2 ? " 외" : ""}`, level: field.level }));
 const FIELD_REGIONS = [...new Set(HUNTING_FIELDS.map(field => field.region))];
@@ -82,8 +90,6 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
   const [couponPlan, setCouponPlan] = useState<"auto" | "now" | "end">("auto");
   const [bossCutoff, setBossCutoff] = useState("");
   const [bossParty, setBossParty] = useState<"solo" | "max">("solo");
-  const [bossAdd, setBossAdd] = useState(BOSS_LADDER[0].id);
-  const [communityPreset, setCommunityPreset] = useState("minimum");
 
   const analysis = useMemo(() => analyzeMain(input, ctx), [input, ctx]);
   const chosen = useMemo(() => {
@@ -200,15 +206,20 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
   const couponRows = ["now", "end"].map(policy => bestOf(option => option.couponPolicy === policy));
   const hasCrimson = analysis.options.some((option: { result: Result }) => option.result.items.crimsonUsed > 0);
 
-  const applyCommunityPreset = () => { if (communityPreset) upd((draft: MainInput) => { draft.personal.bosses = bossCommunityPreset(communityPreset, bossParty); }); };
+  const applyCommunityPreset = (presetId: string) => upd((draft: MainInput) => { draft.personal.bosses = bossCommunityPreset(presetId, bossParty); });
   const applyBossPreset = () => { if (bossCutoff) upd((draft: MainInput) => { draft.personal.bosses = bossPreset({ cutoffId: bossCutoff, partyMode: bossParty }); }); };
-  const addBoss = () => upd((draft: MainInput) => {
-    const entry = bossEntry(bossAdd);
-    if (!entry) return;
-    // 같은 보스는 난이도 하나만 둔다.
-    draft.personal.bosses = draft.personal.bosses.filter((boss: { id: string }) => bossEntry(boss.id)?.boss !== entry.boss);
-    draft.personal.bosses.push({ id: entry.id, party: 1, doneThisWeek: false });
+  // 보스마다 한 줄: 난이도를 누르면 고르고, 같은 난이도를 다시 누르면 뺀다. 같은 보스는 난이도 하나만.
+  const toggleBoss = (entry: BossRow) => upd((draft: MainInput) => {
+    const list = draft.personal.bosses as { id: string; party: number; doneThisWeek: boolean }[];
+    const index = list.findIndex(boss => bossEntry(boss.id)?.boss === entry.boss);
+    if (index >= 0 && list[index].id === entry.id) list.splice(index, 1);
+    else if (index >= 0) { list[index].id = entry.id; list[index].party = Math.min(list[index].party, entry.maxParty); }
+    else if (list.length < WEEKLY_BOSS_LIMIT) list.push({ id: entry.id, party: bossParty === "max" ? entry.maxParty : 1, doneThisWeek: false });
   });
+  const setAllParty = (mode: "solo" | "max") => { setBossParty(mode); upd((draft: MainInput) => { draft.personal.bosses.forEach((boss: { id: string; party: number }) => { boss.party = mode === "max" ? (bossEntry(boss.id)?.maxParty ?? 1) : 1; }); }); };
+  const bossIdSet = new Set(bosses.map(boss => boss.id));
+  const activePreset = BOSS_COMMUNITY_PRESETS.find(preset => preset.ids.length === bossIdSet.size && preset.ids.every((id: string) => bossIdSet.has(id)));
+  const bossFull = bosses.length >= WEEKLY_BOSS_LIMIT;
 
   return <section className="calculator-shell pb-shell tab-panel" id="personal-panel" role="tabpanel" aria-labelledby="personal-tab">
     <aside className="controls pb-controls">
@@ -217,15 +228,17 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
       <p className="pb-note">처음에는 본섭 287레벨 사례의 예시값이 들어 있습니다. 내 값으로 바꾸면 이 브라우저에 저장됩니다.</p>
       {stale && <div className="callout-mini" role="status">입력 기준일이 {md(input.start)}입니다. 오늘({md(today)}) 값으로 레벨·경험치·남은 플레임을 다시 넣고 기준일을 오늘로 맞추면 정확합니다. <button type="button" className="pb-link" onClick={() => upd((draft: MainInput) => { draft.start = today; })}>기준일을 오늘로</button></div>}
 
-      <h3 className="pb-group">내 캐릭터</h3>
+      <details className="pb-sec" open>
+        <summary>내 캐릭터<span>{`Lv.${startLevel} ${input.exp}%`}</span></summary>
       <div className="field-grid compact">
         <label className="field"><span>기준일</span><input type="date" value={input.start} min={MAIN_SCHEDULE.personalStart} max={MAIN_SCHEDULE.personalEnd} onChange={event => event.target.value && upd((draft: MainInput) => { draft.start = event.target.value; })} /></label>
         <label className="field"><span>현재 레벨</span><select value={startLevel} onChange={event => upd((draft: MainInput) => { draft.level = Number(event.target.value); })}>{Array.from({ length: 16 }, (_, index) => index + 280).map(level => <option key={level}>{level}</option>)}</select></label>
         <NumField label="현재 경험치 %" value={input.exp} min={0} max={99.999} step={0.001} onChange={value => upd((draft: MainInput) => { draft.exp = value; })} />
       </div>
       {weekInfo.week > 0 && <p className="pb-note">기준일은 이벤트 <b>{weekInfo.week}주차</b>(전체 {weekInfo.total}주)입니다. 마감 11/18까지 {weekInfo.daysLeft}일, 플레임 충전은 {weekInfo.refillsLeft}번 남았습니다.</p>}
-
-      <h3 className="pb-group">퍼스널 성장 미션</h3>
+      </details>
+      <details className="pb-sec" open>
+        <summary>퍼스널 성장 미션<span>{input.personal.designated ? `${input.personal.mission.stepsDone}/30단계 통과` : "지정 전"}</span></summary>
       <div className="pb-choice" role="group" aria-label="지정 여부">
         <button type="button" className={input.personal.designated ? "on" : ""} onClick={() => upd((draft: MainInput) => { draft.personal.designated = true; })}>이미 지정했어요</button>
         <button type="button" className={!input.personal.designated ? "on" : ""} onClick={() => upd((draft: MainInput) => { draft.personal.designated = false; })}>아직 안 했어요</button>
@@ -248,8 +261,87 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
       </> : <div className="field-grid compact">
         <label className="field"><span>지정 예정일</span><input type="date" value={input.personal.designDate} min={input.start} max={MAIN_SCHEDULE.personalEnd} onChange={event => event.target.value && upd((draft: MainInput) => { draft.personal.designDate = event.target.value; })} /></label>
       </div>}
-
-      <h3 className="pb-group">플레임</h3>
+      </details>
+      <details className="pb-sec" open>
+        <summary>모멘텀 패스 PLUS · 보유 아이템<span>{input.plus.enabled ? ({ free: "무료", premium: "프리미엄", prime: "프라임" } as Record<string, string>)[input.plus.tier] : "참여 안 함"}</span></summary>
+      <div className="pb-checks"><Check label="PLUS 참여 중 (10/21까지)" checked={input.plus.enabled} onChange={value => upd((draft: MainInput) => { draft.plus.enabled = value; })} /></div>
+      <div className="field-grid compact">
+        <label className="field"><span>보유 등급</span><select value={input.plus.tier} disabled={!input.plus.enabled} onChange={event => upd((draft: MainInput) => { draft.plus.tier = event.target.value as Tier; })}><option value="free">무료</option><option value="premium">프리미엄</option><option value="prime">프라임</option></select></label>
+        <NumField label="수령한 PLUS 레벨" value={input.plus.claimedLevel} min={0} max={10} step={1} onChange={value => upd((draft: MainInput) => { draft.plus.claimedLevel = value; })} hint="0 = 아직 못 받음·모아 둠(기본) · 10 = 전부 받아 씀" />
+        <NumField label="크림슨 메카베리 농장" value={input.items.crimson} min={0} step={1} onChange={value => upd((draft: MainInput) => { draft.items.crimson = value; })} hint="장" />
+        <NumField label="상급 EXP 교환권" value={input.items.adv} min={0} step={100} onChange={value => upd((draft: MainInput) => { draft.items.adv = value; })} hint="장" />
+        <NumField label="VIP 사우나" value={input.items.sauna} min={0} step={0.5} onChange={value => upd((draft: MainInput) => { draft.items.sauna = value; })} hint="시간" />
+        <NumField label="메카베리 농장" value={input.items.mech} min={0} step={1} onChange={value => upd((draft: MainInput) => { draft.items.mech = value; })} hint="장" />
+        <NumField label="블루베리 농장" value={input.items.blue} min={0} step={1} onChange={value => upd((draft: MainInput) => { draft.items.blue = value; })} hint="장" />
+        <NumField label="전설 성장의 비약" value={input.items.potion279} min={0} step={1} onChange={value => upd((draft: MainInput) => { draft.items.potion279 = value; })} hint="개" />
+      </div>
+      </details>
+      <details className="pb-sec" open>
+        <summary>퍼스널 보스 미션<span>{`${Math.min(bosses.length, WEEKLY_BOSS_LIMIT)}/${WEEKLY_BOSS_LIMIT}마리 · 주 ${fmtJo(weeklyBossRaw, 2)}`}</span></summary>
+      <p className="pb-note">9/24부터 주 1회, 최대 {WEEKLY_BOSS_LIMIT}마리. 매주 잡는 보스의 난이도를 누르세요. 경험치는 받는 인원끼리 나눕니다.</p>
+      <div className="pb-chips" role="group" aria-label="자주 쓰는 보스 구성">
+        {BOSS_COMMUNITY_PRESETS.map(preset => <button type="button" key={preset.id} className={activePreset?.id === preset.id ? "on" : ""} title={preset.detail} onClick={() => applyCommunityPreset(preset.id)}>{preset.label}</button>)}
+        <button type="button" className="clear" onClick={() => upd((draft: MainInput) => { draft.personal.bosses = []; })}>전부 빼기</button>
+      </div>
+      {activePreset ? <p className="pb-note">{activePreset.label}: {activePreset.detail}</p> : null}
+      <div className="pb-choice" role="group" aria-label="파티원">
+        <button type="button" className={bossParty === "solo" ? "on" : ""} onClick={() => setAllParty("solo")}>전부 솔로</button>
+        <button type="button" className={bossParty === "max" ? "on" : ""} onClick={() => setAllParty("max")}>보스별 최대 인원</button>
+      </div>
+      <div className="pb-bossgrid">
+        {BOSS_GROUPS.map(group => {
+          const index = bosses.findIndex(boss => bossEntry(boss.id)?.boss === group.boss);
+          const picked = index >= 0 ? bosses[index] : null;
+          const pickedEntry = picked ? bossEntry(picked.id) : null;
+          return <div className={`pb-bossrow${picked ? " on" : ""}`} key={group.boss}>
+            <b className="pb-bossrow-name">{group.boss}</b>
+            <div className="pb-diffs">{group.entries.map(entry => <button type="button" key={entry.id} className={`pb-diff ${DIFFICULTY_CLASS[entry.difficulty] || ""}${picked?.id === entry.id ? " on" : ""}`} aria-pressed={picked?.id === entry.id} disabled={!picked && bossFull} title={`솔로 ${fmtJo(entry.unitExp * 10_000, 3)}`} onClick={() => toggleBoss(entry)}>{entry.difficulty}</button>)}</div>
+            {picked && pickedEntry ? <div className="pb-bossrow-detail">
+              <select aria-label={`${group.boss} 파티원`} value={picked.party} onChange={event => upd((draft: MainInput) => { draft.personal.bosses[index].party = Number(event.target.value); })}>{Array.from({ length: pickedEntry.maxParty }, (_, i) => i + 1).map(n => <option key={n} value={n}>{n}인</option>)}</select>
+              <span className="pb-bossrow-exp">{fmtJo(bossRaw(picked.id, picked.party), 3)}</span>
+              <label className="pb-bossrow-done"><input type="checkbox" checked={picked.doneThisWeek} onChange={event => upd((draft: MainInput) => { draft.personal.bosses[index].doneThisWeek = event.target.checked; })} />이번 주 잡음</label>
+            </div> : null}
+          </div>;
+        })}
+      </div>
+      <p className="pb-note pb-bosssum"><b>주간 합계 {fmtJo(weeklyBossRaw, 2)}</b> · Lv.{startLevel} 기준 {(weeklyBossRaw / ctx.reqRaw(startLevel) * 100).toFixed(2)}%p · {Math.min(bosses.length, WEEKLY_BOSS_LIMIT)}/{WEEKLY_BOSS_LIMIT}마리{bossFull ? " · 12마리를 다 채웠습니다. 바꾸려면 하나를 먼저 빼세요." : ""}</p>
+      <details className="pb-more">
+        <summary>가장 센 보스만 골라 한 번에 채우기</summary>
+        <div className="field-grid compact">
+          <label className="field"><span>보스 상한 (여기까지 잡음)</span>
+            <select value={bossCutoff} onChange={event => setBossCutoff(event.target.value)}>
+              <option value="">선택 안 함</option>
+              {BOSS_LADDER.map(entry => <option key={entry.id} value={entry.id}>{entry.boss} {entry.difficulty} · {fmtJo(entry.unitExp * 10_000, 2)}</option>)}
+            </select></label>
+        </div>
+        <button type="button" className="pb-add" disabled={!bossCutoff} onClick={applyBossPreset}>{bossCutoff ? `${bossLabel(bossCutoff)} 이하로 채우기` : "보스 상한을 고르면 채울 수 있어요"}</button>
+        <p className="pb-note">고른 보스 이하에서 보스마다 가장 센 난이도를 경험치 높은 순으로 {WEEKLY_BOSS_LIMIT}마리까지 채웁니다.</p>
+      </details>
+      </details>
+      <details className="pb-sec">
+        <summary>일과 · 사냥<span>{`몬파 ${input.routine.runsPerDay}판 · 에픽 ${input.routine.epic ? input.routine.epicMult : 0}배 · 사냥 주 ${input.routine.huntHoursPerWeek}시간`}</span></summary>
+      <div className="field-grid compact">
+        <NumField label="몬스터파크 하루 판수" value={input.routine.runsPerDay} min={0} max={7} step={1} onChange={value => upd((draft: MainInput) => { draft.routine.runsPerDay = value; })} hint="무료 2판. 이용권·메이플포인트로 하루 7판까지" />
+        <NumField label="일요일 판수" value={input.routine.sundayRuns} min={0} max={7} step={1} onChange={value => upd((draft: MainInput) => { draft.routine.sundayRuns = value; })} hint="일요일은 경험치 1.5배. 일요일만 7판 돌면 7" />
+        <label className="field"><span>에픽 던전 보상 배수</span><select value={input.routine.epicMult} onChange={event => upd((draft: MainInput) => { draft.routine.epicMult = Number(event.target.value); })}><option value={1}>1배 (보너스 없음)</option><option value={5}>5배 (EXP 1단계 · 흔히 4배, 기본 + 400% 추가)</option><option value={9}>9배 (EXP 2단계 · 흔히 8배)</option></select></label>
+        <NumField label="몬스터파크 추가 경험치 %" value={input.routine.argoMonsterPark} min={0} max={50} step={5} onChange={value => upd((draft: MainInput) => { draft.routine.argoMonsterPark = value; })} hint="아르고호의 가호 Lv1~6 = 5·10·20·30·40·50%. 익스트림 몬파에도 붙음" />
+        <NumField label="그란디스 일퀘 추가 경험치 %" value={input.routine.argoGrandis} min={0} max={50} step={5} onChange={value => upd((draft: MainInput) => { draft.routine.argoGrandis = value; })} hint="아르고호의 가호. Lv2 = 10%, 최대 50%" />
+        <NumField label="에픽 던전 추가 경험치 %" value={input.routine.epicBonus} min={0} max={200} step={5} onChange={value => upd((draft: MainInput) => { draft.routine.epicBonus = value; })} hint="따로 받는 추가 경험치가 있을 때만. 없으면 0" />
+        <NumField label="주간 사냥 시간" value={input.routine.huntHoursPerWeek} min={0} max={168} step={0.5} onChange={value => upd((draft: MainInput) => { draft.routine.huntHoursPerWeek = value; })} hint="시간. 위에서 고른 사냥터 기준. 0이면 사냥 없음" />
+        <NumField label="사냥 추가 경험치 %" value={input.routine.huntBonusPct} min={0} max={3000} step={10} onChange={value => upd((draft: MainInput) => { draft.routine.huntBonusPct = value; })} hint="룬·경험치 쿠폰·버프·가호 합계. 0이면 순수 경험치" />
+        <NumField label="하루 일과 직접 입력 %" value={input.routine.measuredPercentPerDay} min={0} step={0.01} onChange={value => upd((draft: MainInput) => { draft.routine.measuredPercentPerDay = value; })} hint="몬파·그란디스 대신 쓸 하루 값. 0이면 표" />
+        <NumField label="주간 컨텐츠 직접 입력 %" value={input.routine.weeklyMeasuredPercent} min={0} step={0.01} onChange={value => upd((draft: MainInput) => { draft.routine.weeklyMeasuredPercent = value; })} hint="익몬·에픽 던전 대신 쓸 주간 값. 0이면 표" />
+      </div>
+      <div className="pb-checks">
+        <Check label="그란디스 일퀘" checked={input.routine.grandis} onChange={value => upd((draft: MainInput) => { draft.routine.grandis = value; })} />
+        <Check label="익스트림 몬파(주간)" checked={input.routine.extreme} onChange={value => upd((draft: MainInput) => { draft.routine.extreme = value; })} />
+        <Check label="에픽 던전(주간)" checked={input.routine.epic} onChange={value => upd((draft: MainInput) => { draft.routine.epic = value; })} />
+        <Check label="오늘 일과 아직 안 함" checked={input.routine.todayPending} onChange={value => upd((draft: MainInput) => { draft.routine.todayPending = value; })} />
+        <Check label="이번 주 주간 컨텐츠 아직 안 함" checked={input.routine.weeklyPending} onChange={value => upd((draft: MainInput) => { draft.routine.weeklyPending = value; })} />
+      </div>
+      </details>
+      <details className="pb-sec">
+        <summary>플레임 · 커스텀 포인트<span>{`조각 ${flame.alloc.shard} · EXP ${flame.alloc.exp}${flame.alloc.erda ? ` · 솔 에르다 ${flame.alloc.erda}` : ""}`}</span></summary>
       <div className="field-grid compact">
         <NumField label="남은 플레임 수" value={flame.stock} min={0} max={FLAME_STOCK_CAP} step={1} onChange={value => upd((draft: MainInput) => { draft.personal.flame.stock = value; })} hint="오늘 충전분 포함" />
         <NumField label="주간 사냥 가능 마릿수" value={flame.killsPerWeek} min={0} step={100} onChange={value => upd((draft: MainInput) => { draft.personal.flame.killsPerWeek = value; })} hint={`전부 잡으면 ${fmtInt(FLAME_WEEKLY_ADD)}`} />
@@ -277,82 +369,14 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
         {!(flame.expPerKill > 0) && flameTopLevel > startLevel && <p><b>사냥터 차이</b> = 주 24,000마리를 Lv.{flameTopLevel} 몬스터로 잡으면 {(FLAME_WEEKLY_ADD * flameTopRaw / ctx.reqRaw(startLevel) * 100).toFixed(2)}%, 내 레벨(Lv.{startLevel}) 몬스터로 잡으면 {(FLAME_WEEKLY_ADD * flameOwnRaw / ctx.reqRaw(startLevel) * 100).toFixed(2)}%. 차이 <b>{(FLAME_WEEKLY_ADD * (flameTopRaw - flameOwnRaw) / ctx.reqRaw(startLevel) * 100).toFixed(2)}%p</b>/주</p>}
         <p><b>주 24,000마리</b> = {fmtJo(weeklyFlameRaw, 2)} + 교환권 {fmtInt(weeklyCoupons)}장 {fmtJo(weeklyCouponRaw, 2)} = <b>{(((weeklyFlameRaw + weeklyCouponRaw) / ctx.reqRaw(startLevel)) * 100).toFixed(1)}%p</b>/주 (Lv.{startLevel} 기준)</p>
       </div>
-
-      <h3 className="pb-group">퍼스널 보스 미션</h3>
-      <p className="pb-note">9/24부터 주 1회, 최대 {WEEKLY_BOSS_LIMIT}개. 경험치는 보스마다 고정이고 파티원 수로 나뉩니다. 내가 잡는 가장 센 보스를 고르면 그 이하에서 보스별 가장 센 난이도를 경험치 순으로 채웁니다.</p>
-      <div className="field-grid compact">
-        <label className="field"><span>보스 상한 (여기까지 잡음)</span>
-          <select value={bossCutoff} onChange={event => setBossCutoff(event.target.value)}>
-            <option value="">선택 안 함</option>
-            {BOSS_LADDER.map(entry => <option key={entry.id} value={entry.id}>{entry.boss} {entry.difficulty} · {fmtJo(entry.unitExp * 10_000, 2)}</option>)}
-          </select></label>
-        <label className="field"><span>파티원 (경험치 받는 인원)</span>
-          <select value={bossParty} onChange={event => setBossParty(event.target.value as "solo" | "max")}><option value="solo">전부 솔로</option><option value="max">보스별 최대 인원</option></select></label>
-      </div>
-      <button type="button" className="pb-add" disabled={!bossCutoff} onClick={applyBossPreset}>{bossCutoff ? `${bossLabel(bossCutoff)} 이하로 채우기` : "보스 상한을 고르면 채울 수 있어요"}</button>
-      <div className="pb-boss-add">
-        <select aria-label="자주 쓰는 보스 구성" value={communityPreset} onChange={event => setCommunityPreset(event.target.value)}>
-          <option value="">자주 쓰는 구성 (검밑솔·노세이칼…)</option>
-          {BOSS_COMMUNITY_PRESETS.map(preset => <option key={preset.id} value={preset.id}>{preset.label} {preset.ids.length}종</option>)}
-        </select>
-        <button type="button" className="pb-add" disabled={!communityPreset} onClick={applyCommunityPreset}>채우기</button>
-      </div>
-      {communityPreset ? <p className="pb-note">{BOSS_COMMUNITY_PRESETS.find(preset => preset.id === communityPreset)?.detail}</p> : null}
-      {bosses.map((boss, index) => {
-        const entry = bossEntry(boss.id);
-        return <div className="pb-boss" key={boss.id}>
-          <div className="pb-boss-name"><b>{bossLabel(boss.id)}</b><small>{fmtJo(bossRaw(boss.id, boss.party), 2)} · Lv.{startLevel} {(bossRaw(boss.id, boss.party) / ctx.reqRaw(startLevel) * 100).toFixed(2)}%</small></div>
-          <label className="field"><span>파티원</span>
-            <select value={boss.party} onChange={event => upd((draft: MainInput) => { draft.personal.bosses[index].party = Number(event.target.value); })}>{Array.from({ length: entry ? entry.maxParty : 1 }, (_, i) => i + 1).map(n => <option key={n} value={n}>{n}인</option>)}</select></label>
-          <Check label="이번 주 처치함" checked={boss.doneThisWeek} onChange={value => upd((draft: MainInput) => { draft.personal.bosses[index].doneThisWeek = value; })} />
-          <button type="button" className="pb-remove" aria-label={`${bossLabel(boss.id)} 삭제`} onClick={() => upd((draft: MainInput) => { draft.personal.bosses.splice(index, 1); })}>삭제</button>
-        </div>;
-      })}
-      <div className="pb-boss-add">
-        <select aria-label="보스 직접 추가" value={bossAdd} onChange={event => setBossAdd(event.target.value)}>{BOSS_LADDER.map(entry => <option key={entry.id} value={entry.id}>{entry.boss} {entry.difficulty}</option>)}</select>
-        <button type="button" className="pb-add" onClick={addBoss}>+ 보스 추가</button>
-      </div>
-      <p className="pb-note">주간 합계 {fmtJo(weeklyBossRaw, 2)} · Lv.{startLevel} 기준 {(weeklyBossRaw / ctx.reqRaw(startLevel) * 100).toFixed(1)}%p · {Math.min(bosses.length, WEEKLY_BOSS_LIMIT)}/{WEEKLY_BOSS_LIMIT}개</p>
-
-      <h3 className="pb-group">일과</h3>
-      <div className="field-grid compact">
-        <NumField label="몬스터파크 하루 판수" value={input.routine.runsPerDay} min={0} max={7} step={1} onChange={value => upd((draft: MainInput) => { draft.routine.runsPerDay = value; })} hint="무료 2판. 이용권·메이플포인트로 하루 7판까지" />
-        <NumField label="일요일 판수" value={input.routine.sundayRuns} min={0} max={7} step={1} onChange={value => upd((draft: MainInput) => { draft.routine.sundayRuns = value; })} hint="일요일은 경험치 1.5배. 일요일만 7판 돌면 7" />
-        <label className="field"><span>에픽 던전 보상 배수</span><select value={input.routine.epicMult} onChange={event => upd((draft: MainInput) => { draft.routine.epicMult = Number(event.target.value); })}><option value={1}>1배 (보너스 없음)</option><option value={5}>5배 (EXP 1단계 · 흔히 4배, 기본 + 400% 추가)</option><option value={9}>9배 (EXP 2단계 · 흔히 8배)</option></select></label>
-        <NumField label="몬스터파크 추가 경험치 %" value={input.routine.argoMonsterPark} min={0} max={50} step={5} onChange={value => upd((draft: MainInput) => { draft.routine.argoMonsterPark = value; })} hint="아르고호의 가호 Lv1~6 = 5·10·20·30·40·50%. 익스트림 몬파에도 붙음" />
-        <NumField label="그란디스 일퀘 추가 경험치 %" value={input.routine.argoGrandis} min={0} max={50} step={5} onChange={value => upd((draft: MainInput) => { draft.routine.argoGrandis = value; })} hint="아르고호의 가호. Lv2 = 10%, 최대 50%" />
-        <NumField label="에픽 던전 추가 경험치 %" value={input.routine.epicBonus} min={0} max={200} step={5} onChange={value => upd((draft: MainInput) => { draft.routine.epicBonus = value; })} hint="따로 받는 추가 경험치가 있을 때만. 없으면 0" />
-        <NumField label="주간 사냥 시간" value={input.routine.huntHoursPerWeek} min={0} max={168} step={0.5} onChange={value => upd((draft: MainInput) => { draft.routine.huntHoursPerWeek = value; })} hint="시간. 위에서 고른 사냥터 기준. 0이면 사냥 없음" />
-        <NumField label="사냥 추가 경험치 %" value={input.routine.huntBonusPct} min={0} max={3000} step={10} onChange={value => upd((draft: MainInput) => { draft.routine.huntBonusPct = value; })} hint="룬·경험치 쿠폰·버프·가호 합계. 0이면 순수 경험치" />
-        <NumField label="하루 일과 직접 입력 %" value={input.routine.measuredPercentPerDay} min={0} step={0.01} onChange={value => upd((draft: MainInput) => { draft.routine.measuredPercentPerDay = value; })} hint="몬파·그란디스 대신 쓸 하루 값. 0이면 표" />
-        <NumField label="주간 컨텐츠 직접 입력 %" value={input.routine.weeklyMeasuredPercent} min={0} step={0.01} onChange={value => upd((draft: MainInput) => { draft.routine.weeklyMeasuredPercent = value; })} hint="익몬·에픽 던전 대신 쓸 주간 값. 0이면 표" />
-      </div>
-      <div className="pb-checks">
-        <Check label="그란디스 일퀘" checked={input.routine.grandis} onChange={value => upd((draft: MainInput) => { draft.routine.grandis = value; })} />
-        <Check label="익스트림 몬파(주간)" checked={input.routine.extreme} onChange={value => upd((draft: MainInput) => { draft.routine.extreme = value; })} />
-        <Check label="에픽 던전(주간)" checked={input.routine.epic} onChange={value => upd((draft: MainInput) => { draft.routine.epic = value; })} />
-        <Check label="오늘 일과 아직 안 함" checked={input.routine.todayPending} onChange={value => upd((draft: MainInput) => { draft.routine.todayPending = value; })} />
-        <Check label="이번 주 주간 컨텐츠 아직 안 함" checked={input.routine.weeklyPending} onChange={value => upd((draft: MainInput) => { draft.routine.weeklyPending = value; })} />
-      </div>
-
-      <h3 className="pb-group">모멘텀 패스 PLUS · 보유 아이템</h3>
-      <div className="pb-checks"><Check label="PLUS 참여 중 (10/21까지)" checked={input.plus.enabled} onChange={value => upd((draft: MainInput) => { draft.plus.enabled = value; })} /></div>
-      <div className="field-grid compact">
-        <label className="field"><span>보유 등급</span><select value={input.plus.tier} disabled={!input.plus.enabled} onChange={event => upd((draft: MainInput) => { draft.plus.tier = event.target.value as Tier; })}><option value="free">무료</option><option value="premium">프리미엄</option><option value="prime">프라임</option></select></label>
-        <NumField label="수령한 PLUS 레벨" value={input.plus.claimedLevel} min={0} max={10} step={1} onChange={value => upd((draft: MainInput) => { draft.plus.claimedLevel = value; })} hint="0 = 아직 못 받음·모아 둠(기본) · 10 = 전부 받아 씀" />
-        <NumField label="크림슨 메카베리 농장" value={input.items.crimson} min={0} step={1} onChange={value => upd((draft: MainInput) => { draft.items.crimson = value; })} hint="장" />
-        <NumField label="상급 EXP 교환권" value={input.items.adv} min={0} step={100} onChange={value => upd((draft: MainInput) => { draft.items.adv = value; })} hint="장" />
-        <NumField label="VIP 사우나" value={input.items.sauna} min={0} step={0.5} onChange={value => upd((draft: MainInput) => { draft.items.sauna = value; })} hint="시간" />
-        <NumField label="메카베리 농장" value={input.items.mech} min={0} step={1} onChange={value => upd((draft: MainInput) => { draft.items.mech = value; })} hint="장" />
-        <NumField label="블루베리 농장" value={input.items.blue} min={0} step={1} onChange={value => upd((draft: MainInput) => { draft.items.blue = value; })} hint="장" />
-        <NumField label="전설 성장의 비약" value={input.items.potion279} min={0} step={1} onChange={value => upd((draft: MainInput) => { draft.items.potion279 = value; })} hint="개" />
-      </div>
-
-      <h3 className="pb-group">사용 시점</h3>
+      </details>
+      <details className="pb-sec">
+        <summary>보상 사용 시점<span>{"바꿀 때만"}</span></summary>
       <div className="field-grid compact">
         <label className="field"><span>크림슨 사용</span><select value={String(crimsonPlan)} onChange={event => setCrimsonPlan(event.target.value === "auto" ? "auto" : Number(event.target.value))}>{crimsonOptions.map(option => <option key={option.label} value={String(option.value)}>{option.label}</option>)}</select></label>
         <label className="field"><span>EXP 교환권 사용</span><select value={couponPlan} onChange={event => setCouponPlan(event.target.value as "auto" | "now" | "end")}><option value="auto">자동 (가장 좋은 방식)</option><option value="now">받는 즉시</option><option value="end">마감 직전에 몰아서</option></select></label>
       </div>
+      </details>
     </aside>
 
     <div className="results pb-results">

@@ -145,8 +145,10 @@ test("보스 프리셋과 사냥터 선택이 화면에 연결돼 있다", async
   assert.match(planner, /보스 상한 \(여기까지 잡음\)/);
   assert.match(planner, /이하로 채우기/);
   assert.match(planner, /bossPreset\(\{ cutoffId: bossCutoff, partyMode: bossParty \}\)/);
-  assert.match(planner, /자주 쓰는 구성 \(검밑솔·노세이칼…\)/);
-  assert.match(planner, /bossCommunityPreset\(communityPreset, bossParty\)/);
+  assert.match(planner, /aria-label="자주 쓰는 보스 구성"/);
+  assert.match(planner, /pb-bossgrid/);
+  assert.match(planner, /toggleBoss\(entry\)/);
+  assert.match(planner, /bossCommunityPreset\(presetId, bossParty\)/);
   assert.match(planner, /전부 솔로/);
   assert.match(planner, /보스별 최대 인원/);
   assert.match(planner, /WEEKLY_BOSS_LIMIT/);
