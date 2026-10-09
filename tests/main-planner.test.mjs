@@ -538,13 +538,75 @@ test("출석 사우나와 부스터는 296 직전 실제 들어간 만큼 쓰고
   assert.ok(Math.abs(a.attendance.used.sauna + a.attendance.expired.sauna - 4) < 1e-12);
   const booster = rewardOnly("2026-11-18", 295, 99.999);
   booster.routine.huntHoursPerWeek = 3.5;
-  booster.routine.huntBonusPct = 0;
+  booster.routine.huntMeasuredEokPer30Min = 0.00000001;
   booster.attendance.booster = 40;
-  const b = simulateMain(booster, { ...real, huntRaw: () => 1 });
+  const b = simulateMain(booster, real);
   assert.equal(b.level, 296);
   assert.ok(Math.abs(b.sourceRaw.attendanceBooster - 8_704_031_324) < 2);
   assert.ok(b.attendance.used.booster > 0 && b.attendance.used.booster < 0.1);
   assert.ok(Math.abs(b.attendance.used.booster + b.attendance.expired.booster - 40) < 1e-10);
+});
+
+test("292레벨은 293 몬스터가 일반 사냥에 더 좋고 플레임은 294에 그대로 둘 수 있다", () => {
+  const real = createMainContext();
+  const x = rewardOnly("2026-10-09", 292);
+  x.end = "2026-10-15";
+  x.personal.enabled = true;
+  Object.assign(x.personal.flame, { stock: 24000, killsPerWeek: 24000, fieldLevel: 294 });
+  Object.assign(x.routine, { huntHoursPerWeek: 4, huntBonusPct: 300 });
+  const same = simulateMain(x, real);
+  x.routine.huntFieldKey = "direct"; x.routine.huntFieldLevel = 293;
+  const separate = simulateMain(x, real);
+  assert.ok(Math.abs(same.sourceRaw.hunt - 1_697_538_078_720) < 1);
+  assert.ok(Math.abs(separate.sourceRaw.hunt - 1_831_763_681_280) < 1);
+  assert.ok(Math.abs(separate.sourceRaw.flame - 8_680_592_448_000) < 1);
+  assert.equal(separate.sourceRaw.flame, same.sourceRaw.flame);
+  // 이전 조사 반례: 사냥·플레임 모두 293으로 옮겨도 294보다 약 0.011%p 더 얻었다.
+  x.routine.huntFieldKey = "flame"; x.personal.flame.fieldLevel = 293;
+  const both = simulateMain(x, real);
+  assert.ok(Math.abs((both.exp - same.exp) - 0.011239632) < 1e-8);
+});
+
+test("실측 30분 1,000억은 몬스터·마릿수·버프를 다시 곱하지 않는다", () => {
+  const real = createMainContext();
+  const x = rewardOnly();
+  Object.assign(x.routine, { huntHoursPerWeek: 3.5, huntBonusPct: 3000, huntFieldKey: "direct", huntFieldLevel: 260, huntMeasuredEokPer30Min: 1000 });
+  const r = simulateMain(x, real);
+  assert.equal(r.sourceRaw.hunt, 100_000_000_000);
+  assert.ok(Math.abs(r.exp - 0.091354731) < 1e-8);
+  assert.equal(r.sourceRaw.flame || 0, 0);
+});
+
+test("일반 사냥의 쿠폰·부스터는 플레임과 별도로 고른 몬스터 경험치를 쓴다", () => {
+  const real = createMainContext();
+  const x = rewardOnly("2026-10-21", 292);
+  Object.assign(x.routine, { huntHoursPerWeek: 3.5, huntFieldKey: "direct", huntFieldLevel: 293 });
+  x.personal.flame.fieldLevel = 294;
+  x.items.coupon4x = 1; x.items.booster = 1;
+  const r = simulateMain(x, real);
+  assert.ok(Math.abs(r.sourceRaw.coupon4x - 171_727_845_120) < 1);
+  assert.ok(Math.abs(r.sourceRaw.booster - 84_969_506_700) < 1);
+});
+
+test("출석 보상과 분리 사냥 입력은 등급·배분·지정 비교에서도 사라지지 않는다", () => {
+  const real = createMainContext();
+  const x = rewardOnly("2026-10-09");
+  x.attendance.adv = "6000";
+  x.routine.huntMeasuredEokPer30Min = "1000";
+  x.routine.huntHoursPerWeek = 3.5;
+  x.routine.huntFieldKey = "direct"; x.routine.huntFieldLevel = "293";
+  x.plus.tier = "free";
+  x.personal.enabled = true;
+  x.personal.designated = false;
+  for (const row of compareTiers(x, real)) {
+    assert.equal(row.analysis.best.result.sourceRaw.attendanceAdv, 5_548_914_000_000);
+    assert.equal(row.analysis.best.result.sourceRaw.hunt, 100_000_000_000);
+  }
+  assert.equal(compareAlloc(x, real).length, 4);
+  assert.equal(compareDesignation(x, real)[0].summary.progress, analyzeMain(x, real).best.summary.progress);
+  const clean = normalizeInput({ ...x, attendance: { adv: -5, sauna: "2.5", potion269: null }, routine: { ...x.routine, huntFieldLevel: 400 } }, real);
+  assert.deepEqual(clean.attendance, { potion269: 0, potion279: 0, adv: 0, booster: 0, sauna: 2.5 });
+  assert.equal(clean.routine.huntFieldLevel, 299);
 });
 
 test("출석 부스터는 그날 PLUS를 쓰고 남은 사냥 마릿수만큼 사용한다", () => {
@@ -557,6 +619,41 @@ test("출석 부스터는 그날 PLUS를 쓰고 남은 사냥 마릿수만큼 �
   assert.ok(Math.abs(r.sourceRaw.booster - 72_939_861_900) < 1);
   assert.ok(Math.abs(r.sourceRaw.attendanceBooster - 336_547_082_100) < 1);
   assert.ok(Math.abs(r.attendance.used.booster - 4.614035087719298) < 1e-10);
+});
+
+test("새 보상·사냥 경로 180개 조합에서도 경험치와 보유량이 보존된다", () => {
+  const real = createMainContext();
+  for (const level of [286, 289, 294, 295, 292]) for (const exp of [0, 98.99, 99.999]) for (const date of ["2026-10-21", "2026-10-22", "2026-11-18"]) for (const mode of ["flame", "same", "direct", "measured"]) {
+    const x = rewardOnly(date, level, exp);
+    x.routine.huntHoursPerWeek = 4;
+    x.routine.huntFieldKey = mode === "measured" ? "flame" : mode;
+    x.routine.huntFieldLevel = 293;
+    x.routine.huntMeasuredEokPer30Min = mode === "measured" ? 1000 : 0;
+    x.items.booster = 20; x.items.coupon4x = 4;
+    x.attendance = { potion269: 1, potion279: 1, adv: 6000, booster: 40, sauna: 4 };
+    const r = simulateMain(x, real);
+    let moved = -REQ[level] * exp / 100;
+    for (let l = level; l < r.level; l += 1) moved += REQ[l];
+    if (r.level < 296) moved += REQ[r.level] * r.exp / 100;
+    const total = Object.values(r.sourceRaw).reduce((a, b) => a + b, 0);
+    assert.ok(Math.abs(total - moved) < 10, JSON.stringify({ level, exp, date, mode, total, moved }));
+    for (const [key, initial] of Object.entries(x.attendance)) {
+      assert.ok(Math.abs(r.attendance.used[key] + r.attendance.leftover[key] + r.attendance.expired[key] - initial) < 1e-8, key);
+      assert.ok(r.attendance.leftover[key] >= -1e-8 && r.attendance.used[key] >= 0, key);
+    }
+  }
+});
+
+test("평소 사냥터를 내 레벨로 두면 289→290·294→295에서도 남은 시간에 새 몬스터 값을 쓴다", () => {
+  for (const [level, expected] of [[289, 219_073_194_484.75876], [294, 254_723_818_801.93042]]) {
+    const x = rewardOnly("2026-10-22", level, 99.99);
+    Object.assign(x.routine, { huntHoursPerWeek: 3.5, huntFieldKey: "same" });
+    // 고정한 플레임 몬스터는 평소 사냥터 선택에 영향을 주지 않는다.
+    x.personal.flame.fieldLevel = 260;
+    const r = simulateMain(x, createMainContext());
+    assert.equal(r.level, level + 1);
+    assert.ok(Math.abs(r.sourceRaw.hunt - expected) < 1, String(r.sourceRaw.hunt));
+  }
 });
 
 test("아이템을 쓰는 도중 미션 보상으로 레벨이 오르면 남은 아이템은 새 레벨 값으로 쓴다", () => {
