@@ -225,7 +225,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
     <aside className="controls pb-controls">
       <div className="section-heading"><span>입력</span><div><p>본섭 · 9/17~11/18</p><h2>퍼스널 버닝 계산</h2></div>
         <button type="button" className="reset" onClick={reset}>기본값 복원</button></div>
-      <p className="pb-note">처음에는 본섭 287레벨 사례의 예시값이 들어 있습니다. 내 값으로 바꾸면 이 브라우저에 저장됩니다.</p>
+      <p className="pb-note">처음에는 예시값이 들어 있습니다. 위에서부터 내 값으로 바꾸면 결과가 바로 바뀌고, 이 브라우저에 저장됩니다.</p>
       {stale && <div className="callout-mini" role="status">입력 기준일이 {md(input.start)}입니다. 오늘({md(today)}) 값으로 레벨·경험치·남은 플레임을 다시 넣고 기준일을 오늘로 맞추면 정확합니다. <button type="button" className="pb-link" onClick={() => upd((draft: MainInput) => { draft.start = today; })}>기준일을 오늘로</button></div>}
 
       <details className="pb-sec" open>
@@ -276,7 +276,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
         <NumField label="전설 성장의 비약" value={input.items.potion279} min={0} step={1} onChange={value => upd((draft: MainInput) => { draft.items.potion279 = value; })} hint="개" />
       </div>
       </details>
-      <details className="pb-sec" open>
+      <details className="pb-sec">
         <summary>퍼스널 보스 미션<span>{`${Math.min(bosses.length, WEEKLY_BOSS_LIMIT)}/${WEEKLY_BOSS_LIMIT}마리 · 주 ${fmtJo(weeklyBossRaw, 2)}`}</span></summary>
       <p className="pb-note">9/24부터 주 1회, 최대 {WEEKLY_BOSS_LIMIT}마리. 매주 잡는 보스의 난이도를 누르세요. 경험치는 받는 인원끼리 나눕니다.</p>
       <div className="pb-chips" role="group" aria-label="자주 쓰는 보스 구성">
@@ -379,7 +379,10 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
       </details>
     </aside>
 
-    <div className="results pb-results">
+    {!eventOver && <a className="pb-sticky" href="#pb-result" aria-label="계산 결과로 이동">
+      <span>11/18 마감</span><b>{place(r.level, r.exp)}</b><b>{r.mission.stepsCleared}/{MISSION_STEPS}단계</b><i>결과 보기</i>
+    </a>}
+    <div className="results pb-results" id="pb-result">
       <div className="section-heading"><span>결과</span><div><p>{md(input.start)} → 11/18 마감</p><h2>퍼스널 버닝 시점 계산</h2></div></div>
       {eventOver && <div className="callout-mini" role="status">퍼스널 버닝은 11/18에 끝났습니다. 기준일을 이벤트 기간으로 바꿔 주세요.</div>}
       {!eventOver && <>
