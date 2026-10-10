@@ -238,10 +238,11 @@ test("단계 간격은 구간마다 몬스터 기본 경험치의 배수다", ()
   [286, 287, 288, 289].forEach(level => assert.ok(multiple(level) > 2_766_000 && multiple(level) < 2_773_000, `${level}: ${multiple(level)}`));
   assert.ok(Math.abs(multiple(285) - 2_779_473) < 1);
   // 290~294는 레벨별 배수(본섭 단계표 역산, 294는 추정). 293레벨 연속 목표 간격 3.886571%p 를 재현한다.
-  Object.entries({ 290: 3_072_742, 291: 3_069_898, 292: 3_066_893, 293: 3_063_910, 294: 3_060_950 }).forEach(([level, expected]) => assert.ok(Math.abs(multiple(Number(level)) - expected) < 1, level));
+  Object.entries({ 290: 3_072_742, 291: 3_069_898, 292: 3_066_893, 293: 3_063_910, 294: 3_061_178 }).forEach(([level, expected]) => assert.ok(Math.abs(multiple(Number(level)) - expected) < 1, level));
   assert.ok(Math.abs(stepRawForLevel(293) / 391_721_000_000_000 * 100 - 3.886571) < 0.0005);
   assert.ok(Math.abs(stepRawForLevel(292) / 356_110_000_000_000 * 100 - 4.226714) < 0.0005);
-  [295, 296, 299].forEach(level => assert.ok(Math.abs(multiple(level) - 3_119_741) < 1));
+  assert.ok(Math.abs(multiple(295) - 3_123_334) < 1);
+  [296, 299].forEach(level => assert.ok(Math.abs(multiple(level) - 3_119_741) < 1));
   [280, 284].forEach(level => assert.ok(Math.abs(multiple(level) - 2_730_206) < 1));
   // 커뮤니티 296레벨 계산의 단계 간격 1.861%
   const req296 = 2.5911e12 / 0.002706;
@@ -1410,4 +1411,25 @@ test("에픽 던전 EXP 1단계가 더해 주는 양은 교환권 장수로 딱 
   for (const level of [290, 292, 294]) assert.ok(Math.abs(4 * T.epicDungeonBaseRaw(level) / P.couponRawForLevel(level) - 3780) < 1.5, `${level}`);
   assert.deepEqual(P.epicBonusStage1Info(289), { name: "악몽선경", maplePoint: 12_500 });
   assert.deepEqual(P.epicBonusStage1Info(290), { name: "아우룸 레기스", maplePoint: 15_000 });
+});
+
+test("본섭 미션 화면(2026-10-10): 293·27.162% 지정의 1~8단계와 30단계, 295레벨 연속 목표, 테섭 294·0% 제보를 재현한다", async () => {
+  const P = await import("../lib/main-planner.mjs");
+  const T = await import("../lib/exp-tables.ts");
+  const ctx = T.createMainContext();
+  const steps = P.buildMissionTable({ mode: "model", stepsDone: 0, designLevel: 293, designExp: 27.162 }, ctx).steps;
+  const shown = [31.049, 34.935, 38.822, 42.708, 46.595, 50.481, 54.368, 58.255];
+  shown.forEach((exp, index) => { assert.equal(steps[index].level, 293); assert.ok(Math.abs(steps[index].exp - exp) < 0.0006, `${index + 1}단계 ${steps[index].exp}`); });
+  assert.equal(steps[29].level, 294);
+  assert.ok(Math.abs(steps[29].exp - 40.182) < 0.0006, `30단계 ${steps[29].exp}`);
+  // 보상: 293레벨 2,498,544,731,662 (0.638%), 294레벨 2,525,955,919,914 (0.586%)
+  // 화면 정수와는 1억분의 1 수준(약 1만~3만 EXP)까지만 맞는다.
+  assert.ok(Math.abs(P.stepRewardRawForLevel(293) / 2_498_544_731_662 - 1) < 2e-8);
+  assert.ok(Math.abs(P.stepRewardRawForLevel(294) / 2_525_955_919_914 - 1) < 2e-8);
+  // 295레벨 14~16단계 78.297 / 80.322 / 82.347
+  assert.ok(Math.abs(P.stepRawForLevel(295) / ctx.reqRaw(295) * 100 - 2.025) < 0.0005);
+  // 테섭 제보: 294·0% 지정 → 30단계 295·4.01%
+  const ptr = P.buildMissionTable({ mode: "model", stepsDone: 0, designLevel: 294, designExp: 0 }, ctx).steps[29];
+  assert.equal(ptr.level, 295);
+  assert.ok(Math.abs(ptr.exp - 4.01) < 0.005, `${ptr.exp}`);
 });
