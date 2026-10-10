@@ -291,3 +291,22 @@ test("버튼 줄은 내용과 연결돼 있고 방향키로 옮겨 간다", asyn
   assert.match(planner, /id="pb-pane-s0" aria-labelledby="pb-tab-s0"/);
   assert.match(planner, /"ArrowRight", "ArrowLeft", "Home", "End"/);
 });
+
+test("299레벨·300 목표 저장값은 복구해도 낮아지지 않고 옛 295 입력도 유지한다", async () => {
+  const { mergeSaved, parseSaved, serializeSaved } = await import(new URL("lib/saved-input.mjs", root).href);
+  const high = mergeSaved({ level: "299", personal: { mission: { designLevel: "297", nextTarget: { level: "300", exp: "0" }, intervalEnabled: true, secondTarget: { level: "300", exp: "0" } } } }, "2026-10-09");
+  assert.equal(high.level, 299); assert.equal(high.personal.mission.designLevel, 297);
+  assert.deepEqual(high.personal.mission.nextTarget, { level: 300, exp: 0 });
+  assert.deepEqual(parseSaved(serializeSaved(high), "2026-10-10"), high);
+  assert.equal(mergeSaved({ level: 295 }, "2026-10-09").level, 295);
+  assert.equal(mergeSaved({ level: 300 }, "2026-10-09").level, 299);
+});
+
+test("서버 화면의 현재 레벨은 280~299이며 다음 목표는 300까지 넣을 수 있다", async () => {
+  const html = await renderBuiltSsrHtml("levels-299");
+  for (const level of [280, 295, 296, 297, 298, 299]) assert.match(html, new RegExp(`<option[^>]*>${level}</option>`));
+  assert.match(html, /max="300"/);
+  const [items, reference] = await Promise.all([read("app/items-panel.tsx"), read("app/reference-panel.tsx")]);
+  assert.match(items, /LEVEL_MAX = 299/); assert.ok(items.includes("260~299")); assert.ok(items.includes('"Lv.300"'));
+  assert.ok(!reference.includes("level <= 295")); assert.ok(!reference.includes("296 이상은 필요 경험치 표가 없어"));
+});

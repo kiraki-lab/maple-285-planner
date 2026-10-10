@@ -12,7 +12,7 @@ import { assetUrl } from "./asset-url";
 import type { MainInputState } from "./use-main-input";
 
 const LEVEL_MIN = 260;
-const LEVEL_MAX = 295;
+const LEVEL_MAX = 299;
 
 const ROWS: { type: CustomRewardType; mark: string; iconSrc: string; label: string; unit: string; sampleAmount: number; sampleUnit: string }[] = [
   { type: "crimson", mark: "CR", iconSrc: "/efficiency-icons/crimson-mekaberry.png", label: "크림슨 메카베리 농장", unit: "개", sampleAmount: 1, sampleUnit: "1개" },
@@ -52,7 +52,7 @@ export default function ItemsPanel({ state, goPersonal }: { state: MainInputStat
             <span>현재 레벨</span>
             <div className="efficiency-level-control"><b>Lv.</b><input id="item-level-input" type="number" min={LEVEL_MIN} max={LEVEL_MAX} step="1" inputMode="numeric" aria-describedby="item-level-help"
               value={levelText ?? String(input.level)} onChange={event => setLevelText(event.target.value)} onBlur={() => setLevelText(String(level))} onKeyDown={event => { if (event.key === "Enter") event.currentTarget.blur(); }} /></div>
-            <small id="item-level-help">260~295</small>
+            <small id="item-level-help">260~299</small>
           </label>
           <label className="item-conversion-exp" htmlFor="item-exp-input"><span>현재 경험치</span><div>
             <input id="item-exp-input" type="number" min="0" max="99.999" step="0.001" inputMode="decimal" value={expText ?? String(input.exp)} onChange={event => setExpText(event.target.value)} onBlur={() => setExpText(String(exp))} onKeyDown={event => { if (event.key === "Enter") event.currentTarget.blur(); }} /><b>%</b></div></label>
@@ -60,7 +60,7 @@ export default function ItemsPanel({ state, goPersonal }: { state: MainInputStat
         </div>
       </div>
       <div className="item-conversion-result" aria-live="polite">
-        <div className="item-conversion-route"><span>현재</span><b>Lv.{result.startLevel} {result.startExp.toFixed(3)}%</b><i aria-hidden="true">→</i><span>사용 후</span><strong>{result.reachedUpperLimit ? "Lv.296 이상" : `Lv.${result.level} ${result.exp.toFixed(3)}%`}</strong></div>
+        <div className="item-conversion-route"><span>현재</span><b>Lv.{result.startLevel} {result.startExp.toFixed(3)}%</b><i aria-hidden="true">→</i><span>사용 후</span><strong>{result.reachedUpperLimit ? "Lv.300" : `Lv.${result.level} ${result.exp.toFixed(3)}%`}</strong></div>
         <div className="item-conversion-totals"><span><small>레벨 진행도</small><b>+{Math.max(0, gain).toFixed(2)}%p</b></span><span><small>사용 경험치</small><b>{formatItemConversionExperience(result.totalRawExperience)}</b></span></div>
       </div>
       <div className="item-conversion-list" aria-label={`Lv.${level} 아이템별 경험치 환산`}>

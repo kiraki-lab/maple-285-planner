@@ -76,14 +76,14 @@ export default function ReferencePanel() {
         <div className="pb-table-wrap"><table>
           <thead><tr><th>레벨</th><th>몬스터 기본 EXP</th><th>플레임 ×{PERSONAL_FLAME_MULTIPLE}</th><th>교환권 ×{PERSONAL_COUPON_MULTIPLE}</th><th>교환권 %</th><th>미션 한 칸</th></tr></thead>
           <tbody>{LEVEL_ROWS.map(level => {
-            const required = level <= 295 ? itemConversionRequiredExperience(level) : 0;
+            const required = itemConversionRequiredExperience(level);
             return <tr key={level}>
               <td>{level}</td><td>{fmt(mobBaseExp(level))}</td><td>{eok(flameModelRaw(level))}</td><td>{eok(couponRawForLevel(level))}</td>
               <td>{required ? `${(couponRawForLevel(level) / required * 100).toFixed(5)}%` : "-"}</td>
-              <td>{level >= 280 && level <= 295 ? jo(stepRawForLevel(level)) : "-"}</td></tr>;
+              <td>{level >= 280 && level <= 299 ? jo(stepRawForLevel(level)) : "-"}</td></tr>;
           })}</tbody>
         </table></div>
-        <p className="pb-note light">플레임은 사냥터 몬스터 레벨, 교환권은 내 레벨 기준입니다. 본섭 9/23 플레임 로그 3건(273·275·276레벨 몬스터)이 ×72와 정확히 맞고, 교환권 표는 ×480과 260~299 전부 일치합니다. 미션 한 칸은 285 이상 확인된 목표 자료로 예상한 값이며 296 이상은 필요 경험치 표가 없어 비워 둡니다.</p>
+        <p className="pb-note light">플레임은 사냥터 몬스터 레벨, 교환권은 내 레벨 기준입니다. 본섭 9/23 플레임 로그 3건(273·275·276레벨 몬스터)이 ×72와 정확히 맞고, 교환권 표는 ×480과 260~299 전부 일치합니다. 300레벨에 닿으면 경험치는 더 오르지 않습니다.</p>
       </article>
 
       <article>

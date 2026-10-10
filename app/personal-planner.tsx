@@ -70,13 +70,13 @@ const DIFFICULTY_CLASS: Record<string, string> = { 이지: "easy", 노멀: "norm
 const FIELD_OPTIONS = HUNTING_FIELDS.map((field, index) => ({ key: `${index}`, region: field.region, label: `${field.monster} · Lv.${field.level} · ${field.maps.slice(0, 2).join(", ")}${field.maps.length > 2 ? " 외" : ""}`, level: field.level }));
 const FIELD_REGIONS = [...new Set(HUNTING_FIELDS.map(field => field.region))];
 
-function NumField({ label, value, onChange, step, min, max, hint }: { label: string; value: number; onChange: (value: number) => void; step?: number; min?: number; max?: number; hint?: string }) {
+function NumField({ label, value, onChange, step, min, max, hint, disabled }: { label: string; value: number; onChange: (value: number) => void; step?: number; min?: number; max?: number; hint?: string; disabled?: boolean }) {
   const [text, setText] = useState(String(value));
   const [focused, setFocused] = useState(false);
   // 입력 중에는 사용자가 친 문자열을 그대로 두고, 포커스가 빠지면 저장된 값을 보여 준다.
   const shown = focused ? text : String(value);
   return <label className="field"><span>{label}</span>
-    <input type="number" inputMode="decimal" value={shown} step={step} min={min} max={max}
+    <input type="number" inputMode="decimal" value={shown} step={step} min={min} max={max} disabled={disabled}
       onFocus={() => { setText(String(value)); setFocused(true); }} onBlur={() => setFocused(false)}
       onChange={event => { setText(event.target.value); const parsed = Number(event.target.value); if (event.target.value !== "" && Number.isFinite(parsed)) onChange(parsed); }} />
     {hint && <small className="pb-hint">{hint}</small>}
@@ -124,7 +124,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
   const designations = useMemo(() => compareDesignation(input, ctx), [input, ctx]);
   const allocRows = useMemo(() => compareAlloc(input, ctx), [input, ctx]);
   const eventOver = diffDays(input.start, MAIN_SCHEDULE.personalEnd) > 0;
-  const startLevel = Math.max(280, Math.min(295, Math.floor(input.level)));
+  const startLevel = Math.max(280, Math.min(ctx.levelCap - 1, Math.floor(input.level)));
   const days = r.rows.length;
 
   const flame = input.personal.flame;
@@ -149,7 +149,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
   // 기준일 입력에는 그날 충전분이 들어 있으므로 다음 충전은 기준일 다음 목요일이다.
   const nextRefill = (() => { let day = addDay(input.start, 1); for (let i = 0; i < 8; i += 1) { if (dow(day) === "목") break; day = addDay(day, 1); } return diffDays(day, MAIN_SCHEDULE.personalEnd) <= 0 ? day : ""; })();
   const reachDate = (level: number) => r.rows.find((row: { level: number }) => row.level >= level)?.date as string | undefined;
-  const nextLevels = [1, 2, 3].map(offset => startLevel + offset).filter(level => level <= 295);
+  const nextLevels = Array.from({ length: startLevel >= 295 ? ctx.levelCap - startLevel : 3 }, (_, index) => startLevel + index + 1).filter(level => level <= ctx.levelCap);
   const clearedDates = new Map<number, string>();
   r.mission.newlyCleared.forEach((step: { index: number; date: string }) => clearedDates.set(step.index, step.date));
 
@@ -180,7 +180,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
     });
   }
   const expiredPlus = r.items.expired.crimson + r.items.expired.adv + r.items.expired.sauna;
-  if (expiredPlus > 0) advices.push({ tone: "warn", text: `PLUS 아이템이 10/22 02:00에 소멸합니다. 크림슨 ${fmtInt(r.items.expired.crimson)}장, 상급 EXP ${fmtInt(r.items.expired.adv)}장, 사우나 ${r.items.expired.sauna.toFixed(1)}시간이 남습니다. 296레벨에 닿으면 더 쓸 수 없습니다.` });
+  if (expiredPlus > 0) advices.push({ tone: "warn", text: `PLUS 아이템이 10/22 02:00에 소멸합니다. 크림슨 ${fmtInt(r.items.expired.crimson)}장, 상급 EXP ${fmtInt(r.items.expired.adv)}장, 사우나 ${r.items.expired.sauna.toFixed(1)}시간이 남습니다. 300레벨에 닿으면 더 쓸 수 없습니다.` });
   if (Object.values(r.attendance.expired).some(value => Number(value) > 0)) advices.push({ tone: "warn", text: `출석·보유 보상을 마감까지 다 쓰지 못합니다. 비약(269) ${fmtInt(r.attendance.expired.potion269)}개 · 비약(279) ${fmtInt(r.attendance.expired.potion279)}개 · 상급 EXP ${fmtInt(r.attendance.expired.adv)}장 · 부스터 ${r.attendance.expired.booster.toFixed(1)}개 · 사우나 ${r.attendance.expired.sauna.toFixed(1)}시간. 사용 기한은 11/19 02:00입니다.` });
   const unusedHuntItems = (r.items.expired.coupon4x || 0) + (r.items.expired.booster || 0);
   if (unusedHuntItems > 0.01) advices.push({ tone: "warn", text: `PLUS로 받은 경험치 4배 쿠폰 ${(r.items.expired.coupon4x || 0).toFixed(1)}장, VIP 부스터 ${(r.items.expired.booster || 0).toFixed(1)}개를 10/21까지 다 쓰지 못합니다. 둘 다 사냥하는 동안에만 쓸 수 있으니 「주간 사냥 시간」을 늘려야 합니다(쿠폰은 30분에 1장).` });
@@ -188,7 +188,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
   if (allocTotal > 3 + 1e-9) advices.push({ tone: "warn", text: "커스텀 포인트 합계가 3을 넘습니다. 게임에서는 3개를 나눠 씁니다." });
   if (allocTotal < 3 - 1e-9) advices.push({ tone: "info", text: "커스텀 포인트를 모두 쓰지 않으면 플레임을 소환할 수 없습니다. 합계를 3으로 맞추세요." });
   r.warnings.forEach((text: string) => advices.push({ tone: text.startsWith("다음 단계 목표(") ? "warn" : "info", text }));
-  if (r.atCap) advices.push({ tone: "info", text: "296레벨에 닿았습니다. 이후 경험치는 계산하지 않습니다." });
+  if (r.atCap) advices.push({ tone: "info", text: "300레벨에 닿았습니다." });
 
   const stale = input.start < today;
   const crimsonOptions: { label: string; value: "auto" | number }[] = [
@@ -242,7 +242,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
       <div className="pb-pane" role="tabpanel" id="pb-pane-s0" aria-labelledby="pb-tab-s0" hidden={sec !== "s0"}>
       <div className="field-grid compact">
         <label className="field"><span>기준일</span><input type="date" value={input.start} min={MAIN_SCHEDULE.personalStart} max={MAIN_SCHEDULE.personalEnd} onChange={event => event.target.value && upd((draft: MainInput) => { draft.start = event.target.value; })} /></label>
-        <label className="field"><span>현재 레벨</span><select value={startLevel} onChange={event => upd((draft: MainInput) => { draft.level = Number(event.target.value); })}>{Array.from({ length: 16 }, (_, index) => index + 280).map(level => <option key={level}>{level}</option>)}</select></label>
+        <label className="field"><span>현재 레벨</span><select value={startLevel} onChange={event => upd((draft: MainInput) => { draft.level = Number(event.target.value); })}>{Array.from({ length: ctx.levelCap - 280 }, (_, index) => index + 280).map(level => <option key={level}>{level}</option>)}</select></label>
         <NumField label="현재 경험치 %" value={input.exp} min={0} max={99.999} step={0.001} onChange={value => upd((draft: MainInput) => { draft.exp = value; })} />
       </div>
       {weekInfo.week > 0 && <p className="pb-note">기준일은 이벤트 <b>{weekInfo.week}주차</b>(전체 {weekInfo.total}주)입니다. 마감 11/18까지 {weekInfo.daysLeft}일, 플레임 충전은 {weekInfo.refillsLeft}번 남았습니다.</p>}
@@ -259,9 +259,9 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
         </div>
         {input.personal.mission.mode === "screen" ? <><div className="field-grid compact">
           <NumField label="통과한 단계 수" value={input.personal.mission.stepsDone} min={0} max={30} step={1} onChange={value => upd((draft: MainInput) => { draft.personal.mission.stepsDone = value; })} hint="남은 단계 개수만 정합니다. 목표 위치는 아래 다음 목표로 정해집니다" />
-          <NumField label="다음 단계 보상 %" value={input.personal.mission.nextRewardPct} min={0} step={0.001} onChange={value => upd((draft: MainInput) => { draft.personal.mission.nextRewardPct = value; })} hint="화면의 경험치 보상 %" />
-          <NumField label="다음 단계 목표 레벨" value={input.personal.mission.nextTarget.level} min={280} max={295} step={1} onChange={value => upd((draft: MainInput) => { draft.personal.mission.nextTarget.level = value; })} />
-          <NumField label="다음 단계 목표 %" value={input.personal.mission.nextTarget.exp} min={0} max={99.999} step={0.001} onChange={value => upd((draft: MainInput) => { draft.personal.mission.nextTarget.exp = value; })} />
+          <NumField label="다음 단계 보상 %" value={input.personal.mission.nextTarget.level >= ctx.levelCap ? 0 : input.personal.mission.nextRewardPct} disabled={input.personal.mission.nextTarget.level >= ctx.levelCap} min={0} step={0.001} onChange={value => upd((draft: MainInput) => { draft.personal.mission.nextRewardPct = value; })} hint="화면의 경험치 보상 %" />
+          <NumField label="다음 단계 목표 레벨" value={input.personal.mission.nextTarget.level} min={280} max={ctx.levelCap} step={1} onChange={value => upd((draft: MainInput) => { draft.personal.mission.nextTarget.level = value; if (value >= ctx.levelCap) { draft.personal.mission.nextTarget.exp = 0; draft.personal.mission.nextRewardPct = 0; } })} />
+          <NumField label="다음 단계 목표 %" value={input.personal.mission.nextTarget.level >= ctx.levelCap ? 0 : input.personal.mission.nextTarget.exp} disabled={input.personal.mission.nextTarget.level >= ctx.levelCap} min={0} max={99.999} step={0.001} onChange={value => upd((draft: MainInput) => { draft.personal.mission.nextTarget.exp = value; })} />
         </div>
         {input.personal.mission.stepsDone < 29 && <details className="pb-more"><summary>그다음 목표도 넣기</summary>
           <Check label="두 목표의 간격으로 계산" checked={Boolean(input.personal.mission.intervalEnabled)} onChange={value => upd((draft: MainInput) => {
@@ -272,13 +272,13 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
             draft.personal.mission.intervalEnabled = value;
           })} />
           <div className="field-grid compact">
-            <NumField label="그다음 목표 레벨" value={input.personal.mission.secondTarget?.level ?? input.personal.mission.nextTarget.level} min={280} max={295} step={1} onChange={value => upd((draft: MainInput) => { draft.personal.mission.secondTarget = { level: value, exp: draft.personal.mission.secondTarget?.exp ?? 0 }; })} />
-            <NumField label="그다음 목표 %" value={input.personal.mission.secondTarget?.exp ?? 0} min={0} max={99.999} step={0.001} onChange={value => upd((draft: MainInput) => { draft.personal.mission.secondTarget = { level: draft.personal.mission.secondTarget?.level ?? draft.personal.mission.nextTarget.level, exp: value }; })} />
+            <NumField label="그다음 목표 레벨" value={input.personal.mission.secondTarget?.level ?? input.personal.mission.nextTarget.level} min={280} max={ctx.levelCap} step={1} onChange={value => upd((draft: MainInput) => { draft.personal.mission.secondTarget = { level: value, exp: value >= ctx.levelCap ? 0 : draft.personal.mission.secondTarget?.exp ?? 0 }; })} />
+            <NumField label="그다음 목표 %" value={(input.personal.mission.secondTarget?.level ?? input.personal.mission.nextTarget.level) >= ctx.levelCap ? 0 : input.personal.mission.secondTarget?.exp ?? 0} disabled={(input.personal.mission.secondTarget?.level ?? input.personal.mission.nextTarget.level) >= ctx.levelCap} min={0} max={99.999} step={0.001} onChange={value => upd((draft: MainInput) => { draft.personal.mission.secondTarget = { level: draft.personal.mission.secondTarget?.level ?? draft.personal.mission.nextTarget.level, exp: value }; })} />
           </div>
           <p className="pb-note">두 목표 사이의 경험치를 마지막 단계까지 반복합니다.</p>
         </details>}</> : <div className="field-grid compact">
           <NumField label="통과한 단계 수" value={input.personal.mission.stepsDone} min={0} max={30} step={1} onChange={value => upd((draft: MainInput) => { draft.personal.mission.stepsDone = value; })} />
-          <NumField label="지정 당시 레벨" value={input.personal.mission.designLevel} min={280} max={295} step={1} onChange={value => upd((draft: MainInput) => { draft.personal.mission.designLevel = value; })} />
+          <NumField label="지정 당시 레벨" value={input.personal.mission.designLevel} min={280} max={ctx.levelCap - 1} step={1} onChange={value => upd((draft: MainInput) => { draft.personal.mission.designLevel = value; })} />
           <NumField label="지정 당시 경험치 %" value={input.personal.mission.designExp} min={0} max={99.999} step={0.001} onChange={value => upd((draft: MainInput) => { draft.personal.mission.designExp = value; })} />
         </div>}
       </> : <div className="field-grid compact">
