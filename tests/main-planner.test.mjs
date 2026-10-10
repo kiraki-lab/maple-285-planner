@@ -37,6 +37,7 @@ const REQ = {
   285: 99_512_176_519_276, 286: 109_463_394_171_203, 287: 120_409_733_588_323, 288: 132_450_706_947_155, 289: 145_695_777_641_870,
   290: 294_305_470_836_577, 291: 323_736_017_920_234, 292: 356_109_619_712_257, 293: 391_720_581_683_482, 294: 430_892_639_851_830,
   295: 870_403_132_500_696,
+  296: 957_443_445_750_765, 297: 1_053_187_790_325_841, 298: 1_158_506_569_358_425, 299: 1_737_759_854_037_637,
 };
 // 일과·아이템은 단순한 상수로 둔 시험용 표다. 이 테스트는 엔진의 규칙(일정, 상한, 단계 판정)만 확인한다.
 const makeCtx = (overrides = {}) => ({
@@ -531,12 +532,12 @@ test("플레임은 몬스터 기본 경험치 ×72, 교환권은 레벨의 기�
   assert.ok(Math.abs(logged.sourceRaw.flame - killed * 100_000_000) / logged.sourceRaw.flame < 1e-9);
 });
 
-test("295레벨 끝에서 296 상한에 닿아도 주간 컨텐츠 계산이 깨지지 않는다", () => {
+test("299레벨 끝에서 300 상한에 닿아도 주간 컨텐츠 계산이 깨지지 않는다", () => {
   const real = createMainContext();
-  const input = { ...defaultMainInput("2026-10-04"), level: 295, exp: 99, personal: { ...defaultMainInput("2026-10-04").personal, mission: { ...defaultMainInput("2026-10-04").personal.mission, nextTarget: { level: 295, exp: 99.5 } } } };
+  const input = { ...defaultMainInput("2026-10-04"), level: 299, exp: 99, personal: { ...defaultMainInput("2026-10-04").personal, mission: { ...defaultMainInput("2026-10-04").personal.mission, nextTarget: { level: 299, exp: 99.5 } } } };
   const result = simulateMain(input, real);
   assert.ok(result.atCap);
-  assert.equal(result.level, 296);
+  assert.equal(result.level, 300);
   assert.ok(result.rows.length > 0 && result.rows.every(row => Number.isFinite(row.progress)));
   assert.ok(analyzeMain(input, real).options.every(option => Number.isFinite(option.summary.progress)));
 });
@@ -630,23 +631,23 @@ test("PLUS 부스터와 출석 부스터는 같은 사냥 시간에 중복되지
   assert.ok(Math.abs(after.sourceRaw.attendanceBooster - 409_486_944_000) < 1);
 });
 
-test("출석 사우나와 부스터는 296 직전 실제 들어간 만큼 쓰고 남은 것을 만료로 센다", () => {
+test("출석 사우나와 부스터는 300 직전 실제 들어간 만큼 쓰고 남은 것을 만료로 센다", () => {
   const real = createMainContext();
-  const sauna = rewardOnly("2026-11-18", 295, 99.999);
+  const sauna = rewardOnly("2026-11-18", 299, 99.999);
   sauna.attendance.sauna = 4;
   const a = simulateMain(sauna, real);
-  assert.equal(a.level, 296);
-  assert.ok(Math.abs(a.sourceRaw.attendanceSauna - 8_704_031_325) < 1);
-  assert.ok(a.attendance.used.sauna > 0 && a.attendance.used.sauna < 0.03);
+  assert.equal(a.level, 300);
+  assert.ok(Math.abs(a.sourceRaw.attendanceSauna - 17_377_598_540) < 1);
+  assert.ok(a.attendance.used.sauna > 0 && a.attendance.used.sauna < 0.04);
   assert.ok(Math.abs(a.attendance.used.sauna + a.attendance.expired.sauna - 4) < 1e-12);
-  const booster = rewardOnly("2026-11-18", 295, 99.999);
+  const booster = rewardOnly("2026-11-18", 299, 99.999);
   booster.routine.huntHoursPerWeek = 3.5;
   booster.routine.huntMeasuredEokPer30Min = 0.00000001;
   booster.attendance.booster = 40;
   const b = simulateMain(booster, real);
-  assert.equal(b.level, 296);
-  assert.ok(Math.abs(b.sourceRaw.attendanceBooster - 8_704_031_324) < 2);
-  assert.ok(b.attendance.used.booster > 0 && b.attendance.used.booster < 0.1);
+  assert.equal(b.level, 300);
+  assert.ok(Math.abs(b.sourceRaw.attendanceBooster - 17_377_598_539) < 2);
+  assert.ok(b.attendance.used.booster > 0 && b.attendance.used.booster < 0.2);
   assert.ok(Math.abs(b.attendance.used.booster + b.attendance.expired.booster - 40) < 1e-10);
 });
 
@@ -724,9 +725,9 @@ test("출석 부스터는 그날 PLUS를 쓰고 남은 사냥 마릿수만큼 �
   assert.ok(Math.abs(r.attendance.used.booster - 4.614035087719298) < 1e-10);
 });
 
-test("새 보상·사냥 경로 180개 조합에서도 경험치와 보유량이 보존된다", () => {
+test("새 보상·사냥 경로 324개 조합에서도 경험치와 보유량이 보존된다", () => {
   const real = createMainContext();
-  for (const level of [286, 289, 294, 295, 292]) for (const exp of [0, 98.99, 99.999]) for (const date of ["2026-10-21", "2026-10-22", "2026-11-18"]) for (const mode of ["flame", "same", "direct", "measured"]) {
+  for (const level of [286, 289, 294, 295, 292, 296, 297, 298, 299]) for (const exp of [0, 98.99, 99.999]) for (const date of ["2026-10-21", "2026-10-22", "2026-11-18"]) for (const mode of ["flame", "same", "direct", "measured"]) {
     const x = rewardOnly(date, level, exp);
     x.routine.huntHoursPerWeek = 4;
     x.routine.huntFieldKey = mode === "measured" ? "flame" : mode;
@@ -737,7 +738,7 @@ test("새 보상·사냥 경로 180개 조합에서도 경험치와 보유량이
     const r = simulateMain(x, real);
     let moved = -REQ[level] * exp / 100;
     for (let l = level; l < r.level; l += 1) moved += REQ[l];
-    if (r.level < 296) moved += REQ[r.level] * r.exp / 100;
+    if (r.level < real.levelCap) moved += REQ[r.level] * r.exp / 100;
     const total = Object.values(r.sourceRaw).reduce((a, b) => a + b, 0);
     assert.ok(Math.abs(total - moved) < 10, JSON.stringify({ level, exp, date, mode, total, moved }));
     for (const [key, initial] of Object.entries(x.attendance)) {
@@ -876,22 +877,22 @@ test("숫자 문자열과 깨진 값을 같은 규칙으로 정리한다", () =>
   assert.ok(badDate.warnings.some(text => text.includes("올바른 날짜가 아니라")));
   // 범위 밖 레벨은 끝값으로 바꾸고 알린다.
   const low = simulateMain({ ...base, level: 279 }, real);
-  assert.ok(low.warnings.some(text => text.includes("280~295")));
-  const outOfRange = simulateMain({ ...base, level: 296 }, real);
-  assert.ok(outOfRange.warnings.some(text => text.includes("295레벨로 계산")));
+  assert.ok(low.warnings.some(text => text.includes("280~299")));
+  const outOfRange = simulateMain({ ...base, level: 300 }, real);
+  assert.ok(outOfRange.warnings.some(text => text.includes("299레벨로 계산")));
 });
 
-test("296 상한에 닿은 뒤 지정하는 경우는 단계표를 만들지 않는다", () => {
+test("300 상한에 닿은 뒤 지정하는 경우는 단계표를 만들지 않는다", () => {
   const real = createMainContext();
   const input = isolated();
-  Object.assign(input, { level: 295, exp: 99.9, end: "2026-10-05" });
+  Object.assign(input, { level: 299, exp: 99.9, end: "2026-10-05" });
   input.items.potion279 = 1;
   input.personal.designated = false;
   input.personal.designDate = "2026-10-05";
   const result = simulateMain(input, real);
   assert.ok(result.atCap);
   assert.equal(result.mission.steps.length, 0);
-  assert.ok(result.warnings.some(text => text.includes("296레벨에 닿은 뒤")));
+  assert.ok(result.warnings.some(text => text.includes("300레벨에 닿은 뒤")));
 });
 
 test("주간 컨텐츠도 직접 입력으로 바꿀 수 있다", () => {
@@ -918,7 +919,7 @@ test("등급 비교와 시점 비교도 입력 경고를 잃지 않는다", () =
   const real = createMainContext();
   const base = defaultMainInput("2026-10-04");
   const bad = { ...base, level: 279, items: { ...base.items, crimson: 1 }, plus: { ...base.plus, tier: "free" } };
-  const has = result => result.warnings.filter(text => text.includes("280~295")).length;
+  const has = result => result.warnings.filter(text => text.includes("280~299")).length;
   assert.equal(has(analyzeMain(bad, real).best.result), 1, "기준 계산에는 경고가 한 번 있다");
   const tiers = compareTiers(bad, real);
   assert.equal(tiers.length, 3);
@@ -1163,16 +1164,17 @@ test("등급을 올릴 때 이미 받은 레벨의 VIP 부스터와 4배 쿠폰�
 test("사냥으로 레벨 상한에 닿으면 4배 쿠폰과 부스터를 더 쓰지 않는다", () => {
   const real = createMainContext();
   const x = isolated();
-  Object.assign(x, { start: "2026-09-17", end: "2026-10-21", level: 295, exp: 99.95 });
+  Object.assign(x, { start: "2026-09-17", end: "2026-10-21", level: 299, exp: 99.95 });
   x.personal.enabled = false;
+  x.personal.flame.fieldKey = "same";
   x.plus = { enabled: true, tier: "premium", claimedLevel: 0 };
   Object.assign(x.routine, { huntHoursPerWeek: 4, huntBonusPct: 300 });
   const r = simulateMain(x, real);
   assert.ok(r.atCap);
   // 쓴 만큼만 경험치가 있어야 한다: 상한 뒤에 차감된 것이 없으면 사용량 × 단위 경험치 = 원천 합계
-  const perSession = real.huntRaw({ level: 295, fieldLevel: 295 });
+  const perSession = real.huntRaw({ level: 299, fieldLevel: 299 });
   assert.ok(Math.abs((r.sourceRaw.coupon4x || 0) - r.items.huntItemsUsed.coupon4x * 3 * perSession) < 1);
-  assert.ok(Math.abs((r.sourceRaw.booster || 0) - r.items.huntItemsUsed.booster * real.boosterRaw(295)) < 1);
+  assert.ok(Math.abs((r.sourceRaw.booster || 0) - r.items.huntItemsUsed.booster * real.boosterRaw(299)) < 1);
   // 받은 것 = 쓴 것 + 소멸
   assert.ok(Math.abs(r.items.plusReceived.coupon4x - r.items.huntItemsUsed.coupon4x - r.items.expired.coupon4x) < 1e-9);
   assert.ok(Math.abs(r.items.plusReceived.booster - r.items.huntItemsUsed.booster - r.items.expired.booster) < 1e-9);
@@ -1348,17 +1350,18 @@ test("미션 목표를 넘어 보상으로 레벨이 오르면 남은 플레임�
 
 test("레벨 상한에 닿으면 그 뒤 플레임은 잡지 않은 것으로 센다", () => {
   const real = createMainContext();
-  // 10/21 하루, 295레벨 99.999%, 플레임 재고 1,000·EXP 3. 상한까지 약 20.447483마리.
+  // 10/21 하루, 299레벨 99.999%, 플레임 재고 1,000·EXP 3. 상한까지 약 40.823400마리.
   const x = isolated();
-  Object.assign(x, { start: "2026-10-21", end: "2026-10-21", level: 295, exp: 99.999 });
+  Object.assign(x, { start: "2026-10-21", end: "2026-10-21", level: 299, exp: 99.999 });
   x.personal.designDate = "2026-10-21";
   x.plus.enabled = false;
   Object.assign(x.personal.flame, { stock: 1000, killsPerWeek: 7000, alloc: { shard: 0, exp: 3, erda: 0 } });
   const r = simulateMain(x, real);
   assert.ok(r.atCap);
-  assert.ok(Math.abs(r.flame.killed - 20.447483) < 1e-4, `처치 ${r.flame.killed}`);
+  assert.ok(Math.abs(r.flame.killed - 40.823400) < 1e-4, `처치 ${r.flame.killed}`);
   assert.ok(Math.abs(r.flame.endStock - (1000 - r.flame.killed)) < 1e-9);
-  assert.equal(r.coupons.made, 0, "20마리 × 3포인트 = 61포인트라 교환권이 안 된다");
+  assert.equal(r.coupons.made, 1, "약 40.82마리 × 3포인트 = 122포인트라 교환권 한 장이 생긴다");
+  assert.equal(r.coupons.expired, 1);
   assert.ok(Math.abs(r.sourceRaw.flame - r.flame.killed * flameModelRaw(299)) < 1);
 });
 
@@ -1434,27 +1437,62 @@ test("본섭 미션 화면(2026-10-10): 293·27.162% 지정의 1~8단계와 30�
   assert.ok(Math.abs(ptr.exp - 4.01) < 0.005, `${ptr.exp}`);
 });
 
-test("본섭 미션 화면(2026-10-10): 293레벨 19~30단계, 297레벨 두 캐릭터, 295레벨 지정의 30단계를 재현한다", async () => {
-  const P = await import("../lib/main-planner.mjs");
-  const T = await import("../lib/exp-tables.ts");
-  const ctx = T.createMainContext();
-  const req = level => (level <= 295 ? ctx.reqRaw(level) : ctx.reqRaw(295) * 1.1 ** (level - 295));
-  const gap = level => P.stepRawForLevel(level) / req(level) * 100;
-  // 293레벨 19단계 38.900% → 25단계 62.219%, 30단계 81.652%
-  assert.ok(Math.abs(38.9 + 6 * gap(293) - 62.219) < 0.0011);
-  assert.ok(Math.abs(38.9 + 11 * gap(293) - 81.652) < 0.0011);
-  // 297·36.143% 지정: 1단계 37.852%, 24단계 77.179%, 30단계 87.438%
-  assert.ok(Math.abs(36.143 + gap(297) - 37.852) < 0.0011);
-  assert.ok(Math.abs(37.852 + 23 * gap(297) - 77.179) < 0.0011);
-  assert.ok(Math.abs(37.852 + 29 * gap(297) - 87.438) < 0.0011);
-  // 다른 297레벨 캐릭터: 11단계 70.476%, 17단계 80.735%, 30단계 298·2.719%
-  assert.ok(Math.abs(70.476 + 6 * gap(297) - 80.735) < 0.0011);
-  const at28 = 80.735 + 11 * gap(297);
-  assert.ok(Math.abs(((1 - (100 - at28) / gap(297)) + 1) * gap(298) - 2.719) < 0.0011);
-  // 295레벨 16단계 82.347% → 30단계 296·9.833%
-  const at24 = 82.347 + 8 * gap(295);
-  assert.ok(Math.abs(((1 - (100 - at24) / gap(295)) + 5) * gap(296) - 9.833) < 0.0011);
-  // 보상: 297레벨 2,906,893,519,104 / 298레벨 2,937,852,688,320
-  assert.ok(Math.abs(P.stepRewardRawForLevel(297) - 2_906_893_519_104) < 1);
-  assert.ok(Math.abs(P.stepRewardRawForLevel(298) - 2_937_852_688_320) < 1);
+test("본섭 화면 5장: 실제 필요 경험치로 293·295·297 지정과 297 연속 목표를 재현한다", () => {
+  const real = createMainContext();
+  const near = (step, level, exp) => {
+    assert.equal(step.level, level);
+    assert.ok(Math.abs(step.exp - exp) <= 0.001, `단계${step.index}: ${step.exp} / 화면 ${exp}`);
+  };
+  const a = buildMissionTable({ mode: "model", designLevel: 297, designExp: 36.143 }, real).steps;
+  near(a[0], 297, 37.852); near(a[23], 297, 77.179); near(a[29], 297, 87.438);
+  const b = buildMissionTable({ mode: "screen", stepsDone: 10, nextTarget: { level: 297, exp: 70.476 }, nextRewardPct: 0.276 }, real).steps;
+  near(b.find(s => s.index === 17), 297, 80.735); near(b.find(s => s.index === 30), 298, 2.719);
+  const c = buildMissionTable({ mode: "screen", stepsDone: 13, nextTarget: { level: 295, exp: 78.297 } }, real).steps;
+  near(c.find(s => s.index === 16), 295, 82.347); near(c.find(s => s.index === 30), 296, 9.833);
+  const d = buildMissionTable({ mode: "model", designLevel: 293, designExp: 27.162 }, real).steps;
+  near(d[29], 294, 40.182);
+  const e = buildMissionTable({ mode: "screen", stepsDone: 18, nextTarget: { level: 293, exp: 38.900 } }, real).steps;
+  near(e.find(s => s.index === 25), 293, 62.219); near(e.find(s => s.index === 30), 293, 81.652);
+  assert.ok(Math.abs(stepRewardRawForLevel(297) - 2_906_893_519_104) < 1);
+  assert.ok(Math.abs(stepRewardRawForLevel(298) - 2_937_852_688_320) < 1);
+  assert.equal(Number((2_906_893_519_104 / real.reqRaw(297) * 100).toFixed(3)), 0.276);
+  assert.equal(Number((2_937_852_688_320 / real.reqRaw(298) * 100).toFixed(3)), 0.254);
+});
+
+test("공식300레벨 보정 목표는 30단계를 유지하고 경험치 없이 코인만 준다", () => {
+  const real = createMainContext();
+  const table = buildMissionTable({ mode: "model", designLevel: 299, designExp: 99.999 }, real);
+  assert.equal(table.steps.length, 30);
+  assert.ok(table.steps.every(s => s.level === 300 && s.exp === 0 && s.rewardRaw === 0));
+  const x = rewardOnly("2026-11-18", 299, 99.999);
+  x.personal.enabled = true;
+  x.personal.mission = { mode: "model", designLevel: 299, designExp: 99.999, stepsDone: 0 };
+  Object.assign(x.personal.flame, { stock: 1000, killsPerWeek: 7000, alloc: { shard: 0, exp: 3, erda: 0 } });
+  const r = simulateMain(x, real);
+  assert.equal(r.level, 300); assert.equal(r.exp, 0);
+  assert.equal(r.mission.stepsCleared, 30); assert.equal(r.mission.coins, 30_000);
+  assert.equal(r.mission.rewardRaw, 0);
+  assert.ok(Math.abs(r.sourceRaw.flame - 17_377_598_540) < 1);
+  const manual = buildMissionTable({ mode: "screen", stepsDone: 29, nextTarget: { level: 300, exp: 95 }, nextRewardPct: 1 }, real);
+  assert.deepEqual(manual.steps.map(s => [s.index, s.level, s.exp, s.rewardRaw]), [[30, 300, 0, 0]]);
+  const exact = buildMissionTable({ mode: "model", designLevel: 299, designExp: 98.94294013874703 }, real);
+  assert.deepEqual([exact.steps[0].level, exact.steps[0].exp, exact.steps[0].rewardRaw], [300, 0, 0], "한 단계 끝이 정확히 299·100%여도 300 목표다");
+});
+
+test("296~299 입력도 등급·배분·지정 비교를 유지하고 295의 다음 지역을 기다리지 않는다", () => {
+  const real = createMainContext();
+  for (const level of [296, 297, 298, 299]) {
+    const x = defaultMainInput("2026-10-09");
+    x.level = level; x.exp = 20;
+    x.personal.mission = { mode: "model", designLevel: level, designExp: 20, stepsDone: 0 };
+    assert.equal(normalizeInput(x, real).level, level);
+    assert.equal(recommendedFieldLevel(level), 299);
+    const a = analyzeMain(x, real);
+    assert.ok(a.options.every(option => Number.isFinite(option.summary.progress)));
+    assert.deepEqual([...new Set(a.options.map(option => option.crimsonHold))], [0, 999]);
+    assert.equal(compareTiers(x, real).length, 1);
+    assert.equal(compareAlloc(x, real).length, 4);
+    x.personal.designated = false;
+    assert.ok(compareDesignation(x, real).every(row => Number.isFinite(row.summary.progress)));
+  }
 });

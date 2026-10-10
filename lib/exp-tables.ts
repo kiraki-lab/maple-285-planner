@@ -55,6 +55,12 @@ export const REQUIRED_EXP: Record<number, bigint> = {
   293: 391_720_581_683_482n,
   294: 430_892_639_851_830n,
   295: 870_403_132_500_696n,
+  // 메이플 AI EXP_DATA: https://maple.ai.kr/_next/static/chunks/42e80702936c00eb.js (2026-10-10).
+  // 전 레벨 값의 정수 내림: 296~298 ×11/10, 299 ×3/2. 하루1소재는 297~299 끝자리 1/5/7 EXP를 생략한다.
+  296: 957_443_445_750_765n,
+  297: 1_053_187_790_325_841n,
+  298: 1_158_506_569_358_425n,
+  299: 1_737_759_854_037_637n,
 };
 const GRANDIS_DAILY_BASE = 129_794_096_544;
 const GRANDIS_DAILY_CARCION = 45_635_222_880;
@@ -64,6 +70,9 @@ const ARTERIA_MONSTER_PARK_PER_RUN = 107_204_032_000;
 const CARCION_MONSTER_PARK_PER_RUN = 156_017_856_000;
 const TALLAHART_MONSTER_PARK_PER_RUN = 218_575_316_000;
 const GEARDRAK_MONSTER_PARK_PER_RUN = 316_934_208_200;
+// 295~299 기어드락 몬파: 하루1소재 3pbsp2-ukxvfz.js의 지역 표. 일퀘는 기존 295 값과 메이플로드
+// https://mapleroad.kr/lib/exp_calculator?level=299&exp=0&flag_arcane=0&flag_grandis=0&flag_monster_park=0&flag_epic_dungeon=0&flag_add_exp=0
+// (각 레벨로 조회). 일퀘 전 지역 합계 370,429,319,424; API는 %만 공개하므로 정수 정밀도를 증명하지 않는다.
 export const WEEKLY_CONTENT_RAW: Record<number, { extreme: number; epic: number; sauna: number; adv1000: number }> = {
   285: { extreme: 1_036_056_075_000, epic: 1_228_800_000_000, sauna: 370_542_408_480, adv1000: 914_168_000_000 },
   286: { extreme: 1_048_127_520_000, epic: 1_243_000_000_000, sauna: 374_859_725_040, adv1000: 924_819_000_000 },
@@ -91,6 +100,11 @@ const EPIC_DUNGEON_BASE_RAW: Record<number, number> = {
   293: 751_400_000_000,
   294: 759_600_000_000,
   295: 853_300_000_000,
+  // 하루1소재 3pbsp2-ukxvfz.js의 h[레벨].stage0. 아우룸 레기스 b[레벨].stage0은 이 값의 ×3.
+  296: 863_700_000_000,
+  297: 874_100_000_000,
+  298: 883_500_000_000,
+  299: 894_000_000_000,
 };
 export const epicDungeonBaseRaw = (level: number) => EPIC_DUNGEON_BASE_RAW[level] * (level >= 290 ? 3 : 2);
 export const monsterParkRawForLevel = (level: number, carcionActive = true, tallahartActive = true) =>
@@ -126,6 +140,14 @@ export const POST_290_EFFICIENCY_RAW: Record<number, { sauna: number; adv100: nu
   293: { sauna: 453_170_678_400, adv100: 107_849_700_000, blue: 2_180_965_564_800, mech: 6_821_411_625_600, epic: 1_502_800_000_000, extreme: 1_267_200_000_000, monsterParkPerRun: 218_575_316_000 },
   294: { sauna: 458_142_355_440, adv100: 107_849_700_000, blue: 2_180_965_564_800, mech: 6_896_248_444_800, epic: 1_519_200_000_000, extreme: 1_281_100_000_000, monsterParkPerRun: 218_575_316_000 },
   295: { sauna: 514_661_664_000, adv100: 107_849_700_000, blue: 2_180_965_564_800, mech: 7_747_012_416_000, epic: 1_519_200_000_000, extreme: 1_281_100_000_000, monsterParkPerRun: 218_575_316_000 },
+  // 296~299: https://haru1sojae.kr/_next/static/chunks/3pbsp2-ukxvfz.js (2026-10-10)
+  // sauna=l, adv100=c×100, blue=eG, mech=eY, epic=b.stage0, monsterParkPerRun=d.Geardrak.
+  // 익몬 정수 원본은 공개 청크에서 찾지 못했다. 기존 295 정수값을 유지하며 메이플로드 각 레벨 API의
+  // 주간 익몬 % 0.1338/0.1216/0.1106/0.0737와 소수 넷째 자리까지 일치함을 별도로 확인했다.
+  296: { sauna: 520_929_657_600, adv100: 107_849_700_000, blue: 2_180_965_564_800, mech: 7_841_362_214_400, epic: 2_591_100_000_000, extreme: 1_281_100_000_000, monsterParkPerRun: 316_934_208_200 },
+  297: { sauna: 527_234_496_000, adv100: 107_849_700_000, blue: 2_180_965_564_800, mech: 7_936_266_624_000, epic: 2_622_300_000_000, extreme: 1_281_100_000_000, monsterParkPerRun: 316_934_208_200 },
+  298: { sauna: 532_849_680_000, adv100: 107_849_700_000, blue: 2_180_965_564_800, mech: 8_020_789_920_000, epic: 2_650_500_000_000, extreme: 1_281_100_000_000, monsterParkPerRun: 316_934_208_200 },
+  299: { sauna: 539_191_363_200, adv100: 107_849_700_000, blue: 2_180_965_564_800, mech: 8_116_248_940_800, epic: 2_682_000_000_000, extreme: 1_281_100_000_000, monsterParkPerRun: 316_934_208_200 },
 };
 Object.entries(POST_290_EFFICIENCY_RAW).forEach(([levelValue, raw]) => {
   const level = Number(levelValue);
@@ -258,7 +280,7 @@ Object.keys(pre280Content).map(Number).forEach(level => {
 });
 
 const ITEM_CONVERSION_LEVEL_MIN = 260;
-const ITEM_CONVERSION_LEVEL_MAX = 295;
+const ITEM_CONVERSION_LEVEL_MAX = 299;
 const ITEM_CONVERSION_UPPER_BOUND = ITEM_CONVERSION_LEVEL_MAX + 1;
 // 범위를 넘어서 쓰는 성장의 비약은 범위 마지막 레벨의 필요 경험치를 준다.
 // 메이플로드 https://mapleroad.kr/utils/elixir 효율 표(269/279 이전 100%, 이후 고정 경험치) 및
@@ -278,6 +300,13 @@ export const itemConversionRawExperience = (type: CustomRewardType, level: numbe
   if (!required || !efficiency[level]) return 0;
   if (type === "potion269") return level <= 269 ? required : GROWTH_POTION_RAW.potion269;
   if (type === "potion279") return level <= 279 ? required : GROWTH_POTION_RAW.potion279;
+  // 새 구간은 %로 바꿨다가 되돌리지 않고 공개 표의 정수를 그대로 사용한다.
+  if (level >= 296) {
+    const raw = POST_290_EFFICIENCY_RAW[level];
+    if (type === "adv") return raw.adv100 / 100;
+    if (type === "crimson") return (MOB_BASE_EXP as Record<number, number>)[level] * CRIMSON_FARM_MOBS;
+    return raw[type];
+  }
   if (type === "adv") return required * efficiency[level].adv100 / 10_000;
   if (type === "crimson") return level < 280 ? 0 : required * crimsonPercentForLevel(efficiency[level].mech, level) / 100;
   if (type === "mech" && level < 280) return 0;
@@ -376,7 +405,7 @@ export const huntLevelFactor = (gap: number) => (gap >= 40 ? 0.7 : gap >= 21 ? (
 // 본섭 퍼스널 버닝 계산용 경험치 표 어댑터. 엔진(lib/main-planner.mjs)은 표를 모르고 이 함수로만 받는다.
 // 일과·아이템 값은 챌섭 계산기에서 검증한 표를 그대로 쓰되, 챌섭 전용 보너스(에테리온 코어 %)는 넣지 않는다.
 export const createMainContext = () => ({
-  levelCap: 296,
+  levelCap: 300,
   reqRaw: (level: number) => itemConversionRequiredExperience(level),
   // 몬스터파크 추가 경험치(하루1소재의 「보약」, 아르고호의 가호 등)는 썬데이 보너스와 더해진다: 기본 × (1 + 썬데이 + 추가%).
   routineRaw: ({ level, runs, sundayKind, grandis, monsterParkBonusPct = 0 }: { level: number; runs: number; sundayKind: "none" | "normal" | "special"; grandis: boolean; monsterParkBonusPct?: number }) => {

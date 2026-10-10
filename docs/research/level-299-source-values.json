@@ -1,0 +1,603 @@
+{
+  "checkedAt": "2026-10-10",
+  "sources": {
+    "haru": "https://haru1sojae.kr/_next/static/chunks/3pbsp2-ukxvfz.js",
+    "mapleAI": "https://maple.ai.kr/_next/static/chunks/42e80702936c00eb.js",
+    "mapleRoad": "https://mapleroad.kr/lib/exp_calculator?level=299&exp=0&flag_arcane=0&flag_grandis=0&flag_monster_park=0&flag_epic_dungeon=0&flag_add_exp=0",
+    "official": "https://maplestory.nexon.com/News/Update/813"
+  },
+  "notes": [
+    "Maple AI requiredExperience equals integer floor of previous level ×11/10 (296~298), ×3/2 (299). Haru differs by 1,5,7 EXP at 297,298,299. MapleRoad only exposes rounded percentages, not exact required XP.",
+    "Haru raw sauna/mech/crimson/blue/advanced EXP/Aurum/monster park tables were read directly. VIP booster and hunting formulas use existing Haru mob table and level factor; 299 uses highest available mob 299.",
+    "Grandis total and extreme MP retain existing Lv.295 raw values. All Lv.296~299 MapleRoad displayed percentages match; their exact raw integers were not separately exposed in these public sources.",
+    "Growth potions remain fixed XP from MapleRoad elixir table: potion269 2438047518853; potion279 16657228589191. These match MapleRoad percentage responses at 296~299.",
+    "Official 813: goals beyond 300 become reaching Lv.300; these stages give coins without XP.",
+    "STEP_MOB_MULTIPLE_290S[299] remains the existing 3107000; no actual Lv.299 mission screenshot is available. No new coefficient has been invented."
+  ],
+  "rows": [
+    {
+      "level": 296,
+      "requiredExperience": 957443445750765,
+      "haruRequiredExperience": 957443445750765,
+      "saunaPerHour": 520929657600,
+      "mechFarm": 7841362214400,
+      "crimsonFarm": 8444543923200,
+      "blueFarm": 2180965564800,
+      "advancedExpPerTicket": 1078497000,
+      "aurumRegisBase": 2591100000000,
+      "monsterParkGeardrak": 316934208200,
+      "grandisDailyTotal": 370429319424,
+      "extremeMonsterPark": 1281100000000,
+      "mapleRoadCurrent": {
+        "daily": {
+          "arcane_quest": {
+            "total": 0.0048,
+            "yeoro": 0.0001,
+            "chewchew": 0.0002,
+            "lacheln": 0.0003,
+            "arcana": 0.0003,
+            "morass": 0.0005,
+            "esfera": 0.0005,
+            "moonbridge": 0.0009,
+            "maze": 0.0009,
+            "limen": 0.0011
+          },
+          "grandis_quest": {
+            "total": 0.0387,
+            "cernium": 0.0017,
+            "arcs": 0.002,
+            "odium": 0.0024,
+            "dowonkyung": 0.0034,
+            "arteria": 0.004,
+            "carcion": 0.0048,
+            "tallahart": 0.0094,
+            "geardrak": 0.011
+          },
+          "monster_park": {
+            "total": 0.1131,
+            "yeoro": 0,
+            "chewchew": 0.0001,
+            "lacheln": 0.0003,
+            "arcana": 0.0005,
+            "morass": 0.0006,
+            "esfera": 0.0007,
+            "sellas": 0.0009,
+            "moonbridge": 0.0012,
+            "maze": 0.0015,
+            "limen": 0.0016,
+            "cernium": 0.0039,
+            "arcs": 0.0046,
+            "odium": 0.0055,
+            "dowonkyung": 0.008,
+            "arteria": 0.0112,
+            "carcion": 0.0163,
+            "tallahart": 0.0228,
+            "geardrak": 0.0331
+          }
+        },
+        "weekly": {
+          "arcane_quest": {
+            "total": 0.0005,
+            "yeoro": 0,
+            "chewchew": 0.0001,
+            "lacheln": 0.0001,
+            "arcana": 0.0001,
+            "morass": 0.0001,
+            "esfera": 0.0001
+          },
+          "epic_dungeon": {
+            "total": 0.6766,
+            "high_mountain": 0.0902,
+            "angler_company": 0.1353,
+            "nightmare_paradise": 0.1804,
+            "aurum_regis": 0.2706
+          },
+          "punch_king": {
+            "150": 0.0472,
+            "400": 0.0787,
+            "1000": 0.1023,
+            "1600": 0.1259,
+            "2000": 0.1889,
+            "2050": 0.2282
+          },
+          "monster_park_extreme": 0.1338,
+          "monster_park_hands": {
+            "geardrak": 0.0666,
+            "tallahart": 0.0537,
+            "carcion": 0.0435,
+            "arteria": 0.0348,
+            "dowonkyung": 0.0285,
+            "odium": 0.0221,
+            "arcs": 0.0175,
+            "cernium": 0.0139,
+            "limen": 0.0048,
+            "maze": 0.0042,
+            "moonbridge": 0.0038,
+            "sellas": 0.0035,
+            "esfera": 0.0031,
+            "morass": 0.0029,
+            "arcana": 0.0025,
+            "lacheln": 0.0023,
+            "yamyam": 0.0021,
+            "chewchew": 0.0018,
+            "reversecity": 0.0008,
+            "yeoro": 0.0007
+          }
+        },
+        "item": {
+          "elixir": {
+            "e200": 0.0001,
+            "e249": 0.0162,
+            "e259": 0.0254,
+            "e269": 0.2546,
+            "e279": 1.7398,
+            "e200lv": 0.0012,
+            "e250lv": 0.2598
+          },
+          "exp_coupon": {
+            "1": 0,
+            "10": 0.0001,
+            "100": 0.0008,
+            "1000": 0.008
+          },
+          "upper_exp_coupon": {
+            "1": 0.0001,
+            "10": 0.0011,
+            "100": 0.0113,
+            "1000": 0.1126
+          },
+          "personal_exp_coupon": {
+            "1": 0.0003,
+            "10": 0.0029,
+            "100": 0.0286,
+            "1000": 0.2864
+          },
+          "vip_sauna": 0.0544,
+          "mvp_resort": 0.1202,
+          "golden_berry": null,
+          "blue_berry": 0.2278,
+          "mech_berry": 0.819,
+          "crimson_berry": 0.882
+        }
+      }
+    },
+    {
+      "level": 297,
+      "requiredExperience": 1053187790325841,
+      "haruRequiredExperience": 1053187790325840,
+      "saunaPerHour": 527234496000,
+      "mechFarm": 7936266624000,
+      "crimsonFarm": 8546748672000,
+      "blueFarm": 2180965564800,
+      "advancedExpPerTicket": 1078497000,
+      "aurumRegisBase": 2622300000000,
+      "monsterParkGeardrak": 316934208200,
+      "grandisDailyTotal": 370429319424,
+      "extremeMonsterPark": 1281100000000,
+      "mapleRoadCurrent": {
+        "daily": {
+          "arcane_quest": {
+            "total": 0.0044,
+            "yeoro": 0.0001,
+            "chewchew": 0.0002,
+            "lacheln": 0.0003,
+            "arcana": 0.0003,
+            "morass": 0.0004,
+            "esfera": 0.0004,
+            "moonbridge": 0.0008,
+            "maze": 0.0009,
+            "limen": 0.001
+          },
+          "grandis_quest": {
+            "total": 0.0352,
+            "cernium": 0.0016,
+            "arcs": 0.0018,
+            "odium": 0.0022,
+            "dowonkyung": 0.0031,
+            "arteria": 0.0037,
+            "carcion": 0.0043,
+            "tallahart": 0.0085,
+            "geardrak": 0.01
+          },
+          "monster_park": {
+            "total": 0.1028,
+            "yeoro": 0,
+            "chewchew": 0.0001,
+            "lacheln": 0.0003,
+            "arcana": 0.0004,
+            "morass": 0.0006,
+            "esfera": 0.0007,
+            "sellas": 0.0008,
+            "moonbridge": 0.0011,
+            "maze": 0.0013,
+            "limen": 0.0015,
+            "cernium": 0.0036,
+            "arcs": 0.0042,
+            "odium": 0.005,
+            "dowonkyung": 0.0073,
+            "arteria": 0.0102,
+            "carcion": 0.0148,
+            "tallahart": 0.0208,
+            "geardrak": 0.0301
+          }
+        },
+        "weekly": {
+          "arcane_quest": {
+            "total": 0.0004,
+            "yeoro": 0,
+            "chewchew": 0.0001,
+            "lacheln": 0.0001,
+            "arcana": 0.0001,
+            "morass": 0.0001,
+            "esfera": 0.0001
+          },
+          "epic_dungeon": {
+            "total": 0.6225,
+            "high_mountain": 0.083,
+            "angler_company": 0.1245,
+            "nightmare_paradise": 0.166,
+            "aurum_regis": 0.249
+          },
+          "punch_king": {
+            "150": 0.0429,
+            "400": 0.0715,
+            "1000": 0.093,
+            "1600": 0.1145,
+            "2000": 0.1717,
+            "2050": 0.2075
+          },
+          "monster_park_extreme": 0.1216,
+          "monster_park_hands": {
+            "geardrak": 0.0613,
+            "tallahart": 0.0488,
+            "carcion": 0.0395,
+            "arteria": 0.0313,
+            "dowonkyung": 0.0259,
+            "odium": 0.0198,
+            "arcs": 0.0157,
+            "cernium": 0.0124,
+            "limen": 0.0043,
+            "maze": 0.0038,
+            "moonbridge": 0.0034,
+            "sellas": 0.0032,
+            "esfera": 0.0029,
+            "morass": 0.0026,
+            "arcana": 0.0023,
+            "lacheln": 0.0021,
+            "yamyam": 0.0019,
+            "chewchew": 0.0017,
+            "reversecity": 0.0008,
+            "yeoro": 0.0007
+          }
+        },
+        "item": {
+          "elixir": {
+            "e200": 0.0001,
+            "e249": 0.0148,
+            "e259": 0.0231,
+            "e269": 0.2315,
+            "e279": 1.5816,
+            "e200lv": 0.0011,
+            "e250lv": 0.2362
+          },
+          "exp_coupon": {
+            "1": 0,
+            "10": 0.0001,
+            "100": 0.0007,
+            "1000": 0.0073
+          },
+          "upper_exp_coupon": {
+            "1": 0.0001,
+            "10": 0.001,
+            "100": 0.0102,
+            "1000": 0.1024
+          },
+          "personal_exp_coupon": {
+            "1": 0.0003,
+            "10": 0.0026,
+            "100": 0.0263,
+            "1000": 0.2635
+          },
+          "vip_sauna": 0.0501,
+          "mvp_resort": 0.1106,
+          "golden_berry": null,
+          "blue_berry": 0.2071,
+          "mech_berry": 0.7535,
+          "crimson_berry": 0.8115
+        }
+      }
+    },
+    {
+      "level": 298,
+      "requiredExperience": 1158506569358425,
+      "haruRequiredExperience": 1158506569358420,
+      "saunaPerHour": 532849680000,
+      "mechFarm": 8020789920000,
+      "crimsonFarm": 8637773760000,
+      "blueFarm": 2180965564800,
+      "advancedExpPerTicket": 1078497000,
+      "aurumRegisBase": 2650500000000,
+      "monsterParkGeardrak": 316934208200,
+      "grandisDailyTotal": 370429319424,
+      "extremeMonsterPark": 1281100000000,
+      "mapleRoadCurrent": {
+        "daily": {
+          "arcane_quest": {
+            "total": 0.004,
+            "yeoro": 0.0001,
+            "chewchew": 0.0002,
+            "lacheln": 0.0003,
+            "arcana": 0.0003,
+            "morass": 0.0004,
+            "esfera": 0.0004,
+            "moonbridge": 0.0007,
+            "maze": 0.0008,
+            "limen": 0.0009
+          },
+          "grandis_quest": {
+            "total": 0.032,
+            "cernium": 0.0014,
+            "arcs": 0.0017,
+            "odium": 0.002,
+            "dowonkyung": 0.0028,
+            "arteria": 0.0033,
+            "carcion": 0.0039,
+            "tallahart": 0.0077,
+            "geardrak": 0.0091
+          },
+          "monster_park": {
+            "total": 0.0935,
+            "yeoro": 0,
+            "chewchew": 0.0001,
+            "lacheln": 0.0003,
+            "arcana": 0.0004,
+            "morass": 0.0005,
+            "esfera": 0.0006,
+            "sellas": 0.0008,
+            "moonbridge": 0.001,
+            "maze": 0.0012,
+            "limen": 0.0013,
+            "cernium": 0.0032,
+            "arcs": 0.0038,
+            "odium": 0.0046,
+            "dowonkyung": 0.0066,
+            "arteria": 0.0093,
+            "carcion": 0.0135,
+            "tallahart": 0.0189,
+            "geardrak": 0.0274
+          }
+        },
+        "weekly": {
+          "arcane_quest": {
+            "total": 0.0004,
+            "yeoro": 0,
+            "chewchew": 0,
+            "lacheln": 0.0001,
+            "arcana": 0.0001,
+            "morass": 0.0001,
+            "esfera": 0.0001
+          },
+          "epic_dungeon": {
+            "total": 0.572,
+            "high_mountain": 0.0763,
+            "angler_company": 0.1144,
+            "nightmare_paradise": 0.1525,
+            "aurum_regis": 0.2288
+          },
+          "punch_king": {
+            "150": 0.039,
+            "400": 0.065,
+            "1000": 0.0846,
+            "1600": 0.1041,
+            "2000": 0.1561,
+            "2050": 0.1886
+          },
+          "monster_park_extreme": 0.1106,
+          "monster_park_hands": {
+            "geardrak": 0.0563,
+            "tallahart": 0.0444,
+            "carcion": 0.036,
+            "arteria": 0.0284,
+            "dowonkyung": 0.0233,
+            "odium": 0.0178,
+            "arcs": 0.0141,
+            "cernium": 0.0112,
+            "limen": 0.0038,
+            "maze": 0.0035,
+            "moonbridge": 0.0031,
+            "sellas": 0.0029,
+            "esfera": 0.0026,
+            "morass": 0.0024,
+            "arcana": 0.0021,
+            "lacheln": 0.0019,
+            "yamyam": 0.0017,
+            "chewchew": 0.0015,
+            "reversecity": 0.0007,
+            "yeoro": 0.0006
+          }
+        },
+        "item": {
+          "elixir": {
+            "e200": 0,
+            "e249": 0.0134,
+            "e259": 0.021,
+            "e269": 0.2104,
+            "e279": 1.4378,
+            "e200lv": 0.001,
+            "e250lv": 0.2147
+          },
+          "exp_coupon": {
+            "1": 0,
+            "10": 0.0001,
+            "100": 0.0007,
+            "1000": 0.0066
+          },
+          "upper_exp_coupon": {
+            "1": 0.0001,
+            "10": 0.0009,
+            "100": 0.0093,
+            "1000": 0.0931
+          },
+          "personal_exp_coupon": {
+            "1": 0.0002,
+            "10": 0.0024,
+            "100": 0.0242,
+            "1000": 0.2421
+          },
+          "vip_sauna": 0.046,
+          "mvp_resort": 0.1016,
+          "golden_berry": null,
+          "blue_berry": 0.1883,
+          "mech_berry": 0.6923,
+          "crimson_berry": 0.7456
+        }
+      }
+    },
+    {
+      "level": 299,
+      "requiredExperience": 1737759854037637,
+      "haruRequiredExperience": 1737759854037630,
+      "saunaPerHour": 539191363200,
+      "mechFarm": 8116248940800,
+      "crimsonFarm": 8740575782400,
+      "blueFarm": 2180965564800,
+      "advancedExpPerTicket": 1078497000,
+      "aurumRegisBase": 2682000000000,
+      "monsterParkGeardrak": 316934208200,
+      "grandisDailyTotal": 370429319424,
+      "extremeMonsterPark": 1281100000000,
+      "mapleRoadCurrent": {
+        "daily": {
+          "arcane_quest": {
+            "total": 0.0026,
+            "yeoro": 0,
+            "chewchew": 0.0001,
+            "lacheln": 0.0002,
+            "arcana": 0.0002,
+            "morass": 0.0003,
+            "esfera": 0.0003,
+            "moonbridge": 0.0005,
+            "maze": 0.0005,
+            "limen": 0.0006
+          },
+          "grandis_quest": {
+            "total": 0.0213,
+            "cernium": 0.0009,
+            "arcs": 0.0011,
+            "odium": 0.0013,
+            "dowonkyung": 0.0018,
+            "arteria": 0.0022,
+            "carcion": 0.0026,
+            "tallahart": 0.0052,
+            "geardrak": 0.0061
+          },
+          "monster_park": {
+            "total": 0.0623,
+            "yeoro": 0,
+            "chewchew": 0.0001,
+            "lacheln": 0.0002,
+            "arcana": 0.0003,
+            "morass": 0.0003,
+            "esfera": 0.0004,
+            "sellas": 0.0005,
+            "moonbridge": 0.0007,
+            "maze": 0.0008,
+            "limen": 0.0009,
+            "cernium": 0.0022,
+            "arcs": 0.0026,
+            "odium": 0.003,
+            "dowonkyung": 0.0044,
+            "arteria": 0.0062,
+            "carcion": 0.009,
+            "tallahart": 0.0126,
+            "geardrak": 0.0182
+          }
+        },
+        "weekly": {
+          "arcane_quest": {
+            "total": 0.0003,
+            "yeoro": 0,
+            "chewchew": 0,
+            "lacheln": 0,
+            "arcana": 0,
+            "morass": 0.0001,
+            "esfera": 0.0001
+          },
+          "epic_dungeon": {
+            "total": 0.3858,
+            "high_mountain": 0.0514,
+            "angler_company": 0.0772,
+            "nightmare_paradise": 0.1029,
+            "aurum_regis": 0.1543
+          },
+          "punch_king": {
+            "150": 0.026,
+            "400": 0.0434,
+            "1000": 0.0564,
+            "1600": 0.0694,
+            "2000": 0.1041,
+            "2050": 0.1257
+          },
+          "monster_park_extreme": 0.0737,
+          "monster_park_hands": {
+            "geardrak": 0.038,
+            "tallahart": 0.0282,
+            "carcion": 0.0228,
+            "arteria": 0.0188,
+            "dowonkyung": 0.0156,
+            "odium": 0.0117,
+            "arcs": 0.0093,
+            "cernium": 0.0073,
+            "limen": 0.0025,
+            "maze": 0.0023,
+            "moonbridge": 0.0021,
+            "sellas": 0.0019,
+            "esfera": 0.0017,
+            "morass": 0.0016,
+            "arcana": 0.0014,
+            "lacheln": 0.0013,
+            "yamyam": 0.0011,
+            "chewchew": 0.001,
+            "reversecity": 0.0005,
+            "yeoro": 0.0004
+          }
+        },
+        "item": {
+          "elixir": {
+            "e200": 0,
+            "e249": 0.0089,
+            "e259": 0.014,
+            "e269": 0.1403,
+            "e279": 0.9585,
+            "e200lv": 0.0007,
+            "e250lv": 0.1431
+          },
+          "exp_coupon": {
+            "1": 0,
+            "10": 0,
+            "100": 0.0004,
+            "1000": 0.0044
+          },
+          "upper_exp_coupon": {
+            "1": 0.0001,
+            "10": 0.0006,
+            "100": 0.0062,
+            "1000": 0.0621
+          },
+          "personal_exp_coupon": {
+            "1": 0.0002,
+            "10": 0.0016,
+            "100": 0.0163,
+            "1000": 0.1633
+          },
+          "vip_sauna": 0.031,
+          "mvp_resort": 0.0685,
+          "golden_berry": null,
+          "blue_berry": 0.1255,
+          "mech_berry": 0.4671,
+          "crimson_berry": 0.503
+        }
+      }
+    }
+  ]
+}

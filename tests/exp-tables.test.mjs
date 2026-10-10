@@ -91,7 +91,7 @@ test("보유 아이템을 경험치로 환산하는 값이 메이플스카우터
 
   const upperLimit = simulateItemInventoryConversion({ level: 295, exp: 0, inventory: { potion279: 1000 } });
   assert.equal(upperLimit.reachedUpperLimit, true);
-  assert.equal(upperLimit.level, 296);
+  assert.equal(upperLimit.level, 300);
   assert.equal(upperLimit.used.potion279 + upperLimit.remaining.potion279, 1000);
 });
 
@@ -268,8 +268,8 @@ test("커뮤니티 보스 구성은 퍼스널 대상 35개 안에서 보스당 �
 
 test("어댑터가 필요 경험치와 일과 값을 표 그대로 돌려준다", () => {
   const ctx = createMainContext();
-  assert.equal(ctx.levelCap, 296);
-  for (let level = 280; level <= 295; level += 1) assert.equal(ctx.reqRaw(level), Number(REQUIRED_EXP[level]));
+  assert.equal(ctx.levelCap, 300);
+  for (let level = 280; level <= 299; level += 1) assert.equal(ctx.reqRaw(level), Number(REQUIRED_EXP[level]));
   const routine = ctx.routineRaw({ level: 287, runs: 7, sundayKind: "none", grandis: true });
   assert.equal(routine.monsterPark, monsterParkRawForLevel(287, true, true) * 7);
   assert.equal(routine.grandis, grandisDailyRawForLevel(287, true));
@@ -336,4 +336,58 @@ test("사냥 30분 순수 경험치와 VIP 부스터가 하루1소재 식과 같
   const cases = [[0, 1.2], [-1, 1.2], [2, 1.1], [5, 1.05], [10, 1], [11, 0.99], [21, 0.89], [40, 0.7], [-2, 1.1], [-5, 1.05], [-10, 1], [-20, 0.9], [-21, 0.7], [-35, 0.14], [-39, 0.1], [-40, 0]];
   cases.forEach(([gap, factor]) => assert.ok(Math.abs(huntLevelFactor(gap) - factor) < 1e-12, `레벨 차 ${gap}`));
   assert.equal(real.huntRaw({ level: 288, fieldLevel: 999 }), 0, "표에 없는 몬스터 레벨은 0");
+});
+
+test("296~299 원본 정수 표: 필요 경험치·농장·사우나·상급 EXP·아우룸 레기스", () => {
+  // 2026-10-10 공개 청크에서 직접 옮긴 값. 필요 경험치는 메이플 AI, 나머지는 하루1소재.
+  const rows = [
+    [296, 957_443_445_750_765n, 520_929_657_600, 7_841_362_214_400, 8_444_543_923_200, 2_591_100_000_000],
+    [297, 1_053_187_790_325_841n, 527_234_496_000, 7_936_266_624_000, 8_546_748_672_000, 2_622_300_000_000],
+    [298, 1_158_506_569_358_425n, 532_849_680_000, 8_020_789_920_000, 8_637_773_760_000, 2_650_500_000_000],
+    [299, 1_737_759_854_037_637n, 539_191_363_200, 8_116_248_940_800, 8_740_575_782_400, 2_682_000_000_000],
+  ];
+  const real = createMainContext();
+  for (const [level, required, sauna, mech, crimson, epic] of rows) {
+    assert.equal(REQUIRED_EXP[level], required);
+    assert.equal(itemConversionRawExperience("sauna", level), sauna);
+    assert.equal(itemConversionRawExperience("mech", level), mech);
+    assert.equal(itemConversionRawExperience("crimson", level), crimson);
+    assert.equal(itemConversionRawExperience("blue", level), 2_180_965_564_800);
+    assert.equal(itemConversionRawExperience("adv", level), 1_078_497_000);
+    assert.equal(itemConversionRawExperience("potion269", level), 2_438_047_518_853);
+    assert.equal(itemConversionRawExperience("potion279", level), 16_657_228_589_191);
+    assert.equal(real.weeklyRaw({ level, epicMult: 1 }).epic, epic);
+    assert.equal(monsterParkRawForLevel(level), 316_934_208_200);
+    assert.equal(grandisDailyRawForLevel(level), 370_429_319_424);
+  }
+  assert.equal(REQUIRED_EXP[299], REQUIRED_EXP[298] * 3n / 2n);
+});
+
+test("메이플로드 296~299 응답의 %와 콘텐츠·아이템 값이 소수 넷째 자리까지 같다", () => {
+  const real = createMainContext();
+  const api = [
+    [296, 0.1338, 0.2706, 0.0387, 0.0331, 0.0544, 0.1126, 0.2278, 0.819, 0.882, 0.2546, 1.7398],
+    [297, 0.1216, 0.2490, 0.0352, 0.0301, 0.0501, 0.1024, 0.2071, 0.7535, 0.8115, 0.2315, 1.5816],
+    [298, 0.1106, 0.2288, 0.0320, 0.0274, 0.0460, 0.0931, 0.1883, 0.6923, 0.7456, 0.2104, 1.4378],
+    [299, 0.0737, 0.1543, 0.0213, 0.0182, 0.0310, 0.0621, 0.1255, 0.4671, 0.5030, 0.1403, 0.9585],
+  ];
+  for (const [level, ...expected] of api) {
+    const weekly = real.weeklyRaw({ level, epicMult: 1 });
+    const routine = real.routineRaw({ level, runs: 1, sundayKind: "none", grandis: true });
+    const raw = [weekly.extreme, weekly.epic, routine.grandis, routine.monsterPark,
+      itemConversionRawExperience("sauna", level), itemConversionRawExperience("adv", level) * 1000,
+      ...["blue", "mech", "crimson", "potion269", "potion279"].map(type => itemConversionRawExperience(type, level))];
+    raw.forEach((value, index) => assert.equal(Number((value / real.reqRaw(level) * 100).toFixed(4)), expected[index], `${level}:${index}`));
+  }
+});
+
+test("299 사냥은 299 몬스터를 쓰고 아이템 환산은 300에서 멈춘다", () => {
+  const real = createMainContext();
+  assert.equal(real.huntRaw({ level: 299, fieldLevel: 299 }), 68_108_382_720);
+  assert.equal(real.boosterRaw(299), 101_098_380_600);
+  assert.equal(flameModelRaw(299), 425_677_392);
+  assert.equal(couponRawForLevel(299), 2_837_849_280);
+  const r = simulateItemInventoryConversion({ level: 299, exp: 99.999, inventory: { adv: 1000 } });
+  assert.equal(r.level, 300); assert.equal(r.exp, 0); assert.ok(r.reachedUpperLimit);
+  assert.equal(r.used.adv, 17); assert.equal(r.remaining.adv, 983);
 });
