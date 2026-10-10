@@ -242,7 +242,7 @@ test("단계 간격은 구간마다 몬스터 기본 경험치의 배수다", ()
   assert.ok(Math.abs(stepRawForLevel(293) / 391_721_000_000_000 * 100 - 3.886571) < 0.0005);
   assert.ok(Math.abs(stepRawForLevel(292) / 356_110_000_000_000 * 100 - 4.226714) < 0.0005);
   assert.ok(Math.abs(multiple(295) - 3_123_334) < 1);
-  [296, 299].forEach(level => assert.ok(Math.abs(multiple(level) - 3_119_741) < 1));
+  Object.entries({ 296: 3_120_168, 297: 3_114_999, 298: 3_110_978 }).forEach(([level, expected]) => assert.ok(Math.abs(multiple(Number(level)) - expected) < 1, level));
   [280, 284].forEach(level => assert.ok(Math.abs(multiple(level) - 2_730_206) < 1));
   // 커뮤니티 296레벨 계산의 단계 간격 1.861%
   const req296 = 2.5911e12 / 0.002706;
@@ -1432,4 +1432,29 @@ test("본섭 미션 화면(2026-10-10): 293·27.162% 지정의 1~8단계와 30�
   const ptr = P.buildMissionTable({ mode: "model", stepsDone: 0, designLevel: 294, designExp: 0 }, ctx).steps[29];
   assert.equal(ptr.level, 295);
   assert.ok(Math.abs(ptr.exp - 4.01) < 0.005, `${ptr.exp}`);
+});
+
+test("본섭 미션 화면(2026-10-10): 293레벨 19~30단계, 297레벨 두 캐릭터, 295레벨 지정의 30단계를 재현한다", async () => {
+  const P = await import("../lib/main-planner.mjs");
+  const T = await import("../lib/exp-tables.ts");
+  const ctx = T.createMainContext();
+  const req = level => (level <= 295 ? ctx.reqRaw(level) : ctx.reqRaw(295) * 1.1 ** (level - 295));
+  const gap = level => P.stepRawForLevel(level) / req(level) * 100;
+  // 293레벨 19단계 38.900% → 25단계 62.219%, 30단계 81.652%
+  assert.ok(Math.abs(38.9 + 6 * gap(293) - 62.219) < 0.0011);
+  assert.ok(Math.abs(38.9 + 11 * gap(293) - 81.652) < 0.0011);
+  // 297·36.143% 지정: 1단계 37.852%, 24단계 77.179%, 30단계 87.438%
+  assert.ok(Math.abs(36.143 + gap(297) - 37.852) < 0.0011);
+  assert.ok(Math.abs(37.852 + 23 * gap(297) - 77.179) < 0.0011);
+  assert.ok(Math.abs(37.852 + 29 * gap(297) - 87.438) < 0.0011);
+  // 다른 297레벨 캐릭터: 11단계 70.476%, 17단계 80.735%, 30단계 298·2.719%
+  assert.ok(Math.abs(70.476 + 6 * gap(297) - 80.735) < 0.0011);
+  const at28 = 80.735 + 11 * gap(297);
+  assert.ok(Math.abs(((1 - (100 - at28) / gap(297)) + 1) * gap(298) - 2.719) < 0.0011);
+  // 295레벨 16단계 82.347% → 30단계 296·9.833%
+  const at24 = 82.347 + 8 * gap(295);
+  assert.ok(Math.abs(((1 - (100 - at24) / gap(295)) + 5) * gap(296) - 9.833) < 0.0011);
+  // 보상: 297레벨 2,906,893,519,104 / 298레벨 2,937,852,688,320
+  assert.ok(Math.abs(P.stepRewardRawForLevel(297) - 2_906_893_519_104) < 1);
+  assert.ok(Math.abs(P.stepRewardRawForLevel(298) - 2_937_852_688_320) < 1);
 });
