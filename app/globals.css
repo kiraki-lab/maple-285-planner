@@ -372,3 +372,7 @@ footer p { margin: 0; color: #65636c; font-size: 12px; text-align: center; }
 .pb-checks { grid-template-columns: 1fr 1fr; }
 .pb-controls .field small, .pb-controls .field em { font-size: 11px; line-height: 1.35; }
 @media (max-width: 480px) { .pb-bossrow { grid-template-columns: 72px minmax(0, 1fr); } .pb-bossrow-detail { grid-column: 1 / -1; } .pb-checks { grid-template-columns: 1fr; } }
+.pb-shop { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
+.pb-shop span { padding: 2px 8px; border-radius: 999px; font-weight: 750; }
+.pb-shop span.ok { color: #17606f; background: #d3eff5; }
+.pb-shop span.no { color: #9a2f52; background: #fbdbe5; }

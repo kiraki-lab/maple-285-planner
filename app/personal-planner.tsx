@@ -65,6 +65,8 @@ const BOSS_GROUPS: { boss: string; entries: BossRow[] }[] = (() => {
   [...PERSONAL_BOSS_TABLE].sort((a, b) => a.unitExp - b.unitExp).forEach(entry => { map.set(entry.boss, [...(map.get(entry.boss) || []), entry]); });
   return [...map.entries()].map(([boss, entries]) => ({ boss, entries }));
 })();
+// 코인샵에서 흔히 노리는 묶음(공식 가격표): 블랙 큐브 100개 8,500 + 화이트 에디셔널 큐브 100개 13,000 = 21,500, 솔 에르다 조각 300개 4,500을 더하면 26,000, 전 품목 36,500.
+const SHOP_GOALS = [{ label: "큐브 2종", coins: 21_500 }, { label: "큐브 2종 + 조각 300개", coins: 26_000 }, { label: "전 품목", coins: 36_500 }];
 const DIFFICULTY_CLASS: Record<string, string> = { 이지: "easy", 노멀: "normal", 하드: "hard", 카오스: "chaos", 익스트림: "extreme" };
 // 사냥터 고르기용 몬스터 목록(지역 → 몬스터).
 const FIELD_OPTIONS = HUNTING_FIELDS.map((field, index) => ({ key: `${index}`, region: field.region, label: `${field.monster} · Lv.${field.level} · ${field.maps.slice(0, 2).join(", ")}${field.maps.length > 2 ? " 외" : ""}`, level: field.level }));
@@ -203,6 +205,19 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
     const matching = analysis.options.filter(predicate);
     return matching.reduce((best: typeof matching[number], option: typeof matching[number]) => (option.summary.stepsCleared !== best.summary.stepsCleared ? (option.summary.stepsCleared > best.summary.stepsCleared ? option : best) : (option.summary.progress > best.summary.progress ? option : best)), matching[0]);
   };
+  // 30단계와의 코인 차이, 그리고 사용 시점에 따라 코인을 얼마나 먼저 받는지(패스 보상 마감일 기준).
+  const totalCoins = r.mission.stepsCleared * COINS_PER_STEP;
+  const coinGap = (MISSION_STEPS - r.mission.stepsCleared) * COINS_PER_STEP;
+  // 모아 쓰는 쪽은 마감일(10/21)에 한꺼번에 쓰므로, 그 전날까지 받은 코인으로 비교해야 차이가 보인다.
+  const refDay = addDay(MAIN_SCHEDULE.plusLastUseDay, -1);
+  const showRefCoins = diffDays(refDay, input.start) > 0 && diffDays(MAIN_SCHEDULE.personalEnd, refDay) > 0;
+  const coinsBy = (option: { result?: { mission: { stepsAtStart: number; newlyCleared: { date: string }[] } } }) => {
+    const mission = option.result?.mission;
+    if (!mission) return "-";
+    return `${fmtInt((mission.newlyCleared.filter(step => diffDays(step.date, refDay) <= 0).length) * COINS_PER_STEP)}`;
+  };
+  const coinsByNumber = (option: { result?: { mission: { newlyCleared: { date: string }[] } } }) => (option.result?.mission.newlyCleared.filter(step => diffDays(step.date, refDay) <= 0).length ?? 0) * COINS_PER_STEP;
+  const signed = (value: number) => `${value > 0 ? "+" : ""}${fmtInt(value)}`;
   const crimsonRows = [...new Set(analysis.options.map((option: { crimsonHold: number }) => option.crimsonHold))].map(hold => bestOf(option => option.crimsonHold === hold));
   const couponRows = ["now", "end"].map(policy => bestOf(option => option.couponPolicy === policy));
   const hasCrimson = analysis.options.some((option: { result: Result }) => option.result.items.crimsonUsed > 0);
@@ -437,12 +452,13 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
         <p className="pb-cond">계산 조건 · PLUS {input.plus.enabled ? ({ free: "무료", premium: "프리미엄", prime: "프라임" } as Record<string, string>)[input.plus.tier] : "참여 안 함"} · 보스 {Math.min(bosses.length, WEEKLY_BOSS_LIMIT)}마리 주 {fmtJo(weeklyBossRaw, 2)} · 몬파 하루 {input.routine.runsPerDay}판 · 에픽 던전 {!input.routine.epic ? "안 함" : input.routine.epicMult > 1 ? `${input.routine.epicMult}배(주 ${fmtInt(epicStage1.maplePoint * (input.routine.epicMult >= 9 ? 4 : 1))} 메이플포인트 사용)` : "보너스 없음"} · 사냥 주 {input.routine.huntHoursPerWeek}시간 · 커스텀 조각 {flame.alloc.shard}·EXP {flame.alloc.exp}</p>
         <div className="pb-cards">
           <article className="pb-card primary"><span>11/18 마감 위치</span><strong>{place(r.level, r.exp)}</strong><em>시작 {place(startLevel, input.exp)} · +{(r.progress - r.startPosition).toFixed(2)}레벨</em></article>
-          <article className="pb-card"><span>성장 미션</span><strong>{r.mission.stepsCleared}/{MISSION_STEPS}단계</strong><em>앞으로 받을 코인 {fmtInt(r.mission.coins)}개 · 새로 {r.mission.newlyCleared.length}단계</em></article>
+          <article className="pb-card"><span>성장 미션</span><strong>{r.mission.stepsCleared}/{MISSION_STEPS}단계</strong><em>{coinGap > 0 ? `30단계보다 ${fmtInt(coinGap)}코인 적음` : "30,000코인 전부"} · 앞으로 받을 코인 {fmtInt(r.mission.coins)}개</em></article>
           <article className="pb-card"><span>플레임에서 받을 조각</span><strong>{Math.floor(r.flame.shardFragments + 1e-9).toLocaleString("ko-KR")}개</strong><em>플레임 {fmtInt(r.flame.killed)}마리 · 교환권 {fmtInt(r.coupons.used)}장 · 코인샵 조각은 별도</em></article>
         </div>
 
         {advices.length > 0 && <div className="pb-advice" aria-label="확인할 것">{advices.map((advice, index) => <p key={index} className={advice.tone}>{advice.text}</p>)}</div>}
 
+        <p className="pb-cond pb-shop">코인샵 · 모을 코인 {fmtInt(totalCoins)}개{SHOP_GOALS.map(goal => <span key={goal.label} className={totalCoins >= goal.coins ? "ok" : "no"}>{goal.label} {fmtInt(goal.coins)}코인 {totalCoins >= goal.coins ? "가능" : `${fmtInt(goal.coins - totalCoins)}코인 부족`}</span>)}</p>
         <div className="pb-dates">
           {nextLevels.map(level => { const date = reachDate(level); return <span key={level}><b>Lv.{level}</b>{date ? `${md(date)}(${dow(date)}) 도달` : "마감까지 못 닿음"}</span>; })}
         </div>
@@ -459,10 +475,11 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
         <div className="pb-result-section" role="tabpanel" id="pb-pane-r0" aria-labelledby="pb-tab-r0" tabIndex={0} hidden={resTab !== "r0"}>
         <p className="pb-note">크림슨 농장 사용 시점과 교환권 사용 시점을 모두 돌려 통과 단계, 마감 위치 순으로 골랐습니다. 선택은 왼쪽 「사용 시점」에서 바꿉니다.</p>
         {hasCrimson && <div className="pb-table-wrap"><table className="hold-table pb-table">
-          <thead><tr><th>크림슨 사용</th><th>마감 위치</th><th>단계</th><th>차이</th></tr></thead>
+          <thead><tr><th>크림슨 사용</th><th>마감 위치</th><th>단계</th><th>차이</th>{showRefCoins && <th>{md(refDay)}까지 받는 코인</th>}</tr></thead>
           <tbody>{crimsonRows.map((row: { crimsonHold: number; summary: { level: number; exp: number; progress: number; stepsCleared: number }; best: boolean }) => <tr key={row.crimsonHold} className={row.crimsonHold === chosen.crimsonHold ? "best" : ""}>
             <td>{holdLabel(row.crimsonHold)}{row.crimsonHold === analysis.best.crimsonHold ? " · 추천" : ""}</td><td>{place(row.summary.level, row.summary.exp)}</td><td>{row.summary.stepsCleared}</td>
-            <td>{row.crimsonHold === 0 ? "기준" : `${((row.summary.progress - bestOf(option => option.crimsonHold === 0).summary.progress) * 100).toFixed(2)}%p`}</td></tr>)}</tbody>
+            <td>{row.crimsonHold === 0 ? "기준" : `${((row.summary.progress - bestOf(option => option.crimsonHold === 0).summary.progress) * 100).toFixed(2)}%p`}</td>
+            {showRefCoins && <td>{coinsBy(row)}개{row.crimsonHold === 0 ? "" : ` (${signed(coinsByNumber(row) - coinsByNumber(bestOf(option => option.crimsonHold === 0)))})`}</td>}</tr>)}</tbody>
         </table></div>}
         {!hasCrimson && <p className="pb-note">보유한 크림슨 농장이 없어 크림슨 사용 시점에 따른 차이가 없습니다.</p>}
         <div className="pb-table-wrap"><table className="hold-table pb-table">
