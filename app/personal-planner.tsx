@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import {
   addDay,
-  analyzeMain,
+  analyzeMain, normalizeInput,
   ATTENDANCE_REWARDS,
   bossEntry,
   bossCommunityPreset,
@@ -28,7 +28,6 @@ import {
   MISSION_STEPS,
   mobBaseExp,
   plusLevelSchedule,
-  simulateMain,
 } from "@/lib/main-planner.mjs";
 import { BOSS_COMMUNITY_PRESETS, HUNTING_FIELDS, PERSONAL_BOSS_TABLE, PERSONAL_COUPON_MULTIPLE, PERSONAL_FLAME_MULTIPLE, WEEKLY_BOSS_LIMIT } from "@/lib/personal-data.mjs";
 import type { MainInput, MainInputState } from "./use-main-input";
@@ -102,8 +101,8 @@ const tabKeys = (event: { key: string; currentTarget: HTMLElement; preventDefaul
 
 export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; state: MainInputState }) {
   const { input, upd, reset, today } = state;
-  const [crimsonPlan, setCrimsonPlan] = useState<"auto" | number>("auto");
-  const [couponPlan, setCouponPlan] = useState<"auto" | "now" | "end">("auto");
+  // 사용 시점도 캐릭터 입력과 함께 저장한다. 접힌 패널이나 새로고침으로 초기화하지 않는다.
+  const { crimsonPlan, couponPlan, rewardHold } = normalizeInput(input, ctx);
   const [sec, setSec] = useState("s0");
   const [resPick, setResPick] = useState("r2");
   const setResTab = setResPick;
@@ -111,13 +110,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
   const [bossParty, setBossParty] = useState<"solo" | "max">("solo");
 
   const analysis = useMemo(() => analyzeMain(input, ctx), [input, ctx]);
-  const chosen = useMemo(() => {
-    if (crimsonPlan === "auto" && couponPlan === "auto") return analysis.best;
-    const crimsonHold = crimsonPlan === "auto" ? analysis.best.crimsonHold : crimsonPlan;
-    const policy = couponPlan === "auto" ? analysis.best.couponPolicy : couponPlan;
-    const result = simulateMain({ ...input, crimsonHold, personal: { ...input.personal, couponPolicy: policy } }, ctx);
-    return { crimsonHold, couponPolicy: policy, result, summary: { level: result.level, exp: result.exp, progress: result.progress, stepsCleared: result.mission.stepsCleared, coins: result.mission.coins }, best: false };
-  }, [analysis, crimsonPlan, couponPlan, input, ctx]);
+  const chosen = analysis.chosen;
 
   const r: Result = chosen.result;
   const plusAvailable = input.plus.enabled && diffDays(MAIN_SCHEDULE.plusLastUseDay, input.start) >= 0;
@@ -166,6 +159,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
     flame: "퍼스널 플레임", coupon: "퍼스널 EXP 교환권", boss: "퍼스널 보스 미션", missionReward: "성장 미션 단계 보상",
     crimson: "크림슨 메카베리", adv: "상급 EXP 교환권", sauna: "VIP 사우나", blue: "블루베리", mech: "메카베리", potion: "성장의 비약",
     hunt: "사냥", coupon4x: "경험치 4배 쿠폰(PLUS)", booster: "VIP 부스터(PLUS)",
+    compensationAdv: "상급 EXP(사과 보상)", compensationBooster: "VIP 부스터(사과 보상)",
     attendanceAdv: "상급 EXP(출석·보유)", attendanceSauna: "VIP 사우나(출석·보유)", attendanceBooster: "VIP 부스터(출석·보유)", attendancePotion269: "성장의 비약(200~269)", attendancePotion279: "성장의 비약(200~279)",
   };
   const totalRaw = sourceRows.reduce((sum, row) => sum + row.raw, 0) || 1;
@@ -184,6 +178,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
   const expiredPlus = r.items.expired.crimson + r.items.expired.adv + r.items.expired.sauna;
   if (expiredPlus > 0) advices.push({ tone: "warn", text: `PLUS 아이템이 10/22 02:00에 소멸합니다. 크림슨 ${fmtInt(r.items.expired.crimson)}장, 상급 EXP ${fmtInt(r.items.expired.adv)}장, 사우나 ${r.items.expired.sauna.toFixed(1)}시간이 남습니다. 300레벨에 닿으면 더 쓸 수 없습니다.` });
   if (Object.values(r.attendance.expired).some(value => Number(value) > 0)) advices.push({ tone: "warn", text: `출석·보유 보상을 마감까지 다 쓰지 못합니다. 비약(269) ${fmtInt(r.attendance.expired.potion269)}개 · 비약(279) ${fmtInt(r.attendance.expired.potion279)}개 · 상급 EXP ${fmtInt(r.attendance.expired.adv)}장 · 부스터 ${r.attendance.expired.booster.toFixed(1)}개 · 사우나 ${r.attendance.expired.sauna.toFixed(1)}시간. 사용 기한은 11/19 02:00입니다.` });
+  if (Object.values(r.compensation.expired).some(value => Number(value) > 0)) advices.push({ tone: "warn", text: `사과 보상을 10/21까지 다 쓰지 못합니다. 상급 EXP ${fmtInt(r.compensation.expired.adv)}장 · VIP 부스터 ${r.compensation.expired.booster.toFixed(1)}개가 남습니다. 사용 기한은 10/22 02:00입니다.` });
   const unusedHuntItems = (r.items.expired.coupon4x || 0) + (r.items.expired.booster || 0);
   if (unusedHuntItems > 0.01) advices.push({ tone: "warn", text: `PLUS로 받은 경험치 4배 쿠폰 ${(r.items.expired.coupon4x || 0).toFixed(1)}장, VIP 부스터 ${(r.items.expired.booster || 0).toFixed(1)}개를 10/21까지 다 쓰지 못합니다. 둘 다 사냥하는 동안에만 쓸 수 있으니 「주간 사냥 시간」을 늘려야 합니다(쿠폰은 30분에 1장).` });
   if (r.coupons.expired > 0) advices.push({ tone: "warn", text: `교환권 ${fmtInt(r.coupons.expired)}장을 마감까지 쓰지 못합니다. 11/19 02:00에 소멸합니다.` });
@@ -194,13 +189,13 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
 
   const stale = input.start < today;
   const crimsonOptions: { label: string; value: "auto" | number }[] = [
-    { label: "자동 (가장 좋은 방식)", value: "auto" }, { label: "받는 즉시", value: 0 },
-    ...[285, 290, 295].filter(level => level > startLevel).map(level => ({ label: `Lv.${level}까지 모음`, value: level })),
+    { label: "자동 추천", value: "auto" }, { label: "받는 즉시", value: 0 },
+    ...[285, 290, 295].filter(level => level > startLevel || level === crimsonPlan).map(level => ({ label: `Lv.${level}까지 모음`, value: level })),
     { label: "10/21까지 모음", value: 999 },
   ];
 
   const holdLabel = (hold: number) => (hold === 0 ? "받는 즉시" : hold >= 999 ? "10/21까지 모음" : `Lv.${hold}까지 모음`);
-  const couponLabel = (policy: string) => (policy === "now" ? "받는 즉시" : "마감 직전에 몰아서");
+  const couponLabel = (policy: string) => (policy === "now" ? "받는 즉시" : policy === "end" ? "마감 직전에 몰아서" : `Lv.${policy.slice(5)}에 닿은 뒤`);
   const bestOf = (predicate: (option: typeof analysis.options[number]) => boolean) => {
     const matching = analysis.options.filter(predicate);
     return matching.reduce((best: typeof matching[number], option: typeof matching[number]) => (option.summary.stepsCleared !== best.summary.stepsCleared ? (option.summary.stepsCleared > best.summary.stepsCleared ? option : best) : (option.summary.progress > best.summary.progress ? option : best)), matching[0]);
@@ -219,7 +214,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
   const coinsByNumber = (option: { result?: { mission: { newlyCleared: { date: string }[] } } }) => (option.result?.mission.newlyCleared.filter(step => diffDays(step.date, refDay) <= 0).length ?? 0) * COINS_PER_STEP;
   const signed = (value: number) => `${value > 0 ? "+" : ""}${fmtInt(value)}`;
   const crimsonRows = [...new Set(analysis.options.map((option: { crimsonHold: number }) => option.crimsonHold))].map(hold => bestOf(option => option.crimsonHold === hold));
-  const couponRows = ["now", "end"].map(policy => bestOf(option => option.couponPolicy === policy));
+  const couponRows = [...new Set(analysis.options.map(option => option.couponPolicy))].map(policy => bestOf(option => option.couponPolicy === policy));
   const hasCrimson = analysis.options.some((option: { result: Result }) => option.result.items.crimsonUsed > 0);
 
   const applyCommunityPreset = (presetId: string) => upd((draft: MainInput) => { draft.personal.bosses = bossCommunityPreset(presetId, bossParty); });
@@ -248,7 +243,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
         <button type="button" role="tab" id="pb-tab-s0" aria-controls="pb-pane-s0" tabIndex={sec === "s0" ? 0 : -1} onKeyDown={tabKeys} aria-selected={sec === "s0"} className={sec === "s0" ? "on" : ""} onClick={() => setSec("s0")}><b>캐릭터</b><small>{`Lv.${startLevel} ${input.exp}%`}</small></button>
         <button type="button" role="tab" id="pb-tab-s1" aria-controls="pb-pane-s1" tabIndex={sec === "s1" ? 0 : -1} onKeyDown={tabKeys} aria-selected={sec === "s1"} className={sec === "s1" ? "on" : ""} onClick={() => setSec("s1")}><b>성장 미션</b><small>{input.personal.designated ? `${input.personal.mission.stepsDone}/30단계 통과` : "지정 전"}</small></button>
         <button type="button" role="tab" id="pb-tab-s2" aria-controls="pb-pane-s2" tabIndex={sec === "s2" ? 0 : -1} onKeyDown={tabKeys} aria-selected={sec === "s2"} className={sec === "s2" ? "on" : ""} onClick={() => setSec("s2")}><b>패스</b><small>{input.plus.enabled ? ({ free: "무료", premium: "프리미엄", prime: "프라임" } as Record<string, string>)[input.plus.tier] : "참여 안 함"}</small></button>
-        <button type="button" role="tab" id="pb-tab-s3" aria-controls="pb-pane-s3" tabIndex={sec === "s3" ? 0 : -1} onKeyDown={tabKeys} aria-selected={sec === "s3"} className={sec === "s3" ? "on" : ""} onClick={() => setSec("s3")}><b>보유 보상</b><small>11/18까지 사용</small></button>
+        <button type="button" role="tab" id="pb-tab-s3" aria-controls="pb-pane-s3" tabIndex={sec === "s3" ? 0 : -1} onKeyDown={tabKeys} aria-selected={sec === "s3"} className={sec === "s3" ? "on" : ""} onClick={() => setSec("s3")}><b>보유 보상</b><small>출석 · 사과 보상</small></button>
         <button type="button" role="tab" id="pb-tab-s4" aria-controls="pb-pane-s4" tabIndex={sec === "s4" ? 0 : -1} onKeyDown={tabKeys} aria-selected={sec === "s4"} className={sec === "s4" ? "on" : ""} onClick={() => setSec("s4")}><b>보스</b><small>{`${Math.min(bosses.length, WEEKLY_BOSS_LIMIT)}/${WEEKLY_BOSS_LIMIT}마리 · 주 ${fmtJo(weeklyBossRaw, 2)}`}</small></button>
         <button type="button" role="tab" id="pb-tab-s5" aria-controls="pb-pane-s5" tabIndex={sec === "s5" ? 0 : -1} onKeyDown={tabKeys} aria-selected={sec === "s5"} className={sec === "s5" ? "on" : ""} onClick={() => setSec("s5")}><b>일과·사냥</b><small>{`몬파 ${input.routine.runsPerDay}판 · 에픽 ${input.routine.epic ? input.routine.epicMult : 0}배 · 사냥 주 ${input.routine.huntHoursPerWeek}시간`}</small></button>
         <button type="button" role="tab" id="pb-tab-s6" aria-controls="pb-pane-s6" tabIndex={sec === "s6" ? 0 : -1} onKeyDown={tabKeys} aria-selected={sec === "s6"} className={sec === "s6" ? "on" : ""} onClick={() => setSec("s6")}><b>플레임</b><small>{`조각 ${flame.alloc.shard} · EXP ${flame.alloc.exp}${flame.alloc.erda ? ` · 솔 에르다 ${flame.alloc.erda}` : ""}`}</small></button>
@@ -325,6 +320,15 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
       <p className="pb-note">아직 안 받은 보상은 레벨에 맞춰 더해요. 이미 받은 보상은 아래 남은 수량만 계산해요.</p>
       </div>
       <div className="pb-pane" role="tabpanel" id="pb-pane-s3" aria-labelledby="pb-tab-s3" hidden={sec !== "s3"}>
+        <h3>운영자 사과 보상</h3>
+        <p className="pb-note">10/8 리워드 드롭 보상 중 이 캐릭터에 쓸 남은 것만 넣어 주세요. Green 메이플ID당 한 번 받으며, 10/21까지 받고 10/22 02:00까지 씁니다.</p>
+        <button type="button" className="pb-add" onClick={() => upd((draft: MainInput) => { draft.compensation = { adv: 2000, booster: 10 }; })}>사과 보상 넣기</button>
+        <div className="field-grid compact">
+          <NumField label="사과 보상 상급 EXP 교환권" value={input.compensation.adv} min={0} step={100} onChange={value => upd((draft: MainInput) => { draft.compensation.adv = value; })} hint="장" />
+          <NumField label="사과 보상 VIP 부스터" value={input.compensation.booster} min={0} step={1} onChange={value => upd((draft: MainInput) => { draft.compensation.booster = value; })} hint="개 · 사냥할 때만 사용" />
+        </div>
+        <p className="pb-note">솔 에르다/조각 선택권 4개는 경험치에 넣지 않습니다. 조각으로 받으면 120개이며, 위 플레임 조각 수와는 별도입니다.</p>
+        <h3>출석·보유 보상</h3>
         <p className="pb-note">이 캐릭터에 쓸 남은 것만 넣어 주세요. 출석 보상은 명의 내 지정한 메이플ID 한 곳에서만 받습니다. 이미 쓴 보상이나 다른 캐릭터에 줄 보상은 빼 주세요.</p>
         <button type="button" className="pb-add" onClick={() => upd((draft: MainInput) => { draft.attendance = { ...ATTENDANCE_REWARDS }; })}>출석 보상 전부 넣기</button>
         <p className="pb-note">40일 전체 수량으로 바꿉니다. 아직 못 받은 것도 있으니, 이 캐릭터에 남아 있는 양으로 다시 맞춰 주세요. 사용 기한은 모두 11/19 02:00입니다.</p>
@@ -436,9 +440,11 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
       </div>
       <div className="pb-pane" role="tabpanel" id="pb-pane-s7" aria-labelledby="pb-tab-s7" hidden={sec !== "s7"}>
       <div className="field-grid compact">
-        <label className="field"><span>크림슨 사용</span><select value={String(crimsonPlan)} onChange={event => setCrimsonPlan(event.target.value === "auto" ? "auto" : Number(event.target.value))}>{crimsonOptions.map(option => <option key={option.label} value={String(option.value)}>{option.label}</option>)}</select></label>
-        <label className="field"><span>EXP 교환권 사용</span><select value={couponPlan} onChange={event => setCouponPlan(event.target.value as "auto" | "now" | "end")}><option value="auto">자동 (가장 좋은 방식)</option><option value="now">받는 즉시</option><option value="end">마감 직전에 몰아서</option></select></label>
+        <label className="field"><span>크림슨 사용</span><select value={String(crimsonPlan)} onChange={event => upd((draft: MainInput) => { draft.crimsonPlan = event.target.value === "auto" ? "auto" : Number(event.target.value); })}>{crimsonOptions.map(option => <option key={option.label} value={String(option.value)}>{option.label}</option>)}</select></label>
+        <label className="field"><span>EXP 교환권 사용</span><select value={couponPlan} onChange={event => upd((draft: MainInput) => { draft.couponPlan = event.target.value; })}><option value="auto">자동 추천</option><option value="now">받는 즉시</option>{[290, 295].filter(level => level > startLevel || couponPlan === `level${level}`).map(level => <option key={level} value={`level${level}`}>Lv.{level}에 닿은 뒤</option>)}<option value="end">마감 직전에 몰아서</option></select></label>
+        <label className="field"><span>상급 EXP · 사우나 · 비약 사용</span><select value={rewardHold} onChange={event => upd((draft: MainInput) => { draft.rewardHold = Number(event.target.value); })}><option value="0">받는 즉시</option>{[290, 295].filter(level => level > startLevel || rewardHold === level).map(level => <option key={level} value={level}>Lv.{level}에 닿은 뒤</option>)}<option value="999">각 보상의 마지막 날</option></select></label>
       </div>
+      <p className="pb-note">고른 레벨에 못 닿으면 마지막 사용일에 씁니다. PLUS·사과 보상은 10/21, 출석 보상과 퍼스널 교환권은 11/18입니다. 부스터와 4배 쿠폰은 사냥할 때 씁니다.</p>
       </div>
     </aside>
 
@@ -473,7 +479,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
           <button type="button" role="tab" id="pb-tab-r6" aria-controls="pb-pane-r6" tabIndex={resTab === "r6" ? 0 : -1} onKeyDown={tabKeys} aria-selected={resTab === "r6"} className={resTab === "r6" ? "on" : ""} onClick={() => setResTab("r6")}><b>경험치 내역</b></button>
         </div>
         <div className="pb-result-section" role="tabpanel" id="pb-pane-r0" aria-labelledby="pb-tab-r0" tabIndex={0} hidden={resTab !== "r0"}>
-        <p className="pb-note">크림슨 농장 사용 시점과 교환권 사용 시점을 모두 돌려 통과 단계, 마감 위치 순으로 골랐습니다. 선택은 왼쪽 「사용 시점」에서 바꿉니다.</p>
+        <p className="pb-note">크림슨 농장과 교환권을 언제 쓰는지 비교합니다. 단계 수가 같고 마감 경험치가 거의 같으면 늦게 쓰는 쪽을 추천합니다. 선택은 왼쪽 「사용 시점」에서 바꿉니다.</p>
         {hasCrimson && <div className="pb-table-wrap"><table className="hold-table pb-table">
           <thead><tr><th>크림슨 사용</th><th>마감 위치</th><th>단계</th><th>차이</th>{showRefCoins && <th>{md(refDay)}까지 받는 코인</th>}</tr></thead>
           <tbody>{crimsonRows.map((row: { crimsonHold: number; summary: { level: number; exp: number; progress: number; stepsCleared: number }; best: boolean }) => <tr key={row.crimsonHold} className={row.crimsonHold === chosen.crimsonHold ? "best" : ""}>
@@ -509,7 +515,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
             <tbody>{allocRows.map((row: { alloc: { shard: number; exp: number; erda: number }; summary: { level: number; exp: number; stepsCleared: number }; couponsMade: number; shardFragments: number; recommended: boolean }) => {
               const current = flame.alloc.exp === row.alloc.exp && flame.alloc.shard === row.alloc.shard && flame.alloc.erda === 0;
               return <tr key={row.alloc.exp} className={row.recommended ? "best" : ""}>
-                <td>EXP {row.alloc.exp} · 조각 {row.alloc.shard}{row.recommended ? " · 추천" : ""}</td><td>{place(row.summary.level, row.summary.exp)}</td><td>{row.summary.stepsCleared}</td><td>{fmtInt(row.couponsMade)}장</td><td>{fmtInt(row.shardFragments)}개</td>
+                <td>EXP {row.alloc.exp} · 조각 {row.alloc.shard}{row.recommended ? " · 추천" : ""}</td><td>{place(row.summary.level, row.summary.exp)}</td><td>{row.summary.stepsCleared}</td><td>{fmtInt(row.couponsMade)}장</td><td>{Math.floor(row.shardFragments + 1e-9).toLocaleString("ko-KR")}개</td>
                 <td>{current ? "지금 설정" : <button type="button" className="pb-link" onClick={() => upd((draft: MainInput) => { draft.personal.flame.alloc = { ...row.alloc }; })}>이 배분으로</button>}</td></tr>;
             })}</tbody>
           </table></div>

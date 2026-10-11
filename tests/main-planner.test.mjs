@@ -1496,3 +1496,128 @@ test("296~299 입력도 등급·배분·지정 비교를 유지하고 295의 다
     assert.ok(compareDesignation(x, real).every(row => Number.isFinite(row.summary.progress)));
   }
 });
+
+
+test("10/8 사과 보상은 상급 EXP 2,000장과 VIP 부스터 10개이며 10/21까지만 쓴다", () => {
+  const real = createMainContext();
+  for (const date of ["2026-10-07", "2026-10-08", "2026-10-21", "2026-10-22"]) {
+    const x = rewardOnly(date); x.compensation = { adv: 2000, booster: 10 };
+    x.routine.huntHoursPerWeek = 7; x.routine.huntFieldKey = "same";
+    const r = simulateMain(x, real);
+    const open = date === "2026-10-08" || date === "2026-10-21";
+    assert.equal(r.sourceRaw.compensationAdv || 0, open ? 1_849_638_000_000 : 0);
+    assert.equal(r.sourceRaw.compensationBooster || 0, open ? 702_861_984_000 : 0);
+    assert.equal(r.compensation.used.adv, open ? 2000 : 0);
+    assert.equal(r.compensation.used.booster, open ? 10 : 0);
+    assert.equal(r.compensation.expired.adv, date === "2026-10-22" ? 2000 : 0);
+  }
+});
+
+test("PLUS·사과·출석 부스터는 하루 사냥 마릿수를 공유하고 기한 순서로 쓴다", () => {
+  const x = rewardOnly("2026-10-21");
+  x.routine.huntHoursPerWeek = 3.5; // 하루 30분, 9600마리 = 부스터 5.614...개
+  x.items.booster = 2; x.compensation = { adv: 0, booster: 2 }; x.attendance.booster = 10;
+  const r = simulateMain(x, createMainContext());
+  assert.equal(r.items.huntItemsUsed.booster, 2);
+  assert.equal(r.compensation.used.booster, 2);
+  assert.ok(Math.abs(r.attendance.used.booster - 1.6140350877192984) < 1e-10);
+  assert.equal(r.compensation.expired.booster, 0);
+  assert.ok(Math.abs(r.attendance.leftover.booster - 8.385964912280702) < 1e-10);
+});
+
+test("300 직전의 사과 부스터는 실제로 들어간 분량만 쓰고 나머지는 만료된다", () => {
+  const x = rewardOnly("2026-10-21", 299, 99.999);
+  x.compensation = { adv: 0, booster: 10 }; x.routine.huntHoursPerWeek = 7;
+  const real = createMainContext();
+  const r = simulateMain(x, { ...real, huntRaw: () => 1e-20, boosterRaw: () => 100_000_000_000 });
+  assert.equal(r.level, 300);
+  assert.ok(Math.abs(r.compensation.used.booster - 0.1737759854025) < 1e-9);
+  assert.ok(Math.abs(r.compensation.expired.booster - 9.8262240145975) < 1e-9);
+  assert.ok(Math.abs(r.sourceRaw.compensationBooster - 17_377_598_540.25) < 1);
+});
+
+test("교환권은 290에 닿은 날 쓰거나 못 닿으면 11/18에 쓴다", () => {
+  const x = rewardOnly("2026-10-21", 289, 99.99); x.personal.enabled = true;
+  x.personal.couponPolicy = "level290"; x.personal.flame.couponsOwned = 100;
+  x.routine.todayPending = true; x.routine.measuredPercentPerDay = 0.02;
+  const r = simulateMain(x, createMainContext());
+  assert.equal(r.level, 290); assert.equal(r.coupons.used, 100);
+  assert.equal(r.sourceRaw.coupon, 230_079_264_000);
+  const y = rewardOnly("2026-11-18", 286); y.personal.enabled = true;
+  y.personal.couponPolicy = "level295"; y.personal.flame.couponsOwned = 100;
+  assert.equal(simulateMain(y, createMainContext()).sourceRaw.coupon, 197_294_592_000);
+});
+
+test("상급 EXP·사우나·비약은 도달한 날 쓰고 각 보상의 마지막 날에도 남기지 않는다", () => {
+  const x = rewardOnly("2026-10-20", 289, 99.99); x.rewardHold = 290;
+  x.routine.measuredPercentPerDay = 0.02; x.compensation.adv = 2000; x.end = "2026-10-21";
+  const r = simulateMain(x, createMainContext());
+  assert.equal(r.sourceRaw.compensationAdv, 2_156_994_000_000);
+  for (const date of ["2026-10-21", "2026-11-18"]) {
+    const y = rewardOnly(date); y.rewardHold = 999;
+    y.items.adv = 1; y.compensation.adv = 1; y.attendance.adv = 1;
+    const z = simulateMain(y, createMainContext());
+    assert.equal(z.sourceRaw.attendanceAdv, 924_819_000);
+    assert.equal(z.sourceRaw.compensationAdv || 0, date === "2026-10-21" ? 924_819_000 : 0);
+  }
+});
+
+test("기한이 지난 PLUS 보유량도 미사용 소멸 수량에 들어간다", () => {
+  const x = rewardOnly("2026-10-22"); x.items.adv = 2000; x.items.booster = 10;
+  const r = simulateMain(x, createMainContext());
+  assert.equal(r.items.expired.adv, 2000); assert.equal(r.items.expired.booster, 10);
+});
+
+
+test("216조합: 경험치 합·주간 내역·플레임 재고가 보존된다", () => {
+  const real = createMainContext();
+  const cumulative = (level, exp) => {
+    let raw = 0; for (let l = 280; l < level; l += 1) raw += REQ[l];
+    return raw + (level < 300 ? REQ[level] * exp / 100 : 0);
+  };
+  for (const start of ["2026-09-17", "2026-10-12"]) for (const level of [285, 287, 289, 290, 293, 296])
+    for (const tier of ["free", "premium", "prime"]) for (const epicMult of [1, 5]) for (const count of [0, 8, 10]) {
+      const x = defaultMainInput(start); x.level = level; x.exp = 0;
+      x.personal.mission = { mode: "model", stepsDone: 0, designLevel: level, designExp: 0 };
+      x.personal.bosses = x.personal.bosses.slice(0, count); x.personal.flame.stock = 24_000;
+      x.plus.tier = tier; x.routine.epicMult = epicMult; x.routine.weeklyPending = true;
+      const r = simulateMain(x, real);
+      const total = Object.values(r.sourceRaw).reduce((sum, raw) => sum + raw, 0);
+      assert.ok(Math.abs(total - (cumulative(r.level, r.exp) - cumulative(level, 0))) < 2);
+      for (const [source, raw] of Object.entries(r.sourceRaw)) {
+        assert.ok(raw >= 0);
+        assert.ok(Math.abs(raw - r.weeks.reduce((sum, week) => sum + (week.sourceRaw[source] || 0), 0)) < 2);
+      }
+      const refills = r.rows.slice(1).filter(row => new Date(row.date + "T00:00:00Z").getUTCDay() === 4).length;
+      assert.ok(Math.abs(24_000 + refills * 24_000 - r.flame.overflowLost - r.flame.killed - r.flame.endStock) < 1e-6);
+      assert.ok(r.flame.endStock >= -1e-6 && r.flame.endStock <= 36_000);
+    }
+});
+
+
+test("지난 레벨에 모으던 저장값과 깨진 빈칸은 즉시·자동으로 정리한다", () => {
+  const real = createMainContext();
+  const a = normalizeInput({ level: 291, crimsonPlan: 290, couponPlan: "level290", rewardHold: 290 }, real);
+  assert.equal(a.crimsonPlan, 0); assert.equal(a.couponPlan, "now"); assert.equal(a.rewardHold, 0);
+  for (const broken of ["", "  ", false, [], {}, null, undefined]) assert.equal(normalizeInput({ crimsonPlan: broken }, real).crimsonPlan, "auto");
+});
+
+test("모으기 0은 기존 아이템 순서를 유지하고 옛 비약도 고른 시점에 쓴다", () => {
+  const x = rewardOnly("2026-10-12", 284, 99); x.routine.todayPending = false;
+  x.items.mech = 10; x.attendance.adv = 100;
+  const a = simulateMain(x, createMainContext());
+  assert.equal(a.sourceRaw.mech, 49_772_313_043_200);
+  assert.equal(a.sourceRaw.attendanceAdv, 91_416_800_000);
+  const y = rewardOnly("2026-10-12"); y.end = "2026-11-18"; y.rewardHold = 295; y.items.potion279 = 3;
+  const b = simulateMain(y, createMainContext());
+  assert.equal(b.rows.find(row => row.events.some(event => event.startsWith("성장의 비약")))?.date, "2026-11-18");
+  assert.equal(b.sourceRaw.potion, 49_971_685_767_573);
+});
+
+test("직접 고른 사용 시점은 현재 결과와 등급·배분 비교에 같이 적용된다", () => {
+  const x = defaultMainInput("2026-10-12"); x.plus.tier = "free"; x.crimsonPlan = 0; x.couponPlan = "now";
+  const real = createMainContext(); const selected = analyzeMain(x, real).chosen;
+  assert.equal(selected.crimsonHold, 0); assert.equal(selected.couponPolicy, "now");
+  assert.equal(compareTiers(x, real)[0].summary.exp, selected.summary.exp);
+  assert.equal(compareAlloc(x, real)[0].summary.exp, selected.summary.exp);
+});

@@ -310,3 +310,24 @@ test("서버 화면의 현재 레벨은 280~299이며 다음 목표는 300까지
   assert.match(items, /LEVEL_MAX = 299/); assert.ok(items.includes("260~299")); assert.ok(items.includes('"Lv.300"'));
   assert.ok(!reference.includes("level <= 295")); assert.ok(!reference.includes("296 이상은 필요 경험치 표가 없어"));
 });
+
+
+test("사과 보상과 사용 시점은 저장해도 섞이거나 초기화되지 않는다", async () => {
+  const { mergeSaved, parseSaved, serializeSaved } = await import(new URL("lib/saved-input.mjs", root).href);
+  const old = mergeSaved({ items: { adv: 2000, booster: 10 }, attendance: { adv: 6000, booster: 40 } }, "2026-10-12");
+  assert.deepEqual(old.compensation, { adv: 0, booster: 0 });
+  assert.equal(old.items.adv, 2000); assert.equal(old.attendance.adv, 6000);
+  const actual = mergeSaved({ compensation: { adv: "2000", booster: "10" }, crimsonPlan: 290, couponPlan: "level295", rewardHold: 999 }, "2026-10-12");
+  assert.deepEqual(actual.compensation, { adv: 2000, booster: 10 });
+  assert.equal(actual.crimsonPlan, 290); assert.equal(actual.couponPlan, "level295"); assert.equal(actual.rewardHold, 999);
+  assert.deepEqual(parseSaved(serializeSaved(actual), "2026-10-13"), actual);
+});
+
+test("서버 화면에 사과 보상 2,000장과 10개를 별도로 넣는 버튼이 있다", async () => {
+  const html = await renderBuiltSsrHtml("compensation");
+  assert.ok(html.includes("운영자 사과 보상"));
+  assert.ok(html.includes("사과 보상 넣기"));
+  assert.ok(html.includes("사과 보상 상급 EXP 교환권"));
+  assert.ok(html.includes("사과 보상 VIP 부스터"));
+  assert.ok(html.includes("10/22 02:00"));
+});
