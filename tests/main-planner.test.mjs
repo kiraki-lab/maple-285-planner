@@ -104,18 +104,18 @@ test("PLUS와 두 목표 입력도 숫자 문자열·범위를 정리하고 받�
   assert.equal(normalizeInput({ personal: { mission: { secondTarget: null } } }, ctx).personal.mission.secondTarget, null);
 });
 
-test("두 대표 사례는 새 입력의 기본값에서도 결과가 변하지 않는다", () => {
+test("두 대표 사례: 원본 아이템 정수로 바로잡아도 단계 수는 30·18을 유지한다", () => {
   const real = createMainContext();
   const main = defaultMainInput("2026-10-09");
   const a = analyzeMain(main, real).best.summary;
   assert.equal(a.level, 290);
-  assert.ok(Math.abs(a.exp - 31.774253828273974) < 1e-9);
+  assert.ok(Math.abs(a.exp - 31.773712492855537) < 1e-9);
   assert.equal(a.stepsCleared, 30);
   Object.assign(main, { level: 286, exp: 68 }); main.plus.tier = "free";
   main.personal.mission = { ...main.personal.mission, stepsDone: 4, nextTarget: { level: 286, exp: 69.714 }, nextRewardPct: 1.888 };
   const b = analyzeMain(main, real).best.summary;
   assert.equal(b.level, 288);
-  assert.ok(Math.abs(b.exp - 3.895705542847875) < 1e-9);
+  assert.ok(Math.abs(b.exp - 3.895662131487507) < 1e-9);
   assert.equal(b.stepsCleared, 18);
 });
 
@@ -604,7 +604,7 @@ test("출석 보상은 PLUS가 끝난 10/22에도 쓰고 11/18까지만 쓴다",
     const r = simulateMain(x, real);
     const open = date !== "2026-11-19";
     assert.equal(r.sourceRaw.attendanceAdv || 0, open ? 5_548_914_000_000 : 0);
-    assert.equal(r.sourceRaw.attendanceSauna || 0, open ? 1_499_438_900_160 : 0);
+    assert.equal(r.sourceRaw.attendanceSauna || 0, open ? 1_499_438_819_520 : 0);
     assert.equal(r.sourceRaw.attendancePotion269 || 0, open ? 2_438_047_518_853 : 0);
     assert.equal(r.sourceRaw.attendancePotion279 || 0, open ? 16_657_228_589_191 : 0);
     assert.equal(r.sourceRaw.adv || 0, date === "2026-10-21" ? 924_819_000_000 : 0);

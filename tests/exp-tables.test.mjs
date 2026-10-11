@@ -391,3 +391,28 @@ test("299 사냥은 299 몬스터를 쓰고 아이템 환산은 300에서 멈춘
   assert.equal(r.level, 300); assert.equal(r.exp, 0); assert.ok(r.reachedUpperLimit);
   assert.equal(r.used.adv, 17); assert.equal(r.remaining.adv, 983);
 });
+
+
+test("퍼센트 역산 없이 원본 정수를 쓴다: 280·286·288·293 아이템", () => {
+  // 하루1소재 i/eY/eG/l/c에서 손으로 옮긴 정수. 계산 함수/배수를 기대값으로 가져오지 않는다.
+  for (const [level, mech, crimson, blue, sauna, adv] of [
+    [280, 3_265_600_060_800, 5_079_822_316_800, 2_180_965_564_800, 313_365_646_080, 773_107_000],
+    [286, 5_208_577_228_800, 6_076_673_433_600, 2_180_965_564_800, 374_859_704_880, 924_819_000],
+    [288, 5_344_448_947_200, 6_235_190_438_400, 2_180_965_564_800, 384_638_351_040, 948_944_000],
+    [293, 6_821_411_625_600, 7_346_135_596_800, 2_180_965_564_800, 453_170_678_400, 1_078_497_000],
+  ]) {
+    assert.equal(itemConversionRawExperience("mech", level), mech);
+    assert.equal(itemConversionRawExperience("crimson", level), crimson);
+    assert.equal(itemConversionRawExperience("blue", level), blue);
+    assert.equal(itemConversionRawExperience("sauna", level), sauna);
+    assert.equal(itemConversionRawExperience("adv", level), adv);
+  }
+});
+
+test("아이템 환산의 경험치 합은 300 이후 버려지는 양을 포함하지 않는다", () => {
+  const r = simulateItemInventoryConversion({ level: 299, exp: 99.999, inventory: { adv: 1000 } });
+  assert.equal(r.level, 300);
+  assert.ok(Math.abs(r.totalRawExperience - 17_377_598_540.25) < 1);
+  assert.equal(r.used.adv, 17);
+  assert.equal(r.remaining.adv, 983);
+});

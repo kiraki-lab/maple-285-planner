@@ -295,11 +295,43 @@ export const itemConversionRequiredExperience = (level: number) => {
   return pre280Data[level]?.required || 0;
 };
 
+// 하루1소재 2026-10-12 공개 정수 표: 3pbsp2-ukxvfz.js 의 l(사우나 1시간), c(상급 EXP 1장).
+// https://haru1sojae.kr/_next/static/chunks/3pbsp2-ukxvfz.js
+// 농장도 반올림된 퍼센트 대신 i/eY 정수와 일치하는 몬스터 수를 곱한다.
+const EXACT_ITEM_RAW: Record<number, { sauna: number; adv: number }> = {
+  280: { sauna: 313_365_646_080, adv: 773_107_000 },
+  281: { sauna: 317_641_739_760, adv: 783_656_000 },
+  282: { sauna: 321_458_824_800, adv: 793_073_000 },
+  283: { sauna: 325_767_294_720, adv: 803_703_000 },
+  284: { sauna: 329_622_136_560, adv: 813_213_000 },
+  285: { sauna: 370_542_388_320, adv: 914_168_000 },
+  286: { sauna: 374_859_704_880, adv: 924_819_000 },
+  287: { sauna: 379_734_071_040, adv: 936_844_000 },
+  288: { sauna: 384_638_351_040, adv: 948_944_000 },
+  289: { sauna: 389_012_576_400, adv: 959_736_000 },
+  290: { sauna: 437_150_578_320, adv: 1_078_497_000 },
+  291: { sauna: 442_047_471_120, adv: 1_078_497_000 },
+  292: { sauna: 447_592_430_880, adv: 1_078_497_000 },
+  293: { sauna: 453_170_678_400, adv: 1_078_497_000 },
+  294: { sauna: 458_142_355_440, adv: 1_078_497_000 },
+  295: { sauna: 514_661_664_000, adv: 1_078_497_000 },
+  296: { sauna: 520_929_657_600, adv: 1_078_497_000 },
+  297: { sauna: 527_234_496_000, adv: 1_078_497_000 },
+  298: { sauna: 532_849_680_000, adv: 1_078_497_000 },
+  299: { sauna: 539_191_363_200, adv: 1_078_497_000 },
+};
+
 export const itemConversionRawExperience = (type: CustomRewardType, level: number) => {
   const required = itemConversionRequiredExperience(level);
   if (!required || !efficiency[level]) return 0;
   if (type === "potion269") return level <= 269 ? required : GROWTH_POTION_RAW.potion269;
   if (type === "potion279") return level <= 279 ? required : GROWTH_POTION_RAW.potion279;
+  if (level >= 280) {
+    if (type === "blue") return 2_180_965_564_800; // 하루1소재 eG: 280~299 고정 정수
+    if (type === "adv" || type === "sauna") return EXACT_ITEM_RAW[level][type];
+    if (type === "crimson") return (MOB_BASE_EXP as Record<number, number>)[level] * CRIMSON_FARM_MOBS;
+    if (type === "mech") return (MOB_BASE_EXP as Record<number, number>)[level] * (level < 285 ? 950_400 : level < 290 ? 1_267_200 : 1_372_800);
+  }
   // 새 구간은 %로 바꿨다가 되돌리지 않고 공개 표의 정수를 그대로 사용한다.
   if (level >= 296) {
     const raw = POST_290_EFFICIENCY_RAW[level];
@@ -333,7 +365,7 @@ export function simulateItemInventoryConversion({ level, exp, inventory }: { lev
 
   const applyRawExperience = (amount: number) => {
     let rest = Math.max(0, amount);
-    totalRawExperience += rest;
+    const requested = rest;
     while (rest > 1e-6 && currentLevel < ITEM_CONVERSION_UPPER_BOUND) {
       const required = itemConversionRequiredExperience(currentLevel);
       if (!required) break;
@@ -347,6 +379,7 @@ export function simulateItemInventoryConversion({ level, exp, inventory }: { lev
         rawExperience = 0;
       }
     }
+    totalRawExperience += requested - rest;
   };
 
   itemConversionOrder.forEach(type => {
