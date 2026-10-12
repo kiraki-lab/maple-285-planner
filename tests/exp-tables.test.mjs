@@ -21,6 +21,7 @@ import {
   WEEKLY_CONTENT_RAW,
 } from "../lib/exp-tables.ts";
 import {
+  BOSS_CUT_ORDER,
   BOSS_COMMUNITY_PRESETS,
   BOSS_EXP_UNIT,
   HUNTING_FIELDS,
@@ -219,12 +220,12 @@ test("보스 미션 경험치는 표 값 × 10,000 ÷ 파티원 수이고 최대
   assert.equal(bossEntry("kaling-extreme").maxParty, 6);
 });
 
-test("보스 구간 프리셋은 상한 이하에서 보스마다 가장 센 난이도 하나를 경험치 순으로 12개까지 고른다", () => {
+test("보스 구간은 공통 목록 순서 이하에서 보스마다 한 난이도를 경험치 순으로 12개까지 고른다", () => {
   const cutoff = "bellona-hard";
   const preset = bossPreset({ cutoffId: cutoff });
-  const limit = bossEntry(cutoff).unitExp;
+  const limit = BOSS_CUT_ORDER.indexOf(cutoff);
   assert.equal(preset.length, 12);
-  preset.forEach(boss => assert.ok(bossEntry(boss.id).unitExp <= limit, `${boss.id}가 상한을 넘는다`));
+  preset.forEach(boss => assert.ok(BOSS_CUT_ORDER.indexOf(boss.id) <= limit, `${boss.id}가 선택 범위를 넘는다`));
   assert.equal(new Set(preset.map(boss => bossEntry(boss.id).boss)).size, 12, "같은 보스를 두 난이도로 담으면 안 된다");
   for (let i = 1; i < preset.length; i += 1) assert.ok(bossEntry(preset[i - 1].id).unitExp >= bossEntry(preset[i].id).unitExp, "경험치 내림차순");
   assert.equal(preset[0].id, cutoff, "상한 보스가 가장 위에 온다");
@@ -233,7 +234,7 @@ test("보스 구간 프리셋은 상한 이하에서 보스마다 가장 센 난
   max.forEach(boss => assert.equal(boss.party, bossEntry(boss.id).maxParty));
   // 상한이 낮으면 담을 보스가 12개보다 적을 수 있다.
   const low = bossPreset({ cutoffId: "damien-hard" });
-  assert.deepEqual(low.map(boss => boss.id), ["damien-hard"]);
+  assert.deepEqual(low.map(boss => boss.id), ["lotus-hard", "damien-hard"], "환산 목록은 하드 스우 → 하드 데미안이며 경험치순과 다르다");
   assert.deepEqual(bossPreset({ cutoffId: "없음" }), []);
   // 가장 높은 상한이면 보스 17종이 12개로 잘린다.
   const top = bossPreset({ cutoffId: "kaling-extreme" });
@@ -242,12 +243,12 @@ test("보스 구간 프리셋은 상한 이하에서 보스마다 가장 센 난
 });
 
 test("커뮤니티 보스 구성은 퍼스널 대상 35개 안에서 보스당 난이도 하나이고 12개를 넘지 않는다", () => {
-  assert.deepEqual(BOSS_COMMUNITY_PRESETS.map(preset => [preset.label, preset.ids.length]), [["검밑솔", 8], ["하세이카", 10], ["노세이칼", 10], ["하세이칼", 10], ["하세이적자", 11], ["노칼이카", 12]]);
+  assert.deepEqual(BOSS_COMMUNITY_PRESETS.filter(preset => !preset.cutoffId).map(preset => [preset.label, preset.ids.length]), [["검밑솔", 8], ["하세이카", 10], ["노세이칼", 10], ["하세이칼", 10], ["하세이적자", 11], ["노칼이카", 12]]);
   BOSS_COMMUNITY_PRESETS.forEach(preset => {
     preset.ids.forEach(id => assert.ok(bossEntry(id), `${preset.label}: ${id} 가 표에 없다`));
     assert.equal(new Set(preset.ids.map(id => bossEntry(id).boss)).size, preset.ids.length, `${preset.label}: 같은 보스가 두 난이도`);
     assert.ok(preset.ids.length <= WEEKLY_BOSS_LIMIT);
-    assert.ok(preset.ids.includes("damien-hard") && preset.ids.includes("gas-chaos") && preset.ids.includes("dusk-chaos"));
+    if (!preset.cutoffId) assert.ok(preset.ids.includes("damien-hard") && preset.ids.includes("gas-chaos") && preset.ids.includes("dusk-chaos"));
   });
   const byId = Object.fromEntries(BOSS_COMMUNITY_PRESETS.map(preset => [preset.id, preset.ids]));
   assert.ok(byId.noseical.includes("seren-normal") && byId.noseical.includes("kalos-easy"));

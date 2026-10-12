@@ -1,0 +1,414 @@
+{
+  "sources": {
+    "hoonPage": "https://hoonjaelab.com/maplestory-weekly-boss-multi-calculator/?layout=popup",
+    "hoonPresets": "https://hoonjaelab.com/wp-content/plugins/hjl-weekly-boss-board/presets.js?ver=2.0.55",
+    "hoonData": "https://hoonjaelab.com/wp-content/plugins/hjl-weekly-boss-board/data.js?ver=2.0.55",
+    "haruPage": "https://haru1sojae.kr/cont/PersonalBoss",
+    "haru": "https://haru1sojae.kr/_next/static/chunks/3pbsp2-ukxvfz.js",
+    "aiPage": "https://maple.ai.kr/guide/exp-calculator",
+    "ai": "https://maple.ai.kr/_next/static/chunks/eddec45464324ed0.js",
+    "scouterPage": "https://maplescouter.com/ko/result",
+    "scouter": "https://maplescouter.com/_next/static/chunks/4281-f828af29791f20d9.js"
+  },
+  "solo": [
+    {
+      "id": "cut-bellona-easy",
+      "label": "이벨",
+      "ids": [
+        "bellona-easy",
+        "seren-hard",
+        "kaling-easy",
+        "adversary-easy",
+        "kalos-easy",
+        "hilla-hard",
+        "dunkel-hard",
+        "will-hard",
+        "dusk-chaos",
+        "gas-chaos",
+        "lucid-hard",
+        "lotus-hard"
+      ],
+      "weeklyRaw": 1426804100000
+    },
+    {
+      "id": "cut-adversary-normal",
+      "label": "노대적",
+      "ids": [
+        "adversary-normal",
+        "kalos-normal",
+        "bellona-easy",
+        "seren-hard",
+        "kaling-easy",
+        "hilla-hard",
+        "dunkel-hard",
+        "will-hard",
+        "dusk-chaos",
+        "gas-chaos",
+        "lucid-hard",
+        "lotus-hard"
+      ],
+      "weeklyRaw": 1772901500000
+    },
+    {
+      "id": "cut-lotus-extreme",
+      "label": "익스우",
+      "ids": [
+        "lotus-extreme",
+        "adversary-normal",
+        "kalos-normal",
+        "bellona-easy",
+        "seren-hard",
+        "kaling-easy",
+        "hilla-hard",
+        "dunkel-hard",
+        "will-hard",
+        "dusk-chaos",
+        "gas-chaos",
+        "lucid-hard"
+      ],
+      "weeklyRaw": 2141753900000
+    },
+    {
+      "id": "cut-star-normal",
+      "label": "노흉",
+      "ids": [
+        "star-normal",
+        "lotus-extreme",
+        "adversary-normal",
+        "kalos-normal",
+        "bellona-easy",
+        "seren-hard",
+        "kaling-easy",
+        "hilla-hard",
+        "dunkel-hard",
+        "will-hard",
+        "dusk-chaos",
+        "gas-chaos"
+      ],
+      "weeklyRaw": 2517486100000
+    },
+    {
+      "id": "cut-kaling-normal",
+      "label": "노카",
+      "ids": [
+        "kaling-normal",
+        "star-normal",
+        "lotus-extreme",
+        "adversary-normal",
+        "kalos-normal",
+        "bellona-easy",
+        "seren-hard",
+        "hilla-hard",
+        "dunkel-hard",
+        "will-hard",
+        "dusk-chaos",
+        "gas-chaos"
+      ],
+      "weeklyRaw": 2746151300000
+    },
+    {
+      "id": "cut-bellona-normal",
+      "label": "노벨",
+      "ids": [
+        "bellona-normal",
+        "kaling-normal",
+        "star-normal",
+        "lotus-extreme",
+        "adversary-normal",
+        "kalos-normal",
+        "seren-hard",
+        "hilla-hard",
+        "dunkel-hard",
+        "will-hard",
+        "dusk-chaos",
+        "gas-chaos"
+      ],
+      "weeklyRaw": 3115028300000
+    },
+    {
+      "id": "cut-kalos-chaos",
+      "label": "카칼",
+      "ids": [
+        "kalos-chaos",
+        "bellona-normal",
+        "kaling-normal",
+        "star-normal",
+        "lotus-extreme",
+        "adversary-normal",
+        "seren-hard",
+        "hilla-hard",
+        "dunkel-hard",
+        "will-hard",
+        "dusk-chaos",
+        "gas-chaos"
+      ],
+      "weeklyRaw": 3622669800000
+    },
+    {
+      "id": "cut-limbo-normal",
+      "label": "노림",
+      "ids": [
+        "kalos-chaos",
+        "limbo-normal",
+        "bellona-normal",
+        "kaling-normal",
+        "star-normal",
+        "lotus-extreme",
+        "adversary-normal",
+        "seren-hard",
+        "hilla-hard",
+        "dunkel-hard",
+        "will-hard",
+        "dusk-chaos"
+      ],
+      "weeklyRaw": 4340838100000
+    },
+    {
+      "id": "cut-seren-extreme",
+      "label": "익세",
+      "ids": [
+        "seren-extreme",
+        "kalos-chaos",
+        "limbo-normal",
+        "bellona-normal",
+        "kaling-normal",
+        "star-normal",
+        "lotus-extreme",
+        "adversary-normal",
+        "hilla-hard",
+        "dunkel-hard",
+        "will-hard",
+        "dusk-chaos"
+      ],
+      "weeklyRaw": 5410524000000
+    },
+    {
+      "id": "cut-kaling-hard",
+      "label": "하카",
+      "ids": [
+        "seren-extreme",
+        "kaling-hard",
+        "kalos-chaos",
+        "limbo-normal",
+        "bellona-normal",
+        "star-normal",
+        "lotus-extreme",
+        "adversary-normal",
+        "hilla-hard",
+        "dunkel-hard",
+        "will-hard",
+        "dusk-chaos"
+      ],
+      "weeklyRaw": 6070259100000
+    },
+    {
+      "id": "cut-baldrix-normal",
+      "label": "노발",
+      "ids": [
+        "seren-extreme",
+        "kaling-hard",
+        "baldrix-normal",
+        "kalos-chaos",
+        "limbo-normal",
+        "bellona-normal",
+        "star-normal",
+        "lotus-extreme",
+        "adversary-normal",
+        "hilla-hard",
+        "dunkel-hard",
+        "will-hard"
+      ],
+      "weeklyRaw": 6996285100000
+    },
+    {
+      "id": "cut-adversary-hard",
+      "label": "하대적",
+      "ids": [
+        "seren-extreme",
+        "kaling-hard",
+        "adversary-hard",
+        "baldrix-normal",
+        "kalos-chaos",
+        "limbo-normal",
+        "bellona-normal",
+        "star-normal",
+        "lotus-extreme",
+        "hilla-hard",
+        "dunkel-hard",
+        "will-hard"
+      ],
+      "weeklyRaw": 7620998000000
+    },
+    {
+      "id": "cut-jupiter-normal",
+      "label": "노유",
+      "ids": [
+        "seren-extreme",
+        "jupiter-normal",
+        "kaling-hard",
+        "adversary-hard",
+        "baldrix-normal",
+        "kalos-chaos",
+        "limbo-normal",
+        "bellona-normal",
+        "star-normal",
+        "lotus-extreme",
+        "hilla-hard",
+        "dunkel-hard"
+      ],
+      "weeklyRaw": 8721725000000
+    },
+    {
+      "id": "cut-star-hard",
+      "label": "하흉",
+      "ids": [
+        "star-hard",
+        "seren-extreme",
+        "jupiter-normal",
+        "kaling-hard",
+        "adversary-hard",
+        "baldrix-normal",
+        "kalos-chaos",
+        "limbo-normal",
+        "bellona-normal",
+        "lotus-extreme",
+        "hilla-hard",
+        "dunkel-hard"
+      ],
+      "weeklyRaw": 10284407200000
+    },
+    {
+      "id": "cut-limbo-hard",
+      "label": "하림",
+      "ids": [
+        "star-hard",
+        "limbo-hard",
+        "seren-extreme",
+        "jupiter-normal",
+        "kaling-hard",
+        "adversary-hard",
+        "baldrix-normal",
+        "kalos-chaos",
+        "bellona-normal",
+        "lotus-extreme",
+        "hilla-hard",
+        "dunkel-hard"
+      ],
+      "weeklyRaw": 11434982000000
+    },
+    {
+      "id": "cut-bellona-hard",
+      "label": "하벨",
+      "ids": [
+        "bellona-hard",
+        "star-hard",
+        "limbo-hard",
+        "seren-extreme",
+        "jupiter-normal",
+        "kaling-hard",
+        "adversary-hard",
+        "baldrix-normal",
+        "kalos-chaos",
+        "lotus-extreme",
+        "hilla-hard",
+        "dunkel-hard"
+      ],
+      "weeklyRaw": 13077364100000
+    },
+    {
+      "id": "cut-baldrix-hard",
+      "label": "하발",
+      "ids": [
+        "baldrix-hard",
+        "bellona-hard",
+        "star-hard",
+        "limbo-hard",
+        "seren-extreme",
+        "jupiter-normal",
+        "kaling-hard",
+        "adversary-hard",
+        "kalos-chaos",
+        "lotus-extreme",
+        "hilla-hard",
+        "dunkel-hard"
+      ],
+      "weeklyRaw": 14477944600000
+    },
+    {
+      "id": "cut-kalos-extreme",
+      "label": "익칼",
+      "ids": [
+        "kalos-extreme",
+        "baldrix-hard",
+        "bellona-hard",
+        "star-hard",
+        "limbo-hard",
+        "seren-extreme",
+        "jupiter-normal",
+        "kaling-hard",
+        "adversary-hard",
+        "lotus-extreme",
+        "hilla-hard",
+        "dunkel-hard"
+      ],
+      "weeklyRaw": 16684847500000
+    },
+    {
+      "id": "cut-adversary-extreme",
+      "label": "익대적",
+      "ids": [
+        "adversary-extreme",
+        "kalos-extreme",
+        "baldrix-hard",
+        "bellona-hard",
+        "star-hard",
+        "limbo-hard",
+        "seren-extreme",
+        "jupiter-normal",
+        "kaling-hard",
+        "lotus-extreme",
+        "hilla-hard",
+        "dunkel-hard"
+      ],
+      "weeklyRaw": 19492318400000
+    },
+    {
+      "id": "cut-kaling-extreme",
+      "label": "익카",
+      "ids": [
+        "kaling-extreme",
+        "adversary-extreme",
+        "kalos-extreme",
+        "baldrix-hard",
+        "bellona-hard",
+        "star-hard",
+        "limbo-hard",
+        "seren-extreme",
+        "jupiter-normal",
+        "lotus-extreme",
+        "hilla-hard",
+        "dunkel-hard"
+      ],
+      "weeklyRaw": 22549188200000
+    },
+    {
+      "id": "cut-jupiter-hard",
+      "label": "하유",
+      "ids": [
+        "kaling-extreme",
+        "jupiter-hard",
+        "adversary-extreme",
+        "kalos-extreme",
+        "baldrix-hard",
+        "bellona-hard",
+        "star-hard",
+        "limbo-hard",
+        "seren-extreme",
+        "lotus-extreme",
+        "hilla-hard",
+        "dunkel-hard"
+      ],
+      "weeklyRaw": 25293088600000
+    }
+  ]
+}
