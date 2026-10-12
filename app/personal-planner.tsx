@@ -373,9 +373,9 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
             <div className="pb-diffs">{group.entries.map(entry => <button type="button" key={entry.id} className={`pb-diff ${DIFFICULTY_CLASS[entry.difficulty] || ""}${picked?.id === entry.id ? " on" : ""}`} aria-pressed={picked?.id === entry.id} aria-label={group.boss + " " + entry.difficulty + (bossPickMode === "cutoff" ? "까지 잡기" : "")} disabled={bossPickMode === "single" && !picked && bossFull} title={`솔로 ${fmtJo(entry.unitExp * 10_000, 3)}`} onClick={() => toggleBoss(entry)}>{entry.difficulty}</button>)}</div>
             {picked && pickedEntry ? <div className="pb-bossrow-detail">
               <div className="pb-party" role="group" aria-label={group.boss + " 파티원"}>
-                <button type="button" aria-label={group.boss + " 파티원 줄이기"} disabled={picked.party <= 1} onClick={() => upd((draft: MainInput) => { draft.personal.bosses[index].party = Math.max(1, picked.party - 1); })}>−</button>
+                <button type="button" aria-label={group.boss + " 파티원 줄이기"} disabled={picked.party <= 1} onClick={() => upd((draft: MainInput) => { draft.personal.bosses[index].party = Math.max(1, draft.personal.bosses[index].party - 1); })}>−</button>
                 <span aria-live="polite">{picked.party}인</span>
-                <button type="button" aria-label={group.boss + " 파티원 늘리기"} disabled={picked.party >= pickedEntry.maxParty} onClick={() => upd((draft: MainInput) => { draft.personal.bosses[index].party = Math.min(pickedEntry.maxParty, picked.party + 1); })}>+</button>
+                <button type="button" aria-label={group.boss + " 파티원 늘리기"} disabled={picked.party >= pickedEntry.maxParty} onClick={() => upd((draft: MainInput) => { draft.personal.bosses[index].party = Math.min(pickedEntry.maxParty, draft.personal.bosses[index].party + 1); })}>+</button>
               </div>
               <span className="pb-bossrow-exp">{fmtJo(bossRaw(picked.id, picked.party), 3)}</span>
               <label className="pb-bossrow-done" title="이번 주에 이미 잡았으면 체크"><input type="checkbox" checked={picked.doneThisWeek} onChange={event => upd((draft: MainInput) => { draft.personal.bosses[index].doneThisWeek = event.target.checked; })} />잡음</label>
