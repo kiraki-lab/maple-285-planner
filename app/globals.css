@@ -376,3 +376,9 @@ footer p { margin: 0; color: #65636c; font-size: 12px; text-align: center; }
 .pb-shop span { padding: 2px 8px; border-radius: 999px; font-weight: 750; }
 .pb-shop span.ok { color: #17606f; background: #d3eff5; }
 .pb-shop span.no { color: #9a2f52; background: #fbdbe5; }
+
+.pb-party { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.pb-party button { width: 32px; height: 32px; padding: 0; border: 1px solid var(--line); border-radius: 7px; background: white; color: var(--ink); font-size: 18px; font-weight: 800; cursor: pointer; }
+.pb-party button:disabled { opacity: .35; cursor: default; }
+.pb-party button:focus-visible { outline: 3px solid rgba(115,87,255,.35); outline-offset: 2px; }
+.pb-party span { min-width: 25px; text-align: center; font-weight: 800; }

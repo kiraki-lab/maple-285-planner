@@ -332,12 +332,24 @@ test("서버 화면에 사과 보상 2,000장과 10개를 별도로 넣는 버�
   assert.ok(html.includes("10/22 02:00"));
 });
 
-test("서버 화면은 상위 보스 21개 묶음과 한 번에 고르는 버튼을 연결한다", async () => {
+test("서버 화면은 네 묶음과 개별 파티 인원 버튼을 연결한다", async () => {
   const html = await renderBuiltSsrHtml("boss-selection");
-  assert.match(html, /더 많은 보스 묶음/);
-  assert.match(html, /aria-label="더 높은 보스 구성"/);
-  assert.match(html, />노카<|>노카<\/button>/);
-  ["노림", "카칼", "하카", "노발", "하대적", "노유", "하유"].forEach(text => assert.ok(html.includes(">" + text + "</button>"), text));
+  assert.ok(!html.includes("더 많은 보스 묶음"));
+  ["검밑솔", "하세이카", "노칼·노적자", "노흉·익스우"].forEach(text => assert.ok(html.includes(">" + text + "</button>"), text));
+  assert.ok(!html.includes(">노칼이카</button>"));
+  assert.match(html, /파티원 줄이기/);
+  assert.match(html, /파티원 늘리기/);
   assert.match(html, /aria-label="보스 고르는 방법"/);
   assert.match(html, /aria-pressed="false"[^>]*>여기까지 한 번에/);
+});
+
+
+test("없어진 묶음 id가 저장돼 있어도 실제 보스·인원·잡음은 바꾸지 않는다", async () => {
+  const { mergeSaved,parseSaved,serializeSaved } = await import(new URL("lib/saved-input.mjs", root).href);
+  for (const presetId of ["noseical","haseical","haseijeokja","nokalika","cut-jupiter-hard"]) {
+    const input={ personal: { presetId, bosses:[{id:"seren-hard",party:3,doneThisWeek:true},{id:"kaling-easy",party:6,doneThisWeek:false}] } };
+    assert.deepEqual(parseSaved(serializeSaved(input),"2026-10-12").personal.bosses,input.personal.bosses);
+    assert.deepEqual(mergeSaved(input,"2026-10-12").personal.bosses,input.personal.bosses);
+  }
+  assert.deepEqual(mergeSaved({personal:{presetId:"nokalika",bosses:[]}},"2026-10-12").personal.bosses,[]);
 });

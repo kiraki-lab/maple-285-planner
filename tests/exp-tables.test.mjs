@@ -242,27 +242,17 @@ test("보스 구간은 공통 목록 순서 이하에서 보스마다 한 난이
   assert.equal(top[0].id, "kaling-extreme");
 });
 
-test("커뮤니티 보스 구성은 퍼스널 대상 35개 안에서 보스당 난이도 하나이고 12개를 넘지 않는다", () => {
-  assert.deepEqual(BOSS_COMMUNITY_PRESETS.filter(preset => !preset.cutoffId).map(preset => [preset.label, preset.ids.length]), [["검밑솔", 8], ["하세이카", 10], ["노세이칼", 10], ["하세이칼", 10], ["하세이적자", 11], ["노칼이카", 12]]);
-  BOSS_COMMUNITY_PRESETS.forEach(preset => {
-    preset.ids.forEach(id => assert.ok(bossEntry(id), `${preset.label}: ${id} 가 표에 없다`));
-    assert.equal(new Set(preset.ids.map(id => bossEntry(id).boss)).size, preset.ids.length, `${preset.label}: 같은 보스가 두 난이도`);
-    assert.ok(preset.ids.length <= WEEKLY_BOSS_LIMIT);
-    if (!preset.cutoffId) assert.ok(preset.ids.includes("damien-hard") && preset.ids.includes("gas-chaos") && preset.ids.includes("dusk-chaos"));
-  });
-  const byId = Object.fromEntries(BOSS_COMMUNITY_PRESETS.map(preset => [preset.id, preset.ids]));
-  assert.ok(byId.noseical.includes("seren-normal") && byId.noseical.includes("kalos-easy"));
-  assert.ok(byId.haseical.includes("seren-hard") && !byId.haseical.includes("seren-normal"));
-  assert.ok(byId.nokalika.includes("kalos-normal") && !byId.nokalika.includes("kalos-easy"));
-  const solo = bossCommunityPreset("noseical");
-  assert.equal(solo.length, 10);
-  assert.ok(solo.every(boss => boss.party === 1 && boss.doneThisWeek === false));
-  bossCommunityPreset("noseical", "max").forEach(boss => assert.equal(boss.party, bossEntry(boss.id).maxParty));
-  assert.deepEqual(bossCommunityPreset("없음"), []);
-  // 구성이 커질수록 주간 경험치는 늘어난다.
-  const total = id => bossCommunityPreset(id).reduce((sum, boss) => sum + bossRaw(boss.id, boss.party), 0);
-  assert.ok(total("geommitsol") < total("noseical") && total("noseical") < total("haseical"));
-  assert.ok(total("haseical") < total("haseijeokja") && total("haseijeokja") < total("nokalika"));
+test("네 보스 묶음은 모두 여기까지 방식이며 보스당 하나와 12개 제한을 지킨다", () => {
+  assert.deepEqual(BOSS_COMMUNITY_PRESETS.map(p => [p.label,p.cutoffId,p.ids.length]), [["검밑솔","hilla-hard",8],["하세이카","kaling-easy",12],["노칼·노적자","adversary-normal",12],["노흉·익스우","star-normal",12]]);
+  for (const p of BOSS_COMMUNITY_PRESETS) {
+    for (const mode of ["solo","max"]) {
+      const picked=bossCommunityPreset(p.id,mode);
+      assert.equal(new Set(picked.map(b => bossEntry(b.id).boss)).size,picked.length);
+      assert.ok(picked.length<=12);
+      assert.ok(picked.every(b => b.party === (mode==="solo" ? 1 : bossEntry(b.id).maxParty)));
+    }
+  }
+  assert.deepEqual(bossCommunityPreset("없음"),[]);
 });
 
 // ── 엔진용 경험치 표 어댑터 ───────────────────────────────────────

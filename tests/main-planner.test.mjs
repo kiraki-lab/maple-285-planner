@@ -1625,11 +1625,11 @@ test("직접 고른 사용 시점은 현재 결과와 등급·배분 비교에 �
   assert.equal(compareAlloc(x, real)[0].summary.exp, selected.summary.exp);
 });
 
-test("추가 21개 구성은 독립 원본의 보스 12종과 주간 EXP에 모두 일치한다", () => {
+test("여기까지 선택 21개는 독립 원본의 보스 12종과 주간 EXP에 모두 일치한다", () => {
   const fixture = JSON.parse(readFileSync(new URL("./boss-selection-fixture.json", import.meta.url), "utf8"));
   assert.equal(fixture.solo.length, 21);
   for (const expected of fixture.solo) {
-    const picked = bossCommunityPreset(expected.id);
+    const picked = bossPreset({ cutoffId: expected.id.replace("cut-", "") });
     assert.deepEqual(picked.map(boss => boss.id), expected.ids, expected.label);
     assert.equal(bossListWeeklyRaw(picked), expected.weeklyRaw, expected.label);
     assert.equal(picked.length, 12);
@@ -1645,19 +1645,19 @@ test("환산 표시 순서와 경험치 순서를 혼동하지 않는다: 익세
     "kalos-chaos", "limbo-normal", "bellona-normal", "kaling-normal", "star-normal", "lotus-extreme",
     "adversary-normal", "seren-hard", "hilla-hard", "dunkel-hard", "will-hard", "dusk-chaos",
   ]);
-  assert.equal(bossListWeeklyRaw(bossCommunityPreset("cut-limbo-normal")), 4_340_838_100_000);
+  assert.equal(bossListWeeklyRaw(bossPreset({ cutoffId: "limbo-normal" })), 4_340_838_100_000);
 });
 
 test("최대 파티는 보스별 인원과 실제 받는 EXP 순으로 고르고 나눗셈을 매번 내린다", () => {
-  const limbo = bossCommunityPreset("cut-limbo-normal", "max");
+  const limbo = bossPreset({ cutoffId: "limbo-normal", partyMode: "max" });
   assert.deepEqual(limbo.map(boss => [boss.id, boss.party]), [
     ["limbo-normal", 3], ["bellona-normal", 3], ["lotus-extreme", 2], ["star-normal", 3], ["kalos-chaos", 6],
     ["adversary-normal", 3], ["kaling-normal", 6], ["seren-hard", 6], ["hilla-hard", 6], ["dunkel-hard", 6], ["will-hard", 6], ["dusk-chaos", 6],
   ]);
   assert.equal(bossListWeeklyRaw(limbo), 1_222_093_149_996);
-  const top = bossCommunityPreset("cut-jupiter-hard");
+  const top = bossPreset({ cutoffId: "jupiter-hard" });
   assert.equal(bossListWeeklyRaw(top), 25_293_088_600_000);
-  assert.equal(bossListWeeklyRaw(bossCommunityPreset("cut-jupiter-hard", "max")), 7_058_212_866_663);
+  assert.equal(bossListWeeklyRaw(bossPreset({ cutoffId: "jupiter-hard", partyMode: "max" })), 7_058_212_866_663);
   assert.equal(top.length, 12);
   assert.equal(bossPreset({ cutoffId: "jupiter-hard", limit: 99 }).length, 12);
   assert.deepEqual(bossPreset({ cutoffId: "jupiter-hard", limit: NaN }), []);
@@ -1670,7 +1670,7 @@ test("추가 상위 구성은 실제 일별 계산에서도 주간 EXP를 한 �
   x.personal.mission.stepsDone = 30;
   x.personal.flame.stock = 0; x.personal.flame.killsPerWeek = 0;
   Object.assign(x.routine, { runsPerDay: 0, sundayRuns: 0, grandis: false, extreme: false, epic: false, huntHoursPerWeek: 0 });
-  x.personal.bosses = bossCommunityPreset("cut-jupiter-hard");
+  x.personal.bosses = bossPreset({ cutoffId: "jupiter-hard" });
   const result = simulateMain(x, createMainContext());
   assert.equal(result.boss.clears, 12);
   assert.equal(result.sourceRaw.boss, 25_293_088_600_000);
@@ -1681,21 +1681,33 @@ test("추가 상위 구성은 실제 일별 계산에서도 주간 EXP를 한 �
 
 test("묶음·여기까지 선택은 같은 보스의 이번 주 처치를 난이도가 바뀌어도 유지한다", () => {
   const previous = [{ id: "lotus-hard", party: 6, doneThisWeek: true }, { id: "kaling-easy", party: 1, doneThisWeek: false }];
-  const selected = replaceBossSelection(previous, bossCommunityPreset("cut-kaling-normal"));
+  const selected = replaceBossSelection(previous, bossPreset({ cutoffId: "kaling-normal" }));
   assert.equal(selected.find(boss => boss.id === "lotus-extreme").doneThisWeek, true);
   assert.equal(selected.find(boss => boss.id === "kaling-normal").doneThisWeek, false);
   assert.equal(selected.filter(boss => boss.doneThisWeek).length, 1);
   assert.equal(selected.length, 12);
   assert.equal(bossListWeeklyRaw(selected.filter(boss => !boss.doneThisWeek)), 2_342_670_300_000);
   assert.deepEqual(previous, [{ id: "lotus-hard", party: 6, doneThisWeek: true }, { id: "kaling-easy", party: 1, doneThisWeek: false }]);
-  assert.equal(bossCommunityPreset("cut-kaling-normal").some(boss => boss.doneThisWeek), false);
+  assert.equal(bossPreset({ cutoffId: "kaling-normal" }).some(boss => boss.doneThisWeek), false);
 });
 
 test("저장된 여기까지 목록의 기준은 복구하지만 직접 고른 일부 목록을 채우지 않는다", () => {
   assert.equal(bossCutoffFor([{ id: "lotus-hard" }, { id: "damien-hard" }, { id: "lucid-hard" }, { id: "will-hard" }]), "will-hard");
-  assert.equal(bossCutoffFor(bossCommunityPreset("cut-jupiter-hard", "max")), "jupiter-hard");
+  assert.equal(bossCutoffFor(bossPreset({ cutoffId: "jupiter-hard", partyMode: "max" })), "jupiter-hard");
   assert.equal(bossCutoffFor(defaultMainInput("2026-10-12").personal.bosses), "", "하세이카는 선택된 10마리 그대로다");
   assert.equal(bossCutoffFor([{ id: "limbo-normal" }]), "");
   assert.equal(bossCutoffFor([]), "");
   assert.equal(bossCutoffFor(null), "");
+});
+
+
+test("네 보스 구간의 주간 경험치와 처음 10마리 구성을 유지한다", () => {
+  const cases = [["geommitsol",406_564_200_000,8],["minimum",1_193_473_100_000,12],["nokal-nojeok",1_772_901_500_000,12],["nohyung-exlotus",2_517_486_100_000,12]];
+  for (const [id,raw,count] of cases) { const b=bossCommunityPreset(id);assert.equal(bossListWeeklyRaw(b),raw);assert.equal(b.length,count); }
+  const initial=defaultMainInput("2026-10-09").personal.bosses;
+  assert.equal(initial.length,10);
+  assert.equal(bossListWeeklyRaw(initial),856_174_300_000);
+  assert.ok(!initial.some(b=>b.id==="kalos-easy"||b.id==="adversary-easy"));
+  assert.ok(bossCommunityPreset("minimum").some(b=>b.id==="kalos-easy"));
+  assert.ok(bossCommunityPreset("minimum").some(b=>b.id==="adversary-easy"));
 });

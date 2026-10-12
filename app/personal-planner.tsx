@@ -348,12 +348,9 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
       </div>
       <div className="pb-pane" role="tabpanel" id="pb-pane-s4" aria-labelledby="pb-tab-s4" hidden={sec !== "s4"}>
       <div className="pb-chips" role="group" aria-label="자주 쓰는 보스 구성">
-        {BOSS_COMMUNITY_PRESETS.filter(preset => !preset.cutoffId).map(preset => <button type="button" key={preset.id} className={activePreset?.id === preset.id ? "on" : ""} title={preset.detail} onClick={() => applyCommunityPreset(preset.id)}>{preset.label}</button>)}
+        {BOSS_COMMUNITY_PRESETS.map(preset => <button type="button" key={preset.id} className={activePreset?.id === preset.id ? "on" : ""} aria-pressed={activePreset?.id === preset.id} title={preset.detail} onClick={() => applyCommunityPreset(preset.id)}>{preset.label}</button>)}
         <button type="button" className="clear" onClick={() => { setBossCutoff(""); upd((draft: MainInput) => { draft.personal.bosses = []; }); }}>전부 빼기</button>
       </div>
-      <details className="pb-more"><summary>더 많은 보스 묶음</summary>
-        <div className="pb-chips" role="group" aria-label="더 높은 보스 구성">{BOSS_COMMUNITY_PRESETS.filter(preset => preset.cutoffId).map(preset => <button type="button" key={preset.id} className={activePreset?.id === preset.id ? "on" : ""} aria-pressed={activePreset?.id === preset.id} title={preset.detail} onClick={() => applyCommunityPreset(preset.id)}>{preset.label}</button>)}</div>
-      </details>
       <div className="pb-choice" role="group" aria-label="파티원">
         <button type="button" className={allSolo ? "on" : ""} aria-pressed={allSolo} onClick={() => setAllParty("solo")}>전부 솔로</button>
         <button type="button" className={allMax ? "on" : ""} aria-pressed={allMax} onClick={() => setAllParty("max")}>보스별 최대 인원</button>
@@ -375,7 +372,11 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
             <b className="pb-bossrow-name">{group.boss}</b>
             <div className="pb-diffs">{group.entries.map(entry => <button type="button" key={entry.id} className={`pb-diff ${DIFFICULTY_CLASS[entry.difficulty] || ""}${picked?.id === entry.id ? " on" : ""}`} aria-pressed={picked?.id === entry.id} aria-label={group.boss + " " + entry.difficulty + (bossPickMode === "cutoff" ? "까지 잡기" : "")} disabled={bossPickMode === "single" && !picked && bossFull} title={`솔로 ${fmtJo(entry.unitExp * 10_000, 3)}`} onClick={() => toggleBoss(entry)}>{entry.difficulty}</button>)}</div>
             {picked && pickedEntry ? <div className="pb-bossrow-detail">
-              <select aria-label={`${group.boss} 파티원`} value={picked.party} onChange={event => upd((draft: MainInput) => { draft.personal.bosses[index].party = Number(event.target.value); })}>{Array.from({ length: pickedEntry.maxParty }, (_, i) => i + 1).map(n => <option key={n} value={n}>{n}인</option>)}</select>
+              <div className="pb-party" role="group" aria-label={group.boss + " 파티원"}>
+                <button type="button" aria-label={group.boss + " 파티원 줄이기"} disabled={picked.party <= 1} onClick={() => upd((draft: MainInput) => { draft.personal.bosses[index].party = Math.max(1, picked.party - 1); })}>−</button>
+                <span aria-live="polite">{picked.party}인</span>
+                <button type="button" aria-label={group.boss + " 파티원 늘리기"} disabled={picked.party >= pickedEntry.maxParty} onClick={() => upd((draft: MainInput) => { draft.personal.bosses[index].party = Math.min(pickedEntry.maxParty, picked.party + 1); })}>+</button>
+              </div>
               <span className="pb-bossrow-exp">{fmtJo(bossRaw(picked.id, picked.party), 3)}</span>
               <label className="pb-bossrow-done" title="이번 주에 이미 잡았으면 체크"><input type="checkbox" checked={picked.doneThisWeek} onChange={event => upd((draft: MainInput) => { draft.personal.bosses[index].doneThisWeek = event.target.checked; })} />잡음</label>
             </div> : null}
