@@ -7,7 +7,8 @@ import {
   ATTENDANCE_REWARDS,
   bossEntry,
   bossCommunityPreset,
-  bossLabel,
+  bossCutoffFor,
+  replaceBossSelection,
   bossListWeeklyRaw,
   bossPreset,
   bossRaw,
@@ -29,7 +30,7 @@ import {
   mobBaseExp,
   plusLevelSchedule,
 } from "@/lib/main-planner.mjs";
-import { BOSS_COMMUNITY_PRESETS, HUNTING_FIELDS, PERSONAL_BOSS_TABLE, PERSONAL_COUPON_MULTIPLE, PERSONAL_FLAME_MULTIPLE, WEEKLY_BOSS_LIMIT } from "@/lib/personal-data.mjs";
+import { BOSS_CUT_ORDER, BOSS_COMMUNITY_PRESETS, HUNTING_FIELDS, PERSONAL_BOSS_TABLE, PERSONAL_COUPON_MULTIPLE, PERSONAL_FLAME_MULTIPLE, WEEKLY_BOSS_LIMIT } from "@/lib/personal-data.mjs";
 import type { MainInput, MainInputState } from "./use-main-input";
 
 // 경험치 표 어댑터가 돌려주는 모양. lib/exp-tables.ts 의 createMainContext 와 같다.
@@ -55,13 +56,13 @@ const fmtInt = (value: number) => Math.round(value).toLocaleString("ko-KR");
 const place = (level: number, exp: number) => `Lv.${level} ${exp.toFixed(1)}%`;
 const dow = (key: string) => "일월화수목금토"[new Date(`${key}T00:00:00Z`).getUTCDay()];
 
-// 보스 상한 고르기용: 솔로 경험치가 큰 순서.
-const BOSS_LADDER = [...PERSONAL_BOSS_TABLE].sort((a, b) => b.unitExp - a.unitExp);
+// 환산 공통 목록의 낮은 쪽부터. 경험치 순으로 난이도를 판단하지 않는다.
+const BOSS_LADDER = BOSS_CUT_ORDER.map(id => PERSONAL_BOSS_TABLE.find(entry => entry.id === id)!);
 type BossRow = (typeof PERSONAL_BOSS_TABLE)[number];
-// 보스 이름별로 묶고(난이도는 쉬운 순), 가장 쉬운 난이도의 경험치가 낮은 보스부터 늘어놓는다.
+// 보스 이름별로 묶고, 환산 공통 목록에서 처음 나타나는 순서로 늘어놓는다.
 const BOSS_GROUPS: { boss: string; entries: BossRow[] }[] = (() => {
   const map = new Map<string, BossRow[]>();
-  [...PERSONAL_BOSS_TABLE].sort((a, b) => a.unitExp - b.unitExp).forEach(entry => { map.set(entry.boss, [...(map.get(entry.boss) || []), entry]); });
+  BOSS_LADDER.forEach(entry => { map.set(entry.boss, [...(map.get(entry.boss) || []), entry]); });
   return [...map.entries()].map(([boss, entries]) => ({ boss, entries }));
 })();
 // 코인샵에서 흔히 노리는 묶음(공식 가격표): 블랙 큐브 100개 8,500 + 화이트 에디셔널 큐브 100개 13,000 = 21,500, 솔 에르다 조각 300개 4,500을 더하면 26,000, 전 품목 36,500.
@@ -107,7 +108,8 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
   const [resPick, setResPick] = useState("r2");
   const setResTab = setResPick;
   const [bossCutoff, setBossCutoff] = useState("");
-  const [bossParty, setBossParty] = useState<"solo" | "max">("solo");
+  const [bossPickMode, setBossPickMode] = useState<"single" | "cutoff">("single");
+  const [bossPartyChoice, setBossParty] = useState<"solo" | "max">("solo");
 
   const analysis = useMemo(() => analyzeMain(input, ctx), [input, ctx]);
   const chosen = analysis.chosen;
@@ -139,6 +141,9 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
   const flameTopLevel = huntFieldLevelFor({ fieldLevel: 0, fieldKey: "" }, startLevel);
   const flameTopRaw = flameModelRaw(flameTopLevel);
   const bosses = input.personal.bosses as { id: string; party: number; doneThisWeek: boolean }[];
+  const allSolo = bosses.length > 0 && bosses.every(boss => boss.party === 1);
+  const allMax = bosses.length > 0 && bosses.every(boss => boss.party === bossEntry(boss.id)?.maxParty);
+  const bossParty = allSolo ? "solo" : allMax ? "max" : bossPartyChoice;
   const weeklyBossRaw = bossListWeeklyRaw(bosses.slice(0, WEEKLY_BOSS_LIMIT));
 
   // 기준일 입력에는 그날 충전분이 들어 있으므로 다음 충전은 기준일 다음 목요일이다.
@@ -217,19 +222,20 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
   const couponRows = [...new Set(analysis.options.map(option => option.couponPolicy))].map(policy => bestOf(option => option.couponPolicy === policy));
   const hasCrimson = analysis.options.some((option: { result: Result }) => option.result.items.crimsonUsed > 0);
 
-  const applyCommunityPreset = (presetId: string) => upd((draft: MainInput) => { draft.personal.bosses = bossCommunityPreset(presetId, bossParty); });
-  const applyBossPreset = () => { if (bossCutoff) upd((draft: MainInput) => { draft.personal.bosses = bossPreset({ cutoffId: bossCutoff, partyMode: bossParty }); }); };
+  const applyCommunityPreset = (presetId: string) => { setBossCutoff(BOSS_COMMUNITY_PRESETS.find(preset => preset.id === presetId)?.cutoffId || ""); upd((draft: MainInput) => { draft.personal.bosses = replaceBossSelection(draft.personal.bosses, bossCommunityPreset(presetId, bossParty)); }); };
+  const applyBossPreset = (cutoffId: string) => { setBossCutoff(cutoffId); if (cutoffId) upd((draft: MainInput) => { draft.personal.bosses = replaceBossSelection(draft.personal.bosses, bossPreset({ cutoffId, partyMode: bossParty })); }); };
   // 보스마다 한 줄: 난이도를 누르면 고르고, 같은 난이도를 다시 누르면 뺀다. 같은 보스는 난이도 하나만.
-  const toggleBoss = (entry: BossRow) => upd((draft: MainInput) => {
+  const toggleBoss = (entry: BossRow) => { if (bossPickMode === "cutoff") { applyBossPreset(entry.id); return; } setBossCutoff(""); upd((draft: MainInput) => {
     const list = draft.personal.bosses as { id: string; party: number; doneThisWeek: boolean }[];
     const index = list.findIndex(boss => bossEntry(boss.id)?.boss === entry.boss);
     if (index >= 0 && list[index].id === entry.id) list.splice(index, 1);
     else if (index >= 0) { list[index].id = entry.id; list[index].party = Math.min(list[index].party, entry.maxParty); }
     else if (list.length < WEEKLY_BOSS_LIMIT) list.push({ id: entry.id, party: bossParty === "max" ? entry.maxParty : 1, doneThisWeek: false });
-  });
+  }); };
   const setAllParty = (mode: "solo" | "max") => { setBossParty(mode); upd((draft: MainInput) => { draft.personal.bosses.forEach((boss: { id: string; party: number }) => { boss.party = mode === "max" ? (bossEntry(boss.id)?.maxParty ?? 1) : 1; }); }); };
   const bossIdSet = new Set(bosses.map(boss => boss.id));
-  const activePreset = BOSS_COMMUNITY_PRESETS.find(preset => preset.ids.length === bossIdSet.size && preset.ids.every((id: string) => bossIdSet.has(id)));
+  const activePreset = BOSS_COMMUNITY_PRESETS.find(preset => ["solo", "max"].some(mode => { const picked = bossCommunityPreset(preset.id, mode); return picked.length === bossIdSet.size && picked.every(boss => bossIdSet.has(boss.id)); }));
+  const selectedCutoff = bossCutoff && ["solo", "max"].some(mode => { const picked = bossPreset({ cutoffId: bossCutoff, partyMode: mode }); return picked.length === bossIdSet.size && picked.every(boss => bossIdSet.has(boss.id)); }) ? bossCutoff : activePreset?.cutoffId || bossCutoffFor(bosses);
   const bossFull = bosses.length >= WEEKLY_BOSS_LIMIT;
 
   const resTab = ((resPick === "r1" && !(tiers.length > 1)) || (resPick === "r2" && !(allocRows.length > 0)) || (resPick === "r3" && !(designations.length > 0))) ? "r4" : resPick;
@@ -342,13 +348,24 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
       </div>
       <div className="pb-pane" role="tabpanel" id="pb-pane-s4" aria-labelledby="pb-tab-s4" hidden={sec !== "s4"}>
       <div className="pb-chips" role="group" aria-label="자주 쓰는 보스 구성">
-        {BOSS_COMMUNITY_PRESETS.map(preset => <button type="button" key={preset.id} className={activePreset?.id === preset.id ? "on" : ""} title={preset.detail} onClick={() => applyCommunityPreset(preset.id)}>{preset.label}</button>)}
-        <button type="button" className="clear" onClick={() => upd((draft: MainInput) => { draft.personal.bosses = []; })}>전부 빼기</button>
+        {BOSS_COMMUNITY_PRESETS.filter(preset => !preset.cutoffId).map(preset => <button type="button" key={preset.id} className={activePreset?.id === preset.id ? "on" : ""} title={preset.detail} onClick={() => applyCommunityPreset(preset.id)}>{preset.label}</button>)}
+        <button type="button" className="clear" onClick={() => { setBossCutoff(""); upd((draft: MainInput) => { draft.personal.bosses = []; }); }}>전부 빼기</button>
       </div>
+      <details className="pb-more"><summary>더 많은 보스 묶음</summary>
+        <div className="pb-chips" role="group" aria-label="더 높은 보스 구성">{BOSS_COMMUNITY_PRESETS.filter(preset => preset.cutoffId).map(preset => <button type="button" key={preset.id} className={activePreset?.id === preset.id ? "on" : ""} aria-pressed={activePreset?.id === preset.id} title={preset.detail} onClick={() => applyCommunityPreset(preset.id)}>{preset.label}</button>)}</div>
+      </details>
       <div className="pb-choice" role="group" aria-label="파티원">
-        <button type="button" className={bossParty === "solo" ? "on" : ""} onClick={() => setAllParty("solo")}>전부 솔로</button>
-        <button type="button" className={bossParty === "max" ? "on" : ""} onClick={() => setAllParty("max")}>보스별 최대 인원</button>
+        <button type="button" className={allSolo ? "on" : ""} aria-pressed={allSolo} onClick={() => setAllParty("solo")}>전부 솔로</button>
+        <button type="button" className={allMax ? "on" : ""} aria-pressed={allMax} onClick={() => setAllParty("max")}>보스별 최대 인원</button>
       </div>
+      <div className="pb-choice" role="group" aria-label="보스 고르는 방법">
+        <button type="button" className={bossPickMode === "single" ? "on" : ""} aria-pressed={bossPickMode === "single"} onClick={() => setBossPickMode("single")}>하나씩 고르기</button>
+        <button type="button" className={bossPickMode === "cutoff" ? "on" : ""} aria-pressed={bossPickMode === "cutoff"} onClick={() => setBossPickMode("cutoff")}>여기까지 한 번에</button>
+      </div>
+      {bossPickMode === "cutoff" ? <label className="field pb-wide"><span>어디까지 잡나요?</span>
+        <select value={selectedCutoff} onChange={event => applyBossPreset(event.target.value)}><option value="">보스 고르기</option>{BOSS_LADDER.map(entry => <option key={entry.id} value={entry.id}>{entry.boss} {entry.difficulty}</option>)}</select>
+        <small>아래 난이도를 눌러도 한 번에 골라요. 받을 경험치가 큰 12마리만 남아요.</small>
+      </label> : null}
       <div className="pb-bossgrid">
         {BOSS_GROUPS.map(group => {
           const index = bosses.findIndex(boss => bossEntry(boss.id)?.boss === group.boss);
@@ -356,7 +373,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
           const pickedEntry = picked ? bossEntry(picked.id) : null;
           return <div className={`pb-bossrow${picked ? " on" : ""}`} key={group.boss}>
             <b className="pb-bossrow-name">{group.boss}</b>
-            <div className="pb-diffs">{group.entries.map(entry => <button type="button" key={entry.id} className={`pb-diff ${DIFFICULTY_CLASS[entry.difficulty] || ""}${picked?.id === entry.id ? " on" : ""}`} aria-pressed={picked?.id === entry.id} disabled={!picked && bossFull} title={`솔로 ${fmtJo(entry.unitExp * 10_000, 3)}`} onClick={() => toggleBoss(entry)}>{entry.difficulty}</button>)}</div>
+            <div className="pb-diffs">{group.entries.map(entry => <button type="button" key={entry.id} className={`pb-diff ${DIFFICULTY_CLASS[entry.difficulty] || ""}${picked?.id === entry.id ? " on" : ""}`} aria-pressed={picked?.id === entry.id} aria-label={group.boss + " " + entry.difficulty + (bossPickMode === "cutoff" ? "까지 잡기" : "")} disabled={bossPickMode === "single" && !picked && bossFull} title={`솔로 ${fmtJo(entry.unitExp * 10_000, 3)}`} onClick={() => toggleBoss(entry)}>{entry.difficulty}</button>)}</div>
             {picked && pickedEntry ? <div className="pb-bossrow-detail">
               <select aria-label={`${group.boss} 파티원`} value={picked.party} onChange={event => upd((draft: MainInput) => { draft.personal.bosses[index].party = Number(event.target.value); })}>{Array.from({ length: pickedEntry.maxParty }, (_, i) => i + 1).map(n => <option key={n} value={n}>{n}인</option>)}</select>
               <span className="pb-bossrow-exp">{fmtJo(bossRaw(picked.id, picked.party), 3)}</span>
@@ -365,19 +382,8 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
           </div>;
         })}
       </div>
-      <p className="pb-note pb-bosssum"><b>주간 합계 {fmtJo(weeklyBossRaw, 2)}</b> · Lv.{startLevel} 기준 {(weeklyBossRaw / ctx.reqRaw(startLevel) * 100).toFixed(2)}%p · {Math.min(bosses.length, WEEKLY_BOSS_LIMIT)}/{WEEKLY_BOSS_LIMIT}마리{bossFull ? " · 12마리를 다 채웠습니다. 바꾸려면 하나를 먼저 빼세요." : ""}</p>
-      <details className="pb-more">
-        <summary>가장 센 보스만 골라 한 번에 채우기</summary>
-        <div className="field-grid compact">
-          <label className="field"><span>가장 센 보스 (여기까지 잡음)</span>
-            <select value={bossCutoff} onChange={event => setBossCutoff(event.target.value)}>
-              <option value="">선택 안 함</option>
-              {BOSS_LADDER.map(entry => <option key={entry.id} value={entry.id}>{entry.boss} {entry.difficulty} · {fmtJo(entry.unitExp * 10_000, 2)}</option>)}
-            </select></label>
-        </div>
-        <button type="button" className="pb-add" disabled={!bossCutoff} onClick={applyBossPreset}>{bossCutoff ? `${bossLabel(bossCutoff)} 이하로 채우기` : "가장 센 보스를 고르면 채울 수 있어요"}</button>
-        <p className="pb-note">고른 보스 이하에서 보스마다 가장 센 난이도를 경험치 높은 순으로 {WEEKLY_BOSS_LIMIT}마리까지 채웁니다.</p>
-      </details>
+      <p className="pb-note pb-bosssum"><b>주간 합계 {fmtJo(weeklyBossRaw, 2)}</b> · Lv.{startLevel} 기준 {(weeklyBossRaw / ctx.reqRaw(startLevel) * 100).toFixed(2)}%p · {Math.min(bosses.length, WEEKLY_BOSS_LIMIT)}/{WEEKLY_BOSS_LIMIT}마리{bossFull ? (bossPickMode === "cutoff" ? " · 다른 난이도를 누르면 한 번에 바뀝니다." : " · 12마리를 다 채웠습니다. 바꾸려면 하나를 먼저 빼세요.") : ""}</p>
+
       </div>
       <div className="pb-pane" role="tabpanel" id="pb-pane-s5" aria-labelledby="pb-tab-s5" hidden={sec !== "s5"}>
       <div className="field-grid compact">

@@ -116,7 +116,7 @@ test("서버 렌더 첫 화면은 퍼스널 버닝 탭이고 고정 날짜로 �
   // 입력과 결과가 서버 렌더에도 있다.
   assert.match(html, /11\/18 마감 위치/);
   assert.match(html, /성장 미션/);
-  assert.match(html, /가장 센 보스/);
+  assert.match(html, /여기까지 한 번에/);
   assert.match(html, /사냥터/);
 });
 
@@ -206,9 +206,9 @@ test("저장소가 던져도 loadSaved/persistSaved 는 죽지 않는다", async
 
 test("보스 프리셋과 사냥터 선택이 화면에 연결돼 있다", async () => {
   const planner = await read("app/personal-planner.tsx");
-  assert.match(planner, /가장 센 보스 \(여기까지 잡음\)/);
-  assert.match(planner, /이하로 채우기/);
-  assert.match(planner, /bossPreset\(\{ cutoffId: bossCutoff, partyMode: bossParty \}\)/);
+  assert.match(planner, /어디까지 잡나요\?/);
+  assert.match(planner, /여기까지 한 번에/);
+  assert.match(planner, /bossPreset\(\{ cutoffId, partyMode: bossParty \}\)/);
   assert.match(planner, /aria-label="자주 쓰는 보스 구성"/);
   assert.match(planner, /pb-bossgrid/);
   assert.match(planner, /toggleBoss\(entry\)/);
@@ -330,4 +330,14 @@ test("서버 화면에 사과 보상 2,000장과 10개를 별도로 넣는 버�
   assert.ok(html.includes("사과 보상 상급 EXP 교환권"));
   assert.ok(html.includes("사과 보상 VIP 부스터"));
   assert.ok(html.includes("10/22 02:00"));
+});
+
+test("서버 화면은 상위 보스 21개 묶음과 한 번에 고르는 버튼을 연결한다", async () => {
+  const html = await renderBuiltSsrHtml("boss-selection");
+  assert.match(html, /더 많은 보스 묶음/);
+  assert.match(html, /aria-label="더 높은 보스 구성"/);
+  assert.match(html, />노카<|>노카<\/button>/);
+  ["노림", "카칼", "하카", "노발", "하대적", "노유", "하유"].forEach(text => assert.ok(html.includes(">" + text + "</button>"), text));
+  assert.match(html, /aria-label="보스 고르는 방법"/);
+  assert.match(html, /aria-pressed="false"[^>]*>여기까지 한 번에/);
 });
