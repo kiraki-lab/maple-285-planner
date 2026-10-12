@@ -1,0 +1,7427 @@
+{
+  "date": "2026-10-12",
+  "baseCommit": "fcfa0b5",
+  "codeCommits": [
+    "8eec017",
+    "1d825a5"
+  ],
+  "method": "공개 페이지·원본 번들 GET 조회. 외부 UI 직접 입력 없음. 우리 UI 실제 클릭/키보드/저장복원/390px 확인.",
+  "reference": {
+    "collectedAt": "2026-10-12",
+    "method": "공개 HTML/JS GET 조회 및 상수 배열 추출. 계산기 외부 화면 직접 클릭 없음.",
+    "sources": {
+      "hoonPage": "https://hoonjaelab.com/maplestory-weekly-boss-multi-calculator/?layout=popup",
+      "hoonPresets": "https://hoonjaelab.com/wp-content/plugins/hjl-weekly-boss-board/presets.js?ver=2.0.55",
+      "hoonData": "https://hoonjaelab.com/wp-content/plugins/hjl-weekly-boss-board/data.js?ver=2.0.55",
+      "haruPage": "https://haru1sojae.kr/cont/PersonalBoss",
+      "haru": "https://haru1sojae.kr/_next/static/chunks/3pbsp2-ukxvfz.js",
+      "aiPage": "https://maple.ai.kr/guide/exp-calculator",
+      "ai": "https://maple.ai.kr/_next/static/chunks/eddec45464324ed0.js",
+      "scouterPage": "https://maplescouter.com/ko/result",
+      "scouter": "https://maplescouter.com/_next/static/chunks/4281-f828af29791f20d9.js"
+    },
+    "hoon": {
+      "presetCount": 12,
+      "presets": [
+        {
+          "id": "lomien",
+          "label": "노멀 스데미 이하 9종",
+          "candidateCount": 9,
+          "excluded": 0,
+          "peak": {
+            "name": "데미안",
+            "difficulty": "노멀"
+          },
+          "originalRows": [
+            {
+              "name": "데미안",
+              "difficulty": "노멀",
+              "before": 17500000,
+              "after": 8750000,
+              "period": "weekly",
+              "id": "b8",
+              "party": 1
+            },
+            {
+              "name": "스우",
+              "difficulty": "노멀",
+              "before": 16700000,
+              "after": 8350000,
+              "period": "weekly",
+              "id": "b7",
+              "maxParty": 6,
+              "partySource": "https://maplestory.nexon.com/promotion/event/2024/20240418/event02",
+              "party": 1
+            },
+            {
+              "name": "파풀라투스",
+              "difficulty": "카오스",
+              "before": 13100000,
+              "after": 6550000,
+              "period": "weekly",
+              "id": "b6",
+              "party": 1
+            },
+            {
+              "name": "벨룸",
+              "difficulty": "카오스",
+              "before": 9280000,
+              "after": 4640000,
+              "period": "weekly",
+              "id": "b4",
+              "party": 1
+            },
+            {
+              "name": "매그너스",
+              "difficulty": "하드",
+              "before": 8560000,
+              "after": 4280000,
+              "period": "weekly",
+              "id": "b5",
+              "party": 1
+            },
+            {
+              "name": "피에르",
+              "difficulty": "카오스",
+              "before": 8170000,
+              "after": 4080000,
+              "period": "weekly",
+              "id": "b1",
+              "party": 1
+            },
+            {
+              "name": "반반",
+              "difficulty": "카오스",
+              "before": 8150000,
+              "after": 4070000,
+              "period": "weekly",
+              "id": "b2",
+              "party": 1
+            },
+            {
+              "name": "블러디퀸",
+              "difficulty": "카오스",
+              "before": 8140000,
+              "after": 4070000,
+              "period": "weekly",
+              "id": "b3",
+              "party": 1
+            },
+            {
+              "name": "자쿰",
+              "difficulty": "카오스",
+              "before": 8080000,
+              "after": 4040000,
+              "period": "weekly",
+              "id": "b0",
+              "party": 1
+            }
+          ],
+          "mappedIds": [],
+          "omitted": [
+            "데미안 노멀",
+            "스우 노멀",
+            "파풀라투스 카오스",
+            "벨룸 카오스",
+            "매그너스 하드",
+            "피에르 카오스",
+            "반반 카오스",
+            "블러디퀸 카오스",
+            "자쿰 카오스"
+          ],
+          "weeklyRawSolo": 0,
+          "ourThroughIds": [],
+          "ourThroughSolo": 0,
+          "differentOriginalOnly": [],
+          "differentThroughOnly": []
+        },
+        {
+          "id": "easywill",
+          "label": "이지 윌까지 12종",
+          "candidateCount": 12,
+          "excluded": 0,
+          "peak": {
+            "name": "윌",
+            "difficulty": "이지"
+          },
+          "originalRows": [
+            {
+              "name": "윌",
+              "difficulty": "이지",
+              "before": 32300000,
+              "after": 16100000,
+              "period": "weekly",
+              "id": "b11",
+              "party": 1
+            },
+            {
+              "name": "루시드",
+              "difficulty": "이지",
+              "before": 29800000,
+              "after": 14900000,
+              "period": "weekly",
+              "id": "b10",
+              "party": 1
+            },
+            {
+              "name": "가디언 엔젤 슬라임",
+              "difficulty": "노멀",
+              "before": 25500000,
+              "after": 12700000,
+              "period": "weekly",
+              "id": "b9",
+              "party": 1
+            },
+            {
+              "name": "데미안",
+              "difficulty": "노멀",
+              "before": 17500000,
+              "after": 8750000,
+              "period": "weekly",
+              "id": "b8",
+              "party": 1
+            },
+            {
+              "name": "스우",
+              "difficulty": "노멀",
+              "before": 16700000,
+              "after": 8350000,
+              "period": "weekly",
+              "id": "b7",
+              "maxParty": 6,
+              "partySource": "https://maplestory.nexon.com/promotion/event/2024/20240418/event02",
+              "party": 1
+            },
+            {
+              "name": "파풀라투스",
+              "difficulty": "카오스",
+              "before": 13100000,
+              "after": 6550000,
+              "period": "weekly",
+              "id": "b6",
+              "party": 1
+            },
+            {
+              "name": "벨룸",
+              "difficulty": "카오스",
+              "before": 9280000,
+              "after": 4640000,
+              "period": "weekly",
+              "id": "b4",
+              "party": 1
+            },
+            {
+              "name": "매그너스",
+              "difficulty": "하드",
+              "before": 8560000,
+              "after": 4280000,
+              "period": "weekly",
+              "id": "b5",
+              "party": 1
+            },
+            {
+              "name": "피에르",
+              "difficulty": "카오스",
+              "before": 8170000,
+              "after": 4080000,
+              "period": "weekly",
+              "id": "b1",
+              "party": 1
+            },
+            {
+              "name": "반반",
+              "difficulty": "카오스",
+              "before": 8150000,
+              "after": 4070000,
+              "period": "weekly",
+              "id": "b2",
+              "party": 1
+            },
+            {
+              "name": "블러디퀸",
+              "difficulty": "카오스",
+              "before": 8140000,
+              "after": 4070000,
+              "period": "weekly",
+              "id": "b3",
+              "party": 1
+            },
+            {
+              "name": "자쿰",
+              "difficulty": "카오스",
+              "before": 8080000,
+              "after": 4040000,
+              "period": "weekly",
+              "id": "b0",
+              "party": 1
+            }
+          ],
+          "mappedIds": [],
+          "omitted": [
+            "윌 이지",
+            "루시드 이지",
+            "가디언 엔젤 슬라임 노멀",
+            "데미안 노멀",
+            "스우 노멀",
+            "파풀라투스 카오스",
+            "벨룸 카오스",
+            "매그너스 하드",
+            "피에르 카오스",
+            "반반 카오스",
+            "블러디퀸 카오스",
+            "자쿰 카오스"
+          ],
+          "weeklyRawSolo": 0,
+          "ourThroughIds": [],
+          "ourThroughSolo": 0,
+          "differentOriginalOnly": [],
+          "differentThroughOnly": []
+        },
+        {
+          "id": "blackbelow",
+          "label": "검밑솔 9종",
+          "candidateCount": 15,
+          "excluded": 6,
+          "peak": {
+            "name": "진 힐라",
+            "difficulty": "하드"
+          },
+          "peakId": "hilla-hard",
+          "originalRows": [
+            {
+              "name": "진 힐라",
+              "difficulty": "하드",
+              "before": 106000000,
+              "after": 100000000,
+              "period": "weekly",
+              "id": "b24",
+              "party": 1
+            },
+            {
+              "name": "듄켈",
+              "difficulty": "하드",
+              "before": 94400000,
+              "after": 89600000,
+              "period": "weekly",
+              "id": "b23",
+              "party": 1
+            },
+            {
+              "name": "윌",
+              "difficulty": "하드",
+              "before": 77100000,
+              "after": 73200000,
+              "period": "weekly",
+              "id": "b22",
+              "party": 1
+            },
+            {
+              "name": "가디언 엔젤 슬라임",
+              "difficulty": "카오스",
+              "before": 75100000,
+              "after": 71300000,
+              "period": "weekly",
+              "id": "b21",
+              "party": 1
+            },
+            {
+              "name": "더스크",
+              "difficulty": "카오스",
+              "before": 69800000,
+              "after": 66300000,
+              "period": "weekly",
+              "id": "b20",
+              "party": 1
+            },
+            {
+              "name": "루시드",
+              "difficulty": "하드",
+              "before": 62900000,
+              "after": 59700000,
+              "period": "weekly",
+              "id": "b19",
+              "party": 1
+            },
+            {
+              "name": "스우",
+              "difficulty": "하드",
+              "before": 51500000,
+              "after": 48900000,
+              "period": "weekly",
+              "id": "b17",
+              "maxParty": 6,
+              "partySource": "https://maplestory.nexon.com/promotion/event/2024/20240418/event02",
+              "party": 1
+            },
+            {
+              "name": "데미안",
+              "difficulty": "하드",
+              "before": 48900000,
+              "after": 46400000,
+              "period": "weekly",
+              "id": "b16",
+              "party": 1
+            },
+            {
+              "name": "파풀라투스",
+              "difficulty": "카오스",
+              "before": 13100000,
+              "after": 6550000,
+              "period": "weekly",
+              "id": "b6",
+              "party": 1
+            }
+          ],
+          "mappedIds": [
+            "hilla-hard",
+            "dunkel-hard",
+            "will-hard",
+            "gas-chaos",
+            "dusk-chaos",
+            "lucid-hard",
+            "lotus-hard",
+            "damien-hard"
+          ],
+          "omitted": [
+            "파풀라투스 카오스"
+          ],
+          "weeklyRawSolo": 406564200000,
+          "ourThroughIds": [
+            "hilla-hard",
+            "dunkel-hard",
+            "will-hard",
+            "dusk-chaos",
+            "gas-chaos",
+            "lucid-hard",
+            "lotus-hard",
+            "damien-hard"
+          ],
+          "ourThroughSolo": 406564200000,
+          "differentOriginalOnly": [],
+          "differentThroughOnly": []
+        },
+        {
+          "id": "nserenekalos",
+          "label": "노세이칼 10종",
+          "candidateCount": 17,
+          "excluded": 7,
+          "peak": {
+            "name": "감시자 칼로스",
+            "difficulty": "이지"
+          },
+          "peakId": "kalos-easy",
+          "originalRows": [
+            {
+              "name": "감시자 칼로스",
+              "difficulty": "이지",
+              "before": 280000000,
+              "after": 238000000,
+              "period": "weekly",
+              "id": "b26",
+              "party": 1
+            },
+            {
+              "name": "선택받은 세렌",
+              "difficulty": "노멀",
+              "before": 239000000,
+              "after": 167000000,
+              "period": "weekly",
+              "id": "b25",
+              "party": 1
+            },
+            {
+              "name": "진 힐라",
+              "difficulty": "하드",
+              "before": 106000000,
+              "after": 100000000,
+              "period": "weekly",
+              "id": "b24",
+              "party": 1
+            },
+            {
+              "name": "듄켈",
+              "difficulty": "하드",
+              "before": 94400000,
+              "after": 89600000,
+              "period": "weekly",
+              "id": "b23",
+              "party": 1
+            },
+            {
+              "name": "윌",
+              "difficulty": "하드",
+              "before": 77100000,
+              "after": 73200000,
+              "period": "weekly",
+              "id": "b22",
+              "party": 1
+            },
+            {
+              "name": "가디언 엔젤 슬라임",
+              "difficulty": "카오스",
+              "before": 75100000,
+              "after": 71300000,
+              "period": "weekly",
+              "id": "b21",
+              "party": 1
+            },
+            {
+              "name": "더스크",
+              "difficulty": "카오스",
+              "before": 69800000,
+              "after": 66300000,
+              "period": "weekly",
+              "id": "b20",
+              "party": 1
+            },
+            {
+              "name": "루시드",
+              "difficulty": "하드",
+              "before": 62900000,
+              "after": 59700000,
+              "period": "weekly",
+              "id": "b19",
+              "party": 1
+            },
+            {
+              "name": "스우",
+              "difficulty": "하드",
+              "before": 51500000,
+              "after": 48900000,
+              "period": "weekly",
+              "id": "b17",
+              "maxParty": 6,
+              "partySource": "https://maplestory.nexon.com/promotion/event/2024/20240418/event02",
+              "party": 1
+            },
+            {
+              "name": "데미안",
+              "difficulty": "하드",
+              "before": 48900000,
+              "after": 46400000,
+              "period": "weekly",
+              "id": "b16",
+              "party": 1
+            }
+          ],
+          "mappedIds": [
+            "kalos-easy",
+            "seren-normal",
+            "hilla-hard",
+            "dunkel-hard",
+            "will-hard",
+            "gas-chaos",
+            "dusk-chaos",
+            "lucid-hard",
+            "lotus-hard",
+            "damien-hard"
+          ],
+          "omitted": [],
+          "weeklyRawSolo": 680325300000,
+          "ourThroughIds": [
+            "kalos-easy",
+            "seren-normal",
+            "hilla-hard",
+            "dunkel-hard",
+            "will-hard",
+            "dusk-chaos",
+            "gas-chaos",
+            "lucid-hard",
+            "lotus-hard",
+            "damien-hard"
+          ],
+          "ourThroughSolo": 680325300000,
+          "differentOriginalOnly": [],
+          "differentThroughOnly": []
+        },
+        {
+          "id": "hserenekalos",
+          "label": "하세이칼 10종",
+          "candidateCount": 17,
+          "excluded": 7,
+          "peak": {
+            "name": "선택받은 세렌",
+            "difficulty": "하드"
+          },
+          "peakId": "seren-hard",
+          "originalRows": [
+            {
+              "name": "선택받은 세렌",
+              "difficulty": "하드",
+              "before": 356000000,
+              "after": 302000000,
+              "period": "weekly",
+              "id": "b28",
+              "party": 1
+            },
+            {
+              "name": "감시자 칼로스",
+              "difficulty": "이지",
+              "before": 280000000,
+              "after": 238000000,
+              "period": "weekly",
+              "id": "b26",
+              "party": 1
+            },
+            {
+              "name": "진 힐라",
+              "difficulty": "하드",
+              "before": 106000000,
+              "after": 100000000,
+              "period": "weekly",
+              "id": "b24",
+              "party": 1
+            },
+            {
+              "name": "듄켈",
+              "difficulty": "하드",
+              "before": 94400000,
+              "after": 89600000,
+              "period": "weekly",
+              "id": "b23",
+              "party": 1
+            },
+            {
+              "name": "윌",
+              "difficulty": "하드",
+              "before": 77100000,
+              "after": 73200000,
+              "period": "weekly",
+              "id": "b22",
+              "party": 1
+            },
+            {
+              "name": "가디언 엔젤 슬라임",
+              "difficulty": "카오스",
+              "before": 75100000,
+              "after": 71300000,
+              "period": "weekly",
+              "id": "b21",
+              "party": 1
+            },
+            {
+              "name": "더스크",
+              "difficulty": "카오스",
+              "before": 69800000,
+              "after": 66300000,
+              "period": "weekly",
+              "id": "b20",
+              "party": 1
+            },
+            {
+              "name": "루시드",
+              "difficulty": "하드",
+              "before": 62900000,
+              "after": 59700000,
+              "period": "weekly",
+              "id": "b19",
+              "party": 1
+            },
+            {
+              "name": "스우",
+              "difficulty": "하드",
+              "before": 51500000,
+              "after": 48900000,
+              "period": "weekly",
+              "id": "b17",
+              "maxParty": 6,
+              "partySource": "https://maplestory.nexon.com/promotion/event/2024/20240418/event02",
+              "party": 1
+            },
+            {
+              "name": "데미안",
+              "difficulty": "하드",
+              "before": 48900000,
+              "after": 46400000,
+              "period": "weekly",
+              "id": "b16",
+              "party": 1
+            }
+          ],
+          "mappedIds": [
+            "seren-hard",
+            "kalos-easy",
+            "hilla-hard",
+            "dunkel-hard",
+            "will-hard",
+            "gas-chaos",
+            "dusk-chaos",
+            "lucid-hard",
+            "lotus-hard",
+            "damien-hard"
+          ],
+          "omitted": [],
+          "weeklyRawSolo": 800742300000,
+          "ourThroughIds": [
+            "seren-hard",
+            "adversary-easy",
+            "kalos-easy",
+            "hilla-hard",
+            "dunkel-hard",
+            "will-hard",
+            "dusk-chaos",
+            "gas-chaos",
+            "lucid-hard",
+            "lotus-hard",
+            "damien-hard"
+          ],
+          "ourThroughSolo": 977165300000,
+          "differentOriginalOnly": [],
+          "differentThroughOnly": [
+            "adversary-easy"
+          ]
+        },
+        {
+          "id": "hsereneadversary",
+          "label": "하세이적자 11종",
+          "candidateCount": 18,
+          "excluded": 7,
+          "peak": {
+            "name": "선택받은 세렌",
+            "difficulty": "하드"
+          },
+          "peakId": "seren-hard",
+          "originalRows": [
+            {
+              "name": "선택받은 세렌",
+              "difficulty": "하드",
+              "before": 356000000,
+              "after": 302000000,
+              "period": "weekly",
+              "id": "b28",
+              "party": 1
+            },
+            {
+              "name": "최초의 대적자",
+              "difficulty": "이지",
+              "before": 308000000,
+              "after": 261000000,
+              "period": "weekly",
+              "id": "b27",
+              "party": 1
+            },
+            {
+              "name": "감시자 칼로스",
+              "difficulty": "이지",
+              "before": 280000000,
+              "after": 238000000,
+              "period": "weekly",
+              "id": "b26",
+              "party": 1
+            },
+            {
+              "name": "진 힐라",
+              "difficulty": "하드",
+              "before": 106000000,
+              "after": 100000000,
+              "period": "weekly",
+              "id": "b24",
+              "party": 1
+            },
+            {
+              "name": "듄켈",
+              "difficulty": "하드",
+              "before": 94400000,
+              "after": 89600000,
+              "period": "weekly",
+              "id": "b23",
+              "party": 1
+            },
+            {
+              "name": "윌",
+              "difficulty": "하드",
+              "before": 77100000,
+              "after": 73200000,
+              "period": "weekly",
+              "id": "b22",
+              "party": 1
+            },
+            {
+              "name": "가디언 엔젤 슬라임",
+              "difficulty": "카오스",
+              "before": 75100000,
+              "after": 71300000,
+              "period": "weekly",
+              "id": "b21",
+              "party": 1
+            },
+            {
+              "name": "더스크",
+              "difficulty": "카오스",
+              "before": 69800000,
+              "after": 66300000,
+              "period": "weekly",
+              "id": "b20",
+              "party": 1
+            },
+            {
+              "name": "루시드",
+              "difficulty": "하드",
+              "before": 62900000,
+              "after": 59700000,
+              "period": "weekly",
+              "id": "b19",
+              "party": 1
+            },
+            {
+              "name": "스우",
+              "difficulty": "하드",
+              "before": 51500000,
+              "after": 48900000,
+              "period": "weekly",
+              "id": "b17",
+              "maxParty": 6,
+              "partySource": "https://maplestory.nexon.com/promotion/event/2024/20240418/event02",
+              "party": 1
+            },
+            {
+              "name": "데미안",
+              "difficulty": "하드",
+              "before": 48900000,
+              "after": 46400000,
+              "period": "weekly",
+              "id": "b16",
+              "party": 1
+            }
+          ],
+          "mappedIds": [
+            "seren-hard",
+            "adversary-easy",
+            "kalos-easy",
+            "hilla-hard",
+            "dunkel-hard",
+            "will-hard",
+            "gas-chaos",
+            "dusk-chaos",
+            "lucid-hard",
+            "lotus-hard",
+            "damien-hard"
+          ],
+          "omitted": [],
+          "weeklyRawSolo": 977165300000,
+          "ourThroughIds": [
+            "seren-hard",
+            "adversary-easy",
+            "kalos-easy",
+            "hilla-hard",
+            "dunkel-hard",
+            "will-hard",
+            "dusk-chaos",
+            "gas-chaos",
+            "lucid-hard",
+            "lotus-hard",
+            "damien-hard"
+          ],
+          "ourThroughSolo": 977165300000,
+          "differentOriginalOnly": [],
+          "differentThroughOnly": []
+        },
+        {
+          "id": "nkalosekaling",
+          "label": "노칼이카 12종",
+          "candidateCount": 19,
+          "excluded": 7,
+          "peak": {
+            "name": "감시자 칼로스",
+            "difficulty": "노멀"
+          },
+          "peakId": "kalos-normal",
+          "originalRows": [
+            {
+              "name": "감시자 칼로스",
+              "difficulty": "노멀",
+              "before": 505000000,
+              "after": 479000000,
+              "period": "weekly",
+              "id": "b31",
+              "party": 1
+            },
+            {
+              "name": "카링",
+              "difficulty": "이지",
+              "before": 377000000,
+              "after": 320000000,
+              "period": "weekly",
+              "id": "b29",
+              "party": 1
+            },
+            {
+              "name": "선택받은 세렌",
+              "difficulty": "하드",
+              "before": 356000000,
+              "after": 302000000,
+              "period": "weekly",
+              "id": "b28",
+              "party": 1
+            },
+            {
+              "name": "최초의 대적자",
+              "difficulty": "이지",
+              "before": 308000000,
+              "after": 261000000,
+              "period": "weekly",
+              "id": "b27",
+              "party": 1
+            },
+            {
+              "name": "진 힐라",
+              "difficulty": "하드",
+              "before": 106000000,
+              "after": 100000000,
+              "period": "weekly",
+              "id": "b24",
+              "party": 1
+            },
+            {
+              "name": "듄켈",
+              "difficulty": "하드",
+              "before": 94400000,
+              "after": 89600000,
+              "period": "weekly",
+              "id": "b23",
+              "party": 1
+            },
+            {
+              "name": "윌",
+              "difficulty": "하드",
+              "before": 77100000,
+              "after": 73200000,
+              "period": "weekly",
+              "id": "b22",
+              "party": 1
+            },
+            {
+              "name": "가디언 엔젤 슬라임",
+              "difficulty": "카오스",
+              "before": 75100000,
+              "after": 71300000,
+              "period": "weekly",
+              "id": "b21",
+              "party": 1
+            },
+            {
+              "name": "더스크",
+              "difficulty": "카오스",
+              "before": 69800000,
+              "after": 66300000,
+              "period": "weekly",
+              "id": "b20",
+              "party": 1
+            },
+            {
+              "name": "루시드",
+              "difficulty": "하드",
+              "before": 62900000,
+              "after": 59700000,
+              "period": "weekly",
+              "id": "b19",
+              "party": 1
+            },
+            {
+              "name": "스우",
+              "difficulty": "하드",
+              "before": 51500000,
+              "after": 48900000,
+              "period": "weekly",
+              "id": "b17",
+              "maxParty": 6,
+              "partySource": "https://maplestory.nexon.com/promotion/event/2024/20240418/event02",
+              "party": 1
+            },
+            {
+              "name": "데미안",
+              "difficulty": "하드",
+              "before": 48900000,
+              "after": 46400000,
+              "period": "weekly",
+              "id": "b16",
+              "party": 1
+            }
+          ],
+          "mappedIds": [
+            "kalos-normal",
+            "kaling-easy",
+            "seren-hard",
+            "adversary-easy",
+            "hilla-hard",
+            "dunkel-hard",
+            "will-hard",
+            "gas-chaos",
+            "dusk-chaos",
+            "lucid-hard",
+            "lotus-hard",
+            "damien-hard"
+          ],
+          "omitted": [],
+          "weeklyRawSolo": 1356382500000,
+          "ourThroughIds": [
+            "kalos-normal",
+            "bellona-easy",
+            "seren-hard",
+            "kaling-easy",
+            "adversary-easy",
+            "hilla-hard",
+            "dunkel-hard",
+            "will-hard",
+            "dusk-chaos",
+            "gas-chaos",
+            "lucid-hard",
+            "lotus-hard"
+          ],
+          "ourThroughSolo": 1589713500000,
+          "differentOriginalOnly": [
+            "damien-hard"
+          ],
+          "differentThroughOnly": [
+            "bellona-easy"
+          ]
+        },
+        {
+          "id": "nadversary",
+          "label": "노멀 대적자까지 12종",
+          "candidateCount": 19,
+          "excluded": 7,
+          "peak": {
+            "name": "최초의 대적자",
+            "difficulty": "노멀"
+          },
+          "peakId": "adversary-normal",
+          "originalRows": [
+            {
+              "name": "최초의 대적자",
+              "difficulty": "노멀",
+              "before": 560000000,
+              "after": 532000000,
+              "period": "weekly",
+              "id": "b32",
+              "party": 1
+            },
+            {
+              "name": "감시자 칼로스",
+              "difficulty": "노멀",
+              "before": 505000000,
+              "after": 479000000,
+              "period": "weekly",
+              "id": "b31",
+              "party": 1
+            },
+            {
+              "name": "카링",
+              "difficulty": "이지",
+              "before": 377000000,
+              "after": 320000000,
+              "period": "weekly",
+              "id": "b29",
+              "party": 1
+            },
+            {
+              "name": "선택받은 세렌",
+              "difficulty": "하드",
+              "before": 356000000,
+              "after": 302000000,
+              "period": "weekly",
+              "id": "b28",
+              "party": 1
+            },
+            {
+              "name": "진 힐라",
+              "difficulty": "하드",
+              "before": 106000000,
+              "after": 100000000,
+              "period": "weekly",
+              "id": "b24",
+              "party": 1
+            },
+            {
+              "name": "듄켈",
+              "difficulty": "하드",
+              "before": 94400000,
+              "after": 89600000,
+              "period": "weekly",
+              "id": "b23",
+              "party": 1
+            },
+            {
+              "name": "윌",
+              "difficulty": "하드",
+              "before": 77100000,
+              "after": 73200000,
+              "period": "weekly",
+              "id": "b22",
+              "party": 1
+            },
+            {
+              "name": "가디언 엔젤 슬라임",
+              "difficulty": "카오스",
+              "before": 75100000,
+              "after": 71300000,
+              "period": "weekly",
+              "id": "b21",
+              "party": 1
+            },
+            {
+              "name": "더스크",
+              "difficulty": "카오스",
+              "before": 69800000,
+              "after": 66300000,
+              "period": "weekly",
+              "id": "b20",
+              "party": 1
+            },
+            {
+              "name": "루시드",
+              "difficulty": "하드",
+              "before": 62900000,
+              "after": 59700000,
+              "period": "weekly",
+              "id": "b19",
+              "party": 1
+            },
+            {
+              "name": "스우",
+              "difficulty": "하드",
+              "before": 51500000,
+              "after": 48900000,
+              "period": "weekly",
+              "id": "b17",
+              "maxParty": 6,
+              "partySource": "https://maplestory.nexon.com/promotion/event/2024/20240418/event02",
+              "party": 1
+            },
+            {
+              "name": "데미안",
+              "difficulty": "하드",
+              "before": 48900000,
+              "after": 46400000,
+              "period": "weekly",
+              "id": "b16",
+              "party": 1
+            }
+          ],
+          "mappedIds": [
+            "adversary-normal",
+            "kalos-normal",
+            "kaling-easy",
+            "seren-hard",
+            "hilla-hard",
+            "dunkel-hard",
+            "will-hard",
+            "gas-chaos",
+            "dusk-chaos",
+            "lucid-hard",
+            "lotus-hard",
+            "damien-hard"
+          ],
+          "omitted": [],
+          "weeklyRawSolo": 1539570500000,
+          "ourThroughIds": [
+            "adversary-normal",
+            "kalos-normal",
+            "bellona-easy",
+            "seren-hard",
+            "kaling-easy",
+            "hilla-hard",
+            "dunkel-hard",
+            "will-hard",
+            "dusk-chaos",
+            "gas-chaos",
+            "lucid-hard",
+            "lotus-hard"
+          ],
+          "ourThroughSolo": 1772901500000,
+          "differentOriginalOnly": [
+            "damien-hard"
+          ],
+          "differentThroughOnly": [
+            "bellona-easy"
+          ]
+        },
+        {
+          "id": "extlotus",
+          "label": "익스트림 스우까지 12종",
+          "candidateCount": 19,
+          "excluded": 7,
+          "peak": {
+            "name": "스우",
+            "difficulty": "익스트림"
+          },
+          "peakId": "lotus-extreme",
+          "originalRows": [
+            {
+              "name": "스우",
+              "difficulty": "익스트림",
+              "before": 574000000,
+              "after": 545000000,
+              "period": "weekly",
+              "id": "b33",
+              "maxParty": 2,
+              "partySource": "https://maplestory.nexon.com/promotion/event/2024/20240418/event02",
+              "party": 1
+            },
+            {
+              "name": "최초의 대적자",
+              "difficulty": "노멀",
+              "before": 560000000,
+              "after": 532000000,
+              "period": "weekly",
+              "id": "b32",
+              "party": 1
+            },
+            {
+              "name": "감시자 칼로스",
+              "difficulty": "노멀",
+              "before": 505000000,
+              "after": 479000000,
+              "period": "weekly",
+              "id": "b31",
+              "party": 1
+            },
+            {
+              "name": "카링",
+              "difficulty": "이지",
+              "before": 377000000,
+              "after": 320000000,
+              "period": "weekly",
+              "id": "b29",
+              "party": 1
+            },
+            {
+              "name": "선택받은 세렌",
+              "difficulty": "하드",
+              "before": 356000000,
+              "after": 302000000,
+              "period": "weekly",
+              "id": "b28",
+              "party": 1
+            },
+            {
+              "name": "진 힐라",
+              "difficulty": "하드",
+              "before": 106000000,
+              "after": 100000000,
+              "period": "weekly",
+              "id": "b24",
+              "party": 1
+            },
+            {
+              "name": "듄켈",
+              "difficulty": "하드",
+              "before": 94400000,
+              "after": 89600000,
+              "period": "weekly",
+              "id": "b23",
+              "party": 1
+            },
+            {
+              "name": "윌",
+              "difficulty": "하드",
+              "before": 77100000,
+              "after": 73200000,
+              "period": "weekly",
+              "id": "b22",
+              "party": 1
+            },
+            {
+              "name": "가디언 엔젤 슬라임",
+              "difficulty": "카오스",
+              "before": 75100000,
+              "after": 71300000,
+              "period": "weekly",
+              "id": "b21",
+              "party": 1
+            },
+            {
+              "name": "더스크",
+              "difficulty": "카오스",
+              "before": 69800000,
+              "after": 66300000,
+              "period": "weekly",
+              "id": "b20",
+              "party": 1
+            },
+            {
+              "name": "루시드",
+              "difficulty": "하드",
+              "before": 62900000,
+              "after": 59700000,
+              "period": "weekly",
+              "id": "b19",
+              "party": 1
+            },
+            {
+              "name": "데미안",
+              "difficulty": "하드",
+              "before": 48900000,
+              "after": 46400000,
+              "period": "weekly",
+              "id": "b16",
+              "party": 1
+            }
+          ],
+          "mappedIds": [
+            "lotus-extreme",
+            "adversary-normal",
+            "kalos-normal",
+            "kaling-easy",
+            "seren-hard",
+            "hilla-hard",
+            "dunkel-hard",
+            "will-hard",
+            "gas-chaos",
+            "dusk-chaos",
+            "lucid-hard",
+            "damien-hard"
+          ],
+          "omitted": [],
+          "weeklyRawSolo": 1908422900000,
+          "ourThroughIds": [
+            "lotus-extreme",
+            "adversary-normal",
+            "kalos-normal",
+            "bellona-easy",
+            "seren-hard",
+            "kaling-easy",
+            "hilla-hard",
+            "dunkel-hard",
+            "will-hard",
+            "dusk-chaos",
+            "gas-chaos",
+            "lucid-hard"
+          ],
+          "ourThroughSolo": 2141753900000,
+          "differentOriginalOnly": [
+            "damien-hard"
+          ],
+          "differentThroughOnly": [
+            "bellona-easy"
+          ]
+        },
+        {
+          "id": "nkaling",
+          "label": "노멀 카링까지 12종",
+          "candidateCount": 19,
+          "excluded": 7,
+          "peak": {
+            "name": "카링",
+            "difficulty": "노멀"
+          },
+          "peakId": "kaling-normal",
+          "originalRows": [
+            {
+              "name": "카링",
+              "difficulty": "노멀",
+              "before": 678000000,
+              "after": 593000000,
+              "period": "weekly",
+              "id": "b34",
+              "party": 1
+            },
+            {
+              "name": "스우",
+              "difficulty": "익스트림",
+              "before": 574000000,
+              "after": 545000000,
+              "period": "weekly",
+              "id": "b33",
+              "maxParty": 2,
+              "partySource": "https://maplestory.nexon.com/promotion/event/2024/20240418/event02",
+              "party": 1
+            },
+            {
+              "name": "최초의 대적자",
+              "difficulty": "노멀",
+              "before": 560000000,
+              "after": 532000000,
+              "period": "weekly",
+              "id": "b32",
+              "party": 1
+            },
+            {
+              "name": "감시자 칼로스",
+              "difficulty": "노멀",
+              "before": 505000000,
+              "after": 479000000,
+              "period": "weekly",
+              "id": "b31",
+              "party": 1
+            },
+            {
+              "name": "선택받은 세렌",
+              "difficulty": "하드",
+              "before": 356000000,
+              "after": 302000000,
+              "period": "weekly",
+              "id": "b28",
+              "party": 1
+            },
+            {
+              "name": "진 힐라",
+              "difficulty": "하드",
+              "before": 106000000,
+              "after": 100000000,
+              "period": "weekly",
+              "id": "b24",
+              "party": 1
+            },
+            {
+              "name": "듄켈",
+              "difficulty": "하드",
+              "before": 94400000,
+              "after": 89600000,
+              "period": "weekly",
+              "id": "b23",
+              "party": 1
+            },
+            {
+              "name": "윌",
+              "difficulty": "하드",
+              "before": 77100000,
+              "after": 73200000,
+              "period": "weekly",
+              "id": "b22",
+              "party": 1
+            },
+            {
+              "name": "가디언 엔젤 슬라임",
+              "difficulty": "카오스",
+              "before": 75100000,
+              "after": 71300000,
+              "period": "weekly",
+              "id": "b21",
+              "party": 1
+            },
+            {
+              "name": "더스크",
+              "difficulty": "카오스",
+              "before": 69800000,
+              "after": 66300000,
+              "period": "weekly",
+              "id": "b20",
+              "party": 1
+            },
+            {
+              "name": "루시드",
+              "difficulty": "하드",
+              "before": 62900000,
+              "after": 59700000,
+              "period": "weekly",
+              "id": "b19",
+              "party": 1
+            },
+            {
+              "name": "데미안",
+              "difficulty": "하드",
+              "before": 48900000,
+              "after": 46400000,
+              "period": "weekly",
+              "id": "b16",
+              "party": 1
+            }
+          ],
+          "mappedIds": [
+            "kaling-normal",
+            "lotus-extreme",
+            "adversary-normal",
+            "kalos-normal",
+            "seren-hard",
+            "hilla-hard",
+            "dunkel-hard",
+            "will-hard",
+            "gas-chaos",
+            "dusk-chaos",
+            "lucid-hard",
+            "damien-hard"
+          ],
+          "omitted": [],
+          "weeklyRawSolo": 2137088100000,
+          "ourThroughIds": [
+            "kaling-normal",
+            "star-normal",
+            "lotus-extreme",
+            "adversary-normal",
+            "kalos-normal",
+            "bellona-easy",
+            "seren-hard",
+            "hilla-hard",
+            "dunkel-hard",
+            "will-hard",
+            "dusk-chaos",
+            "gas-chaos"
+          ],
+          "ourThroughSolo": 2746151300000,
+          "differentOriginalOnly": [
+            "lucid-hard",
+            "damien-hard"
+          ],
+          "differentThroughOnly": [
+            "star-normal",
+            "bellona-easy"
+          ]
+        },
+        {
+          "id": "nlimbo",
+          "label": "노멀 림보까지 12종",
+          "candidateCount": 21,
+          "excluded": 9,
+          "peak": {
+            "name": "림보",
+            "difficulty": "노멀"
+          },
+          "peakId": "limbo-normal",
+          "originalRows": [
+            {
+              "name": "림보",
+              "difficulty": "노멀",
+              "before": 1026000000,
+              "after": 995000000,
+              "period": "weekly",
+              "id": "b37",
+              "maxParty": 3,
+              "partySource": "https://maplestory.nexon.com/promotion/event/2024/20240718/event01",
+              "party": 1
+            },
+            {
+              "name": "카링",
+              "difficulty": "노멀",
+              "before": 678000000,
+              "after": 593000000,
+              "period": "weekly",
+              "id": "b34",
+              "party": 1
+            },
+            {
+              "name": "찬란한 흉성",
+              "difficulty": "노멀",
+              "before": 625000000,
+              "after": 576000000,
+              "period": "weekly",
+              "id": "b35",
+              "party": 1
+            },
+            {
+              "name": "스우",
+              "difficulty": "익스트림",
+              "before": 574000000,
+              "after": 545000000,
+              "period": "weekly",
+              "id": "b33",
+              "maxParty": 2,
+              "partySource": "https://maplestory.nexon.com/promotion/event/2024/20240418/event02",
+              "party": 1
+            },
+            {
+              "name": "최초의 대적자",
+              "difficulty": "노멀",
+              "before": 560000000,
+              "after": 532000000,
+              "period": "weekly",
+              "id": "b32",
+              "party": 1
+            },
+            {
+              "name": "감시자 칼로스",
+              "difficulty": "노멀",
+              "before": 505000000,
+              "after": 479000000,
+              "period": "weekly",
+              "id": "b31",
+              "party": 1
+            },
+            {
+              "name": "선택받은 세렌",
+              "difficulty": "하드",
+              "before": 356000000,
+              "after": 302000000,
+              "period": "weekly",
+              "id": "b28",
+              "party": 1
+            },
+            {
+              "name": "진 힐라",
+              "difficulty": "하드",
+              "before": 106000000,
+              "after": 100000000,
+              "period": "weekly",
+              "id": "b24",
+              "party": 1
+            },
+            {
+              "name": "듄켈",
+              "difficulty": "하드",
+              "before": 94400000,
+              "after": 89600000,
+              "period": "weekly",
+              "id": "b23",
+              "party": 1
+            },
+            {
+              "name": "윌",
+              "difficulty": "하드",
+              "before": 77100000,
+              "after": 73200000,
+              "period": "weekly",
+              "id": "b22",
+              "party": 1
+            },
+            {
+              "name": "가디언 엔젤 슬라임",
+              "difficulty": "카오스",
+              "before": 75100000,
+              "after": 71300000,
+              "period": "weekly",
+              "id": "b21",
+              "party": 1
+            },
+            {
+              "name": "더스크",
+              "difficulty": "카오스",
+              "before": 69800000,
+              "after": 66300000,
+              "period": "weekly",
+              "id": "b20",
+              "party": 1
+            }
+          ],
+          "mappedIds": [
+            "limbo-normal",
+            "kaling-normal",
+            "star-normal",
+            "lotus-extreme",
+            "adversary-normal",
+            "kalos-normal",
+            "seren-hard",
+            "hilla-hard",
+            "dunkel-hard",
+            "will-hard",
+            "gas-chaos",
+            "dusk-chaos"
+          ],
+          "omitted": [],
+          "weeklyRawSolo": 3247130300000,
+          "ourThroughIds": [
+            "kalos-chaos",
+            "limbo-normal",
+            "bellona-normal",
+            "kaling-normal",
+            "star-normal",
+            "lotus-extreme",
+            "adversary-normal",
+            "seren-hard",
+            "hilla-hard",
+            "dunkel-hard",
+            "will-hard",
+            "dusk-chaos"
+          ],
+          "ourThroughSolo": 4340838100000,
+          "differentOriginalOnly": [
+            "kalos-normal",
+            "gas-chaos"
+          ],
+          "differentThroughOnly": [
+            "kalos-chaos",
+            "bellona-normal"
+          ]
+        },
+        {
+          "id": "nbaldrix",
+          "label": "노멀 발드릭스까지 12종",
+          "candidateCount": 22,
+          "excluded": 10,
+          "peak": {
+            "name": "발드릭스",
+            "difficulty": "노멀"
+          },
+          "peakId": "baldrix-normal",
+          "originalRows": [
+            {
+              "name": "발드릭스",
+              "difficulty": "노멀",
+              "before": 1368000000,
+              "after": 1320000000,
+              "period": "weekly",
+              "id": "b39",
+              "maxParty": 3,
+              "partySource": "https://maplestory.nexon.com/promotion/event/2025/20250220/event03",
+              "party": 1
+            },
+            {
+              "name": "감시자 칼로스",
+              "difficulty": "카오스",
+              "before": 1273000000,
+              "after": 1230000000,
+              "period": "weekly",
+              "id": "b38",
+              "party": 1
+            },
+            {
+              "name": "림보",
+              "difficulty": "노멀",
+              "before": 1026000000,
+              "after": 995000000,
+              "period": "weekly",
+              "id": "b37",
+              "maxParty": 3,
+              "partySource": "https://maplestory.nexon.com/promotion/event/2024/20240718/event01",
+              "party": 1
+            },
+            {
+              "name": "카링",
+              "difficulty": "노멀",
+              "before": 678000000,
+              "after": 593000000,
+              "period": "weekly",
+              "id": "b34",
+              "party": 1
+            },
+            {
+              "name": "찬란한 흉성",
+              "difficulty": "노멀",
+              "before": 625000000,
+              "after": 576000000,
+              "period": "weekly",
+              "id": "b35",
+              "party": 1
+            },
+            {
+              "name": "스우",
+              "difficulty": "익스트림",
+              "before": 574000000,
+              "after": 545000000,
+              "period": "weekly",
+              "id": "b33",
+              "maxParty": 2,
+              "partySource": "https://maplestory.nexon.com/promotion/event/2024/20240418/event02",
+              "party": 1
+            },
+            {
+              "name": "최초의 대적자",
+              "difficulty": "노멀",
+              "before": 560000000,
+              "after": 532000000,
+              "period": "weekly",
+              "id": "b32",
+              "party": 1
+            },
+            {
+              "name": "선택받은 세렌",
+              "difficulty": "하드",
+              "before": 356000000,
+              "after": 302000000,
+              "period": "weekly",
+              "id": "b28",
+              "party": 1
+            },
+            {
+              "name": "진 힐라",
+              "difficulty": "하드",
+              "before": 106000000,
+              "after": 100000000,
+              "period": "weekly",
+              "id": "b24",
+              "party": 1
+            },
+            {
+              "name": "듄켈",
+              "difficulty": "하드",
+              "before": 94400000,
+              "after": 89600000,
+              "period": "weekly",
+              "id": "b23",
+              "party": 1
+            },
+            {
+              "name": "윌",
+              "difficulty": "하드",
+              "before": 77100000,
+              "after": 73200000,
+              "period": "weekly",
+              "id": "b22",
+              "party": 1
+            },
+            {
+              "name": "가디언 엔젤 슬라임",
+              "difficulty": "카오스",
+              "before": 75100000,
+              "after": 71300000,
+              "period": "weekly",
+              "id": "b21",
+              "party": 1
+            }
+          ],
+          "mappedIds": [
+            "baldrix-normal",
+            "kalos-chaos",
+            "limbo-normal",
+            "kaling-normal",
+            "star-normal",
+            "lotus-extreme",
+            "adversary-normal",
+            "seren-hard",
+            "hilla-hard",
+            "dunkel-hard",
+            "will-hard",
+            "gas-chaos"
+          ],
+          "omitted": [],
+          "weeklyRawSolo": 4680797800000,
+          "ourThroughIds": [
+            "seren-extreme",
+            "kaling-hard",
+            "baldrix-normal",
+            "kalos-chaos",
+            "limbo-normal",
+            "bellona-normal",
+            "star-normal",
+            "lotus-extreme",
+            "adversary-normal",
+            "hilla-hard",
+            "dunkel-hard",
+            "will-hard"
+          ],
+          "ourThroughSolo": 6996285100000,
+          "differentOriginalOnly": [
+            "kaling-normal",
+            "seren-hard",
+            "gas-chaos"
+          ],
+          "differentThroughOnly": [
+            "seren-extreme",
+            "kaling-hard",
+            "bellona-normal"
+          ]
+        }
+      ],
+      "note": "주간 수익 계산기 묶음이다. 결정석 가격·5% 가격 하한 등 자체 조건으로 일부 보스를 제외하며 퍼스널 경험치의 가장 큰12개와 같지 않다."
+    },
+    "haru": {
+      "bossCount": 17,
+      "difficultyCount": 35,
+      "rows": [
+        {
+          "boss": "스우",
+          "difficulty": "하드",
+          "unitExp": 3462860,
+          "maxParty": 6
+        },
+        {
+          "boss": "스우",
+          "difficulty": "익스트림",
+          "unitExp": 40348100,
+          "maxParty": 2
+        },
+        {
+          "boss": "데미안",
+          "difficulty": "하드",
+          "unitExp": 3434980,
+          "maxParty": 6
+        },
+        {
+          "boss": "가디언 엔젤 슬라임",
+          "difficulty": "카오스",
+          "unitExp": 5049150,
+          "maxParty": 6
+        },
+        {
+          "boss": "루시드",
+          "difficulty": "하드",
+          "unitExp": 4419800,
+          "maxParty": 6
+        },
+        {
+          "boss": "윌",
+          "difficulty": "하드",
+          "unitExp": 5419380,
+          "maxParty": 6
+        },
+        {
+          "boss": "더스크",
+          "difficulty": "카오스",
+          "unitExp": 5121720,
+          "maxParty": 6
+        },
+        {
+          "boss": "진 힐라",
+          "difficulty": "하드",
+          "unitExp": 7403370,
+          "maxParty": 6
+        },
+        {
+          "boss": "듄켈",
+          "difficulty": "하드",
+          "unitExp": 6345160,
+          "maxParty": 6
+        },
+        {
+          "boss": "선택받은 세렌",
+          "difficulty": "노멀",
+          "unitExp": 11288530,
+          "maxParty": 6
+        },
+        {
+          "boss": "선택받은 세렌",
+          "difficulty": "하드",
+          "unitExp": 23330230,
+          "maxParty": 6
+        },
+        {
+          "boss": "선택받은 세렌",
+          "difficulty": "익스트림",
+          "unitExp": 130298820,
+          "maxParty": 6
+        },
+        {
+          "boss": "감시자 칼로스",
+          "difficulty": "이지",
+          "unitExp": 16087580,
+          "maxParty": 6
+        },
+        {
+          "boss": "감시자 칼로스",
+          "difficulty": "노멀",
+          "unitExp": 32378520,
+          "maxParty": 6
+        },
+        {
+          "boss": "감시자 칼로스",
+          "difficulty": "카오스",
+          "unitExp": 83142670,
+          "maxParty": 6
+        },
+        {
+          "boss": "감시자 칼로스",
+          "difficulty": "익스트림",
+          "unitExp": 303832960,
+          "maxParty": 6
+        },
+        {
+          "boss": "최초의 대적자",
+          "difficulty": "이지",
+          "unitExp": 17642300,
+          "maxParty": 3
+        },
+        {
+          "boss": "최초의 대적자",
+          "difficulty": "노멀",
+          "unitExp": 35961100,
+          "maxParty": 3
+        },
+        {
+          "boss": "최초의 대적자",
+          "difficulty": "하드",
+          "unitExp": 98432390,
+          "maxParty": 3
+        },
+        {
+          "boss": "최초의 대적자",
+          "difficulty": "익스트림",
+          "unitExp": 379179480,
+          "maxParty": 3
+        },
+        {
+          "boss": "카링",
+          "difficulty": "이지",
+          "unitExp": 21630780,
+          "maxParty": 6
+        },
+        {
+          "boss": "카링",
+          "difficulty": "노멀",
+          "unitExp": 44497300,
+          "maxParty": 6
+        },
+        {
+          "boss": "카링",
+          "difficulty": "하드",
+          "unitExp": 110470810,
+          "maxParty": 6
+        },
+        {
+          "boss": "카링",
+          "difficulty": "익스트림",
+          "unitExp": 416157790,
+          "maxParty": 6
+        },
+        {
+          "boss": "찬란한 흉성",
+          "difficulty": "노멀",
+          "unitExp": 41993020,
+          "maxParty": 3
+        },
+        {
+          "boss": "찬란한 흉성",
+          "difficulty": "하드",
+          "unitExp": 198261240,
+          "maxParty": 3
+        },
+        {
+          "boss": "벨로나",
+          "difficulty": "이지",
+          "unitExp": 26768080,
+          "maxParty": 3
+        },
+        {
+          "boss": "벨로나",
+          "difficulty": "노멀",
+          "unitExp": 63655780,
+          "maxParty": 3
+        },
+        {
+          "boss": "벨로나",
+          "difficulty": "하드",
+          "unitExp": 227893990,
+          "maxParty": 3
+        },
+        {
+          "boss": "림보",
+          "difficulty": "노멀",
+          "unitExp": 76865980,
+          "maxParty": 3
+        },
+        {
+          "boss": "림보",
+          "difficulty": "하드",
+          "unitExp": 191923460,
+          "maxParty": 3
+        },
+        {
+          "boss": "발드릭스",
+          "difficulty": "노멀",
+          "unitExp": 97724320,
+          "maxParty": 3
+        },
+        {
+          "boss": "발드릭스",
+          "difficulty": "하드",
+          "unitExp": 237782370,
+          "maxParty": 3
+        },
+        {
+          "boss": "유피테르",
+          "difficulty": "노멀",
+          "unitExp": 115492080,
+          "maxParty": 3
+        },
+        {
+          "boss": "유피테르",
+          "difficulty": "하드",
+          "unitExp": 389882120,
+          "maxParty": 3
+        }
+      ],
+      "differences": [],
+      "groupOrder": [
+        "스우",
+        "데미안",
+        "가디언 엔젤 슬라임",
+        "루시드",
+        "윌",
+        "더스크",
+        "진 힐라",
+        "듄켈",
+        "선택받은 세렌",
+        "감시자 칼로스",
+        "최초의 대적자",
+        "카링",
+        "찬란한 흉성",
+        "벨로나",
+        "림보",
+        "발드릭스",
+        "유피테르"
+      ],
+      "presets": "원본 e0 개별 보스·난이도와 최대12개 선택. 조합 묶음 상수는 확인되지 않음"
+    },
+    "ai": {
+      "presets": "보스별 EXP(%) 최대12칸 직접 입력. 보스 이름·난이도별 표와 묶음 없음.",
+      "snippet": "매주 처치하는 보스의 경험치(%)를 최대 12개까지 입력하세요.\"}),(0,s.jsx)(\"div\",{className:\"grid grid-cols-3 sm:grid-cols-4 gap-1.5\",children:es.map((e,t)=>(0,s.jsxs)(\"div\",{className:\"flex items-center gap-1 bg-slate-800 border border-slate-700 rounded px-1.5 py-1\",children:[(0,s.jsx)(\"span\",{className:\"text-[9px] text-slate-500 w-3 font-medium\",children:t+1}),(0,s.jsx)(\"input\",{type:\"number\",min:\"0\",step:\"0.001\",value:e,placeholder:\"%\",onFocus:e=>e.target.select(),onChange:e=>{let s=[...es];s[t]=e.target.value,et(s)},className:\"w-full bg-transparent text-xs text-white text-right outline-none placeholder-slate-600\"})]},t))}),(0,s.jsxs)(\"div\",{className:\"flex items-c"
+    },
+    "scouter": {
+      "array": "module77176의 C, export qR",
+      "note": "현행 공통 보스컷 표시 배열의 순서다. 숫자 bossCut 순이나 직업별 실제 달성 난이도 순서가 아님. Destiny/Champion/검은마법사 등 퍼스널 미대상은 제외한다. 현재 SSR18종은 선택직업 일부만 표시되어 전체35는 배열에서 확인.",
+      "rawOrder": [
+        {
+          "boss": "유피테르",
+          "name": "jupiter",
+          "difficulty": "Hard",
+          "level": "l.N6.jupiter.hard.level",
+          "authenticForce": "l.N6.jupiter.hard.authenticForce",
+          "guard": "l.N6.jupiter.hard.guard",
+          "partyBossCut": "111700",
+          "partyLimit": "l.N6.jupiter.hard.maxPartyLimit",
+          "easyRate": ".6460359497939303",
+          "renewalDate": "u",
+          "renewalDetail": "_"
+        },
+        {
+          "boss": "카링",
+          "name": "kaling",
+          "difficulty": "Extreme",
+          "level": "l.N6.kaling.extreme.level",
+          "authenticForce": "l.N6.kaling.extreme.authenticForce",
+          "guard": "l.N6.kaling.extreme.guard",
+          "partyBossCut": "108350",
+          "partyLimit": "l.N6.kaling.extreme.maxPartyLimit",
+          "easyRate": "1.064",
+          "renewalDate": "p",
+          "renewalDetail": "v"
+        },
+        {
+          "boss": "대적자",
+          "name": "adversary",
+          "difficulty": "Extreme",
+          "level": "l.N6.adversary.extreme.level",
+          "authenticForce": "l.N6.adversary.extreme.authenticForce",
+          "guard": "l.N6.adversary.extreme.guard",
+          "bossCut": "106100",
+          "partyLimit": "l.N6.adversary.extreme.maxPartyLimit",
+          "easyRate": ".2885385569679753",
+          "renewalDate": "g",
+          "renewalDetail": "h"
+        },
+        {
+          "boss": "칼로스",
+          "name": "kalos",
+          "difficulty": "Extreme",
+          "level": "l.N6.kalos.extreme.level",
+          "authenticForce": "l.N6.kalos.extreme.authenticForce",
+          "guard": "l.N6.kalos.extreme.guard",
+          "bossCut": "133800",
+          "partyLimit": "l.N6.kalos.extreme.maxPartyLimit",
+          "easyRate": ".95",
+          "renewalDate": "2026-09-22",
+          "renewalDetail": "배율 3.4% 증가"
+        },
+        {
+          "boss": "발드릭스",
+          "name": "bardrix",
+          "difficulty": "Destiny",
+          "level": "l.N6.bardrix.hard.level",
+          "authenticForce": "l.N6.bardrix.hard.authenticForce",
+          "guard": "l.N6.bardrix.hard.guard",
+          "bossCut": "128e3",
+          "partyLimit": "l.N6.bardrix.destiny.maxPartyLimit",
+          "easyRate": ".95",
+          "renewalDate": "w",
+          "renewalDetail": "x"
+        },
+        {
+          "boss": "발드릭스",
+          "name": "bardrix",
+          "difficulty": "Hard",
+          "level": "l.N6.bardrix.hard.level",
+          "authenticForce": "l.N6.bardrix.hard.authenticForce",
+          "guard": "l.N6.bardrix.hard.guard",
+          "bossCut": "128e3",
+          "partyLimit": "l.N6.bardrix.hard.maxPartyLimit",
+          "easyRate": ".95",
+          "renewalDate": "w",
+          "renewalDetail": "x"
+        },
+        {
+          "boss": "벨로나",
+          "name": "bellona",
+          "difficulty": "Hard",
+          "level": "l.N6.bellona.hard.level",
+          "authenticForce": "l.N6.bellona.hard.authenticForce",
+          "guard": "l.N6.bellona.hard.guard",
+          "bossCut": "123200",
+          "partyLimit": "l.N6.bellona.hard.maxPartyLimit",
+          "easyRate": ".95",
+          "renewalDate": "f",
+          "renewalDetail": "L"
+        },
+        {
+          "boss": "림보",
+          "name": "limbo",
+          "difficulty": "Destiny",
+          "level": "l.N6.limbo.hard.level",
+          "authenticForce": "l.N6.limbo.hard.authenticForce",
+          "guard": "l.N6.limbo.hard.guard",
+          "bossCut": "118900",
+          "partyLimit": "l.N6.limbo.destiny.maxPartyLimit",
+          "easyRate": ".988",
+          "renewalDate": "k",
+          "renewalDetail": "N"
+        },
+        {
+          "boss": "림보",
+          "name": "limbo",
+          "difficulty": "Hard",
+          "level": "l.N6.limbo.hard.level",
+          "authenticForce": "l.N6.limbo.hard.authenticForce",
+          "guard": "l.N6.limbo.hard.guard",
+          "bossCut": "118900",
+          "partyLimit": "l.N6.limbo.hard.maxPartyLimit",
+          "easyRate": ".988",
+          "renewalDate": "k",
+          "renewalDetail": "N"
+        },
+        {
+          "boss": "흉성",
+          "name": "maleficStar",
+          "difficulty": "Hard",
+          "level": "l.N6.maleficStar.hard.level",
+          "authenticForce": "l.N6.maleficStar.hard.authenticForce",
+          "guard": "l.N6.maleficStar.hard.guard",
+          "bossCut": "115700",
+          "partyLimit": "l.N6.maleficStar.hard.maxPartyLimit",
+          "easyRate": ".95",
+          "renewalDate": "F",
+          "renewalDetail": "D"
+        },
+        {
+          "boss": "유피테르",
+          "name": "jupiter",
+          "difficulty": "Normal",
+          "level": "l.N6.jupiter.normal.level",
+          "authenticForce": "l.N6.jupiter.normal.authenticForce",
+          "guard": "l.N6.jupiter.normal.guard",
+          "bossCut": "111700",
+          "partyLimit": "l.N6.jupiter.normal.maxPartyLimit",
+          "easyRate": ".988",
+          "renewalDate": "u",
+          "renewalDetail": "_"
+        },
+        {
+          "boss": "대적자",
+          "name": "adversary",
+          "difficulty": "Destiny",
+          "level": "l.N6.adversary.hard.level",
+          "authenticForce": "l.N6.adversary.hard.authenticForce",
+          "guard": "l.N6.adversary.hard.guard",
+          "bossCut": "106100",
+          "partyLimit": "l.N6.adversary.destiny.maxPartyLimit",
+          "easyRate": ".76",
+          "renewalDate": "g",
+          "renewalDetail": "h"
+        },
+        {
+          "boss": "대적자",
+          "name": "adversary",
+          "difficulty": "Hard",
+          "level": "l.N6.adversary.hard.level",
+          "authenticForce": "l.N6.adversary.hard.authenticForce",
+          "guard": "l.N6.adversary.hard.guard",
+          "bossCut": "106100",
+          "partyLimit": "l.N6.adversary.hard.maxPartyLimit",
+          "easyRate": ".95",
+          "renewalDate": "g",
+          "renewalDetail": "h"
+        },
+        {
+          "boss": "발드릭스",
+          "name": "bardrix",
+          "difficulty": "Normal",
+          "level": "l.N6.bardrix.normal.level",
+          "authenticForce": "l.N6.bardrix.normal.authenticForce",
+          "guard": "l.N6.bardrix.normal.guard",
+          "bossCut": "128e3",
+          "partyLimit": "l.N6.bardrix.normal.maxPartyLimit",
+          "easyRate": "2.1324112191250864",
+          "renewalDate": "w",
+          "renewalDetail": "x"
+        },
+        {
+          "boss": "카링",
+          "name": "kaling",
+          "difficulty": "Hard",
+          "level": "l.N6.kaling.hard.level",
+          "authenticForce": "l.N6.kaling.hard.authenticForce",
+          "guard": "l.N6.kaling.hard.guard",
+          "bossCut": "104e3",
+          "partyLimit": "l.N6.kaling.hard.maxPartyLimit",
+          "easyRate": ".95",
+          "renewalDate": "p",
+          "renewalDetail": "v"
+        },
+        {
+          "boss": "세렌",
+          "name": "seren",
+          "difficulty": "Extreme",
+          "level": "l.N6.seren.extreme.level",
+          "authenticForce": "l.N6.seren.extreme.authenticForce",
+          "guard": "l.N6.seren.extreme.guard",
+          "bossCut": "103300",
+          "partyLimit": "l.N6.seren.extreme.maxPartyLimit",
+          "easyRate": ".95",
+          "renewalDate": "R",
+          "renewalDetail": "P"
+        },
+        {
+          "boss": "검은 마법사",
+          "name": "blackMage",
+          "difficulty": "Extreme",
+          "level": "l.N6.blackMage.extreme.level",
+          "arcaneForce": "l.N6.blackMage.extreme.arcaneForce",
+          "guard": "l.N6.blackMage.extreme.guard",
+          "bossCut": "94500",
+          "partyLimit": "l.N6.blackMage.extreme.maxPartyLimit",
+          "easyRate": ".988",
+          "renewalDate": "2026-09-22",
+          "renewalDetail": "배율 유지"
+        },
+        {
+          "boss": "카링",
+          "name": "kaling",
+          "difficulty": "Destiny",
+          "level": "l.N6.kaling.hard.level",
+          "authenticForce": "l.N6.kaling.hard.authenticForce",
+          "guard": "l.N6.kaling.hard.guard",
+          "bossCut": "104e3",
+          "partyLimit": "l.N6.kaling.destiny.maxPartyLimit",
+          "easyRate": "1.14",
+          "renewalDate": "p",
+          "renewalDetail": "v"
+        },
+        {
+          "boss": "림보",
+          "name": "limbo",
+          "difficulty": "Normal",
+          "level": "l.N6.limbo.normal.level",
+          "authenticForce": "l.N6.limbo.normal.authenticForce",
+          "guard": "l.N6.limbo.normal.guard",
+          "bossCut": "118900",
+          "partyLimit": "l.N6.limbo.normal.maxPartyLimit",
+          "easyRate": "1.964602583436341",
+          "renewalDate": "k",
+          "renewalDetail": "N"
+        },
+        {
+          "boss": "칼로스",
+          "name": "kalos",
+          "difficulty": "Destiny",
+          "level": "l.N6.kalos.chaos.level",
+          "authenticForce": "l.N6.kalos.chaos.authenticForce",
+          "guard": "l.N6.kalos.chaos.guard",
+          "bossCut": "133800",
+          "partyLimit": "l.N6.kalos.destiny.maxPartyLimit",
+          "easyRate": "3.9062499999999996",
+          "renewalDate": "y",
+          "renewalDetail": "b"
+        },
+        {
+          "boss": "칼로스",
+          "name": "kalos",
+          "difficulty": "Chaos",
+          "level": "l.N6.kalos.chaos.level",
+          "authenticForce": "l.N6.kalos.chaos.authenticForce",
+          "guard": "l.N6.kalos.chaos.guard",
+          "bossCut": "133800",
+          "partyLimit": "l.N6.kalos.chaos.maxPartyLimit",
+          "easyRate": "3.9062499999999996",
+          "renewalDate": "y",
+          "renewalDetail": "b"
+        },
+        {
+          "boss": "벨로나",
+          "name": "bellona",
+          "difficulty": "Normal",
+          "level": "l.N6.bellona.normal.level",
+          "authenticForce": "l.N6.bellona.normal.authenticForce",
+          "guard": "l.N6.bellona.normal.guard",
+          "bossCut": "123200",
+          "partyLimit": "l.N6.bellona.normal.maxPartyLimit",
+          "easyRate": "3.2182920912178554",
+          "renewalDate": "f",
+          "renewalDetail": "L"
+        },
+        {
+          "boss": "세렌",
+          "name": "seren",
+          "difficulty": "Destiny",
+          "level": "l.N6.seren.hard.level",
+          "authenticForce": "l.N6.seren.hard.authenticForce",
+          "guard": "l.N6.seren.hard.guard",
+          "bossCut": "103300",
+          "partyLimit": "l.N6.seren.destiny.maxPartyLimit",
+          "easyRate": "2.4048764911816405",
+          "challenger": ".97",
+          "renewalDate": "R",
+          "renewalDetail": "P"
+        },
+        {
+          "boss": "카링",
+          "name": "kaling",
+          "difficulty": "Normal",
+          "level": "l.N6.kaling.normal.level",
+          "authenticForce": "l.N6.kaling.normal.authenticForce",
+          "guard": "l.N6.kaling.normal.guard",
+          "bossCut": "104e3",
+          "partyLimit": "l.N6.kaling.normal.maxPartyLimit",
+          "easyRate": "2.7877201738381996",
+          "renewalDate": "p",
+          "renewalDetail": "v"
+        },
+        {
+          "boss": "흉성",
+          "name": "maleficStar",
+          "difficulty": "Normal",
+          "level": "l.N6.maleficStar.normal.level",
+          "authenticForce": "l.N6.maleficStar.normal.authenticForce",
+          "guard": "l.N6.maleficStar.normal.guard",
+          "bossCut": "115700",
+          "partyLimit": "l.N6.maleficStar.normal.maxPartyLimit",
+          "easyRate": "4.297226209857768",
+          "renewalDate": "F",
+          "renewalDetail": "D"
+        },
+        {
+          "boss": "스우",
+          "name": "lotus",
+          "difficulty": "Extreme",
+          "level": "l.N6.lotus.extreme.level",
+          "guard": "l.N6.lotus.extreme.guard",
+          "bossCut": "64500",
+          "partyLimit": "l.N6.lotus.extreme.maxPartyLimit",
+          "easyRate": ".95*d*.95/.93",
+          "renewalDate": "m",
+          "renewalDetail": "c"
+        },
+        {
+          "boss": "칼로스",
+          "name": "kalos",
+          "difficulty": "Champion",
+          "level": "l.N6.kalos.normal.level",
+          "authenticForce": "l.N6.kalos.normal.authenticForce",
+          "guard": "l.N6.kalos.normal.guard",
+          "bossCut": "133800",
+          "partyLimit": "l.N6.kalos.champion.maxPartyLimit",
+          "easyRate": "13.061188076219901",
+          "challenger": ".97",
+          "renewalDate": "y",
+          "renewalDetail": "b"
+        },
+        {
+          "boss": "대적자",
+          "name": "adversary",
+          "difficulty": "Normal",
+          "level": "l.N6.adversary.normal.level",
+          "authenticForce": "l.N6.adversary.normal.authenticForce",
+          "guard": "l.N6.adversary.normal.guard",
+          "bossCut": "106100",
+          "partyLimit": "l.N6.adversary.normal.maxPartyLimit",
+          "easyRate": "6.062852958726571",
+          "renewalDate": "g",
+          "renewalDetail": "h"
+        },
+        {
+          "boss": "칼로스",
+          "name": "kalos",
+          "difficulty": "Normal",
+          "level": "l.N6.kalos.normal.level",
+          "authenticForce": "l.N6.kalos.normal.authenticForce",
+          "guard": "l.N6.kalos.normal.guard",
+          "bossCut": "133800",
+          "partyLimit": "l.N6.kalos.normal.maxPartyLimit",
+          "easyRate": "18.658840108885574",
+          "challenger": ".97",
+          "newbieCut": "n[\"칼로스\"]",
+          "renewalDate": "y",
+          "renewalDetail": "b"
+        },
+        {
+          "boss": "벨로나",
+          "name": "bellona",
+          "difficulty": "Easy",
+          "level": "l.N6.bellona.easy.level",
+          "authenticForce": "l.N6.bellona.easy.authenticForce",
+          "guard": "l.N6.bellona.easy.guard",
+          "bossCut": "123200",
+          "partyLimit": "l.N6.bellona.easy.maxPartyLimit",
+          "easyRate": "17.029268292682925",
+          "renewalDate": "f",
+          "renewalDetail": "L"
+        },
+        {
+          "boss": "세렌",
+          "name": "seren",
+          "difficulty": "Champion",
+          "level": "l.N6.seren.hard.level",
+          "authenticForce": "l.N6.seren.hard.authenticForce",
+          "guard": "l.N6.seren.hard.guard",
+          "bossCut": "103300",
+          "partyLimit": "l.N6.seren.champion.maxPartyLimit",
+          "easyRate": "8.41706771913574",
+          "challenger": ".97",
+          "renewalDate": "R",
+          "renewalDetail": "P"
+        },
+        {
+          "boss": "카링",
+          "name": "kaling",
+          "difficulty": "Easy",
+          "level": "l.N6.kaling.easy.level",
+          "authenticForce": "l.N6.kaling.easy.authenticForce",
+          "guard": "l.N6.kaling.easy.guard",
+          "bossCut": "104e3",
+          "partyLimit": "l.N6.kaling.easy.maxPartyLimit",
+          "easyRate": "10.810543864615774",
+          "challenger": ".97",
+          "newbieCut": "n[\"카링\"]",
+          "renewalDate": "p",
+          "renewalDetail": "v"
+        },
+        {
+          "boss": "세렌",
+          "name": "seren",
+          "difficulty": "Hard",
+          "level": "l.N6.seren.hard.level",
+          "authenticForce": "l.N6.seren.hard.authenticForce",
+          "guard": "l.N6.seren.hard.guard",
+          "bossCut": "103300",
+          "partyLimit": "l.N6.seren.hard.maxPartyLimit",
+          "easyRate": "12.024382455908201",
+          "challenger": ".97",
+          "newbieCut": "n[\"세렌\"]",
+          "renewalDate": "R",
+          "renewalDetail": "P"
+        },
+        {
+          "boss": "대적자",
+          "name": "adversary",
+          "difficulty": "Easy",
+          "level": "l.N6.adversary.easy.level",
+          "authenticForce": "l.N6.adversary.easy.authenticForce",
+          "guard": "l.N6.adversary.easy.guard",
+          "bossCut": "106100",
+          "partyLimit": "l.N6.adversary.easy.maxPartyLimit",
+          "easyRate": "17.463956031861766",
+          "renewalDate": "g",
+          "renewalDetail": "h"
+        },
+        {
+          "boss": "검은 마법사",
+          "name": "blackMage",
+          "difficulty": "Champion",
+          "level": "l.N6.blackMage.hard.level",
+          "arcaneForce": "l.N6.blackMage.hard.arcaneForce",
+          "guard": "l.N6.blackMage.hard.guard",
+          "bossCut": "40600",
+          "partyLimit": "l.N6.blackMage.champion.maxPartyLimit",
+          "easyRate": "1.1*d*o[\"검마\"]*.75",
+          "challenger": ".92",
+          "renewalDate": "m",
+          "renewalDetail": "c"
+        },
+        {
+          "boss": "칼로스",
+          "name": "kalos",
+          "difficulty": "Easy",
+          "level": "l.N6.kalos.easy.level",
+          "authenticForce": "l.N6.kalos.easy.authenticForce",
+          "guard": "l.N6.kalos.easy.guard",
+          "bossCut": "133800",
+          "partyLimit": "l.N6.kalos.easy.maxPartyLimit",
+          "easyRate": "54.38951226691517",
+          "challenger": ".97",
+          "newbieCut": "n[\"칼로스\"]",
+          "renewalDate": "y",
+          "renewalDetail": "b"
+        },
+        {
+          "boss": "검은 마법사",
+          "name": "blackMage",
+          "difficulty": "Hard",
+          "level": "l.N6.blackMage.hard.level",
+          "arcaneForce": "l.N6.blackMage.hard.arcaneForce",
+          "guard": "l.N6.blackMage.hard.guard",
+          "bossCut": "40600",
+          "partyLimit": "l.N6.blackMage.hard.maxPartyLimit",
+          "easyRate": "1.1*d*o[\"검마\"]",
+          "challenger": ".92",
+          "newbieCut": "n[\"검마\"]",
+          "renewalDate": "m",
+          "renewalDetail": "c"
+        },
+        {
+          "boss": "세렌",
+          "name": "seren",
+          "difficulty": "Normal",
+          "level": "l.N6.seren.normal.level",
+          "authenticForce": "l.N6.seren.normal.authenticForce",
+          "guard": "l.N6.seren.normal.guard",
+          "bossCut": "103300",
+          "partyLimit": "l.N6.seren.normal.maxPartyLimit",
+          "easyRate": "27.764644554762043",
+          "challenger": ".97",
+          "newbieCut": "n[\"세렌\"]",
+          "renewalDate": "R",
+          "renewalDetail": "P"
+        },
+        {
+          "boss": "진 힐라",
+          "name": "verusHilla",
+          "difficulty": "Champion",
+          "level": "l.N6.verusHilla.hard.level",
+          "arcaneForce": "l.N6.verusHilla.hard.arcaneForce",
+          "guard": "l.N6.verusHilla.hard.guard",
+          "bossCut": "40600",
+          "partyLimit": "l.N6.verusHilla.champion.maxPartyLimit",
+          "easyRate": "d*o[\"하드진힐라\"]*.7",
+          "challenger": ".97",
+          "renewalDate": "m",
+          "renewalDetail": "c"
+        },
+        {
+          "boss": "진 힐라",
+          "name": "verusHilla",
+          "difficulty": "Hard",
+          "level": "l.N6.verusHilla.hard.level",
+          "arcaneForce": "l.N6.verusHilla.hard.arcaneForce",
+          "guard": "l.N6.verusHilla.hard.guard",
+          "bossCut": "40600",
+          "partyLimit": "l.N6.verusHilla.hard.maxPartyLimit",
+          "easyRate": "d*o[\"하드진힐라\"]",
+          "challenger": ".97",
+          "newbieCut": "n[\"진힐라\"]",
+          "renewalDate": "m",
+          "renewalDetail": "c"
+        },
+        {
+          "boss": "듄켈",
+          "name": "darknell",
+          "difficulty": "Hard",
+          "level": "l.N6.darknell.hard.level",
+          "arcaneForce": "l.N6.darknell.hard.arcaneForce",
+          "guard": "l.N6.darknell.hard.guard",
+          "bossCut": "40600",
+          "partyLimit": "l.N6.darknell.hard.maxPartyLimit",
+          "easyRate": "d*o[\"하드듄켈\"]",
+          "challenger": ".97",
+          "newbieCut": "n[\"듄켈\"]",
+          "renewalDate": "m",
+          "renewalDetail": "c"
+        },
+        {
+          "boss": "더스크",
+          "name": "gloom",
+          "difficulty": "Chaos",
+          "level": "l.N6.gloom.chaos.level",
+          "arcaneForce": "l.N6.gloom.chaos.arcaneForce",
+          "guard": "l.N6.gloom.chaos.guard",
+          "bossCut": "40600",
+          "partyLimit": "l.N6.gloom.chaos.maxPartyLimit",
+          "easyRate": "d*o[\"카오스더스크\"]",
+          "newbieCut": "n[\"더스크\"]",
+          "renewalDate": "m",
+          "renewalDetail": "c"
+        },
+        {
+          "boss": "가엔슬",
+          "name": "slime",
+          "difficulty": "Chaos",
+          "level": "l.N6.slime.chaos.level",
+          "guard": "l.N6.slime.chaos.guard",
+          "bossCut": "40600",
+          "partyLimit": "l.N6.slime.chaos.maxPartyLimit",
+          "easyRate": "d*o[\"카엔슬\"]",
+          "newbieCut": "n[\"슬라임\"]",
+          "renewalDate": "m",
+          "renewalDetail": "c"
+        },
+        {
+          "boss": "윌",
+          "name": "will",
+          "difficulty": "Hard",
+          "level": "l.N6.will.hard.level",
+          "arcaneForce": "l.N6.will.hard.arcaneForce",
+          "guard": "l.N6.will.hard.guard",
+          "bossCut": "40600",
+          "partyLimit": "l.N6.will.hard.maxPartyLimit",
+          "easyRate": "d*o[\"하드윌\"]",
+          "challenger": ".97",
+          "newbieCut": "n[\"윌\"]",
+          "renewalDate": "m",
+          "renewalDetail": "c"
+        },
+        {
+          "boss": "루시드",
+          "name": "lucid",
+          "difficulty": "Hard",
+          "level": "l.N6.lucid.hard.level",
+          "arcaneForce": "l.N6.lucid.hard.arcaneForce",
+          "guard": "l.N6.lucid.hard.guard",
+          "bossCut": "40600",
+          "partyLimit": "l.N6.lucid.hard.maxPartyLimit",
+          "easyRate": "d*o[\"하시드\"]",
+          "newbieCut": "n[\"하시드\"]",
+          "renewalDate": "m",
+          "renewalDetail": "c"
+        },
+        {
+          "boss": "진 힐라",
+          "name": "verusHilla",
+          "difficulty": "Normal",
+          "level": "l.N6.verusHilla.normal.level",
+          "arcaneForce": "l.N6.verusHilla.normal.arcaneForce",
+          "guard": "l.N6.verusHilla.normal.guard",
+          "bossCut": "40600",
+          "partyLimit": "l.N6.verusHilla.normal.maxPartyLimit",
+          "easyRate": "d*o[\"노말진힐라\"]",
+          "challenger": ".97",
+          "newbieCut": "n[\"진힐라\"]",
+          "renewalDate": "m",
+          "renewalDetail": "c"
+        },
+        {
+          "boss": "스우",
+          "name": "lotus",
+          "difficulty": "Champion",
+          "level": "l.N6.lotus.hard.level",
+          "guard": "l.N6.lotus.hard.guard",
+          "bossCut": "40600",
+          "partyLimit": "l.N6.lotus.champion.maxPartyLimit",
+          "easyRate": "d*o[\"하스우\"]*.7",
+          "challenger": ".97",
+          "renewalDate": "m",
+          "renewalDetail": "c"
+        },
+        {
+          "boss": "데미안",
+          "name": "damien",
+          "difficulty": "Hard",
+          "level": "l.N6.damien.hard.level",
+          "guard": "l.N6.damien.hard.guard",
+          "bossCut": "40600",
+          "partyLimit": "l.N6.damien.hard.maxPartyLimit",
+          "easyRate": "d*o[\"하데미\"]",
+          "challenger": ".97",
+          "newbieCut": "n[\"데미안\"]",
+          "renewalDate": "m",
+          "renewalDetail": "c"
+        },
+        {
+          "boss": "스우",
+          "name": "lotus",
+          "difficulty": "Hard",
+          "level": "l.N6.lotus.hard.level",
+          "guard": "l.N6.lotus.hard.guard",
+          "bossCut": "40600",
+          "partyLimit": "l.N6.lotus.hard.maxPartyLimit",
+          "easyRate": "d*o[\"하스우\"]",
+          "challenger": ".97",
+          "newbieCut": "n[\"스우\"]",
+          "renewalDate": "m",
+          "renewalDetail": "c"
+        },
+        {
+          "boss": "듄켈",
+          "name": "darknell",
+          "difficulty": "Normal",
+          "level": "l.N6.darknell.normal.level",
+          "arcaneForce": "l.N6.darknell.normal.arcaneForce",
+          "guard": "l.N6.darknell.normal.guard",
+          "bossCut": "40600",
+          "partyLimit": "l.N6.darknell.normal.maxPartyLimit",
+          "easyRate": "d*o[\"노말듄켈\"]",
+          "challenger": ".97",
+          "newbieCut": "n[\"듄켈\"]",
+          "renewalDate": "m",
+          "renewalDetail": "c"
+        },
+        {
+          "boss": "더스크",
+          "name": "gloom",
+          "difficulty": "Normal",
+          "level": "l.N6.gloom.normal.level",
+          "arcaneForce": "l.N6.gloom.normal.arcaneForce",
+          "guard": "l.N6.gloom.normal.guard",
+          "bossCut": "40600",
+          "partyLimit": "l.N6.gloom.normal.maxPartyLimit",
+          "easyRate": "d*o[\"노말더스크\"]",
+          "newbieCut": "n[\"더스크\"]",
+          "renewalDate": "m",
+          "renewalDetail": "c"
+        },
+        {
+          "boss": "루시드",
+          "name": "lucid",
+          "difficulty": "Normal",
+          "level": "l.N6.lucid.normal.level",
+          "arcaneForce": "l.N6.lucid.normal.arcaneForce",
+          "guard": "l.N6.lucid.normal.guard",
+          "bossCut": "40600",
+          "partyLimit": "l.N6.lucid.normal.maxPartyLimit",
+          "easyRate": "d*o[\"노시드\"]",
+          "challenger": ".97",
+          "newbieCut": "n[\"루시드\"]",
+          "renewalDate": "m",
+          "renewalDetail": "c"
+        },
+        {
+          "boss": "윌",
+          "name": "will",
+          "difficulty": "Normal",
+          "level": "l.N6.will.normal.level",
+          "arcaneForce": "l.N6.will.normal.arcaneForce",
+          "guard": "l.N6.will.normal.guard",
+          "bossCut": "40600",
+          "partyLimit": "l.N6.will.normal.maxPartyLimit",
+          "easyRate": "d*o[\"노말윌\"]",
+          "challenger": ".97",
+          "newbieCut": "n[\"윌\"]",
+          "renewalDate": "m",
+          "renewalDetail": "c"
+        },
+        {
+          "boss": "윌",
+          "name": "will",
+          "difficulty": "Easy",
+          "level": "l.N6.will.easy.level",
+          "arcaneForce": "l.N6.will.easy.arcaneForce",
+          "guard": "l.N6.will.easy.guard",
+          "bossCut": "40600",
+          "partyLimit": "l.N6.will.easy.maxPartyLimit",
+          "easyRate": "d*o[\"이지윌\"]",
+          "challenger": ".97",
+          "newbieCut": "n[\"윌\"]",
+          "renewalDate": "m",
+          "renewalDetail": "c"
+        },
+        {
+          "boss": "루시드",
+          "name": "lucid",
+          "difficulty": "Easy",
+          "level": "l.N6.lucid.easy.level",
+          "arcaneForce": "l.N6.lucid.easy.arcaneForce",
+          "guard": "l.N6.lucid.easy.guard",
+          "bossCut": "40600",
+          "partyLimit": "l.N6.lucid.easy.maxPartyLimit",
+          "easyRate": "d*o[\"이시드\"]",
+          "challenger": ".97",
+          "newbieCut": "n[\"루시드\"]",
+          "renewalDate": "m",
+          "renewalDetail": "c"
+        },
+        {
+          "boss": "가엔슬",
+          "name": "slime",
+          "difficulty": "Normal",
+          "level": "l.N6.slime.normal.level",
+          "guard": "l.N6.slime.normal.guard",
+          "bossCut": "40600",
+          "partyLimit": "l.N6.slime.normal.maxPartyLimit",
+          "easyRate": "d*o[\"노엔슬\"]",
+          "newbieCut": "n[\"슬라임\"]",
+          "renewalDate": "m",
+          "renewalDetail": "c"
+        },
+        {
+          "boss": "스우",
+          "name": "lotus",
+          "difficulty": "Normal",
+          "level": "l.N6.lotus.normal.level",
+          "guard": "l.N6.lotus.normal.guard",
+          "bossCut": "40600",
+          "partyLimit": "l.N6.lotus.normal.maxPartyLimit",
+          "easyRate": "d*o[\"노스우\"]",
+          "challenger": ".97",
+          "newbieCut": "n[\"스우\"]",
+          "renewalDate": "m",
+          "renewalDetail": "c"
+        },
+        {
+          "boss": "데미안",
+          "name": "damien",
+          "difficulty": "Normal",
+          "level": "l.N6.damien.normal.level",
+          "guard": "l.N6.damien.normal.guard",
+          "bossCut": "40600",
+          "partyLimit": "l.N6.damien.normal.maxPartyLimit",
+          "easyRate": "d*o[\"노데미\"]",
+          "challenger": ".97",
+          "newbieCut": "n[\"데미안\"]",
+          "renewalDate": "m",
+          "renewalDetail": "c"
+        }
+      ],
+      "mappedStrongToWeak": [
+        {
+          "boss": "유피테르",
+          "name": "jupiter",
+          "difficulty": "하드",
+          "level": "l.N6.jupiter.hard.level",
+          "authenticForce": "l.N6.jupiter.hard.authenticForce",
+          "guard": "l.N6.jupiter.hard.guard",
+          "partyBossCut": "111700",
+          "partyLimit": "l.N6.jupiter.hard.maxPartyLimit",
+          "easyRate": ".6460359497939303",
+          "renewalDate": "u",
+          "renewalDetail": "_",
+          "sourceOrder": 1,
+          "id": "jupiter-hard",
+          "unitExp": 389882120,
+          "maxParty": 3
+        },
+        {
+          "boss": "카링",
+          "name": "kaling",
+          "difficulty": "익스트림",
+          "level": "l.N6.kaling.extreme.level",
+          "authenticForce": "l.N6.kaling.extreme.authenticForce",
+          "guard": "l.N6.kaling.extreme.guard",
+          "partyBossCut": "108350",
+          "partyLimit": "l.N6.kaling.extreme.maxPartyLimit",
+          "easyRate": "1.064",
+          "renewalDate": "p",
+          "renewalDetail": "v",
+          "sourceOrder": 2,
+          "id": "kaling-extreme",
+          "unitExp": 416157790,
+          "maxParty": 6
+        },
+        {
+          "boss": "최초의 대적자",
+          "name": "adversary",
+          "difficulty": "익스트림",
+          "level": "l.N6.adversary.extreme.level",
+          "authenticForce": "l.N6.adversary.extreme.authenticForce",
+          "guard": "l.N6.adversary.extreme.guard",
+          "bossCut": "106100",
+          "partyLimit": "l.N6.adversary.extreme.maxPartyLimit",
+          "easyRate": ".2885385569679753",
+          "renewalDate": "g",
+          "renewalDetail": "h",
+          "sourceOrder": 3,
+          "id": "adversary-extreme",
+          "unitExp": 379179480,
+          "maxParty": 3
+        },
+        {
+          "boss": "감시자 칼로스",
+          "name": "kalos",
+          "difficulty": "익스트림",
+          "level": "l.N6.kalos.extreme.level",
+          "authenticForce": "l.N6.kalos.extreme.authenticForce",
+          "guard": "l.N6.kalos.extreme.guard",
+          "bossCut": "133800",
+          "partyLimit": "l.N6.kalos.extreme.maxPartyLimit",
+          "easyRate": ".95",
+          "renewalDate": "2026-09-22",
+          "renewalDetail": "배율 3.4% 증가",
+          "sourceOrder": 4,
+          "id": "kalos-extreme",
+          "unitExp": 303832960,
+          "maxParty": 6
+        },
+        {
+          "boss": "발드릭스",
+          "name": "bardrix",
+          "difficulty": "하드",
+          "level": "l.N6.bardrix.hard.level",
+          "authenticForce": "l.N6.bardrix.hard.authenticForce",
+          "guard": "l.N6.bardrix.hard.guard",
+          "bossCut": "128e3",
+          "partyLimit": "l.N6.bardrix.hard.maxPartyLimit",
+          "easyRate": ".95",
+          "renewalDate": "w",
+          "renewalDetail": "x",
+          "sourceOrder": 6,
+          "id": "baldrix-hard",
+          "unitExp": 237782370,
+          "maxParty": 3
+        },
+        {
+          "boss": "벨로나",
+          "name": "bellona",
+          "difficulty": "하드",
+          "level": "l.N6.bellona.hard.level",
+          "authenticForce": "l.N6.bellona.hard.authenticForce",
+          "guard": "l.N6.bellona.hard.guard",
+          "bossCut": "123200",
+          "partyLimit": "l.N6.bellona.hard.maxPartyLimit",
+          "easyRate": ".95",
+          "renewalDate": "f",
+          "renewalDetail": "L",
+          "sourceOrder": 7,
+          "id": "bellona-hard",
+          "unitExp": 227893990,
+          "maxParty": 3
+        },
+        {
+          "boss": "림보",
+          "name": "limbo",
+          "difficulty": "하드",
+          "level": "l.N6.limbo.hard.level",
+          "authenticForce": "l.N6.limbo.hard.authenticForce",
+          "guard": "l.N6.limbo.hard.guard",
+          "bossCut": "118900",
+          "partyLimit": "l.N6.limbo.hard.maxPartyLimit",
+          "easyRate": ".988",
+          "renewalDate": "k",
+          "renewalDetail": "N",
+          "sourceOrder": 9,
+          "id": "limbo-hard",
+          "unitExp": 191923460,
+          "maxParty": 3
+        },
+        {
+          "boss": "찬란한 흉성",
+          "name": "maleficStar",
+          "difficulty": "하드",
+          "level": "l.N6.maleficStar.hard.level",
+          "authenticForce": "l.N6.maleficStar.hard.authenticForce",
+          "guard": "l.N6.maleficStar.hard.guard",
+          "bossCut": "115700",
+          "partyLimit": "l.N6.maleficStar.hard.maxPartyLimit",
+          "easyRate": ".95",
+          "renewalDate": "F",
+          "renewalDetail": "D",
+          "sourceOrder": 10,
+          "id": "star-hard",
+          "unitExp": 198261240,
+          "maxParty": 3
+        },
+        {
+          "boss": "유피테르",
+          "name": "jupiter",
+          "difficulty": "노멀",
+          "level": "l.N6.jupiter.normal.level",
+          "authenticForce": "l.N6.jupiter.normal.authenticForce",
+          "guard": "l.N6.jupiter.normal.guard",
+          "bossCut": "111700",
+          "partyLimit": "l.N6.jupiter.normal.maxPartyLimit",
+          "easyRate": ".988",
+          "renewalDate": "u",
+          "renewalDetail": "_",
+          "sourceOrder": 11,
+          "id": "jupiter-normal",
+          "unitExp": 115492080,
+          "maxParty": 3
+        },
+        {
+          "boss": "최초의 대적자",
+          "name": "adversary",
+          "difficulty": "하드",
+          "level": "l.N6.adversary.hard.level",
+          "authenticForce": "l.N6.adversary.hard.authenticForce",
+          "guard": "l.N6.adversary.hard.guard",
+          "bossCut": "106100",
+          "partyLimit": "l.N6.adversary.hard.maxPartyLimit",
+          "easyRate": ".95",
+          "renewalDate": "g",
+          "renewalDetail": "h",
+          "sourceOrder": 13,
+          "id": "adversary-hard",
+          "unitExp": 98432390,
+          "maxParty": 3
+        },
+        {
+          "boss": "발드릭스",
+          "name": "bardrix",
+          "difficulty": "노멀",
+          "level": "l.N6.bardrix.normal.level",
+          "authenticForce": "l.N6.bardrix.normal.authenticForce",
+          "guard": "l.N6.bardrix.normal.guard",
+          "bossCut": "128e3",
+          "partyLimit": "l.N6.bardrix.normal.maxPartyLimit",
+          "easyRate": "2.1324112191250864",
+          "renewalDate": "w",
+          "renewalDetail": "x",
+          "sourceOrder": 14,
+          "id": "baldrix-normal",
+          "unitExp": 97724320,
+          "maxParty": 3
+        },
+        {
+          "boss": "카링",
+          "name": "kaling",
+          "difficulty": "하드",
+          "level": "l.N6.kaling.hard.level",
+          "authenticForce": "l.N6.kaling.hard.authenticForce",
+          "guard": "l.N6.kaling.hard.guard",
+          "bossCut": "104e3",
+          "partyLimit": "l.N6.kaling.hard.maxPartyLimit",
+          "easyRate": ".95",
+          "renewalDate": "p",
+          "renewalDetail": "v",
+          "sourceOrder": 15,
+          "id": "kaling-hard",
+          "unitExp": 110470810,
+          "maxParty": 6
+        },
+        {
+          "boss": "선택받은 세렌",
+          "name": "seren",
+          "difficulty": "익스트림",
+          "level": "l.N6.seren.extreme.level",
+          "authenticForce": "l.N6.seren.extreme.authenticForce",
+          "guard": "l.N6.seren.extreme.guard",
+          "bossCut": "103300",
+          "partyLimit": "l.N6.seren.extreme.maxPartyLimit",
+          "easyRate": ".95",
+          "renewalDate": "R",
+          "renewalDetail": "P",
+          "sourceOrder": 16,
+          "id": "seren-extreme",
+          "unitExp": 130298820,
+          "maxParty": 6
+        },
+        {
+          "boss": "림보",
+          "name": "limbo",
+          "difficulty": "노멀",
+          "level": "l.N6.limbo.normal.level",
+          "authenticForce": "l.N6.limbo.normal.authenticForce",
+          "guard": "l.N6.limbo.normal.guard",
+          "bossCut": "118900",
+          "partyLimit": "l.N6.limbo.normal.maxPartyLimit",
+          "easyRate": "1.964602583436341",
+          "renewalDate": "k",
+          "renewalDetail": "N",
+          "sourceOrder": 19,
+          "id": "limbo-normal",
+          "unitExp": 76865980,
+          "maxParty": 3
+        },
+        {
+          "boss": "감시자 칼로스",
+          "name": "kalos",
+          "difficulty": "카오스",
+          "level": "l.N6.kalos.chaos.level",
+          "authenticForce": "l.N6.kalos.chaos.authenticForce",
+          "guard": "l.N6.kalos.chaos.guard",
+          "bossCut": "133800",
+          "partyLimit": "l.N6.kalos.chaos.maxPartyLimit",
+          "easyRate": "3.9062499999999996",
+          "renewalDate": "y",
+          "renewalDetail": "b",
+          "sourceOrder": 21,
+          "id": "kalos-chaos",
+          "unitExp": 83142670,
+          "maxParty": 6
+        },
+        {
+          "boss": "벨로나",
+          "name": "bellona",
+          "difficulty": "노멀",
+          "level": "l.N6.bellona.normal.level",
+          "authenticForce": "l.N6.bellona.normal.authenticForce",
+          "guard": "l.N6.bellona.normal.guard",
+          "bossCut": "123200",
+          "partyLimit": "l.N6.bellona.normal.maxPartyLimit",
+          "easyRate": "3.2182920912178554",
+          "renewalDate": "f",
+          "renewalDetail": "L",
+          "sourceOrder": 22,
+          "id": "bellona-normal",
+          "unitExp": 63655780,
+          "maxParty": 3
+        },
+        {
+          "boss": "카링",
+          "name": "kaling",
+          "difficulty": "노멀",
+          "level": "l.N6.kaling.normal.level",
+          "authenticForce": "l.N6.kaling.normal.authenticForce",
+          "guard": "l.N6.kaling.normal.guard",
+          "bossCut": "104e3",
+          "partyLimit": "l.N6.kaling.normal.maxPartyLimit",
+          "easyRate": "2.7877201738381996",
+          "renewalDate": "p",
+          "renewalDetail": "v",
+          "sourceOrder": 24,
+          "id": "kaling-normal",
+          "unitExp": 44497300,
+          "maxParty": 6
+        },
+        {
+          "boss": "찬란한 흉성",
+          "name": "maleficStar",
+          "difficulty": "노멀",
+          "level": "l.N6.maleficStar.normal.level",
+          "authenticForce": "l.N6.maleficStar.normal.authenticForce",
+          "guard": "l.N6.maleficStar.normal.guard",
+          "bossCut": "115700",
+          "partyLimit": "l.N6.maleficStar.normal.maxPartyLimit",
+          "easyRate": "4.297226209857768",
+          "renewalDate": "F",
+          "renewalDetail": "D",
+          "sourceOrder": 25,
+          "id": "star-normal",
+          "unitExp": 41993020,
+          "maxParty": 3
+        },
+        {
+          "boss": "스우",
+          "name": "lotus",
+          "difficulty": "익스트림",
+          "level": "l.N6.lotus.extreme.level",
+          "guard": "l.N6.lotus.extreme.guard",
+          "bossCut": "64500",
+          "partyLimit": "l.N6.lotus.extreme.maxPartyLimit",
+          "easyRate": ".95*d*.95/.93",
+          "renewalDate": "m",
+          "renewalDetail": "c",
+          "sourceOrder": 26,
+          "id": "lotus-extreme",
+          "unitExp": 40348100,
+          "maxParty": 2
+        },
+        {
+          "boss": "최초의 대적자",
+          "name": "adversary",
+          "difficulty": "노멀",
+          "level": "l.N6.adversary.normal.level",
+          "authenticForce": "l.N6.adversary.normal.authenticForce",
+          "guard": "l.N6.adversary.normal.guard",
+          "bossCut": "106100",
+          "partyLimit": "l.N6.adversary.normal.maxPartyLimit",
+          "easyRate": "6.062852958726571",
+          "renewalDate": "g",
+          "renewalDetail": "h",
+          "sourceOrder": 28,
+          "id": "adversary-normal",
+          "unitExp": 35961100,
+          "maxParty": 3
+        },
+        {
+          "boss": "감시자 칼로스",
+          "name": "kalos",
+          "difficulty": "노멀",
+          "level": "l.N6.kalos.normal.level",
+          "authenticForce": "l.N6.kalos.normal.authenticForce",
+          "guard": "l.N6.kalos.normal.guard",
+          "bossCut": "133800",
+          "partyLimit": "l.N6.kalos.normal.maxPartyLimit",
+          "easyRate": "18.658840108885574",
+          "challenger": ".97",
+          "newbieCut": "n[\"칼로스\"]",
+          "renewalDate": "y",
+          "renewalDetail": "b",
+          "sourceOrder": 29,
+          "id": "kalos-normal",
+          "unitExp": 32378520,
+          "maxParty": 6
+        },
+        {
+          "boss": "벨로나",
+          "name": "bellona",
+          "difficulty": "이지",
+          "level": "l.N6.bellona.easy.level",
+          "authenticForce": "l.N6.bellona.easy.authenticForce",
+          "guard": "l.N6.bellona.easy.guard",
+          "bossCut": "123200",
+          "partyLimit": "l.N6.bellona.easy.maxPartyLimit",
+          "easyRate": "17.029268292682925",
+          "renewalDate": "f",
+          "renewalDetail": "L",
+          "sourceOrder": 30,
+          "id": "bellona-easy",
+          "unitExp": 26768080,
+          "maxParty": 3
+        },
+        {
+          "boss": "카링",
+          "name": "kaling",
+          "difficulty": "이지",
+          "level": "l.N6.kaling.easy.level",
+          "authenticForce": "l.N6.kaling.easy.authenticForce",
+          "guard": "l.N6.kaling.easy.guard",
+          "bossCut": "104e3",
+          "partyLimit": "l.N6.kaling.easy.maxPartyLimit",
+          "easyRate": "10.810543864615774",
+          "challenger": ".97",
+          "newbieCut": "n[\"카링\"]",
+          "renewalDate": "p",
+          "renewalDetail": "v",
+          "sourceOrder": 32,
+          "id": "kaling-easy",
+          "unitExp": 21630780,
+          "maxParty": 6
+        },
+        {
+          "boss": "선택받은 세렌",
+          "name": "seren",
+          "difficulty": "하드",
+          "level": "l.N6.seren.hard.level",
+          "authenticForce": "l.N6.seren.hard.authenticForce",
+          "guard": "l.N6.seren.hard.guard",
+          "bossCut": "103300",
+          "partyLimit": "l.N6.seren.hard.maxPartyLimit",
+          "easyRate": "12.024382455908201",
+          "challenger": ".97",
+          "newbieCut": "n[\"세렌\"]",
+          "renewalDate": "R",
+          "renewalDetail": "P",
+          "sourceOrder": 33,
+          "id": "seren-hard",
+          "unitExp": 23330230,
+          "maxParty": 6
+        },
+        {
+          "boss": "최초의 대적자",
+          "name": "adversary",
+          "difficulty": "이지",
+          "level": "l.N6.adversary.easy.level",
+          "authenticForce": "l.N6.adversary.easy.authenticForce",
+          "guard": "l.N6.adversary.easy.guard",
+          "bossCut": "106100",
+          "partyLimit": "l.N6.adversary.easy.maxPartyLimit",
+          "easyRate": "17.463956031861766",
+          "renewalDate": "g",
+          "renewalDetail": "h",
+          "sourceOrder": 34,
+          "id": "adversary-easy",
+          "unitExp": 17642300,
+          "maxParty": 3
+        },
+        {
+          "boss": "감시자 칼로스",
+          "name": "kalos",
+          "difficulty": "이지",
+          "level": "l.N6.kalos.easy.level",
+          "authenticForce": "l.N6.kalos.easy.authenticForce",
+          "guard": "l.N6.kalos.easy.guard",
+          "bossCut": "133800",
+          "partyLimit": "l.N6.kalos.easy.maxPartyLimit",
+          "easyRate": "54.38951226691517",
+          "challenger": ".97",
+          "newbieCut": "n[\"칼로스\"]",
+          "renewalDate": "y",
+          "renewalDetail": "b",
+          "sourceOrder": 36,
+          "id": "kalos-easy",
+          "unitExp": 16087580,
+          "maxParty": 6
+        },
+        {
+          "boss": "선택받은 세렌",
+          "name": "seren",
+          "difficulty": "노멀",
+          "level": "l.N6.seren.normal.level",
+          "authenticForce": "l.N6.seren.normal.authenticForce",
+          "guard": "l.N6.seren.normal.guard",
+          "bossCut": "103300",
+          "partyLimit": "l.N6.seren.normal.maxPartyLimit",
+          "easyRate": "27.764644554762043",
+          "challenger": ".97",
+          "newbieCut": "n[\"세렌\"]",
+          "renewalDate": "R",
+          "renewalDetail": "P",
+          "sourceOrder": 38,
+          "id": "seren-normal",
+          "unitExp": 11288530,
+          "maxParty": 6
+        },
+        {
+          "boss": "진 힐라",
+          "name": "verusHilla",
+          "difficulty": "하드",
+          "level": "l.N6.verusHilla.hard.level",
+          "arcaneForce": "l.N6.verusHilla.hard.arcaneForce",
+          "guard": "l.N6.verusHilla.hard.guard",
+          "bossCut": "40600",
+          "partyLimit": "l.N6.verusHilla.hard.maxPartyLimit",
+          "easyRate": "d*o[\"하드진힐라\"]",
+          "challenger": ".97",
+          "newbieCut": "n[\"진힐라\"]",
+          "renewalDate": "m",
+          "renewalDetail": "c",
+          "sourceOrder": 40,
+          "id": "hilla-hard",
+          "unitExp": 7403370,
+          "maxParty": 6
+        },
+        {
+          "boss": "듄켈",
+          "name": "darknell",
+          "difficulty": "하드",
+          "level": "l.N6.darknell.hard.level",
+          "arcaneForce": "l.N6.darknell.hard.arcaneForce",
+          "guard": "l.N6.darknell.hard.guard",
+          "bossCut": "40600",
+          "partyLimit": "l.N6.darknell.hard.maxPartyLimit",
+          "easyRate": "d*o[\"하드듄켈\"]",
+          "challenger": ".97",
+          "newbieCut": "n[\"듄켈\"]",
+          "renewalDate": "m",
+          "renewalDetail": "c",
+          "sourceOrder": 41,
+          "id": "dunkel-hard",
+          "unitExp": 6345160,
+          "maxParty": 6
+        },
+        {
+          "boss": "더스크",
+          "name": "gloom",
+          "difficulty": "카오스",
+          "level": "l.N6.gloom.chaos.level",
+          "arcaneForce": "l.N6.gloom.chaos.arcaneForce",
+          "guard": "l.N6.gloom.chaos.guard",
+          "bossCut": "40600",
+          "partyLimit": "l.N6.gloom.chaos.maxPartyLimit",
+          "easyRate": "d*o[\"카오스더스크\"]",
+          "newbieCut": "n[\"더스크\"]",
+          "renewalDate": "m",
+          "renewalDetail": "c",
+          "sourceOrder": 42,
+          "id": "dusk-chaos",
+          "unitExp": 5121720,
+          "maxParty": 6
+        },
+        {
+          "boss": "가디언 엔젤 슬라임",
+          "name": "slime",
+          "difficulty": "카오스",
+          "level": "l.N6.slime.chaos.level",
+          "guard": "l.N6.slime.chaos.guard",
+          "bossCut": "40600",
+          "partyLimit": "l.N6.slime.chaos.maxPartyLimit",
+          "easyRate": "d*o[\"카엔슬\"]",
+          "newbieCut": "n[\"슬라임\"]",
+          "renewalDate": "m",
+          "renewalDetail": "c",
+          "sourceOrder": 43,
+          "id": "gas-chaos",
+          "unitExp": 5049150,
+          "maxParty": 6
+        },
+        {
+          "boss": "윌",
+          "name": "will",
+          "difficulty": "하드",
+          "level": "l.N6.will.hard.level",
+          "arcaneForce": "l.N6.will.hard.arcaneForce",
+          "guard": "l.N6.will.hard.guard",
+          "bossCut": "40600",
+          "partyLimit": "l.N6.will.hard.maxPartyLimit",
+          "easyRate": "d*o[\"하드윌\"]",
+          "challenger": ".97",
+          "newbieCut": "n[\"윌\"]",
+          "renewalDate": "m",
+          "renewalDetail": "c",
+          "sourceOrder": 44,
+          "id": "will-hard",
+          "unitExp": 5419380,
+          "maxParty": 6
+        },
+        {
+          "boss": "루시드",
+          "name": "lucid",
+          "difficulty": "하드",
+          "level": "l.N6.lucid.hard.level",
+          "arcaneForce": "l.N6.lucid.hard.arcaneForce",
+          "guard": "l.N6.lucid.hard.guard",
+          "bossCut": "40600",
+          "partyLimit": "l.N6.lucid.hard.maxPartyLimit",
+          "easyRate": "d*o[\"하시드\"]",
+          "newbieCut": "n[\"하시드\"]",
+          "renewalDate": "m",
+          "renewalDetail": "c",
+          "sourceOrder": 45,
+          "id": "lucid-hard",
+          "unitExp": 4419800,
+          "maxParty": 6
+        },
+        {
+          "boss": "데미안",
+          "name": "damien",
+          "difficulty": "하드",
+          "level": "l.N6.damien.hard.level",
+          "guard": "l.N6.damien.hard.guard",
+          "bossCut": "40600",
+          "partyLimit": "l.N6.damien.hard.maxPartyLimit",
+          "easyRate": "d*o[\"하데미\"]",
+          "challenger": ".97",
+          "newbieCut": "n[\"데미안\"]",
+          "renewalDate": "m",
+          "renewalDetail": "c",
+          "sourceOrder": 48,
+          "id": "damien-hard",
+          "unitExp": 3434980,
+          "maxParty": 6
+        },
+        {
+          "boss": "스우",
+          "name": "lotus",
+          "difficulty": "하드",
+          "level": "l.N6.lotus.hard.level",
+          "guard": "l.N6.lotus.hard.guard",
+          "bossCut": "40600",
+          "partyLimit": "l.N6.lotus.hard.maxPartyLimit",
+          "easyRate": "d*o[\"하스우\"]",
+          "challenger": ".97",
+          "newbieCut": "n[\"스우\"]",
+          "renewalDate": "m",
+          "renewalDetail": "c",
+          "sourceOrder": 49,
+          "id": "lotus-hard",
+          "unitExp": 3462860,
+          "maxParty": 6
+        }
+      ],
+      "idsWeakToStrong": [
+        "lotus-hard",
+        "damien-hard",
+        "lucid-hard",
+        "will-hard",
+        "gas-chaos",
+        "dusk-chaos",
+        "dunkel-hard",
+        "hilla-hard",
+        "seren-normal",
+        "kalos-easy",
+        "adversary-easy",
+        "seren-hard",
+        "kaling-easy",
+        "bellona-easy",
+        "kalos-normal",
+        "adversary-normal",
+        "lotus-extreme",
+        "star-normal",
+        "kaling-normal",
+        "bellona-normal",
+        "kalos-chaos",
+        "limbo-normal",
+        "seren-extreme",
+        "kaling-hard",
+        "baldrix-normal",
+        "adversary-hard",
+        "jupiter-normal",
+        "star-hard",
+        "limbo-hard",
+        "bellona-hard",
+        "baldrix-hard",
+        "kalos-extreme",
+        "adversary-extreme",
+        "kaling-extreme",
+        "jupiter-hard"
+      ],
+      "missing": [],
+      "displayProof": {
+        "pageChunk": "https://maplescouter.com/_next/static/chunks/app/%5Blocale%5D/(pages)/result/page-12ddbb46ef8b280a.js",
+        "expression": "eP=1===eC?el:2===eC?d.e_:eA?d.tP:d.Pn; eH=eP.map(...)",
+        "kmsExport": "module77176 Pn=>H; H=[...C]",
+        "challengerExport": "tP=>K: C에 메이린·카이 위치를 추가한 별도 배열",
+        "meaning": "KMS 본섭은 d.Pn=H=[...C], 특수 지역/챌린저스는 별도 배열. 본섭 공통 배열의 상대 순서를 사용함."
+      }
+    },
+    "proposedPresets": [
+      {
+        "id": "bellona-easy",
+        "label": "이벨",
+        "ids": [
+          "bellona-easy",
+          "seren-hard",
+          "kaling-easy",
+          "adversary-easy",
+          "kalos-easy",
+          "hilla-hard",
+          "dunkel-hard",
+          "will-hard",
+          "dusk-chaos",
+          "gas-chaos",
+          "lucid-hard",
+          "lotus-hard"
+        ],
+        "weeklyRawSolo": 1426804100000,
+        "labelEvidence": "난이도·보스 이름의 축약; 원문 계산기의 모든 줄임말 실사용은 확인 못함"
+      },
+      {
+        "id": "adversary-normal",
+        "label": "노대적",
+        "ids": [
+          "adversary-normal",
+          "kalos-normal",
+          "bellona-easy",
+          "seren-hard",
+          "kaling-easy",
+          "hilla-hard",
+          "dunkel-hard",
+          "will-hard",
+          "dusk-chaos",
+          "gas-chaos",
+          "lucid-hard",
+          "lotus-hard"
+        ],
+        "weeklyRawSolo": 1772901500000,
+        "labelEvidence": "난이도·보스 이름의 축약; 원문 계산기의 모든 줄임말 실사용은 확인 못함"
+      },
+      {
+        "id": "lotus-extreme",
+        "label": "익스우",
+        "ids": [
+          "lotus-extreme",
+          "adversary-normal",
+          "kalos-normal",
+          "bellona-easy",
+          "seren-hard",
+          "kaling-easy",
+          "hilla-hard",
+          "dunkel-hard",
+          "will-hard",
+          "dusk-chaos",
+          "gas-chaos",
+          "lucid-hard"
+        ],
+        "weeklyRawSolo": 2141753900000,
+        "labelEvidence": "난이도·보스 이름의 축약; 원문 계산기의 모든 줄임말 실사용은 확인 못함"
+      },
+      {
+        "id": "star-normal",
+        "label": "노흉",
+        "ids": [
+          "star-normal",
+          "lotus-extreme",
+          "adversary-normal",
+          "kalos-normal",
+          "bellona-easy",
+          "seren-hard",
+          "kaling-easy",
+          "hilla-hard",
+          "dunkel-hard",
+          "will-hard",
+          "dusk-chaos",
+          "gas-chaos"
+        ],
+        "weeklyRawSolo": 2517486100000,
+        "labelEvidence": "난이도·보스 이름의 축약; 원문 계산기의 모든 줄임말 실사용은 확인 못함"
+      },
+      {
+        "id": "kaling-normal",
+        "label": "노카",
+        "ids": [
+          "kaling-normal",
+          "star-normal",
+          "lotus-extreme",
+          "adversary-normal",
+          "kalos-normal",
+          "bellona-easy",
+          "seren-hard",
+          "hilla-hard",
+          "dunkel-hard",
+          "will-hard",
+          "dusk-chaos",
+          "gas-chaos"
+        ],
+        "weeklyRawSolo": 2746151300000,
+        "labelEvidence": "난이도·보스 이름의 축약; 원문 계산기의 모든 줄임말 실사용은 확인 못함"
+      },
+      {
+        "id": "bellona-normal",
+        "label": "노벨",
+        "ids": [
+          "bellona-normal",
+          "kaling-normal",
+          "star-normal",
+          "lotus-extreme",
+          "adversary-normal",
+          "kalos-normal",
+          "seren-hard",
+          "hilla-hard",
+          "dunkel-hard",
+          "will-hard",
+          "dusk-chaos",
+          "gas-chaos"
+        ],
+        "weeklyRawSolo": 3115028300000,
+        "labelEvidence": "난이도·보스 이름의 축약; 원문 계산기의 모든 줄임말 실사용은 확인 못함"
+      },
+      {
+        "id": "kalos-chaos",
+        "label": "카칼",
+        "ids": [
+          "kalos-chaos",
+          "bellona-normal",
+          "kaling-normal",
+          "star-normal",
+          "lotus-extreme",
+          "adversary-normal",
+          "seren-hard",
+          "hilla-hard",
+          "dunkel-hard",
+          "will-hard",
+          "dusk-chaos",
+          "gas-chaos"
+        ],
+        "weeklyRawSolo": 3622669800000,
+        "labelEvidence": "난이도·보스 이름의 축약; 원문 계산기의 모든 줄임말 실사용은 확인 못함"
+      },
+      {
+        "id": "limbo-normal",
+        "label": "노림",
+        "ids": [
+          "kalos-chaos",
+          "limbo-normal",
+          "bellona-normal",
+          "kaling-normal",
+          "star-normal",
+          "lotus-extreme",
+          "adversary-normal",
+          "seren-hard",
+          "hilla-hard",
+          "dunkel-hard",
+          "will-hard",
+          "dusk-chaos"
+        ],
+        "weeklyRawSolo": 4340838100000,
+        "labelEvidence": "난이도·보스 이름의 축약; 원문 계산기의 모든 줄임말 실사용은 확인 못함"
+      },
+      {
+        "id": "seren-extreme",
+        "label": "익세",
+        "ids": [
+          "seren-extreme",
+          "kalos-chaos",
+          "limbo-normal",
+          "bellona-normal",
+          "kaling-normal",
+          "star-normal",
+          "lotus-extreme",
+          "adversary-normal",
+          "hilla-hard",
+          "dunkel-hard",
+          "will-hard",
+          "dusk-chaos"
+        ],
+        "weeklyRawSolo": 5410524000000,
+        "labelEvidence": "난이도·보스 이름의 축약; 원문 계산기의 모든 줄임말 실사용은 확인 못함"
+      },
+      {
+        "id": "kaling-hard",
+        "label": "하카",
+        "ids": [
+          "seren-extreme",
+          "kaling-hard",
+          "kalos-chaos",
+          "limbo-normal",
+          "bellona-normal",
+          "star-normal",
+          "lotus-extreme",
+          "adversary-normal",
+          "hilla-hard",
+          "dunkel-hard",
+          "will-hard",
+          "dusk-chaos"
+        ],
+        "weeklyRawSolo": 6070259100000,
+        "labelEvidence": "난이도·보스 이름의 축약; 원문 계산기의 모든 줄임말 실사용은 확인 못함"
+      },
+      {
+        "id": "baldrix-normal",
+        "label": "노발",
+        "ids": [
+          "seren-extreme",
+          "kaling-hard",
+          "baldrix-normal",
+          "kalos-chaos",
+          "limbo-normal",
+          "bellona-normal",
+          "star-normal",
+          "lotus-extreme",
+          "adversary-normal",
+          "hilla-hard",
+          "dunkel-hard",
+          "will-hard"
+        ],
+        "weeklyRawSolo": 6996285100000,
+        "labelEvidence": "난이도·보스 이름의 축약; 원문 계산기의 모든 줄임말 실사용은 확인 못함"
+      },
+      {
+        "id": "adversary-hard",
+        "label": "하대적",
+        "ids": [
+          "seren-extreme",
+          "kaling-hard",
+          "adversary-hard",
+          "baldrix-normal",
+          "kalos-chaos",
+          "limbo-normal",
+          "bellona-normal",
+          "star-normal",
+          "lotus-extreme",
+          "hilla-hard",
+          "dunkel-hard",
+          "will-hard"
+        ],
+        "weeklyRawSolo": 7620998000000,
+        "labelEvidence": "난이도·보스 이름의 축약; 원문 계산기의 모든 줄임말 실사용은 확인 못함"
+      },
+      {
+        "id": "jupiter-normal",
+        "label": "노유",
+        "ids": [
+          "seren-extreme",
+          "jupiter-normal",
+          "kaling-hard",
+          "adversary-hard",
+          "baldrix-normal",
+          "kalos-chaos",
+          "limbo-normal",
+          "bellona-normal",
+          "star-normal",
+          "lotus-extreme",
+          "hilla-hard",
+          "dunkel-hard"
+        ],
+        "weeklyRawSolo": 8721725000000,
+        "labelEvidence": "난이도·보스 이름의 축약; 원문 계산기의 모든 줄임말 실사용은 확인 못함"
+      },
+      {
+        "id": "star-hard",
+        "label": "하흉",
+        "ids": [
+          "star-hard",
+          "seren-extreme",
+          "jupiter-normal",
+          "kaling-hard",
+          "adversary-hard",
+          "baldrix-normal",
+          "kalos-chaos",
+          "limbo-normal",
+          "bellona-normal",
+          "lotus-extreme",
+          "hilla-hard",
+          "dunkel-hard"
+        ],
+        "weeklyRawSolo": 10284407200000,
+        "labelEvidence": "난이도·보스 이름의 축약; 원문 계산기의 모든 줄임말 실사용은 확인 못함"
+      },
+      {
+        "id": "limbo-hard",
+        "label": "하림",
+        "ids": [
+          "star-hard",
+          "limbo-hard",
+          "seren-extreme",
+          "jupiter-normal",
+          "kaling-hard",
+          "adversary-hard",
+          "baldrix-normal",
+          "kalos-chaos",
+          "bellona-normal",
+          "lotus-extreme",
+          "hilla-hard",
+          "dunkel-hard"
+        ],
+        "weeklyRawSolo": 11434982000000,
+        "labelEvidence": "난이도·보스 이름의 축약; 원문 계산기의 모든 줄임말 실사용은 확인 못함"
+      },
+      {
+        "id": "bellona-hard",
+        "label": "하벨",
+        "ids": [
+          "bellona-hard",
+          "star-hard",
+          "limbo-hard",
+          "seren-extreme",
+          "jupiter-normal",
+          "kaling-hard",
+          "adversary-hard",
+          "baldrix-normal",
+          "kalos-chaos",
+          "lotus-extreme",
+          "hilla-hard",
+          "dunkel-hard"
+        ],
+        "weeklyRawSolo": 13077364100000,
+        "labelEvidence": "난이도·보스 이름의 축약; 원문 계산기의 모든 줄임말 실사용은 확인 못함"
+      },
+      {
+        "id": "baldrix-hard",
+        "label": "하발",
+        "ids": [
+          "baldrix-hard",
+          "bellona-hard",
+          "star-hard",
+          "limbo-hard",
+          "seren-extreme",
+          "jupiter-normal",
+          "kaling-hard",
+          "adversary-hard",
+          "kalos-chaos",
+          "lotus-extreme",
+          "hilla-hard",
+          "dunkel-hard"
+        ],
+        "weeklyRawSolo": 14477944600000,
+        "labelEvidence": "난이도·보스 이름의 축약; 원문 계산기의 모든 줄임말 실사용은 확인 못함"
+      },
+      {
+        "id": "kalos-extreme",
+        "label": "익칼",
+        "ids": [
+          "kalos-extreme",
+          "baldrix-hard",
+          "bellona-hard",
+          "star-hard",
+          "limbo-hard",
+          "seren-extreme",
+          "jupiter-normal",
+          "kaling-hard",
+          "adversary-hard",
+          "lotus-extreme",
+          "hilla-hard",
+          "dunkel-hard"
+        ],
+        "weeklyRawSolo": 16684847500000,
+        "labelEvidence": "난이도·보스 이름의 축약; 원문 계산기의 모든 줄임말 실사용은 확인 못함"
+      },
+      {
+        "id": "adversary-extreme",
+        "label": "익대적",
+        "ids": [
+          "adversary-extreme",
+          "kalos-extreme",
+          "baldrix-hard",
+          "bellona-hard",
+          "star-hard",
+          "limbo-hard",
+          "seren-extreme",
+          "jupiter-normal",
+          "kaling-hard",
+          "lotus-extreme",
+          "hilla-hard",
+          "dunkel-hard"
+        ],
+        "weeklyRawSolo": 19492318400000,
+        "labelEvidence": "난이도·보스 이름의 축약; 원문 계산기의 모든 줄임말 실사용은 확인 못함"
+      },
+      {
+        "id": "kaling-extreme",
+        "label": "익카",
+        "ids": [
+          "kaling-extreme",
+          "adversary-extreme",
+          "kalos-extreme",
+          "baldrix-hard",
+          "bellona-hard",
+          "star-hard",
+          "limbo-hard",
+          "seren-extreme",
+          "jupiter-normal",
+          "lotus-extreme",
+          "hilla-hard",
+          "dunkel-hard"
+        ],
+        "weeklyRawSolo": 22549188200000,
+        "labelEvidence": "난이도·보스 이름의 축약; 원문 계산기의 모든 줄임말 실사용은 확인 못함"
+      },
+      {
+        "id": "jupiter-hard",
+        "label": "하유",
+        "ids": [
+          "kaling-extreme",
+          "jupiter-hard",
+          "adversary-extreme",
+          "kalos-extreme",
+          "baldrix-hard",
+          "bellona-hard",
+          "star-hard",
+          "limbo-hard",
+          "seren-extreme",
+          "lotus-extreme",
+          "hilla-hard",
+          "dunkel-hard"
+        ],
+        "weeklyRawSolo": 25293088600000,
+        "labelEvidence": "난이도·보스 이름의 축약; 원문 계산기의 모든 줄임말 실사용은 확인 못함"
+      }
+    ],
+    "selectionRule": "환산 공통 표시 순서의 선택한 난이도 이하→보스마다 가장 높은 난이도 하나→솔로 퍼스널 경험치 큰12개. 인원은 선택 뒤 boss.maxParty로 끊는다.",
+    "partyCaveat": "혼합 파티에서 실제 나눠받는 경험치 순의12개는 솔로 선정12개와 달라질 수 있다. 사용자 요청의 경험치큰12개를 솔로 값으로 구현한다면 그 정의를 보고서에 명시. 인원 변경으로 보스 목록을 암묵적으로 교체하지 않는 것이 권장.",
+    "uncertain": [
+      "직업·숙련도·포스에 따른 실제 컷 순서는 공통 배열만으로 확정 불가",
+      "상위단일줄임말 전부가 커뮤니티관용어인지는 원문 확인 못함",
+      "하루1소재·AI에는 확인 가능한 보스조합 프리셋없음",
+      "묶음별 조합은 참고순서에 우리 퍼스널 경험치12개규칙을 적용한 것, 참고사이트의 결정석묶음과 다름"
+    ]
+  },
+  "order": [
+    "lotus-hard",
+    "damien-hard",
+    "lucid-hard",
+    "will-hard",
+    "gas-chaos",
+    "dusk-chaos",
+    "dunkel-hard",
+    "hilla-hard",
+    "seren-normal",
+    "kalos-easy",
+    "adversary-easy",
+    "seren-hard",
+    "kaling-easy",
+    "bellona-easy",
+    "kalos-normal",
+    "adversary-normal",
+    "lotus-extreme",
+    "star-normal",
+    "kaling-normal",
+    "bellona-normal",
+    "kalos-chaos",
+    "limbo-normal",
+    "seren-extreme",
+    "kaling-hard",
+    "baldrix-normal",
+    "adversary-hard",
+    "jupiter-normal",
+    "star-hard",
+    "limbo-hard",
+    "bellona-hard",
+    "baldrix-hard",
+    "kalos-extreme",
+    "adversary-extreme",
+    "kaling-extreme",
+    "jupiter-hard"
+  ],
+  "presets": [
+    {
+      "id": "geommitsol",
+      "label": "검밑솔",
+      "cutoffId": null,
+      "solo": [
+        {
+          "id": "damien-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lucid-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dusk-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "gas-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        }
+      ],
+      "max": [
+        {
+          "id": "damien-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lucid-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dusk-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "gas-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        }
+      ],
+      "weeklySolo": 406564200000,
+      "weeklyMax": 67760699998
+    },
+    {
+      "id": "minimum",
+      "label": "하세이카",
+      "cutoffId": null,
+      "solo": [
+        {
+          "id": "damien-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lucid-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dusk-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "gas-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-easy",
+          "party": 1,
+          "doneThisWeek": false
+        }
+      ],
+      "max": [
+        {
+          "id": "damien-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lucid-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dusk-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "gas-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-easy",
+          "party": 6,
+          "doneThisWeek": false
+        }
+      ],
+      "weeklySolo": 856174300000,
+      "weeklyMax": 142695716664
+    },
+    {
+      "id": "noseical",
+      "label": "노세이칼",
+      "cutoffId": null,
+      "solo": [
+        {
+          "id": "damien-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lucid-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dusk-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "gas-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-easy",
+          "party": 1,
+          "doneThisWeek": false
+        }
+      ],
+      "max": [
+        {
+          "id": "damien-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lucid-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dusk-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "gas-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-normal",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-easy",
+          "party": 6,
+          "doneThisWeek": false
+        }
+      ],
+      "weeklySolo": 680325300000,
+      "weeklyMax": 113387549997
+    },
+    {
+      "id": "haseical",
+      "label": "하세이칼",
+      "cutoffId": null,
+      "solo": [
+        {
+          "id": "damien-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lucid-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dusk-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "gas-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-easy",
+          "party": 1,
+          "doneThisWeek": false
+        }
+      ],
+      "max": [
+        {
+          "id": "damien-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lucid-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dusk-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "gas-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-easy",
+          "party": 6,
+          "doneThisWeek": false
+        }
+      ],
+      "weeklySolo": 800742300000,
+      "weeklyMax": 133457049997
+    },
+    {
+      "id": "haseijeokja",
+      "label": "하세이적자",
+      "cutoffId": null,
+      "solo": [
+        {
+          "id": "damien-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lucid-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dusk-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "gas-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-easy",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-easy",
+          "party": 1,
+          "doneThisWeek": false
+        }
+      ],
+      "max": [
+        {
+          "id": "damien-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lucid-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dusk-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "gas-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-easy",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-easy",
+          "party": 3,
+          "doneThisWeek": false
+        }
+      ],
+      "weeklySolo": 977165300000,
+      "weeklyMax": 192264716663
+    },
+    {
+      "id": "nokalika",
+      "label": "노칼이카",
+      "cutoffId": null,
+      "solo": [
+        {
+          "id": "damien-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lucid-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dusk-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "gas-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-easy",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-easy",
+          "party": 1,
+          "doneThisWeek": false
+        }
+      ],
+      "max": [
+        {
+          "id": "damien-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lucid-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dusk-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "gas-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-normal",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-easy",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-easy",
+          "party": 6,
+          "doneThisWeek": false
+        }
+      ],
+      "weeklySolo": 1356382500000,
+      "weeklyMax": 255467583330
+    },
+    {
+      "id": "cut-bellona-easy",
+      "label": "이벨",
+      "cutoffId": "bellona-easy",
+      "solo": [
+        {
+          "id": "bellona-easy",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-easy",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-easy",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-easy",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dusk-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "gas-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lucid-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-hard",
+          "party": 1,
+          "doneThisWeek": false
+        }
+      ],
+      "max": [
+        {
+          "id": "bellona-easy",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-easy",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-easy",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-easy",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dusk-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "gas-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lucid-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-hard",
+          "party": 6,
+          "doneThisWeek": false
+        }
+      ],
+      "weeklySolo": 1426804100000,
+      "weeklyMax": 311817983330
+    },
+    {
+      "id": "cut-adversary-normal",
+      "label": "노대적",
+      "cutoffId": "adversary-normal",
+      "solo": [
+        {
+          "id": "adversary-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-easy",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-easy",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dusk-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "gas-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lucid-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-hard",
+          "party": 1,
+          "doneThisWeek": false
+        }
+      ],
+      "max": [
+        {
+          "id": "adversary-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-easy",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-normal",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-easy",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dusk-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "gas-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lucid-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-hard",
+          "party": 6,
+          "doneThisWeek": false
+        }
+      ],
+      "weeklySolo": 1772901500000,
+      "weeklyMax": 400032216664
+    },
+    {
+      "id": "cut-lotus-extreme",
+      "label": "익스우",
+      "cutoffId": "lotus-extreme",
+      "solo": [
+        {
+          "id": "lotus-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-easy",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-easy",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dusk-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "gas-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lucid-hard",
+          "party": 1,
+          "doneThisWeek": false
+        }
+      ],
+      "max": [
+        {
+          "id": "lotus-extreme",
+          "party": 2,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-easy",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-normal",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-easy",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dusk-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "gas-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lucid-hard",
+          "party": 6,
+          "doneThisWeek": false
+        }
+      ],
+      "weeklySolo": 2141753900000,
+      "weeklyMax": 596001283331
+    },
+    {
+      "id": "cut-star-normal",
+      "label": "노흉",
+      "cutoffId": "star-normal",
+      "solo": [
+        {
+          "id": "star-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-easy",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-easy",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dusk-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "gas-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        }
+      ],
+      "max": [
+        {
+          "id": "lotus-extreme",
+          "party": 2,
+          "doneThisWeek": false
+        },
+        {
+          "id": "star-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-easy",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-normal",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-easy",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dusk-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "gas-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        }
+      ],
+      "weeklySolo": 2517486100000,
+      "weeklyMax": 728611683331
+    },
+    {
+      "id": "cut-kaling-normal",
+      "label": "노카",
+      "cutoffId": "kaling-normal",
+      "solo": [
+        {
+          "id": "kaling-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "star-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-easy",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dusk-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "gas-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        }
+      ],
+      "max": [
+        {
+          "id": "lotus-extreme",
+          "party": 2,
+          "doneThisWeek": false
+        },
+        {
+          "id": "star-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-easy",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-normal",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-normal",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dusk-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "gas-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        }
+      ],
+      "weeklySolo": 2746151300000,
+      "weeklyMax": 766722549997
+    },
+    {
+      "id": "cut-bellona-normal",
+      "label": "노벨",
+      "cutoffId": "bellona-normal",
+      "solo": [
+        {
+          "id": "bellona-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "star-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dusk-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "gas-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        }
+      ],
+      "max": [
+        {
+          "id": "bellona-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-extreme",
+          "party": 2,
+          "doneThisWeek": false
+        },
+        {
+          "id": "star-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-normal",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-normal",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dusk-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "gas-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        }
+      ],
+      "weeklySolo": 3115028300000,
+      "weeklyMax": 889681549997
+    },
+    {
+      "id": "cut-kalos-chaos",
+      "label": "카칼",
+      "cutoffId": "kalos-chaos",
+      "solo": [
+        {
+          "id": "kalos-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "star-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dusk-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "gas-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        }
+      ],
+      "max": [
+        {
+          "id": "bellona-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-extreme",
+          "party": 2,
+          "doneThisWeek": false
+        },
+        {
+          "id": "star-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-normal",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dusk-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "gas-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        }
+      ],
+      "weeklySolo": 3622669800000,
+      "weeklyMax": 974288466663
+    },
+    {
+      "id": "cut-limbo-normal",
+      "label": "노림",
+      "cutoffId": "limbo-normal",
+      "solo": [
+        {
+          "id": "kalos-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "limbo-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "star-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dusk-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        }
+      ],
+      "max": [
+        {
+          "id": "limbo-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-extreme",
+          "party": 2,
+          "doneThisWeek": false
+        },
+        {
+          "id": "star-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-normal",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dusk-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        }
+      ],
+      "weeklySolo": 4340838100000,
+      "weeklyMax": 1222093149996
+    },
+    {
+      "id": "cut-seren-extreme",
+      "label": "익세",
+      "cutoffId": "seren-extreme",
+      "solo": [
+        {
+          "id": "seren-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "limbo-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "star-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dusk-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        }
+      ],
+      "max": [
+        {
+          "id": "limbo-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-extreme",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-extreme",
+          "party": 2,
+          "doneThisWeek": false
+        },
+        {
+          "id": "star-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-normal",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dusk-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        }
+      ],
+      "weeklySolo": 5410524000000,
+      "weeklyMax": 1400374133330
+    },
+    {
+      "id": "cut-kaling-hard",
+      "label": "하카",
+      "cutoffId": "kaling-hard",
+      "solo": [
+        {
+          "id": "seren-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "limbo-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "star-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dusk-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        }
+      ],
+      "max": [
+        {
+          "id": "limbo-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-extreme",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-extreme",
+          "party": 2,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "star-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dusk-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        }
+      ],
+      "weeklySolo": 6070259100000,
+      "weeklyMax": 1510329983330
+    },
+    {
+      "id": "cut-baldrix-normal",
+      "label": "노발",
+      "cutoffId": "baldrix-normal",
+      "solo": [
+        {
+          "id": "seren-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "baldrix-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "limbo-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "star-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 1,
+          "doneThisWeek": false
+        }
+      ],
+      "max": [
+        {
+          "id": "baldrix-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "limbo-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-extreme",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-extreme",
+          "party": 2,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "star-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 6,
+          "doneThisWeek": false
+        }
+      ],
+      "weeklySolo": 6996285100000,
+      "weeklyMax": 1827541516663
+    },
+    {
+      "id": "cut-adversary-hard",
+      "label": "하대적",
+      "cutoffId": "adversary-hard",
+      "solo": [
+        {
+          "id": "seren-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "baldrix-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "limbo-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "star-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 1,
+          "doneThisWeek": false
+        }
+      ],
+      "max": [
+        {
+          "id": "adversary-hard",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "baldrix-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "limbo-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-extreme",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-extreme",
+          "party": 2,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "star-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "will-hard",
+          "party": 6,
+          "doneThisWeek": false
+        }
+      ],
+      "weeklySolo": 7620998000000,
+      "weeklyMax": 2035779149996
+    },
+    {
+      "id": "cut-jupiter-normal",
+      "label": "노유",
+      "cutoffId": "jupiter-normal",
+      "solo": [
+        {
+          "id": "seren-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "jupiter-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "baldrix-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "limbo-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "star-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 1,
+          "doneThisWeek": false
+        }
+      ],
+      "max": [
+        {
+          "id": "jupiter-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-hard",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "baldrix-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "limbo-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-extreme",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-extreme",
+          "party": 2,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "star-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 6,
+          "doneThisWeek": false
+        }
+      ],
+      "weeklySolo": 8721725000000,
+      "weeklyMax": 2411720449996
+    },
+    {
+      "id": "cut-star-hard",
+      "label": "하흉",
+      "cutoffId": "star-hard",
+      "solo": [
+        {
+          "id": "star-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "jupiter-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "baldrix-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "limbo-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 1,
+          "doneThisWeek": false
+        }
+      ],
+      "max": [
+        {
+          "id": "star-hard",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "jupiter-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-hard",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "baldrix-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "limbo-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-extreme",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-extreme",
+          "party": 2,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 6,
+          "doneThisWeek": false
+        }
+      ],
+      "weeklySolo": 10284407200000,
+      "weeklyMax": 2932614516663
+    },
+    {
+      "id": "cut-limbo-hard",
+      "label": "하림",
+      "cutoffId": "limbo-hard",
+      "solo": [
+        {
+          "id": "star-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "limbo-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "jupiter-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "baldrix-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 1,
+          "doneThisWeek": false
+        }
+      ],
+      "max": [
+        {
+          "id": "star-hard",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "limbo-hard",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "jupiter-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-hard",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "baldrix-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-extreme",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-extreme",
+          "party": 2,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 6,
+          "doneThisWeek": false
+        }
+      ],
+      "weeklySolo": 11434982000000,
+      "weeklyMax": 3316139449996
+    },
+    {
+      "id": "cut-bellona-hard",
+      "label": "하벨",
+      "cutoffId": "bellona-hard",
+      "solo": [
+        {
+          "id": "bellona-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "star-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "limbo-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "jupiter-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "baldrix-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 1,
+          "doneThisWeek": false
+        }
+      ],
+      "max": [
+        {
+          "id": "bellona-hard",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "star-hard",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "limbo-hard",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "jupiter-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-hard",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "baldrix-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-extreme",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-extreme",
+          "party": 2,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 6,
+          "doneThisWeek": false
+        }
+      ],
+      "weeklySolo": 13077364100000,
+      "weeklyMax": 3863600149996
+    },
+    {
+      "id": "cut-baldrix-hard",
+      "label": "하발",
+      "cutoffId": "baldrix-hard",
+      "solo": [
+        {
+          "id": "baldrix-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "star-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "limbo-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "jupiter-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-chaos",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 1,
+          "doneThisWeek": false
+        }
+      ],
+      "max": [
+        {
+          "id": "baldrix-hard",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-hard",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "star-hard",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "limbo-hard",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "jupiter-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-hard",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-extreme",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-extreme",
+          "party": 2,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-chaos",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 6,
+          "doneThisWeek": false
+        }
+      ],
+      "weeklySolo": 14477944600000,
+      "weeklyMax": 4330460316663
+    },
+    {
+      "id": "cut-kalos-extreme",
+      "label": "익칼",
+      "cutoffId": "kalos-extreme",
+      "solo": [
+        {
+          "id": "kalos-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "baldrix-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "star-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "limbo-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "jupiter-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 1,
+          "doneThisWeek": false
+        }
+      ],
+      "max": [
+        {
+          "id": "baldrix-hard",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-hard",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "star-hard",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "limbo-hard",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-extreme",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "jupiter-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-hard",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-extreme",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-extreme",
+          "party": 2,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 6,
+          "doneThisWeek": false
+        }
+      ],
+      "weeklySolo": 16684847500000,
+      "weeklyMax": 4698277466663
+    },
+    {
+      "id": "cut-adversary-extreme",
+      "label": "익대적",
+      "cutoffId": "adversary-extreme",
+      "solo": [
+        {
+          "id": "adversary-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "baldrix-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "star-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "limbo-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "jupiter-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 1,
+          "doneThisWeek": false
+        }
+      ],
+      "max": [
+        {
+          "id": "adversary-extreme",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "baldrix-hard",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-hard",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "star-hard",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "limbo-hard",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-extreme",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "jupiter-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-extreme",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-extreme",
+          "party": 2,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 6,
+          "doneThisWeek": false
+        }
+      ],
+      "weeklySolo": 19492318400000,
+      "weeklyMax": 5634101099997
+    },
+    {
+      "id": "cut-kaling-extreme",
+      "label": "익카",
+      "cutoffId": "kaling-extreme",
+      "solo": [
+        {
+          "id": "kaling-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "baldrix-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "star-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "limbo-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "jupiter-normal",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 1,
+          "doneThisWeek": false
+        }
+      ],
+      "max": [
+        {
+          "id": "adversary-extreme",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "baldrix-hard",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-hard",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-extreme",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "star-hard",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "limbo-hard",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-extreme",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "jupiter-normal",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-extreme",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-extreme",
+          "party": 2,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 6,
+          "doneThisWeek": false
+        }
+      ],
+      "weeklySolo": 22549188200000,
+      "weeklyMax": 6143579399997
+    },
+    {
+      "id": "cut-jupiter-hard",
+      "label": "하유",
+      "cutoffId": "jupiter-hard",
+      "solo": [
+        {
+          "id": "kaling-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "jupiter-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "baldrix-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "star-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "limbo-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-extreme",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 1,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 1,
+          "doneThisWeek": false
+        }
+      ],
+      "max": [
+        {
+          "id": "jupiter-hard",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "adversary-extreme",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "baldrix-hard",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "bellona-hard",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kaling-extreme",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "star-hard",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "limbo-hard",
+          "party": 3,
+          "doneThisWeek": false
+        },
+        {
+          "id": "kalos-extreme",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "seren-extreme",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "lotus-extreme",
+          "party": 2,
+          "doneThisWeek": false
+        },
+        {
+          "id": "hilla-hard",
+          "party": 6,
+          "doneThisWeek": false
+        },
+        {
+          "id": "dunkel-hard",
+          "party": 6,
+          "doneThisWeek": false
+        }
+      ],
+      "weeklySolo": 25293088600000,
+      "weeklyMax": 7058212866663
+    }
+  ],
+  "representative": {
+    "main": {
+      "level": 290,
+      "exp": 31.773712492855537,
+      "progress": 290.31773712492856,
+      "stepsCleared": 30,
+      "coins": 17000
+    },
+    "second": {
+      "level": 288,
+      "exp": 3.895662131487507,
+      "progress": 288.03895662131487,
+      "stepsCleared": 18,
+      "coins": 14000
+    }
+  },
+  "validation": {
+    "tests": 156,
+    "eslintErrors": 0,
+    "eslintWarnings": 0,
+    "independentSourceChecks": 78,
+    "independentCodeCutChecks": 70,
+    "UI": [
+      "노림 솔로4.34조 → 최대인원1.22조",
+      "키보드 노림→노발7.00조·12마리·결과갱신",
+      "잡음이 스우 하드→익스트림→하드로 유지",
+      "전부빼기→최대인원:0마리",
+      "기본복원:10마리·실제솔로표시",
+      "390px 전체페이지 가로넘침 없음"
+    ]
+  }
+}
