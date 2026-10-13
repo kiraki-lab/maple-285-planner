@@ -112,13 +112,13 @@ test("두 대표 사례: 원본 아이템 정수로 바로잡아도 단계 수�
   const main = defaultMainInput("2026-10-09");
   const a = analyzeMain(main, real).best.summary;
   assert.equal(a.level, 290);
-  assert.ok(Math.abs(a.exp - 31.773712492855537) < 1e-9);
+  assert.ok(Math.abs(a.exp - 32.600727464289655) < 1e-9);
   assert.equal(a.stepsCleared, 30);
   Object.assign(main, { level: 286, exp: 68 }); main.plus.tier = "free";
   main.personal.mission = { ...main.personal.mission, stepsDone: 4, nextTarget: { level: 286, exp: 69.714 }, nextRewardPct: 1.888 };
   const b = analyzeMain(main, real).best.summary;
   assert.equal(b.level, 288);
-  assert.ok(Math.abs(b.exp - 3.895662131487507) < 1e-9);
+  assert.ok(Math.abs(b.exp - 5.4377544692575075) < 1e-9);
   assert.equal(b.stepsCleared, 18);
 });
 
@@ -932,16 +932,16 @@ test("등급 비교와 시점 비교도 입력 경고를 잃지 않는다", () =
   designation.forEach(row => assert.equal(has(row.result), 1));
 });
 
-test("기본 보스 구성은 검밑솔 + 하드 세렌 + 이지 카링이고 솔로 10종이다", () => {
+test("기본 보스 구성은 하세이카 솔로 12종이다", () => {
   const real = createMainContext();
   const input = defaultMainInput("2026-10-04");
   const ids = input.personal.bosses.map(boss => boss.id);
-  assert.equal(ids.length, 10);
-  ["damien-hard", "lotus-hard", "lucid-hard", "will-hard", "dunkel-hard", "hilla-hard", "dusk-chaos", "gas-chaos", "seren-hard", "kaling-easy"].forEach(id => assert.ok(ids.includes(id), id));
+  assert.equal(ids.length, 12);
+  ["damien-hard", "lotus-hard", "lucid-hard", "will-hard", "dunkel-hard", "hilla-hard", "dusk-chaos", "gas-chaos", "seren-hard", "kaling-easy", "kalos-easy", "adversary-easy"].forEach(id => assert.ok(ids.includes(id), id));
   assert.ok(input.personal.bosses.every(boss => boss.party === 1 && boss.doneThisWeek === false));
   const result = simulateMain(input, real);
-  assert.equal(result.boss.clears, 10 * 7, "10개 × (시작 주 1회 + 목요일 6회)");
-  assert.ok(result.sourceRaw.boss > 0);
+  assert.equal(result.boss.clears, 12 * 7, "12개 × (시작 주 1회 + 목요일 6회)");
+  assert.equal(result.sourceRaw.boss, 8_354_311_700_000);
 });
 
 test("기본 PLUS는 프라임 + 몰아쓰기라 기준일까지 열린 보상을 전부 모아 둔 것으로 본다", () => {
@@ -1694,20 +1694,21 @@ test("묶음·여기까지 선택은 같은 보스의 이번 주 처치를 난�
 test("저장된 여기까지 목록의 기준은 복구하지만 직접 고른 일부 목록을 채우지 않는다", () => {
   assert.equal(bossCutoffFor([{ id: "lotus-hard" }, { id: "damien-hard" }, { id: "lucid-hard" }, { id: "will-hard" }]), "will-hard");
   assert.equal(bossCutoffFor(bossPreset({ cutoffId: "jupiter-hard", partyMode: "max" })), "jupiter-hard");
-  assert.equal(bossCutoffFor(defaultMainInput("2026-10-12").personal.bosses), "", "하세이카는 선택된 10마리 그대로다");
+  assert.equal(bossCutoffFor(defaultMainInput("2026-10-12").personal.bosses), "kaling-easy", "기본 선택도 하세이카 버튼과 같다");
   assert.equal(bossCutoffFor([{ id: "limbo-normal" }]), "");
   assert.equal(bossCutoffFor([]), "");
   assert.equal(bossCutoffFor(null), "");
 });
 
 
-test("네 보스 구간의 주간 경험치와 처음 10마리 구성을 유지한다", () => {
+test("네 보스 구간의 주간 경험치와 기본 하세이카 12마리를 확인한다", () => {
   const cases = [["geommitsol",406_564_200_000,8],["minimum",1_193_473_100_000,12],["nokal-nojeok",1_772_901_500_000,12],["nohyung-exlotus",2_517_486_100_000,12]];
   for (const [id,raw,count] of cases) { const b=bossCommunityPreset(id);assert.equal(bossListWeeklyRaw(b),raw);assert.equal(b.length,count); }
   const initial=defaultMainInput("2026-10-09").personal.bosses;
-  assert.equal(initial.length,10);
-  assert.equal(bossListWeeklyRaw(initial),856_174_300_000);
-  assert.ok(!initial.some(b=>b.id==="kalos-easy"||b.id==="adversary-easy"));
+  assert.equal(initial.length,12);
+  assert.equal(bossListWeeklyRaw(initial),1_193_473_100_000);
+  assert.ok(initial.some(b=>b.id==="kalos-easy"));
+  assert.ok(initial.some(b=>b.id==="adversary-easy"));
   assert.ok(bossCommunityPreset("minimum").some(b=>b.id==="kalos-easy"));
   assert.ok(bossCommunityPreset("minimum").some(b=>b.id==="adversary-easy"));
 });

@@ -353,3 +353,20 @@ test("없어진 묶음 id가 저장돼 있어도 실제 보스·인원·잡음�
   }
   assert.deepEqual(mergeSaved({personal:{presetId:"nokalika",bosses:[]}},"2026-10-12").personal.bosses,[]);
 });
+
+
+test("새 방문은 하세이카 12마리지만 저장된 10마리·개별 구성·빈 목록은 그대로다", async () => {
+  const {defaultMainInput,bossListWeeklyRaw} = await import(new URL("lib/main-planner.mjs", root).href);
+  const {loadSaved,parseSaved,serializeSaved} = await import(new URL("lib/saved-input.mjs", root).href);
+  const absent=loadSaved({getItem:()=>null},"2026-10-13");
+  assert.equal(absent,null);
+  const fresh=absent??defaultMainInput("2026-10-13");
+  assert.equal(fresh.personal.bosses.length,12);
+  assert.equal(bossListWeeklyRaw(fresh.personal.bosses),1_193_473_100_000);
+  const old10=["damien-hard","lotus-hard","lucid-hard","will-hard","dunkel-hard","hilla-hard","dusk-chaos","gas-chaos","seren-hard","kaling-easy"].map(id=>({id,party:1,doneThisWeek:false}));
+  for(const bosses of [old10,[{id:"seren-hard",party:3,doneThisWeek:true},{id:"lotus-hard",party:2,doneThisWeek:false}],[]]) {
+    const restored=parseSaved(serializeSaved({personal:{bosses}}),"2026-10-13");
+    assert.deepEqual(restored.personal.bosses,bosses);
+  }
+  assert.equal(bossListWeeklyRaw(parseSaved(serializeSaved({personal:{bosses:old10}}),"2026-10-13").personal.bosses),856_174_300_000);
+});
