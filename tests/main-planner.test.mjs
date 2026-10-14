@@ -1736,6 +1736,7 @@ test("옛 수령 입력과 같은 등급별 입력은 기존 결과·등급 비�
     assert.deepEqual(simulateMain(split,ctx),simulateMain(x,ctx));
     const a=compareTiers(x,ctx),b=compareTiers(split,ctx);
     assert.deepEqual(b.map(r=>r.summary),a.map(r=>r.summary));
+    assert.deepEqual(b.map(r=>r.extra),a.map(r=>r.extra));
   }
 });
 
@@ -1775,4 +1776,12 @@ test("등급별 미수령 보상은 현재 레벨과 이후 목요일에 열리�
   assert.deepEqual(simulateMain(x,ctx).items.plusReceived,{crimson:2,adv:300,sauna:0,coupon4x:0,booster:6});
   x.plus.enabled=false;
   assert.deepEqual(simulateMain(x,ctx).items.plusReceived,{crimson:0,adv:0,sauna:0,coupon4x:0,booster:0});
+});
+
+
+test("등급 비교 extra는 새 입력에서도 이미 받은 레벨의 추가 보상만 센다", () => {
+  const x=defaultMainInput("2026-10-13");x.plus.tier="free";x.plus.claimedLevels={free:3,premium:0,prime:0};
+  const row=compareTiers(x,createMainContext()).find(r=>r.tier==="premium");
+  assert.deepEqual(row.extra,{crimson:1,adv:0,sauna:0,coupon4x:2,booster:10});
+  assert.deepEqual(row.analysis.chosen.result.items.plusReceived,{crimson:5,adv:5000,sauna:1,coupon4x:4,booster:20});
 });
