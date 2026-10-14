@@ -1712,3 +1712,67 @@ test("네 보스 구간의 주간 경험치와 기본 하세이카 12마리를 �
   assert.ok(bossCommunityPreset("minimum").some(b=>b.id==="kalos-easy"));
   assert.ok(bossCommunityPreset("minimum").some(b=>b.id==="adversary-easy"));
 });
+
+
+test("무료 보상 수령 뒤 늦은 구매는 유료 보상만 한 번 받는다", () => {
+  const ctx=createMainContext();
+  const x=defaultMainInput("2026-10-13");x.end=x.start;
+  x.plus={...x.plus,currentLevel:10,claimedLevel:10,claimedLevels:{free:10,premium:0,prime:0}};
+  const expected={free:{crimson:0,adv:0,sauna:0,coupon4x:0,booster:0},premium:{crimson:5,adv:4500,sauna:0,coupon4x:4,booster:20},prime:{crimson:16,adv:13500,sauna:0,coupon4x:10,booster:40}};
+  for(const tier of ["free","premium","prime"]){x.plus.tier=tier;assert.deepEqual(simulateMain(x,ctx).items.plusReceived,expected[tier]);}
+  x.plus.tier="prime";x.plus.claimedLevels.premium=10;
+  assert.deepEqual(simulateMain(x,ctx).items.plusReceived,{crimson:11,adv:9000,sauna:0,coupon4x:6,booster:20});
+  x.end="2026-10-21";
+  assert.deepEqual(simulateMain(x,ctx).items.plusReceived,{crimson:11,adv:9000,sauna:0,coupon4x:6,booster:20},"여러 날 계산해도 중복되지 않는다");
+  x.start="2026-10-22";x.end=x.start;
+  assert.deepEqual(simulateMain(x,ctx).items.plusReceived,expected.free);
+});
+
+test("옛 수령 입력과 같은 등급별 입력은 기존 결과·등급 비교를 유지한다", () => {
+  const ctx=createMainContext();
+  for(const tier of ["free","premium","prime"]) for(const received of [0,5,10]) {
+    const x=defaultMainInput("2026-10-13");x.plus.tier=tier;x.plus.claimedLevel=received;
+    const split=structuredClone(x);split.plus.claimedLevels={free:received,premium:tier!=="free"?received:0,prime:tier==="prime"?received:0};
+    assert.deepEqual(simulateMain(split,ctx),simulateMain(x,ctx));
+    const a=compareTiers(x,ctx),b=compareTiers(split,ctx);
+    assert.deepEqual(b.map(r=>r.summary),a.map(r=>r.summary));
+  }
+});
+
+test("새 등급별 수령 입력의 범위·문자열·빈칸을 정리한다", () => {
+  const clean=normalizeInput({start:"2026-10-13",plus:{tier:"prime",currentLevel:5,claimedLevels:{free:"10",premium:-1,prime:2.8}}},createMainContext());
+  assert.deepEqual(clean.plus.claimedLevels,{free:5,premium:0,prime:2});
+  assert.ok(!("claimedLevels" in normalizeInput({plus:{claimedLevels:null}},createMainContext()).plus));
+});
+
+
+test("9/17 지정 후 10/13 늦은 구매: 다섯 레벨×보스 없음/12마리×세 등급을 재현한다", () => {
+  const fixture=JSON.parse(readFileSync(new URL("./late-buy-fixture.json",import.meta.url),"utf8"));
+  const ctx=createMainContext();
+  for(const row of fixture.rows) {
+    const seed=defaultMainInput("2026-09-17");Object.assign(seed,{level:row.designLevel,exp:0,end:"2026-10-12",crimsonPlan:0});
+    seed.plus.tier="free";seed.personal.mission={mode:"model",stepsDone:0,designLevel:row.designLevel,designExp:0};
+    if(row.bosses===0) seed.personal.bosses=[];
+    const before=simulateMain(seed,ctx);
+    assert.equal(before.level,row.before.level);assert.equal(before.mission.stepsCleared,row.before.steps);assert.ok(Math.abs(before.exp-row.before.exp)<1e-8);
+    for(const tier of ["free","premium","prime"]) {
+    const x=structuredClone(row.input);x.plus.tier=tier;
+    const r=analyzeMain(x,ctx).chosen;
+    assert.equal(r.summary.level,row.outcomes[tier].level, row.designLevel+" "+row.bosses+" "+tier);
+    assert.equal(r.summary.stepsCleared,row.outcomes[tier].stepsCleared);
+    assert.ok(Math.abs(r.summary.exp-row.outcomes[tier].exp)<1e-8);
+    assert.equal(r.result.items.plusReceived.sauna,0,"무료 사우나를 두 번 지급하지 않는다");
+    if(tier==="free") assert.equal(r.result.items.plusReceived.crimson,0);
+    else assert.equal(r.result.items.plusReceived.crimson,tier==="premium"?5:16);
+    }
+  }
+});
+
+test("등급별 미수령 보상은 현재 레벨과 이후 목요일에 열리는 레벨을 각각 한 번만 준다", () => {
+  const x=defaultMainInput("2026-10-04");x.end="2026-10-21";
+  x.plus={...x.plus,tier:"prime",currentLevel:1,weeklyPoints:750,levelPoints:0,thisWeekRemaining:0,claimedLevels:{free:1,premium:0,prime:0}};
+  const ctx=makeCtx({plusReward:(_level,tier)=>({crimson:1,adv:tier!=="free"?100:0,booster:tier==="prime"?2:0})});
+  assert.deepEqual(simulateMain(x,ctx).items.plusReceived,{crimson:2,adv:300,sauna:0,coupon4x:0,booster:6});
+  x.plus.enabled=false;
+  assert.deepEqual(simulateMain(x,ctx).items.plusReceived,{crimson:0,adv:0,sauna:0,coupon4x:0,booster:0});
+});

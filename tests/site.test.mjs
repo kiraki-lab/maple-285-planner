@@ -71,7 +71,10 @@ test("실제 서버 화면에서 입력과 결과는 버튼으로 한 묶음씩�
   assert.match(html, /출석 보상 전부 넣기/);
   assert.match(html, /이 캐릭터에 쓸 남은 것만 넣어 주세요/);
   assert.match(html, /지금 PLUS 레벨/);
-  assert.match(html, /그중 이미 받은 보상 레벨/);
+  assert.match(html, /무료 이미 받은 보상 레벨/);
+  assert.match(html, /프리미엄 이미 받은 보상 레벨/);
+  assert.match(html, /프라임 이미 받은 보상 레벨/);
+  assert.match(html, /무료 보상만 받았어요/);
   assert.match(html, /주간 획득 포인트/);
   assert.match(html, /그다음 목표도 넣기/);
   assert.doesNotMatch(html, /290레벨부터는 예상 목표가 조금 다를 수 있어요|PLUS는 매주 2,500포인트를 채운 기준으로 계산해요/);
@@ -369,4 +372,16 @@ test("새 방문은 하세이카 12마리지만 저장된 10마리·개별 구�
     assert.deepEqual(restored.personal.bosses,bosses);
   }
   assert.equal(bossListWeeklyRaw(parseSaved(serializeSaved({personal:{bosses:old10}}),"2026-10-13").personal.bosses),856_174_300_000);
+});
+
+
+test("등급별 수령 레벨을 저장하고 옛 단일 수령 레벨은 그대로 복원한다", async () => {
+  const {mergeSaved,parseSaved,serializeSaved} = await import(new URL("lib/saved-input.mjs", root).href);
+  const old={plus:{tier:"prime",currentLevel:10,claimedLevel:7}};
+  const restored=mergeSaved(old,"2026-10-13");
+  assert.equal(restored.plus.claimedLevel,7);
+  assert.ok(!("claimedLevels" in restored.plus));
+  const late={plus:{tier:"prime",currentLevel:10,claimedLevel:10,claimedLevels:{free:"10",premium:0,prime:0}}};
+  assert.deepEqual(parseSaved(serializeSaved(late),"2026-10-13").plus.claimedLevels,{free:10,premium:0,prime:0});
+  assert.deepEqual(mergeSaved({plus:{tier:"prime",claimedLevels:{free:10}}},"2026-09-17").plus.claimedLevels,{free:10,premium:0,prime:0});
 });

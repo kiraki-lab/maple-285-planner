@@ -29,6 +29,7 @@ import {
   MISSION_STEPS,
   mobBaseExp,
   plusLevelSchedule,
+  plusClaimedLevels,
 } from "@/lib/main-planner.mjs";
 import { BOSS_CUT_ORDER, BOSS_COMMUNITY_PRESETS, HUNTING_FIELDS, PERSONAL_BOSS_TABLE, PERSONAL_COUPON_MULTIPLE, PERSONAL_FLAME_MULTIPLE, WEEKLY_BOSS_LIMIT } from "@/lib/personal-data.mjs";
 import type { MainInput, MainInputState } from "./use-main-input";
@@ -304,11 +305,12 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
       <div className="pb-pane" role="tabpanel" id="pb-pane-s2" aria-labelledby="pb-tab-s2" hidden={sec !== "s2"}>
       <div className="pb-checks"><Check label="PLUS 참여 중 (10/21까지)" checked={input.plus.enabled} onChange={value => upd((draft: MainInput) => { draft.plus.enabled = value; })} /></div>
       <div className="field-grid compact">
-        <label className="field"><span>보유 등급</span><select value={input.plus.tier} disabled={!input.plus.enabled} onChange={event => upd((draft: MainInput) => { draft.plus.tier = event.target.value as Tier; })}><option value="free">무료</option><option value="premium">프리미엄</option><option value="prime">프라임</option></select></label>
-        <NumField label="지금 PLUS 레벨" value={input.plus.currentLevel} min={0} max={10} step={1} onChange={value => upd((draft: MainInput) => { draft.plus.currentLevel = Math.max(0, Math.min(10, Math.floor(value))); draft.plus.claimedLevel = Math.min(draft.plus.claimedLevel, draft.plus.currentLevel); draft.plus.levelPoints = 0; })} hint="게임의 패스 화면에 표시된 레벨" />
-        <NumField label="그중 이미 받은 보상 레벨" value={input.plus.claimedLevel} min={0} max={input.plus.currentLevel} step={1} onChange={value => upd((draft: MainInput) => { draft.plus.claimedLevel = value; })} hint="받은 보상 중 남은 것만 아래에 넣어 주세요" />
+        <label className="field"><span>보유 등급</span><select value={input.plus.tier} disabled={!input.plus.enabled} onChange={event => upd((draft: MainInput) => { draft.plus.claimedLevels = plusClaimedLevels(draft.plus); draft.plus.tier = event.target.value as Tier; })}><option value="free">무료</option><option value="premium">프리미엄</option><option value="prime">프라임</option></select></label>
+        <NumField label="지금 PLUS 레벨" value={input.plus.currentLevel} min={0} max={10} step={1} onChange={value => upd((draft: MainInput) => { draft.plus.currentLevel = Math.max(0, Math.min(10, Math.floor(value))); draft.plus.claimedLevel = Math.min(draft.plus.claimedLevel, draft.plus.currentLevel); if (draft.plus.claimedLevels) Object.keys(draft.plus.claimedLevels).forEach(key => { draft.plus.claimedLevels[key] = Math.min(draft.plus.claimedLevels[key], draft.plus.currentLevel); }); draft.plus.levelPoints = 0; })} hint="게임의 패스 화면에 표시된 레벨" />
+        {(["free", "premium", "prime"] as Tier[]).filter(tier => ["free", "premium", "prime"].indexOf(tier) <= ["free", "premium", "prime"].indexOf(input.plus.tier)).map(tier => <NumField key={tier} label={(tier === "free" ? "무료" : tier === "premium" ? "프리미엄" : "프라임") + " 이미 받은 보상 레벨"} value={plusClaimedLevels(input.plus)[tier]} min={0} max={input.plus.currentLevel} step={1} onChange={value => upd((draft: MainInput) => { draft.plus.claimedLevels = { ...plusClaimedLevels(draft.plus), [tier]: value }; })} hint="받은 보상 중 남은 것만 아래에 넣어 주세요" />)}
         <NumField label="주간 획득 포인트" value={input.plus.weeklyPoints} min={0} max={2500} step={100} onChange={value => upd((draft: MainInput) => { draft.plus.weeklyPoints = value; })} hint="다음 목요일부터 매주 받을 포인트 · 최대 2,500" />
       </div>
+      <button type="button" className="pb-link" onClick={() => upd((draft: MainInput) => { draft.plus.claimedLevels = { free: draft.plus.currentLevel, premium: 0, prime: 0 }; })}>무료 보상만 받았어요</button>
       <details className="pb-more"><summary>레벨 안의 포인트 · 이번 주 남은 포인트</summary><div className="field-grid compact">
         <NumField label="지금 레벨 안에 쌓인 포인트" value={input.plus.levelPoints} min={0} max={749} step={1} onChange={value => upd((draft: MainInput) => { draft.plus.levelPoints = value; })} hint="패스 화면의 포인트 · 750을 채우면 다음 레벨" />
         <NumField label="이번 주 더 받을 포인트" value={input.plus.thisWeekRemaining} min={0} max={2500} step={100} onChange={value => upd((draft: MainInput) => { draft.plus.thisWeekRemaining = value; })} hint="이 수량은 이번 수요일에 더해요" />
@@ -363,6 +365,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
         <select value={selectedCutoff} onChange={event => applyBossPreset(event.target.value)}><option value="">보스 고르기</option>{BOSS_LADDER.map(entry => <option key={entry.id} value={entry.id}>{entry.boss} {entry.difficulty}</option>)}</select>
         <small>아래 난이도를 눌러도 한 번에 골라요. 받을 경험치가 큰 12마리만 남아요.</small>
       </label> : null}
+      {activePreset?.id === "geommitsol" && <p className="pb-note">검밑솔에서 퍼스널 경험치를 주는 보스는 이 8종입니다. 나머지 결정석 보스는 퍼스널 경험치에 들어가지 않습니다.</p>}
       <div className="pb-bossgrid">
         {BOSS_GROUPS.map(group => {
           const index = bosses.findIndex(boss => bossEntry(boss.id)?.boss === group.boss);
@@ -505,7 +508,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
 
         </div>
         {tiers.length > 1 && <div className="pb-result-section" role="tabpanel" id="pb-pane-r1" aria-labelledby="pb-tab-r1" tabIndex={0} hidden={resTab !== "r1"}>
-          <p className="pb-note">지금 {input.plus.tier === "free" ? "무료" : input.plus.tier === "premium" ? "프리미엄" : "프라임"} 등급에서 올릴 때입니다. 이미 받은 레벨의 위 등급 보상도 구매하면 받을 수 있다고 봤습니다. 구매 전에 인게임 표기를 확인하세요.</p>
+          <p className="pb-note">지금 {input.plus.tier === "free" ? "무료" : input.plus.tier === "premium" ? "프리미엄" : "프라임"} 등급에서 올릴 때입니다. 등급을 올리면 지금 PLUS 레벨까지의 추가 보상을 받습니다.</p>
           <div className="pb-table-wrap"><table className="hold-table pb-table">
             <thead><tr><th>등급</th><th>캐시</th><th>마감 위치</th><th>단계</th><th>차이</th></tr></thead>
             <tbody>{(tiers as unknown as { tier: Tier; cash: number; summary: { level: number; exp: number; stepsCleared: number }; gainProgress: number; gainSteps: number }[]).map(row => <tr key={row.tier} className={row.tier === input.plus.tier ? "best" : ""}>
