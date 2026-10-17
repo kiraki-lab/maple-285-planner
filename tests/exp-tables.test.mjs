@@ -321,7 +321,7 @@ test("사냥 30분 순수 경험치와 VIP 부스터가 하루1소재 식과 같
   // 288레벨이 288레벨 몬스터를 잡으면 레벨 차 보정 1.2: 240 × 40 × 4,217,526 × 1.2
   assert.equal(MOB_BASE_EXP[288], 4_217_526);
   assert.ok(Math.abs(real.huntRaw({ level: 288, fieldLevel: 288 }) - 240 * 40 * 4_217_526 * 1.2) < 1);
-  assert.equal(real.boosterRaw(288), 10 * 1710 * 4_217_526);
+  assert.equal(real.boosterRaw(288), 8_013_299_400);
   assert.equal(real.huntKillsPer30Min, 9600);
   // 레벨 차 보정 구간
   const cases = [[0, 1.2], [-1, 1.2], [2, 1.1], [5, 1.05], [10, 1], [11, 0.99], [21, 0.89], [40, 0.7], [-2, 1.1], [-5, 1.05], [-10, 1], [-20, 0.9], [-21, 0.7], [-35, 0.14], [-39, 0.1], [-40, 0]];
@@ -375,7 +375,7 @@ test("메이플로드 296~299 응답의 %와 콘텐츠·아이템 값이 소수 
 test("299 사냥은 299 몬스터를 쓰고 아이템 환산은 300에서 멈춘다", () => {
   const real = createMainContext();
   assert.equal(real.huntRaw({ level: 299, fieldLevel: 299 }), 68_108_382_720);
-  assert.equal(real.boosterRaw(299), 101_098_380_600);
+  assert.equal(real.boosterRaw(299), 11_233_153_400);
   assert.equal(flameModelRaw(299), 425_677_392);
   assert.equal(couponRawForLevel(299), 2_837_849_280);
   const r = simulateItemInventoryConversion({ level: 299, exp: 99.999, inventory: { adv: 1000 } });

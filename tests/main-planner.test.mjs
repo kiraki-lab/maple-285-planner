@@ -112,7 +112,7 @@ test("두 대표 사례: 원본 아이템 정수로 바로잡아도 단계 수�
   const main = defaultMainInput("2026-10-09");
   const a = analyzeMain(main, real).best.summary;
   assert.equal(a.level, 290);
-  assert.ok(Math.abs(a.exp - 32.600727464289655) < 1e-9);
+  assert.ok(Math.abs(a.exp - 31.453009107472052) < 1e-9);
   assert.equal(a.stepsCleared, 30);
   Object.assign(main, { level: 286, exp: 68 }); main.plus.tier = "free";
   main.personal.mission = { ...main.personal.mission, stepsDone: 4, nextTarget: { level: 286, exp: 69.714 }, nextRewardPct: 1.888 };
@@ -624,14 +624,14 @@ test("PLUS 부스터와 출석 부스터는 같은 사냥 시간에 중복되지
   x.items.booster = 10;
   x.attendance.booster = 40;
   const r = simulateMain(x, real);
-  assert.ok(Math.abs(r.sourceRaw.booster - 409_486_944_000) < 1);
-  assert.equal(r.sourceRaw.attendanceBooster || 0, 0);
-  assert.ok(Math.abs(r.items.huntItemsUsed.booster - 5.614035087719298) < 1e-10);
-  assert.equal(r.attendance.leftover.booster, 40);
+  assert.ok(Math.abs(r.sourceRaw.booster - 81_044_291_000) < 1);
+  assert.equal(r.sourceRaw.attendanceBooster, 64_835_432_800);
+  assert.ok(Math.abs(r.items.huntItemsUsed.booster - 10) < 1e-10);
+  assert.equal(r.attendance.leftover.booster, 32);
   x.start = x.end = "2026-10-22";
   const after = simulateMain(x, real);
   assert.equal(after.sourceRaw.booster || 0, 0);
-  assert.ok(Math.abs(after.sourceRaw.attendanceBooster - 409_486_944_000) < 1);
+  assert.ok(Math.abs(after.sourceRaw.attendanceBooster - 145_879_723_800) < 1);
 });
 
 test("출석 사우나와 부스터는 300 직전 실제 들어간 만큼 쓰고 남은 것을 만료로 센다", () => {
@@ -650,7 +650,7 @@ test("출석 사우나와 부스터는 300 직전 실제 들어간 만큼 쓰고
   const b = simulateMain(booster, real);
   assert.equal(b.level, 300);
   assert.ok(Math.abs(b.sourceRaw.attendanceBooster - 17_377_598_539) < 2);
-  assert.ok(b.attendance.used.booster > 0 && b.attendance.used.booster < 0.2);
+  assert.ok(b.attendance.used.booster > 0 && b.attendance.used.booster < 2);
   assert.ok(Math.abs(b.attendance.used.booster + b.attendance.expired.booster - 40) < 1e-10);
 });
 
@@ -692,7 +692,7 @@ test("일반 사냥의 쿠폰·부스터는 플레임과 별도로 고른 몬스
   x.items.coupon4x = 1; x.items.booster = 1;
   const r = simulateMain(x, real);
   assert.ok(Math.abs(r.sourceRaw.coupon4x - 171_727_845_120) < 1);
-  assert.ok(Math.abs(r.sourceRaw.booster - 84_969_506_700) < 1);
+  assert.ok(Math.abs(r.sourceRaw.booster - 9_441_056_300) < 1);
 });
 
 test("출석 보상과 분리 사냥 입력은 등급·배분·지정 비교에서도 사라지지 않는다", () => {
@@ -723,9 +723,9 @@ test("출석 부스터는 그날 PLUS를 쓰고 남은 사냥 마릿수만큼 �
   x.items.booster = 1; x.attendance.booster = 40;
   const r = simulateMain(x, createMainContext());
   assert.equal(r.items.huntItemsUsed.booster, 1);
-  assert.ok(Math.abs(r.sourceRaw.booster - 72_939_861_900) < 1);
-  assert.ok(Math.abs(r.sourceRaw.attendanceBooster - 336_547_082_100) < 1);
-  assert.ok(Math.abs(r.attendance.used.booster - 4.614035087719298) < 1e-10);
+  assert.ok(Math.abs(r.sourceRaw.booster - 8_104_429_100) < 1);
+  assert.ok(Math.abs(r.sourceRaw.attendanceBooster - 137_775_294_700) < 1);
+  assert.ok(Math.abs(r.attendance.used.booster - 17) < 1e-10);
 });
 
 test("새 보상·사냥 경로 324개 조합에서도 경험치와 보유량이 보존된다", () => {
@@ -1024,11 +1024,11 @@ test("PLUS의 4배 쿠폰과 VIP 부스터는 사냥해야 쓰이고, 안 쓰면
   assert.ok(Math.abs(some.items.huntItemsUsed.booster - 40) < 1e-9);
   assert.equal(some.items.expired.coupon4x, 0);
   assert.ok(some.sourceRaw.coupon4x > 0 && some.sourceRaw.booster > 0);
-  // 주 30분만 사냥하면 다 못 쓴다: 쿠폰은 30분당 1장, 부스터는 30분(9,600마리)당 9600/1710개.
-  const little = make(0.5);
-  const sessions = 17 / 7;
+  // 주 6분 사냥이면 다 못 쓴다: 부스터100초라 30분당18개.
+  const little = make(0.1);
+  const sessions = 17 / 35;
   assert.ok(Math.abs(little.items.huntItemsUsed.coupon4x - sessions) < 1e-9);
-  assert.ok(Math.abs(little.items.huntItemsUsed.booster - sessions * 9600 / 1710) < 1e-9);
+  assert.ok(Math.abs(little.items.huntItemsUsed.booster - sessions * 18) < 1e-9);
   assert.ok(Math.abs(little.items.expired.coupon4x - (10 - sessions)) < 1e-9);
   // 무료 등급은 둘 다 받지 않는다.
   const free = (() => { const x = isolated(); x.end = "2026-10-25"; x.plus = { enabled: true, tier: "free", claimedLevel: 0 }; x.routine.huntHoursPerWeek = 7; return simulateMain(x, real); })();
@@ -1509,7 +1509,7 @@ test("10/8 사과 보상은 상급 EXP 2,000장과 VIP 부스터 10개이며 10/
     const r = simulateMain(x, real);
     const open = date === "2026-10-08" || date === "2026-10-21";
     assert.equal(r.sourceRaw.compensationAdv || 0, open ? 1_849_638_000_000 : 0);
-    assert.equal(r.sourceRaw.compensationBooster || 0, open ? 702_861_984_000 : 0);
+    assert.equal(r.sourceRaw.compensationBooster || 0, open ? 78_095_776_000 : 0);
     assert.equal(r.compensation.used.adv, open ? 2000 : 0);
     assert.equal(r.compensation.used.booster, open ? 10 : 0);
     assert.equal(r.compensation.expired.adv, date === "2026-10-22" ? 2000 : 0);
@@ -1518,14 +1518,14 @@ test("10/8 사과 보상은 상급 EXP 2,000장과 VIP 부스터 10개이며 10/
 
 test("PLUS·사과·출석 부스터는 하루 사냥 마릿수를 공유하고 기한 순서로 쓴다", () => {
   const x = rewardOnly("2026-10-21");
-  x.routine.huntHoursPerWeek = 3.5; // 하루 30분, 9600마리 = 부스터 5.614...개
+  x.routine.huntHoursPerWeek = 3.5; // 하루 30분, 부스터100초씩 최대18개
   x.items.booster = 2; x.compensation = { adv: 0, booster: 2 }; x.attendance.booster = 10;
   const r = simulateMain(x, createMainContext());
   assert.equal(r.items.huntItemsUsed.booster, 2);
   assert.equal(r.compensation.used.booster, 2);
-  assert.ok(Math.abs(r.attendance.used.booster - 1.6140350877192984) < 1e-10);
+  assert.ok(Math.abs(r.attendance.used.booster - 10) < 1e-10);
   assert.equal(r.compensation.expired.booster, 0);
-  assert.ok(Math.abs(r.attendance.leftover.booster - 8.385964912280702) < 1e-10);
+  assert.ok(Math.abs(r.attendance.leftover.booster - 0) < 1e-10);
 });
 
 test("300 직전의 사과 부스터는 실제로 들어간 분량만 쓰고 나머지는 만료된다", () => {

@@ -429,7 +429,7 @@ export const formatItemConversionExperience = (raw: number) => {
 // 사냥 모형 상수(하루1소재). 한 번에 잡는 마릿수는 285레벨 이상 사냥터 대부분이 40(일부 36)이라 40으로 둔다.
 export const HUNT_SPAWNS_PER_30MIN = 240;
 export const HUNT_MOBS_PER_SPAWN = 40;
-export const VIP_BOOSTER_KILLS = 1_710;
+export const VIP_BOOSTER_KILLS = 190;
 export const VIP_BOOSTER_MULTIPLE = 10;
 // 캐릭터 레벨 − 몬스터 레벨에 따른 경험치 배율(하루1소재 사냥 식 그대로).
 export const huntLevelFactor = (gap: number) => (gap >= 40 ? 0.7 : gap >= 21 ? (110 - gap) / 100 : gap >= 19 ? 0.95 : gap >= 17 ? 0.96 : gap >= 15 ? 0.97 : gap >= 13 ? 0.98 : gap >= 11 ? 0.99
@@ -464,8 +464,10 @@ export const createMainContext = () => ({
   // 사냥 30분의 순수 경험치(버프·쿠폰 없음): 7.5초 리젠 240번 × 한 번에 잡는 마릿수 × 몬스터 기본 경험치 × 레벨 차 보정. 하루1소재 사냥 식.
   huntRaw: ({ level, fieldLevel, mobsPerSpawn = HUNT_MOBS_PER_SPAWN }: { level: number; fieldLevel: number; mobsPerSpawn?: number }) =>
     HUNT_SPAWNS_PER_30MIN * mobsPerSpawn * ((MOB_BASE_EXP as Record<number, number>)[fieldLevel] ?? 0) * huntLevelFactor(level - fieldLevel),
-  // VIP 부스터 1개: 몬스터 1,710마리에 기본 경험치의 10배가 더 붙는다(하루1소재 식).
+  // VIP 부스터 1개: 몬스터 190마리에 기본 경험치의 10배가 더 붙는다(하루1소재 식).
   boosterRaw: (fieldLevel: number) => VIP_BOOSTER_MULTIPLE * VIP_BOOSTER_KILLS * ((MOB_BASE_EXP as Record<number, number>)[fieldLevel] ?? 0),
   huntKillsPer30Min: HUNT_SPAWNS_PER_30MIN * HUNT_MOBS_PER_SPAWN,
   boosterKills: VIP_BOOSTER_KILLS,
+  // 테섭 WZ 2639826: 100초 지속. 한 사냥 30분에 최대 18개를 사용한다.
+  boosterUsesPer30Min: 18,
 });
