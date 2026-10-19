@@ -464,7 +464,9 @@ export const createMainContext = () => ({
   // 사냥 30분의 순수 경험치(버프·쿠폰 없음): 7.5초 리젠 240번 × 한 번에 잡는 마릿수 × 몬스터 기본 경험치 × 레벨 차 보정. 하루1소재 사냥 식.
   huntRaw: ({ level, fieldLevel, mobsPerSpawn = HUNT_MOBS_PER_SPAWN }: { level: number; fieldLevel: number; mobsPerSpawn?: number }) =>
     HUNT_SPAWNS_PER_30MIN * mobsPerSpawn * ((MOB_BASE_EXP as Record<number, number>)[fieldLevel] ?? 0) * huntLevelFactor(level - fieldLevel),
-  // VIP 부스터 1개: 몬스터 190마리에 기본 경험치의 10배가 더 붙는다(하루1소재 식).
+  huntLevelFactor,
+  // VIP 부스터 기본량. 추가 경험치와 레벨 차 보정은 엔진이 적용 직전 현재 레벨로 곱한다.
+  // 하루1소재 29m80xfm160xd.js byte 19490: 10*k(e)*190*(1+(e.expBonus??0)/100).
   boosterRaw: (fieldLevel: number) => VIP_BOOSTER_MULTIPLE * VIP_BOOSTER_KILLS * ((MOB_BASE_EXP as Record<number, number>)[fieldLevel] ?? 0),
   huntKillsPer30Min: HUNT_SPAWNS_PER_30MIN * HUNT_MOBS_PER_SPAWN,
   boosterKills: VIP_BOOSTER_KILLS,

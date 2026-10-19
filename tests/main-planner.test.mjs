@@ -112,7 +112,7 @@ test("두 대표 사례: 원본 아이템 정수로 바로잡아도 단계 수�
   const main = defaultMainInput("2026-10-09");
   const a = analyzeMain(main, real).best.summary;
   assert.equal(a.level, 290);
-  assert.ok(Math.abs(a.exp - 31.453009107472052) < 1e-9);
+  assert.ok(Math.abs(a.exp - 31.977621138629274) < 1e-9);
   assert.equal(a.stepsCleared, 30);
   Object.assign(main, { level: 286, exp: 68 }); main.plus.tier = "free";
   main.personal.mission = { ...main.personal.mission, stepsDone: 4, nextTarget: { level: 286, exp: 69.714 }, nextRewardPct: 1.888 };
@@ -624,14 +624,14 @@ test("PLUS 부스터와 출석 부스터는 같은 사냥 시간에 중복되지
   x.items.booster = 10;
   x.attendance.booster = 40;
   const r = simulateMain(x, real);
-  assert.ok(Math.abs(r.sourceRaw.booster - 81_044_291_000) < 1);
-  assert.equal(r.sourceRaw.attendanceBooster, 64_835_432_800);
+  assert.ok(Math.abs(r.sourceRaw.booster - 89_148_720_100) < 1);
+  assert.equal(r.sourceRaw.attendanceBooster, 71_318_976_080);
   assert.ok(Math.abs(r.items.huntItemsUsed.booster - 10) < 1e-10);
   assert.equal(r.attendance.leftover.booster, 32);
   x.start = x.end = "2026-10-22";
   const after = simulateMain(x, real);
   assert.equal(after.sourceRaw.booster || 0, 0);
-  assert.ok(Math.abs(after.sourceRaw.attendanceBooster - 145_879_723_800) < 1);
+  assert.ok(Math.abs(after.sourceRaw.attendanceBooster - 160_467_696_180) < 1);
 });
 
 test("출석 사우나와 부스터는 300 직전 실제 들어간 만큼 쓰고 남은 것을 만료로 센다", () => {
@@ -692,7 +692,7 @@ test("일반 사냥의 쿠폰·부스터는 플레임과 별도로 고른 몬스
   x.items.coupon4x = 1; x.items.booster = 1;
   const r = simulateMain(x, real);
   assert.ok(Math.abs(r.sourceRaw.coupon4x - 171_727_845_120) < 1);
-  assert.ok(Math.abs(r.sourceRaw.booster - 9_441_056_300) < 1);
+  assert.ok(Math.abs(r.sourceRaw.booster - 45_317_070_240) < 1);
 });
 
 test("출석 보상과 분리 사냥 입력은 등급·배분·지정 비교에서도 사라지지 않는다", () => {
@@ -723,8 +723,8 @@ test("출석 부스터는 그날 PLUS를 쓰고 남은 사냥 마릿수만큼 �
   x.items.booster = 1; x.attendance.booster = 40;
   const r = simulateMain(x, createMainContext());
   assert.equal(r.items.huntItemsUsed.booster, 1);
-  assert.ok(Math.abs(r.sourceRaw.booster - 8_104_429_100) < 1);
-  assert.ok(Math.abs(r.sourceRaw.attendanceBooster - 137_775_294_700) < 1);
+  assert.ok(Math.abs(r.sourceRaw.booster - 35_659_488_040) < 1);
+  assert.ok(Math.abs(r.sourceRaw.attendanceBooster - 606_211_296_680) < 1);
   assert.ok(Math.abs(r.attendance.used.booster - 17) < 1e-10);
 });
 
@@ -1177,7 +1177,7 @@ test("사냥으로 레벨 상한에 닿으면 4배 쿠폰과 부스터를 더 �
   // 쓴 만큼만 경험치가 있어야 한다: 상한 뒤에 차감된 것이 없으면 사용량 × 단위 경험치 = 원천 합계
   const perSession = real.huntRaw({ level: 299, fieldLevel: 299 });
   assert.ok(Math.abs((r.sourceRaw.coupon4x || 0) - r.items.huntItemsUsed.coupon4x * 3 * perSession) < 1);
-  assert.ok(Math.abs((r.sourceRaw.booster || 0) - r.items.huntItemsUsed.booster * real.boosterRaw(299)) < 1);
+  assert.ok(Math.abs((r.sourceRaw.booster || 0) - r.items.huntItemsUsed.booster * 53_919_136_320) < 1);
   // 받은 것 = 쓴 것 + 소멸
   assert.ok(Math.abs(r.items.plusReceived.coupon4x - r.items.huntItemsUsed.coupon4x - r.items.expired.coupon4x) < 1e-9);
   assert.ok(Math.abs(r.items.plusReceived.booster - r.items.huntItemsUsed.booster - r.items.expired.booster) < 1e-9);
@@ -1509,7 +1509,7 @@ test("10/8 사과 보상은 상급 EXP 2,000장과 VIP 부스터 10개이며 10/
     const r = simulateMain(x, real);
     const open = date === "2026-10-08" || date === "2026-10-21";
     assert.equal(r.sourceRaw.compensationAdv || 0, open ? 1_849_638_000_000 : 0);
-    assert.equal(r.sourceRaw.compensationBooster || 0, open ? 78_095_776_000 : 0);
+    assert.equal(r.sourceRaw.compensationBooster || 0, open ? 374_859_724_800 : 0);
     assert.equal(r.compensation.used.adv, open ? 2000 : 0);
     assert.equal(r.compensation.used.booster, open ? 10 : 0);
     assert.equal(r.compensation.expired.adv, date === "2026-10-22" ? 2000 : 0);
@@ -1534,8 +1534,8 @@ test("300 직전의 사과 부스터는 실제로 들어간 분량만 쓰고 나
   const real = createMainContext();
   const r = simulateMain(x, { ...real, huntRaw: () => 1e-20, boosterRaw: () => 100_000_000_000 });
   assert.equal(r.level, 300);
-  assert.ok(Math.abs(r.compensation.used.booster - 0.1737759854025) < 1e-9);
-  assert.ok(Math.abs(r.compensation.expired.booster - 9.8262240145975) < 1e-9);
+  assert.ok(Math.abs(r.compensation.used.booster - 0.0362033302921875) < 1e-9);
+  assert.ok(Math.abs(r.compensation.expired.booster - 9.963796669707813) < 1e-9);
   assert.ok(Math.abs(r.sourceRaw.compensationBooster - 17_377_598_540.25) < 1);
 });
 
@@ -1784,4 +1784,42 @@ test("등급 비교 extra는 새 입력에서도 이미 받은 레벨의 추가 
   const row=compareTiers(x,createMainContext()).find(r=>r.tier==="premium");
   assert.deepEqual(row.extra,{crimson:1,adv:0,sauna:0,coupon4x:2,booster:10});
   assert.deepEqual(row.analysis.chosen.result.items.plusReceived,{crimson:5,adv:5000,sauna:1,coupon4x:4,booster:20});
+});
+
+
+test("PLUS·출석·사과 부스터는 모두 사냥 추가 경험치와 같은 레벨 보정을 받는다", () => {
+  for(const kind of ['plus','attendance','compensation']) {
+    const x=rewardOnly('2026-10-21',288,0);
+    Object.assign(x.routine,{huntHoursPerWeek:3.5,huntBonusPct:300,huntFieldKey:'direct',huntFieldLevel:288});
+    if(kind==='plus') x.items.booster=1;else x[kind].booster=1;
+    const r=simulateMain(x,{...createMainContext(),huntRaw:()=>1e-20});
+    const source={plus:'booster',attendance:'attendanceBooster',compensation:'compensationBooster'}[kind];
+    assert.equal(r.sourceRaw[source],38_463_837_120,'10×190×4,217,526×4×1.2');
+    assert.equal(kind==='plus'?r.items.huntItemsUsed.booster:r[kind].used.booster,1);
+    x.routine.huntBonusPct=0;
+    assert.equal(simulateMain(x,{...createMainContext(),huntRaw:()=>1e-20}).sourceRaw[source],9_615_959_280);
+  }
+});
+
+
+test("부스터 한 개 도중 레벨이 오르면 나머지 분량은 새 몬스터 값으로 다시 계산한다", () => {
+  const x=rewardOnly('2026-10-21',289,99.99);
+  Object.assign(x.routine,{huntHoursPerWeek:3.5,huntBonusPct:300,huntFieldKey:'same'});x.items.booster=1;
+  const r=simulateMain(x,{...createMainContext(),huntRaw:()=>1e-20});
+  assert.equal(r.level,290);assert.equal(r.items.huntItemsUsed.booster,1);
+  // 289에서 14,569,577,764.187 EXP를 채운 뒤 남은 비율에 290레벨 단가 43,715,060,160 EXP 적용.
+  assert.ok(Math.abs(r.sourceRaw.booster-41_912_161_204.75874)<2);
+  const zero=simulateMain(x,{...createMainContext(),huntRaw:()=>1e-20,huntLevelFactor:()=>0});
+  assert.equal(zero.items.huntItemsUsed.booster,0);assert.equal(zero.items.expired.booster,1);
+});
+
+
+test("부스터가 없는 18사례는 게시본45d2861과 10/21까지 위치·단계·경험치 내역·재고가 같다", () => {
+  const fixture=JSON.parse(readFileSync(new URL('./booster-zero-fixture.json',import.meta.url),'utf8'));
+  assert.equal(fixture.baseline,'45d2861');assert.equal(fixture.rows.length,18);
+  for(const row of fixture.rows) {
+    const r=simulateMain(row.input,createMainContext());
+    assert.equal(r.items.plusReceived.booster,0);assert.equal(r.sourceRaw.booster||0,0);assert.equal(r.sourceRaw.attendanceBooster||0,0);assert.equal(r.sourceRaw.compensationBooster||0,0);
+    assert.deepEqual({level:r.level,exp:r.exp,steps:r.mission.stepsCleared,sourceRaw:r.sourceRaw,items:r.items,flame:r.flame},row.expected);
+  }
 });
