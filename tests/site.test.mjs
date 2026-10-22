@@ -115,7 +115,7 @@ test("서버 렌더 첫 화면은 퍼스널 버닝 탭이고 고정 날짜로 �
   assert.doesNotMatch(html, /id="calculator-panel"|id="pre280-panel"|id="items-panel"|id="reference-panel"/);
   assert.match(html, /퍼스널 버닝, 언제 어디까지\?/);
   // 날짜는 서버와 클라이언트가 같게 시작하고 마운트 뒤에 오늘로 바뀐다.
-  assert.match(html, /value="2026-10-04"/);
+  assert.match(html, /value="2026-10-22"/);
   // 입력과 결과가 서버 렌더에도 있다.
   assert.match(html, /11\/18 마감 위치/);
   assert.match(html, /성장 미션/);
@@ -131,7 +131,7 @@ test("입력은 이 브라우저에 저장하고, 저장소를 못 써도 계산
   assert.equal((hook.match(/localStorage\.(getItem|setItem)/g) || []).length, 0);
   assert.equal((hook.match(/try \{/g) || []).length, 2);
   assert.match(hook, /useEffect\(\(\) => \{[\s\S]*kstToday\(\)/);
-  assert.match(hook, /export const SSR_START = "2026-10-04"/);
+  assert.match(hook, /export const SSR_START = "2026-10-22"/);
   assert.match(hook, /loadSaved\(window\.localStorage, now\)/);
   assert.match(hook, /persistSaved\(window\.localStorage, input\)/);
   // 렌더 중에는 오늘 날짜를 읽지 않는다(서버와 첫 클라이언트 렌더가 같아야 한다).
@@ -263,9 +263,9 @@ test("아이템 환산 탭은 퍼스널 탭 입력을 쓰고 이동 버튼을 �
 test("보상표·자료 탭이 공식 PLUS 표와 하루1소재 표를 보여 준다", async () => {
   const reference = await read("app/reference-panel.tsx");
   assert.match(reference, /모멘텀 패스 PLUS/);
-  assert.match(reference, /10\/21 23:59 수령 마감/);
-  assert.match(reference, /프리미엄·프라임은 10\/21 23:00까지 판매/);
-  assert.match(reference, /퍼스널 보스 미션 35개/);
+  assert.match(reference, /9월 10\/21 · 10월 11\/18 23:59 수령 마감/);
+  assert.match(reference, /프리미엄·프라임은 11\/18 23:00까지 판매/);
+  assert.match(reference, /퍼스널 보스 미션 37개/);
   assert.match(reference, /레벨별 플레임·교환권/);
   assert.match(reference, /카르마 블랙 큐브 85\(100개\)/);
   assert.match(reference, /36,500/);
@@ -384,4 +384,40 @@ test("등급별 수령 레벨을 저장하고 옛 단일 수령 레벨은 그대
   const late={plus:{tier:"prime",currentLevel:10,claimedLevel:10,claimedLevels:{free:"10",premium:0,prime:0}}};
   assert.deepEqual(parseSaved(serializeSaved(late),"2026-10-13").plus.claimedLevels,{free:10,premium:0,prime:0});
   assert.deepEqual(mergeSaved({plus:{tier:"prime",claimedLevels:{free:10}}},"2026-09-17").plus.claimedLevels,{free:10,premium:0,prime:0});
+});
+
+test("10월 입력은 9월 수령 레벨·재고와 섞이지 않고 저장된다", async () => {
+  const {mergeSaved,parseSaved,serializeSaved}=await import('../lib/saved-input.mjs');
+  const x=mergeSaved({start:'2026-10-22',plus:{tier:'free',currentLevel:10,claimedLevel:10},items:{adv:123},plusOctober:{enabled:true,tier:'prime',purchaseDate:'2026-11-05',currentLevel:'6',claimedLevels:{free:6,premium:0,prime:0},items:{adv:'456',booster:'2.5'}},magnifiers:{detectivePerDay:'2',ordinaryPerDay:'4',killsPerUse:'180',fieldKey:'direct',fieldLevel:294}},'2026-10-22');
+  const y=parseSaved(serializeSaved(x),'2026-10-23');assert.deepEqual(y,x);
+  assert.equal(y.items.adv,123);assert.equal(y.plusOctober.items.adv,456);assert.equal(y.plusOctober.items.booster,2.5);
+  assert.deepEqual(y.plusOctober.claimedLevels,{free:6,premium:0,prime:0});assert.equal(y.plus.claimedLevel,10);
+  const old=mergeSaved({start:'2026-10-09',plus:{tier:'prime',claimedLevel:3}},'2026-10-22');
+  assert.equal(old.plus.claimedLevel,3);assert.equal(old.plusOctober.currentLevel,0);assert.equal(old.plusOctober.tier,'free');assert.equal(old.magnifiers.detectivePerDay,1);
+});
+
+test("서버 화면에 45단계·10월 PLUS 구매일·두 돋보기 입력이 있다", async () => {
+  const html=await renderBuiltSsrHtml('october-update');
+  assert.match(html,/\/45段階|\/45<!-- -->段階|\/<!-- -->45<!-- -->段階|\/45단계|\/<!-- -->45<!-- -->단계/);
+  for(const label of ['10월 구매 등급','10월 패스 구매일','10월 지금 PLUS 레벨','한 번에 잡는 유령 수','탐정예티 돋보기 하루 사용 횟수','수상한 돋보기 하루 사용 횟수']) assert.ok(html.includes(label),label);
+  assert.doesNotMatch(html,/1,710마리/);
+});
+
+test("30단계 마지막 목표 입력은 선택한 경우에만 복원하고 옛 다음 목표를 자동 전환하지 않는다", async () => {
+  const {mergeSaved,parseSaved,serializeSaved}=await import('../lib/saved-input.mjs');
+  const mission={mode:'screen',stepsDone:30,nextTarget:{level:290,exp:34.956},nextRewardPct:0.819};
+  const old=mergeSaved({level:290,exp:40,personal:{mission}},'2026-10-18');assert.equal(old.personal.mission.targetKind,'next');
+  const selected=mergeSaved({...old,personal:{...old.personal,mission:{...mission,targetKind:'last30'}}},'2026-10-18');
+  assert.equal(parseSaved(serializeSaved(selected),'2026-10-19').personal.mission.targetKind,'last30');
+  assert.equal(mergeSaved({...selected,personal:{...selected.personal,mission:{...selected.personal.mission,stepsDone:31}}},'2026-10-23').personal.mission.targetKind,'next');
+});
+
+
+test("9월 프리미엄만 구매한 10월 프라임과 무료 수령 기록은 따로 복원한다", async () => {
+  const {mergeSaved,parseSaved,serializeSaved}=await import('../lib/saved-input.mjs');
+  const old=mergeSaved({start:'2026-10-22',plus:{enabled:true,tier:'premium',currentLevel:10,claimedLevel:10},plusOctober:{enabled:true,tier:'free',currentLevel:10,claimedLevel:10}},'2026-10-22');
+  assert.equal(old.plus.tier,'premium');assert.equal(old.plusOctober.tier,'free');assert.equal(old.plusOctober.claimedLevel,10);
+  old.plusOctober.claimedLevels={free:10,premium:0,prime:0};old.plusOctober.tier='prime';old.plusOctober.purchaseDate='2026-10-30';
+  const saved=parseSaved(serializeSaved(old),'2026-10-30');
+  assert.equal(saved.plusOctober.tier,'prime');assert.equal(saved.plusOctober.purchaseDate,'2026-10-30');assert.deepEqual(saved.plusOctober.claimedLevels,{free:10,premium:0,prime:0});
 });

@@ -143,7 +143,7 @@ test("하루1소재 표 스냅샷: 표가 바뀌면 이 테스트가 먼저 알�
   const hash = value => createHash("sha256").update(JSON.stringify(value)).digest("hex");
   // 2026-10-04에 하루1소재 번들 청크(3pbsp2-ukxvfz.js)에서 읽은 값과 코덱스가 전수 대조한 상태의 해시다.
   assert.equal(hash(MOB_BASE_EXP), "d6c17daf3d9be86de0ed4eb43a391b503e939ed4ff433a8cc49002624bd37c66");
-  assert.equal(hash(PERSONAL_BOSS_TABLE), "d82585afffe3898e57fa620c27d82c539af42aa6c3491a818e1c005f091d1ffa");
+  assert.equal(hash(PERSONAL_BOSS_TABLE.filter(entry => !entry.availableFrom)), "d82585afffe3898e57fa620c27d82c539af42aa6c3491a818e1c005f091d1ffa");
   assert.equal(hash(HUNTING_FIELDS), "13839d16f21a763ae5bbad9b34a4d1632c65d3906d8b4bf182da781f2d2e7296");
   // 코드와 무관하게 사이트에서 손으로 옮긴 값 몇 개
   assert.equal(MOB_BASE_EXP[260], 1_725_461);
@@ -192,18 +192,18 @@ test("사냥터 표는 몬스터 기본 경험치 표와 같은 값을 쓴다", 
   assert.deepEqual([...new Set(HUNTING_FIELDS.map(field => field.region))], ["세르니움", "불타는 세르니움", "호텔 아르크스", "오디움", "도원경", "아르테리아", "카르시온", "탈라하트", "기어드락"]);
 });
 
-test("퍼스널 보스 표는 공식 지정 35개와 같다", () => {
+test("퍼스널 보스 표는 10/22 추가를 포함한 37개와 같다", () => {
   const official = [
     "데미안 하드", "스우 하드", "루시드 하드", "가디언 엔젤 슬라임 카오스", "더스크 카오스", "윌 하드", "듄켈 하드", "진 힐라 하드",
     "선택받은 세렌 노멀", "감시자 칼로스 이지", "최초의 대적자 이지", "카링 이지", "선택받은 세렌 하드", "벨로나 이지",
     "감시자 칼로스 노멀", "최초의 대적자 노멀", "스우 익스트림", "찬란한 흉성 노멀", "카링 노멀", "벨로나 노멀", "림보 노멀",
     "감시자 칼로스 카오스", "발드릭스 노멀", "최초의 대적자 하드", "카링 하드", "유피테르 노멀", "선택받은 세렌 익스트림",
     "림보 하드", "찬란한 흉성 하드", "벨로나 하드", "발드릭스 하드", "감시자 칼로스 익스트림", "최초의 대적자 익스트림",
-    "유피테르 하드", "카링 익스트림",
+    "유피테르 하드", "카링 익스트림", "림보 익스트림", "발드릭스 익스트림",
   ];
-  assert.equal(PERSONAL_BOSS_TABLE.length, 35);
+  assert.equal(PERSONAL_BOSS_TABLE.length, 37);
   assert.deepEqual(PERSONAL_BOSS_TABLE.map(entry => `${entry.boss} ${entry.difficulty}`).sort(), [...official].sort());
-  assert.equal(new Set(PERSONAL_BOSS_TABLE.map(entry => entry.id)).size, 35, "id는 유일해야 한다");
+  assert.equal(new Set(PERSONAL_BOSS_TABLE.map(entry => entry.id)).size, 37, "id는 유일해야 한다");
   assert.equal(BOSS_EXP_UNIT, 10_000);
   assert.equal(WEEKLY_BOSS_LIMIT, 12);
 });

@@ -1,0 +1,2002 @@
+[
+  {
+    "mission": {
+      "mode": "model",
+      "designLevel": 280,
+      "designExp": 0,
+      "stepsDone": 0
+    },
+    "steps": [
+      {
+        "index": 1,
+        "level": 280,
+        "exp": 27.880327404065277,
+        "coordinate": 280.2788032740406,
+        "rewardRaw": 1727733333177.5999,
+        "done": false
+      },
+      {
+        "index": 2,
+        "level": 280,
+        "exp": 55.76065480813055,
+        "coordinate": 280.5576065480813,
+        "rewardRaw": 1727733333177.5999,
+        "done": false
+      },
+      {
+        "index": 3,
+        "level": 280,
+        "exp": 83.64098221219582,
+        "coordinate": 280.83640982212194,
+        "rewardRaw": 1727733333177.5999,
+        "done": false
+      },
+      {
+        "index": 4,
+        "level": 281,
+        "exp": 10.616841792943625,
+        "coordinate": 281.10616841792944,
+        "rewardRaw": 1751309467123.2,
+        "done": false
+      },
+      {
+        "index": 5,
+        "level": 281,
+        "exp": 36.30845455601507,
+        "coordinate": 281.3630845455601,
+        "rewardRaw": 1751309467123.2,
+        "done": false
+      },
+      {
+        "index": 6,
+        "level": 281,
+        "exp": 62.000067319086526,
+        "coordinate": 281.6200006731909,
+        "rewardRaw": 1751309467123.2,
+        "done": false
+      },
+      {
+        "index": 7,
+        "level": 281,
+        "exp": 87.69168008215799,
+        "coordinate": 281.87691680082156,
+        "rewardRaw": 1751309467123.2,
+        "done": false
+      },
+      {
+        "index": 8,
+        "level": 282,
+        "exp": 12.312835630137128,
+        "coordinate": 282.1231283563014,
+        "rewardRaw": 1772354863718.4,
+        "done": false
+      },
+      {
+        "index": 9,
+        "level": 282,
+        "exp": 35.949515233811226,
+        "coordinate": 282.3594951523381,
+        "rewardRaw": 1772354863718.4,
+        "done": false
+      },
+      {
+        "index": 10,
+        "level": 282,
+        "exp": 59.586194837485316,
+        "coordinate": 282.5958619483749,
+        "rewardRaw": 1772354863718.4,
+        "done": false
+      },
+      {
+        "index": 11,
+        "level": 282,
+        "exp": 83.22287444115942,
+        "coordinate": 282.83222874441157,
+        "rewardRaw": 1772354863718.4,
+        "done": false
+      },
+      {
+        "index": 12,
+        "level": 283,
+        "exp": 6.319537947071656,
+        "coordinate": 283.0631953794707,
+        "rewardRaw": 1796109501888,
+        "done": false
+      },
+      {
+        "index": 13,
+        "level": 283,
+        "exp": 28.09542785506034,
+        "coordinate": 283.2809542785506,
+        "rewardRaw": 1796109501888,
+        "done": false
+      },
+      {
+        "index": 14,
+        "level": 283,
+        "exp": 49.871317763049014,
+        "coordinate": 283.49871317763046,
+        "rewardRaw": 1796109501888,
+        "done": false
+      },
+      {
+        "index": 15,
+        "level": 283,
+        "exp": 71.6472076710377,
+        "coordinate": 283.7164720767104,
+        "rewardRaw": 1796109501888,
+        "done": false
+      },
+      {
+        "index": 16,
+        "level": 283,
+        "exp": 93.42309757902638,
+        "coordinate": 283.9342309757903,
+        "rewardRaw": 1796109501888,
+        "done": false
+      },
+      {
+        "index": 17,
+        "level": 284,
+        "exp": 13.980762574622425,
+        "coordinate": 284.13980762574624,
+        "rewardRaw": 1817363069606.4,
+        "done": false
+      },
+      {
+        "index": 18,
+        "level": 284,
+        "exp": 34.011277562203084,
+        "coordinate": 284.340112775622,
+        "rewardRaw": 1817363069606.4,
+        "done": false
+      },
+      {
+        "index": 19,
+        "level": 284,
+        "exp": 54.04179254978375,
+        "coordinate": 284.5404179254978,
+        "rewardRaw": 1817363069606.4,
+        "done": false
+      },
+      {
+        "index": 20,
+        "level": 284,
+        "exp": 74.07230753736441,
+        "coordinate": 284.74072307537364,
+        "rewardRaw": 1817363069606.4,
+        "done": false
+      },
+      {
+        "index": 21,
+        "level": 284,
+        "exp": 94.10282252494507,
+        "coordinate": 284.94102822524945,
+        "rewardRaw": 1817363069606.4,
+        "done": false
+      },
+      {
+        "index": 22,
+        "level": 285,
+        "exp": 8.00722312841794,
+        "coordinate": 285.0800722312842,
+        "rewardRaw": 2042975815392,
+        "done": false
+      },
+      {
+        "index": 23,
+        "level": 285,
+        "exp": 19.35548412767114,
+        "coordinate": 285.1935548412767,
+        "rewardRaw": 2042975815392,
+        "done": false
+      },
+      {
+        "index": 24,
+        "level": 285,
+        "exp": 30.703745126924343,
+        "coordinate": 285.30703745126925,
+        "rewardRaw": 2042975815392,
+        "done": false
+      },
+      {
+        "index": 25,
+        "level": 285,
+        "exp": 42.052006126177545,
+        "coordinate": 285.42052006126175,
+        "rewardRaw": 2042975815392,
+        "done": false
+      },
+      {
+        "index": 26,
+        "level": 285,
+        "exp": 53.400267125430744,
+        "coordinate": 285.5340026712543,
+        "rewardRaw": 2042975815392,
+        "done": false
+      },
+      {
+        "index": 27,
+        "level": 285,
+        "exp": 64.74852812468394,
+        "coordinate": 285.6474852812468,
+        "rewardRaw": 2042975815392,
+        "done": false
+      },
+      {
+        "index": 28,
+        "level": 285,
+        "exp": 76.09678912393716,
+        "coordinate": 285.7609678912394,
+        "rewardRaw": 2042975815392,
+        "done": false
+      },
+      {
+        "index": 29,
+        "level": 285,
+        "exp": 87.44505012319036,
+        "coordinate": 285.8744505012319,
+        "rewardRaw": 2042975815392,
+        "done": false
+      },
+      {
+        "index": 30,
+        "level": 285,
+        "exp": 98.79331112244355,
+        "coordinate": 285.98793311122444,
+        "rewardRaw": 2042975815392,
+        "done": false
+      }
+    ]
+  },
+  {
+    "mission": {
+      "mode": "model",
+      "designLevel": 285,
+      "designExp": 0,
+      "stepsDone": 0
+    },
+    "steps": [
+      {
+        "index": 1,
+        "level": 285,
+        "exp": 11.3482609992532,
+        "coordinate": 285.11348260999256,
+        "rewardRaw": 2042975815392,
+        "done": false
+      },
+      {
+        "index": 2,
+        "level": 285,
+        "exp": 22.6965219985064,
+        "coordinate": 285.22696521998506,
+        "rewardRaw": 2042975815392,
+        "done": false
+      },
+      {
+        "index": 3,
+        "level": 285,
+        "exp": 34.044782997759604,
+        "coordinate": 285.3404478299776,
+        "rewardRaw": 2042975815392,
+        "done": false
+      },
+      {
+        "index": 4,
+        "level": 285,
+        "exp": 45.3930439970128,
+        "coordinate": 285.4539304399701,
+        "rewardRaw": 2042975815392,
+        "done": false
+      },
+      {
+        "index": 5,
+        "level": 285,
+        "exp": 56.74130499626601,
+        "coordinate": 285.5674130499627,
+        "rewardRaw": 2042975815392,
+        "done": false
+      },
+      {
+        "index": 6,
+        "level": 285,
+        "exp": 68.08956599551921,
+        "coordinate": 285.6808956599552,
+        "rewardRaw": 2042975815392,
+        "done": false
+      },
+      {
+        "index": 7,
+        "level": 285,
+        "exp": 79.43782699477241,
+        "coordinate": 285.79437826994774,
+        "rewardRaw": 2042975815392,
+        "done": false
+      },
+      {
+        "index": 8,
+        "level": 285,
+        "exp": 90.7860879940256,
+        "coordinate": 285.90786087994024,
+        "rewardRaw": 2042975815392,
+        "done": false
+      },
+      {
+        "index": 9,
+        "level": 286,
+        "exp": 1.9576877476247798,
+        "coordinate": 286.01957687747625,
+        "rewardRaw": 2066779227955.2,
+        "done": false
+      },
+      {
+        "index": 10,
+        "level": 286,
+        "exp": 12.366646912712929,
+        "coordinate": 286.1236664691271,
+        "rewardRaw": 2066779227955.2,
+        "done": false
+      },
+      {
+        "index": 11,
+        "level": 286,
+        "exp": 22.775606077801076,
+        "coordinate": 286.227756060778,
+        "rewardRaw": 2066779227955.2,
+        "done": false
+      },
+      {
+        "index": 12,
+        "level": 286,
+        "exp": 33.18456524288923,
+        "coordinate": 286.3318456524289,
+        "rewardRaw": 2066779227955.2,
+        "done": false
+      },
+      {
+        "index": 13,
+        "level": 286,
+        "exp": 43.59352440797738,
+        "coordinate": 286.43593524407976,
+        "rewardRaw": 2066779227955.2,
+        "done": false
+      },
+      {
+        "index": 14,
+        "level": 286,
+        "exp": 54.00248357306552,
+        "coordinate": 286.54002483573066,
+        "rewardRaw": 2066779227955.2,
+        "done": false
+      },
+      {
+        "index": 15,
+        "level": 286,
+        "exp": 64.41144273815367,
+        "coordinate": 286.6441144273815,
+        "rewardRaw": 2066779227955.2,
+        "done": false
+      },
+      {
+        "index": 16,
+        "level": 286,
+        "exp": 74.82040190324182,
+        "coordinate": 286.7482040190324,
+        "rewardRaw": 2066779227955.2,
+        "done": false
+      },
+      {
+        "index": 17,
+        "level": 286,
+        "exp": 85.22936106832996,
+        "coordinate": 286.8522936106833,
+        "rewardRaw": 2066779227955.2,
+        "done": false
+      },
+      {
+        "index": 18,
+        "level": 286,
+        "exp": 95.6383202334181,
+        "coordinate": 286.95638320233417,
+        "rewardRaw": 2066779227955.2,
+        "done": false
+      },
+      {
+        "index": 19,
+        "level": 287,
+        "exp": 5.565510007965118,
+        "coordinate": 287.05565510007966,
+        "rewardRaw": 2093653918828.8,
+        "done": false
+      },
+      {
+        "index": 20,
+        "level": 287,
+        "exp": 15.145217276014936,
+        "coordinate": 287.1514521727602,
+        "rewardRaw": 2093653918828.8,
+        "done": false
+      },
+      {
+        "index": 21,
+        "level": 287,
+        "exp": 24.724924544064752,
+        "coordinate": 287.2472492454406,
+        "rewardRaw": 2093653918828.8,
+        "done": false
+      },
+      {
+        "index": 22,
+        "level": 287,
+        "exp": 34.304631812114565,
+        "coordinate": 287.34304631812114,
+        "rewardRaw": 2093653918828.8,
+        "done": false
+      },
+      {
+        "index": 23,
+        "level": 287,
+        "exp": 43.88433908016438,
+        "coordinate": 287.43884339080165,
+        "rewardRaw": 2093653918828.8,
+        "done": false
+      },
+      {
+        "index": 24,
+        "level": 287,
+        "exp": 53.4640463482142,
+        "coordinate": 287.53464046348216,
+        "rewardRaw": 2093653918828.8,
+        "done": false
+      },
+      {
+        "index": 25,
+        "level": 287,
+        "exp": 63.04375361626402,
+        "coordinate": 287.6304375361626,
+        "rewardRaw": 2093653918828.8,
+        "done": false
+      },
+      {
+        "index": 26,
+        "level": 287,
+        "exp": 72.62346088431383,
+        "coordinate": 287.72623460884313,
+        "rewardRaw": 2093653918828.8,
+        "done": false
+      },
+      {
+        "index": 27,
+        "level": 287,
+        "exp": 82.20316815236365,
+        "coordinate": 287.82203168152364,
+        "rewardRaw": 2093653918828.8,
+        "done": false
+      },
+      {
+        "index": 28,
+        "level": 287,
+        "exp": 91.78287542041346,
+        "coordinate": 287.91782875420415,
+        "rewardRaw": 2093653918828.8,
+        "done": false
+      },
+      {
+        "index": 29,
+        "level": 288,
+        "exp": 1.2539069577442636,
+        "coordinate": 288.01253906957743,
+        "rewardRaw": 2120693537548.8,
+        "done": false
+      },
+      {
+        "index": 30,
+        "level": 288,
+        "exp": 10.069563943749355,
+        "coordinate": 288.1006956394375,
+        "rewardRaw": 2120693537548.8,
+        "done": false
+      }
+    ]
+  },
+  {
+    "mission": {
+      "mode": "model",
+      "designLevel": 287,
+      "designExp": 0,
+      "stepsDone": 0
+    },
+    "steps": [
+      {
+        "index": 1,
+        "level": 287,
+        "exp": 9.579707268049816,
+        "coordinate": 287.0957970726805,
+        "rewardRaw": 2093653918828.8,
+        "done": false
+      },
+      {
+        "index": 2,
+        "level": 287,
+        "exp": 19.159414536099632,
+        "coordinate": 287.191594145361,
+        "rewardRaw": 2093653918828.8,
+        "done": false
+      },
+      {
+        "index": 3,
+        "level": 287,
+        "exp": 28.739121804149452,
+        "coordinate": 287.2873912180415,
+        "rewardRaw": 2093653918828.8,
+        "done": false
+      },
+      {
+        "index": 4,
+        "level": 287,
+        "exp": 38.318829072199264,
+        "coordinate": 287.383188290722,
+        "rewardRaw": 2093653918828.8,
+        "done": false
+      },
+      {
+        "index": 5,
+        "level": 287,
+        "exp": 47.89853634024909,
+        "coordinate": 287.4789853634025,
+        "rewardRaw": 2093653918828.8,
+        "done": false
+      },
+      {
+        "index": 6,
+        "level": 287,
+        "exp": 57.478243608298904,
+        "coordinate": 287.574782436083,
+        "rewardRaw": 2093653918828.8,
+        "done": false
+      },
+      {
+        "index": 7,
+        "level": 287,
+        "exp": 67.05795087634871,
+        "coordinate": 287.67057950876347,
+        "rewardRaw": 2093653918828.8,
+        "done": false
+      },
+      {
+        "index": 8,
+        "level": 287,
+        "exp": 76.63765814439853,
+        "coordinate": 287.766376581444,
+        "rewardRaw": 2093653918828.8,
+        "done": false
+      },
+      {
+        "index": 9,
+        "level": 287,
+        "exp": 86.21736541244836,
+        "coordinate": 287.8621736541245,
+        "rewardRaw": 2093653918828.8,
+        "done": false
+      },
+      {
+        "index": 10,
+        "level": 287,
+        "exp": 95.79707268049818,
+        "coordinate": 287.957970726805,
+        "rewardRaw": 2093653918828.8,
+        "done": false
+      },
+      {
+        "index": 11,
+        "level": 288,
+        "exp": 4.947943229300631,
+        "coordinate": 288.049479432293,
+        "rewardRaw": 2120693537548.8,
+        "done": false
+      },
+      {
+        "index": 12,
+        "level": 288,
+        "exp": 13.763600215305724,
+        "coordinate": 288.13763600215304,
+        "rewardRaw": 2120693537548.8,
+        "done": false
+      },
+      {
+        "index": 13,
+        "level": 288,
+        "exp": 22.579257201310813,
+        "coordinate": 288.2257925720131,
+        "rewardRaw": 2120693537548.8,
+        "done": false
+      },
+      {
+        "index": 14,
+        "level": 288,
+        "exp": 31.394914187315905,
+        "coordinate": 288.31394914187314,
+        "rewardRaw": 2120693537548.8,
+        "done": false
+      },
+      {
+        "index": 15,
+        "level": 288,
+        "exp": 40.210571173321,
+        "coordinate": 288.4021057117332,
+        "rewardRaw": 2120693537548.8,
+        "done": false
+      },
+      {
+        "index": 16,
+        "level": 288,
+        "exp": 49.02622815932609,
+        "coordinate": 288.4902622815933,
+        "rewardRaw": 2120693537548.8,
+        "done": false
+      },
+      {
+        "index": 17,
+        "level": 288,
+        "exp": 57.841885145331176,
+        "coordinate": 288.5784188514533,
+        "rewardRaw": 2120693537548.8,
+        "done": false
+      },
+      {
+        "index": 18,
+        "level": 288,
+        "exp": 66.65754213133627,
+        "coordinate": 288.6665754213134,
+        "rewardRaw": 2120693537548.8,
+        "done": false
+      },
+      {
+        "index": 19,
+        "level": 288,
+        "exp": 75.47319911734137,
+        "coordinate": 288.7547319911734,
+        "rewardRaw": 2120693537548.8,
+        "done": false
+      },
+      {
+        "index": 20,
+        "level": 288,
+        "exp": 84.28885610334646,
+        "coordinate": 288.8428885610335,
+        "rewardRaw": 2120693537548.8,
+        "done": false
+      },
+      {
+        "index": 21,
+        "level": 288,
+        "exp": 93.10451308935154,
+        "coordinate": 288.9310451308935,
+        "rewardRaw": 2120693537548.8,
+        "done": false
+      },
+      {
+        "index": 22,
+        "level": 289,
+        "exp": 1.7644908726858373,
+        "coordinate": 289.0176449087269,
+        "rewardRaw": 2144810715283.2,
+        "done": false
+      },
+      {
+        "index": 23,
+        "level": 289,
+        "exp": 9.865411977628103,
+        "coordinate": 289.09865411977626,
+        "rewardRaw": 2144810715283.2,
+        "done": false
+      },
+      {
+        "index": 24,
+        "level": 289,
+        "exp": 17.966333082570365,
+        "coordinate": 289.1796633308257,
+        "rewardRaw": 2144810715283.2,
+        "done": false
+      },
+      {
+        "index": 25,
+        "level": 289,
+        "exp": 26.067254187512635,
+        "coordinate": 289.2606725418751,
+        "rewardRaw": 2144810715283.2,
+        "done": false
+      },
+      {
+        "index": 26,
+        "level": 289,
+        "exp": 34.1681752924549,
+        "coordinate": 289.34168175292456,
+        "rewardRaw": 2144810715283.2,
+        "done": false
+      },
+      {
+        "index": 27,
+        "level": 289,
+        "exp": 42.26909639739716,
+        "coordinate": 289.422690963974,
+        "rewardRaw": 2144810715283.2,
+        "done": false
+      },
+      {
+        "index": 28,
+        "level": 289,
+        "exp": 50.37001750233942,
+        "coordinate": 289.50370017502337,
+        "rewardRaw": 2144810715283.2,
+        "done": false
+      },
+      {
+        "index": 29,
+        "level": 289,
+        "exp": 58.470938607281695,
+        "coordinate": 289.5847093860728,
+        "rewardRaw": 2144810715283.2,
+        "done": false
+      },
+      {
+        "index": 30,
+        "level": 289,
+        "exp": 66.57185971222395,
+        "coordinate": 289.66571859712224,
+        "rewardRaw": 2144810715283.2,
+        "done": false
+      }
+    ]
+  },
+  {
+    "mission": {
+      "mode": "model",
+      "designLevel": 290,
+      "designExp": 0,
+      "stepsDone": 0
+    },
+    "steps": [
+      {
+        "index": 1,
+        "level": 290,
+        "exp": 5.004538140622797,
+        "coordinate": 290.0500453814062,
+        "rewardRaw": 2410218337958.4,
+        "done": false
+      },
+      {
+        "index": 2,
+        "level": 290,
+        "exp": 10.009076281245594,
+        "coordinate": 290.10009076281244,
+        "rewardRaw": 2410218337958.4,
+        "done": false
+      },
+      {
+        "index": 3,
+        "level": 290,
+        "exp": 15.013614421868393,
+        "coordinate": 290.15013614421866,
+        "rewardRaw": 2410218337958.4,
+        "done": false
+      },
+      {
+        "index": 4,
+        "level": 290,
+        "exp": 20.01815256249119,
+        "coordinate": 290.2001815256249,
+        "rewardRaw": 2410218337958.4,
+        "done": false
+      },
+      {
+        "index": 5,
+        "level": 290,
+        "exp": 25.022690703113987,
+        "coordinate": 290.25022690703116,
+        "rewardRaw": 2410218337958.4,
+        "done": false
+      },
+      {
+        "index": 6,
+        "level": 290,
+        "exp": 30.027228843736786,
+        "coordinate": 290.3002722884374,
+        "rewardRaw": 2410218337958.4,
+        "done": false
+      },
+      {
+        "index": 7,
+        "level": 290,
+        "exp": 35.03176698435958,
+        "coordinate": 290.3503176698436,
+        "rewardRaw": 2410218337958.4,
+        "done": false
+      },
+      {
+        "index": 8,
+        "level": 290,
+        "exp": 40.03630512498238,
+        "coordinate": 290.4003630512498,
+        "rewardRaw": 2410218337958.4,
+        "done": false
+      },
+      {
+        "index": 9,
+        "level": 290,
+        "exp": 45.040843265605176,
+        "coordinate": 290.45040843265605,
+        "rewardRaw": 2410218337958.4,
+        "done": false
+      },
+      {
+        "index": 10,
+        "level": 290,
+        "exp": 50.045381406227975,
+        "coordinate": 290.50045381406227,
+        "rewardRaw": 2410218337958.4,
+        "done": false
+      },
+      {
+        "index": 11,
+        "level": 290,
+        "exp": 55.04991954685077,
+        "coordinate": 290.5504991954685,
+        "rewardRaw": 2410218337958.4,
+        "done": false
+      },
+      {
+        "index": 12,
+        "level": 290,
+        "exp": 60.05445768747357,
+        "coordinate": 290.6005445768747,
+        "rewardRaw": 2410218337958.4,
+        "done": false
+      },
+      {
+        "index": 13,
+        "level": 290,
+        "exp": 65.05899582809637,
+        "coordinate": 290.650589958281,
+        "rewardRaw": 2410218337958.4,
+        "done": false
+      },
+      {
+        "index": 14,
+        "level": 290,
+        "exp": 70.06353396871916,
+        "coordinate": 290.7006353396872,
+        "rewardRaw": 2410218337958.4,
+        "done": false
+      },
+      {
+        "index": 15,
+        "level": 290,
+        "exp": 75.06807210934197,
+        "coordinate": 290.75068072109343,
+        "rewardRaw": 2410218337958.4,
+        "done": false
+      },
+      {
+        "index": 16,
+        "level": 290,
+        "exp": 80.07261024996475,
+        "coordinate": 290.80072610249965,
+        "rewardRaw": 2410218337958.4,
+        "done": false
+      },
+      {
+        "index": 17,
+        "level": 290,
+        "exp": 85.07714839058755,
+        "coordinate": 290.8507714839059,
+        "rewardRaw": 2410218337958.4,
+        "done": false
+      },
+      {
+        "index": 18,
+        "level": 290,
+        "exp": 90.08168653121035,
+        "coordinate": 290.9008168653121,
+        "rewardRaw": 2410218337958.4,
+        "done": false
+      },
+      {
+        "index": 19,
+        "level": 290,
+        "exp": 95.08622467183315,
+        "coordinate": 290.9508622467183,
+        "rewardRaw": 2410218337958.4,
+        "done": false
+      },
+      {
+        "index": 20,
+        "level": 291,
+        "exp": 0.0833587055173297,
+        "coordinate": 291.0008335870552,
+        "rewardRaw": 2437217227545.6,
+        "done": false
+      },
+      {
+        "index": 21,
+        "level": 291,
+        "exp": 4.679644451035542,
+        "coordinate": 291.04679644451033,
+        "rewardRaw": 2437217227545.6,
+        "done": false
+      },
+      {
+        "index": 22,
+        "level": 291,
+        "exp": 9.275930196553754,
+        "coordinate": 291.09275930196554,
+        "rewardRaw": 2437217227545.6,
+        "done": false
+      },
+      {
+        "index": 23,
+        "level": 291,
+        "exp": 13.872215942071966,
+        "coordinate": 291.1387221594207,
+        "rewardRaw": 2437217227545.6,
+        "done": false
+      },
+      {
+        "index": 24,
+        "level": 291,
+        "exp": 18.468501687590177,
+        "coordinate": 291.1846850168759,
+        "rewardRaw": 2437217227545.6,
+        "done": false
+      },
+      {
+        "index": 25,
+        "level": 291,
+        "exp": 23.06478743310839,
+        "coordinate": 291.2306478743311,
+        "rewardRaw": 2437217227545.6,
+        "done": false
+      },
+      {
+        "index": 26,
+        "level": 291,
+        "exp": 27.661073178626598,
+        "coordinate": 291.27661073178626,
+        "rewardRaw": 2437217227545.6,
+        "done": false
+      },
+      {
+        "index": 27,
+        "level": 291,
+        "exp": 32.25735892414481,
+        "coordinate": 291.3225735892415,
+        "rewardRaw": 2437217227545.6,
+        "done": false
+      },
+      {
+        "index": 28,
+        "level": 291,
+        "exp": 36.853644669663026,
+        "coordinate": 291.3685364466966,
+        "rewardRaw": 2437217227545.6,
+        "done": false
+      },
+      {
+        "index": 29,
+        "level": 291,
+        "exp": 41.44993041518124,
+        "coordinate": 291.41449930415183,
+        "rewardRaw": 2437217227545.6,
+        "done": false
+      },
+      {
+        "index": 30,
+        "level": 291,
+        "exp": 46.04621616069945,
+        "coordinate": 291.460462161607,
+        "rewardRaw": 2437217227545.6,
+        "done": false
+      }
+    ]
+  },
+  {
+    "mission": {
+      "mode": "model",
+      "designLevel": 293,
+      "designExp": 0,
+      "stepsDone": 0
+    },
+    "steps": [
+      {
+        "index": 1,
+        "level": 293,
+        "exp": 3.8865709467294973,
+        "coordinate": 293.0388657094673,
+        "rewardRaw": 2498544742137.6,
+        "done": false
+      },
+      {
+        "index": 2,
+        "level": 293,
+        "exp": 7.773141893458995,
+        "coordinate": 293.0777314189346,
+        "rewardRaw": 2498544742137.6,
+        "done": false
+      },
+      {
+        "index": 3,
+        "level": 293,
+        "exp": 11.659712840188492,
+        "coordinate": 293.1165971284019,
+        "rewardRaw": 2498544742137.6,
+        "done": false
+      },
+      {
+        "index": 4,
+        "level": 293,
+        "exp": 15.54628378691799,
+        "coordinate": 293.15546283786915,
+        "rewardRaw": 2498544742137.6,
+        "done": false
+      },
+      {
+        "index": 5,
+        "level": 293,
+        "exp": 19.43285473364749,
+        "coordinate": 293.19432854733645,
+        "rewardRaw": 2498544742137.6,
+        "done": false
+      },
+      {
+        "index": 6,
+        "level": 293,
+        "exp": 23.319425680376984,
+        "coordinate": 293.23319425680376,
+        "rewardRaw": 2498544742137.6,
+        "done": false
+      },
+      {
+        "index": 7,
+        "level": 293,
+        "exp": 27.205996627106483,
+        "coordinate": 293.27205996627106,
+        "rewardRaw": 2498544742137.6,
+        "done": false
+      },
+      {
+        "index": 8,
+        "level": 293,
+        "exp": 31.09256757383598,
+        "coordinate": 293.31092567573836,
+        "rewardRaw": 2498544742137.6,
+        "done": false
+      },
+      {
+        "index": 9,
+        "level": 293,
+        "exp": 34.97913852056547,
+        "coordinate": 293.34979138520566,
+        "rewardRaw": 2498544742137.6,
+        "done": false
+      },
+      {
+        "index": 10,
+        "level": 293,
+        "exp": 38.86570946729498,
+        "coordinate": 293.38865709467296,
+        "rewardRaw": 2498544742137.6,
+        "done": false
+      },
+      {
+        "index": 11,
+        "level": 293,
+        "exp": 42.75228041402447,
+        "coordinate": 293.42752280414027,
+        "rewardRaw": 2498544742137.6,
+        "done": false
+      },
+      {
+        "index": 12,
+        "level": 293,
+        "exp": 46.63885136075397,
+        "coordinate": 293.4663885136075,
+        "rewardRaw": 2498544742137.6,
+        "done": false
+      },
+      {
+        "index": 13,
+        "level": 293,
+        "exp": 50.52542230748347,
+        "coordinate": 293.5052542230748,
+        "rewardRaw": 2498544742137.6,
+        "done": false
+      },
+      {
+        "index": 14,
+        "level": 293,
+        "exp": 54.411993254212966,
+        "coordinate": 293.5441199325421,
+        "rewardRaw": 2498544742137.6,
+        "done": false
+      },
+      {
+        "index": 15,
+        "level": 293,
+        "exp": 58.29856420094246,
+        "coordinate": 293.5829856420094,
+        "rewardRaw": 2498544742137.6,
+        "done": false
+      },
+      {
+        "index": 16,
+        "level": 293,
+        "exp": 62.18513514767196,
+        "coordinate": 293.6218513514767,
+        "rewardRaw": 2498544742137.6,
+        "done": false
+      },
+      {
+        "index": 17,
+        "level": 293,
+        "exp": 66.07170609440145,
+        "coordinate": 293.660717060944,
+        "rewardRaw": 2498544742137.6,
+        "done": false
+      },
+      {
+        "index": 18,
+        "level": 293,
+        "exp": 69.95827704113094,
+        "coordinate": 293.6995827704113,
+        "rewardRaw": 2498544742137.6,
+        "done": false
+      },
+      {
+        "index": 19,
+        "level": 293,
+        "exp": 73.84484798786045,
+        "coordinate": 293.7384484798786,
+        "rewardRaw": 2498544742137.6,
+        "done": false
+      },
+      {
+        "index": 20,
+        "level": 293,
+        "exp": 77.73141893458995,
+        "coordinate": 293.7773141893459,
+        "rewardRaw": 2498544742137.6,
+        "done": false
+      },
+      {
+        "index": 21,
+        "level": 293,
+        "exp": 81.61798988131945,
+        "coordinate": 293.8161798988132,
+        "rewardRaw": 2498544742137.6,
+        "done": false
+      },
+      {
+        "index": 22,
+        "level": 293,
+        "exp": 85.50456082804894,
+        "coordinate": 293.8550456082805,
+        "rewardRaw": 2498544742137.6,
+        "done": false
+      },
+      {
+        "index": 23,
+        "level": 293,
+        "exp": 89.39113177477843,
+        "coordinate": 293.8939113177478,
+        "rewardRaw": 2498544742137.6,
+        "done": false
+      },
+      {
+        "index": 24,
+        "level": 293,
+        "exp": 93.27770272150794,
+        "coordinate": 293.9327770272151,
+        "rewardRaw": 2498544742137.6,
+        "done": false
+      },
+      {
+        "index": 25,
+        "level": 293,
+        "exp": 97.16427366823743,
+        "coordinate": 293.9716427366824,
+        "rewardRaw": 2498544742137.6,
+        "done": false
+      },
+      {
+        "index": 26,
+        "level": 294,
+        "exp": 0.9649327335598159,
+        "coordinate": 294.0096493273356,
+        "rewardRaw": 2525955951340.8,
+        "done": false
+      },
+      {
+        "index": 27,
+        "level": 294,
+        "exp": 4.533756776988807,
+        "coordinate": 294.0453375677699,
+        "rewardRaw": 2525955951340.8,
+        "done": false
+      },
+      {
+        "index": 28,
+        "level": 294,
+        "exp": 8.1025808204178,
+        "coordinate": 294.0810258082042,
+        "rewardRaw": 2525955951340.8,
+        "done": false
+      },
+      {
+        "index": 29,
+        "level": 294,
+        "exp": 11.671404863846789,
+        "coordinate": 294.11671404863847,
+        "rewardRaw": 2525955951340.8,
+        "done": false
+      },
+      {
+        "index": 30,
+        "level": 294,
+        "exp": 15.24022890727578,
+        "coordinate": 294.15240228907277,
+        "rewardRaw": 2525955951340.8,
+        "done": false
+      }
+    ]
+  },
+  {
+    "mission": {
+      "mode": "model",
+      "designLevel": 295,
+      "designExp": 0,
+      "stepsDone": 0
+    },
+    "steps": [
+      {
+        "index": 1,
+        "level": 295,
+        "exp": 2.0249997084501423,
+        "coordinate": 295.0202499970845,
+        "rewardRaw": 2837573540736,
+        "done": false
+      },
+      {
+        "index": 2,
+        "level": 295,
+        "exp": 4.049999416900285,
+        "coordinate": 295.040499994169,
+        "rewardRaw": 2837573540736,
+        "done": false
+      },
+      {
+        "index": 3,
+        "level": 295,
+        "exp": 6.074999125350427,
+        "coordinate": 295.0607499912535,
+        "rewardRaw": 2837573540736,
+        "done": false
+      },
+      {
+        "index": 4,
+        "level": 295,
+        "exp": 8.09999883380057,
+        "coordinate": 295.080999988338,
+        "rewardRaw": 2837573540736,
+        "done": false
+      },
+      {
+        "index": 5,
+        "level": 295,
+        "exp": 10.124998542250712,
+        "coordinate": 295.1012499854225,
+        "rewardRaw": 2837573540736,
+        "done": false
+      },
+      {
+        "index": 6,
+        "level": 295,
+        "exp": 12.149998250700854,
+        "coordinate": 295.12149998250703,
+        "rewardRaw": 2837573540736,
+        "done": false
+      },
+      {
+        "index": 7,
+        "level": 295,
+        "exp": 14.174997959150994,
+        "coordinate": 295.1417499795915,
+        "rewardRaw": 2837573540736,
+        "done": false
+      },
+      {
+        "index": 8,
+        "level": 295,
+        "exp": 16.19999766760114,
+        "coordinate": 295.161999976676,
+        "rewardRaw": 2837573540736,
+        "done": false
+      },
+      {
+        "index": 9,
+        "level": 295,
+        "exp": 18.22499737605128,
+        "coordinate": 295.1822499737605,
+        "rewardRaw": 2837573540736,
+        "done": false
+      },
+      {
+        "index": 10,
+        "level": 295,
+        "exp": 20.249997084501423,
+        "coordinate": 295.202499970845,
+        "rewardRaw": 2837573540736,
+        "done": false
+      },
+      {
+        "index": 11,
+        "level": 295,
+        "exp": 22.274996792951566,
+        "coordinate": 295.22274996792953,
+        "rewardRaw": 2837573540736,
+        "done": false
+      },
+      {
+        "index": 12,
+        "level": 295,
+        "exp": 24.299996501401708,
+        "coordinate": 295.242999965014,
+        "rewardRaw": 2837573540736,
+        "done": false
+      },
+      {
+        "index": 13,
+        "level": 295,
+        "exp": 26.324996209851847,
+        "coordinate": 295.26324996209854,
+        "rewardRaw": 2837573540736,
+        "done": false
+      },
+      {
+        "index": 14,
+        "level": 295,
+        "exp": 28.34999591830199,
+        "coordinate": 295.283499959183,
+        "rewardRaw": 2837573540736,
+        "done": false
+      },
+      {
+        "index": 15,
+        "level": 295,
+        "exp": 30.37499562675213,
+        "coordinate": 295.3037499562675,
+        "rewardRaw": 2837573540736,
+        "done": false
+      },
+      {
+        "index": 16,
+        "level": 295,
+        "exp": 32.39999533520228,
+        "coordinate": 295.32399995335203,
+        "rewardRaw": 2837573540736,
+        "done": false
+      },
+      {
+        "index": 17,
+        "level": 295,
+        "exp": 34.424995043652416,
+        "coordinate": 295.3442499504365,
+        "rewardRaw": 2837573540736,
+        "done": false
+      },
+      {
+        "index": 18,
+        "level": 295,
+        "exp": 36.44999475210256,
+        "coordinate": 295.36449994752104,
+        "rewardRaw": 2837573540736,
+        "done": false
+      },
+      {
+        "index": 19,
+        "level": 295,
+        "exp": 38.4749944605527,
+        "coordinate": 295.3847499446055,
+        "rewardRaw": 2837573540736,
+        "done": false
+      },
+      {
+        "index": 20,
+        "level": 295,
+        "exp": 40.499994169002846,
+        "coordinate": 295.40499994169005,
+        "rewardRaw": 2837573540736,
+        "done": false
+      },
+      {
+        "index": 21,
+        "level": 295,
+        "exp": 42.524993877452985,
+        "coordinate": 295.4252499387745,
+        "rewardRaw": 2837573540736,
+        "done": false
+      },
+      {
+        "index": 22,
+        "level": 295,
+        "exp": 44.54999358590313,
+        "coordinate": 295.445499935859,
+        "rewardRaw": 2837573540736,
+        "done": false
+      },
+      {
+        "index": 23,
+        "level": 295,
+        "exp": 46.57499329435327,
+        "coordinate": 295.46574993294354,
+        "rewardRaw": 2837573540736,
+        "done": false
+      },
+      {
+        "index": 24,
+        "level": 295,
+        "exp": 48.599993002803416,
+        "coordinate": 295.485999930028,
+        "rewardRaw": 2837573540736,
+        "done": false
+      },
+      {
+        "index": 25,
+        "level": 295,
+        "exp": 50.624992711253554,
+        "coordinate": 295.50624992711255,
+        "rewardRaw": 2837573540736,
+        "done": false
+      },
+      {
+        "index": 26,
+        "level": 295,
+        "exp": 52.64999241970369,
+        "coordinate": 295.526499924197,
+        "rewardRaw": 2837573540736,
+        "done": false
+      },
+      {
+        "index": 27,
+        "level": 295,
+        "exp": 54.674992128153846,
+        "coordinate": 295.54674992128156,
+        "rewardRaw": 2837573540736,
+        "done": false
+      },
+      {
+        "index": 28,
+        "level": 295,
+        "exp": 56.69999183660398,
+        "coordinate": 295.56699991836604,
+        "rewardRaw": 2837573540736,
+        "done": false
+      },
+      {
+        "index": 29,
+        "level": 295,
+        "exp": 58.72499154505413,
+        "coordinate": 295.5872499154505,
+        "rewardRaw": 2837573540736,
+        "done": false
+      },
+      {
+        "index": 30,
+        "level": 295,
+        "exp": 60.74999125350426,
+        "coordinate": 295.60749991253505,
+        "rewardRaw": 2837573540736,
+        "done": false
+      }
+    ]
+  },
+  {
+    "mission": {
+      "mode": "model",
+      "designLevel": 297,
+      "designExp": 0,
+      "stepsDone": 0
+    },
+    "steps": [
+      {
+        "index": 1,
+        "level": 297,
+        "exp": 1.7098620573021046,
+        "coordinate": 297.017098620573,
+        "rewardRaw": 2906893519104,
+        "done": false
+      },
+      {
+        "index": 2,
+        "level": 297,
+        "exp": 3.419724114604209,
+        "coordinate": 297.03419724114605,
+        "rewardRaw": 2906893519104,
+        "done": false
+      },
+      {
+        "index": 3,
+        "level": 297,
+        "exp": 5.129586171906313,
+        "coordinate": 297.05129586171904,
+        "rewardRaw": 2906893519104,
+        "done": false
+      },
+      {
+        "index": 4,
+        "level": 297,
+        "exp": 6.839448229208418,
+        "coordinate": 297.0683944822921,
+        "rewardRaw": 2906893519104,
+        "done": false
+      },
+      {
+        "index": 5,
+        "level": 297,
+        "exp": 8.549310286510522,
+        "coordinate": 297.0854931028651,
+        "rewardRaw": 2906893519104,
+        "done": false
+      },
+      {
+        "index": 6,
+        "level": 297,
+        "exp": 10.259172343812626,
+        "coordinate": 297.10259172343814,
+        "rewardRaw": 2906893519104,
+        "done": false
+      },
+      {
+        "index": 7,
+        "level": 297,
+        "exp": 11.969034401114733,
+        "coordinate": 297.11969034401113,
+        "rewardRaw": 2906893519104,
+        "done": false
+      },
+      {
+        "index": 8,
+        "level": 297,
+        "exp": 13.678896458416837,
+        "coordinate": 297.1367889645842,
+        "rewardRaw": 2906893519104,
+        "done": false
+      },
+      {
+        "index": 9,
+        "level": 297,
+        "exp": 15.388758515718942,
+        "coordinate": 297.1538875851572,
+        "rewardRaw": 2906893519104,
+        "done": false
+      },
+      {
+        "index": 10,
+        "level": 297,
+        "exp": 17.098620573021044,
+        "coordinate": 297.17098620573023,
+        "rewardRaw": 2906893519104,
+        "done": false
+      },
+      {
+        "index": 11,
+        "level": 297,
+        "exp": 18.80848263032315,
+        "coordinate": 297.1880848263032,
+        "rewardRaw": 2906893519104,
+        "done": false
+      },
+      {
+        "index": 12,
+        "level": 297,
+        "exp": 20.51834468762525,
+        "coordinate": 297.2051834468763,
+        "rewardRaw": 2906893519104,
+        "done": false
+      },
+      {
+        "index": 13,
+        "level": 297,
+        "exp": 22.22820674492736,
+        "coordinate": 297.22228206744927,
+        "rewardRaw": 2906893519104,
+        "done": false
+      },
+      {
+        "index": 14,
+        "level": 297,
+        "exp": 23.938068802229466,
+        "coordinate": 297.2393806880223,
+        "rewardRaw": 2906893519104,
+        "done": false
+      },
+      {
+        "index": 15,
+        "level": 297,
+        "exp": 25.64793085953157,
+        "coordinate": 297.2564793085953,
+        "rewardRaw": 2906893519104,
+        "done": false
+      },
+      {
+        "index": 16,
+        "level": 297,
+        "exp": 27.357792916833674,
+        "coordinate": 297.2735779291683,
+        "rewardRaw": 2906893519104,
+        "done": false
+      },
+      {
+        "index": 17,
+        "level": 297,
+        "exp": 29.067654974135777,
+        "coordinate": 297.29067654974136,
+        "rewardRaw": 2906893519104,
+        "done": false
+      },
+      {
+        "index": 18,
+        "level": 297,
+        "exp": 30.777517031437885,
+        "coordinate": 297.30777517031436,
+        "rewardRaw": 2906893519104,
+        "done": false
+      },
+      {
+        "index": 19,
+        "level": 297,
+        "exp": 32.487379088739985,
+        "coordinate": 297.3248737908874,
+        "rewardRaw": 2906893519104,
+        "done": false
+      },
+      {
+        "index": 20,
+        "level": 297,
+        "exp": 34.19724114604209,
+        "coordinate": 297.3419724114604,
+        "rewardRaw": 2906893519104,
+        "done": false
+      },
+      {
+        "index": 21,
+        "level": 297,
+        "exp": 35.90710320334419,
+        "coordinate": 297.35907103203346,
+        "rewardRaw": 2906893519104,
+        "done": false
+      },
+      {
+        "index": 22,
+        "level": 297,
+        "exp": 37.6169652606463,
+        "coordinate": 297.37616965260645,
+        "rewardRaw": 2906893519104,
+        "done": false
+      },
+      {
+        "index": 23,
+        "level": 297,
+        "exp": 39.32682731794841,
+        "coordinate": 297.3932682731795,
+        "rewardRaw": 2906893519104,
+        "done": false
+      },
+      {
+        "index": 24,
+        "level": 297,
+        "exp": 41.0366893752505,
+        "coordinate": 297.4103668937525,
+        "rewardRaw": 2906893519104,
+        "done": false
+      },
+      {
+        "index": 25,
+        "level": 297,
+        "exp": 42.746551432552614,
+        "coordinate": 297.42746551432555,
+        "rewardRaw": 2906893519104,
+        "done": false
+      },
+      {
+        "index": 26,
+        "level": 297,
+        "exp": 44.45641348985472,
+        "coordinate": 297.44456413489854,
+        "rewardRaw": 2906893519104,
+        "done": false
+      },
+      {
+        "index": 27,
+        "level": 297,
+        "exp": 46.16627554715682,
+        "coordinate": 297.4616627554716,
+        "rewardRaw": 2906893519104,
+        "done": false
+      },
+      {
+        "index": 28,
+        "level": 297,
+        "exp": 47.87613760445893,
+        "coordinate": 297.4787613760446,
+        "rewardRaw": 2906893519104,
+        "done": false
+      },
+      {
+        "index": 29,
+        "level": 297,
+        "exp": 49.58599966176103,
+        "coordinate": 297.4958599966176,
+        "rewardRaw": 2906893519104,
+        "done": false
+      },
+      {
+        "index": 30,
+        "level": 297,
+        "exp": 51.29586171906314,
+        "coordinate": 297.51295861719063,
+        "rewardRaw": 2906893519104,
+        "done": false
+      }
+    ]
+  },
+  {
+    "mission": {
+      "mode": "model",
+      "designLevel": 299,
+      "designExp": 0,
+      "stepsDone": 0
+    },
+    "steps": [
+      {
+        "index": 1,
+        "level": 299,
+        "exp": 1.0570598612529667,
+        "coordinate": 299.0105705986125,
+        "rewardRaw": 2972817391756.8,
+        "done": false
+      },
+      {
+        "index": 2,
+        "level": 299,
+        "exp": 2.1141197225059334,
+        "coordinate": 299.02114119722506,
+        "rewardRaw": 2972817391756.8,
+        "done": false
+      },
+      {
+        "index": 3,
+        "level": 299,
+        "exp": 3.1711795837589,
+        "coordinate": 299.03171179583757,
+        "rewardRaw": 2972817391756.8,
+        "done": false
+      },
+      {
+        "index": 4,
+        "level": 299,
+        "exp": 4.228239445011867,
+        "coordinate": 299.0422823944501,
+        "rewardRaw": 2972817391756.8,
+        "done": false
+      },
+      {
+        "index": 5,
+        "level": 299,
+        "exp": 5.285299306264832,
+        "coordinate": 299.05285299306263,
+        "rewardRaw": 2972817391756.8,
+        "done": false
+      },
+      {
+        "index": 6,
+        "level": 299,
+        "exp": 6.3423591675178,
+        "coordinate": 299.0634235916752,
+        "rewardRaw": 2972817391756.8,
+        "done": false
+      },
+      {
+        "index": 7,
+        "level": 299,
+        "exp": 7.399419028770766,
+        "coordinate": 299.0739941902877,
+        "rewardRaw": 2972817391756.8,
+        "done": false
+      },
+      {
+        "index": 8,
+        "level": 299,
+        "exp": 8.456478890023734,
+        "coordinate": 299.08456478890025,
+        "rewardRaw": 2972817391756.8,
+        "done": false
+      },
+      {
+        "index": 9,
+        "level": 299,
+        "exp": 9.5135387512767,
+        "coordinate": 299.09513538751276,
+        "rewardRaw": 2972817391756.8,
+        "done": false
+      },
+      {
+        "index": 10,
+        "level": 299,
+        "exp": 10.570598612529665,
+        "coordinate": 299.1057059861253,
+        "rewardRaw": 2972817391756.8,
+        "done": false
+      },
+      {
+        "index": 11,
+        "level": 299,
+        "exp": 11.627658473782631,
+        "coordinate": 299.1162765847378,
+        "rewardRaw": 2972817391756.8,
+        "done": false
+      },
+      {
+        "index": 12,
+        "level": 299,
+        "exp": 12.6847183350356,
+        "coordinate": 299.1268471833504,
+        "rewardRaw": 2972817391756.8,
+        "done": false
+      },
+      {
+        "index": 13,
+        "level": 299,
+        "exp": 13.741778196288564,
+        "coordinate": 299.1374177819629,
+        "rewardRaw": 2972817391756.8,
+        "done": false
+      },
+      {
+        "index": 14,
+        "level": 299,
+        "exp": 14.798838057541532,
+        "coordinate": 299.14798838057544,
+        "rewardRaw": 2972817391756.8,
+        "done": false
+      },
+      {
+        "index": 15,
+        "level": 299,
+        "exp": 15.855897918794499,
+        "coordinate": 299.15855897918794,
+        "rewardRaw": 2972817391756.8,
+        "done": false
+      },
+      {
+        "index": 16,
+        "level": 299,
+        "exp": 16.912957780047467,
+        "coordinate": 299.16912957780045,
+        "rewardRaw": 2972817391756.8,
+        "done": false
+      },
+      {
+        "index": 17,
+        "level": 299,
+        "exp": 17.97001764130043,
+        "coordinate": 299.179700176413,
+        "rewardRaw": 2972817391756.8,
+        "done": false
+      },
+      {
+        "index": 18,
+        "level": 299,
+        "exp": 19.0270775025534,
+        "coordinate": 299.1902707750255,
+        "rewardRaw": 2972817391756.8,
+        "done": false
+      },
+      {
+        "index": 19,
+        "level": 299,
+        "exp": 20.084137363806363,
+        "coordinate": 299.20084137363807,
+        "rewardRaw": 2972817391756.8,
+        "done": false
+      },
+      {
+        "index": 20,
+        "level": 299,
+        "exp": 21.14119722505933,
+        "coordinate": 299.2114119722506,
+        "rewardRaw": 2972817391756.8,
+        "done": false
+      },
+      {
+        "index": 21,
+        "level": 299,
+        "exp": 22.1982570863123,
+        "coordinate": 299.22198257086313,
+        "rewardRaw": 2972817391756.8,
+        "done": false
+      },
+      {
+        "index": 22,
+        "level": 299,
+        "exp": 23.255316947565262,
+        "coordinate": 299.23255316947564,
+        "rewardRaw": 2972817391756.8,
+        "done": false
+      },
+      {
+        "index": 23,
+        "level": 299,
+        "exp": 24.312376808818232,
+        "coordinate": 299.2431237680882,
+        "rewardRaw": 2972817391756.8,
+        "done": false
+      },
+      {
+        "index": 24,
+        "level": 299,
+        "exp": 25.3694366700712,
+        "coordinate": 299.2536943667007,
+        "rewardRaw": 2972817391756.8,
+        "done": false
+      },
+      {
+        "index": 25,
+        "level": 299,
+        "exp": 26.42649653132416,
+        "coordinate": 299.26426496531326,
+        "rewardRaw": 2972817391756.8,
+        "done": false
+      },
+      {
+        "index": 26,
+        "level": 299,
+        "exp": 27.48355639257713,
+        "coordinate": 299.27483556392576,
+        "rewardRaw": 2972817391756.8,
+        "done": false
+      },
+      {
+        "index": 27,
+        "level": 299,
+        "exp": 28.5406162538301,
+        "coordinate": 299.2854061625383,
+        "rewardRaw": 2972817391756.8,
+        "done": false
+      },
+      {
+        "index": 28,
+        "level": 299,
+        "exp": 29.597676115083065,
+        "coordinate": 299.2959767611508,
+        "rewardRaw": 2972817391756.8,
+        "done": false
+      },
+      {
+        "index": 29,
+        "level": 299,
+        "exp": 30.654735976336028,
+        "coordinate": 299.3065473597634,
+        "rewardRaw": 2972817391756.8,
+        "done": false
+      },
+      {
+        "index": 30,
+        "level": 299,
+        "exp": 31.711795837588998,
+        "coordinate": 299.3171179583759,
+        "rewardRaw": 2972817391756.8,
+        "done": false
+      }
+    ]
+  }
+]

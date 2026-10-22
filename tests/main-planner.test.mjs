@@ -23,15 +23,50 @@ import {
   FLAME_WEEKLY_ADD,
   MAIN_SCHEDULE,
   MISSION_STEPS,
+  missionCoinsThroughDay,
   normalizeInput,
   plusUnlockedLevel,
   plusLevelSchedule,
+  octoberPlusTierOptions,
+  octoberPlusRewardLines,
   simulateMain,
   stepRawForLevel,
   stepRewardRawForLevel,
 } from "../lib/main-planner.mjs";
 import { createMainContext } from "../lib/exp-tables.ts";
 import { MOB_BASE_EXP, PERSONAL_BOSS_TABLE } from "../lib/personal-data.mjs";
+import { ownedRewardInventory } from "../lib/owned-rewards.mjs";
+
+test("즉시 아이템 환산은 10월 보유분을 읽고 날짜가 다른 회차·만료 보상을 섞지 않는다", () => {
+  const input = defaultMainInput("2026-10-21");
+  input.items = { crimson: 2, adv: 100, sauna: 1, mech: 3, blue: 4, potion279: 0 };
+  input.plusOctober.items = { crimson: 5, adv: 200, sauna: 2 };
+  input.attendance = { adv: 300, sauna: 3, potion269: 1, potion279: 2 };
+  input.compensation = { adv: 400 };
+  const before = structuredClone(input);
+  assert.deepEqual(ownedRewardInventory(input), { crimson: 2, adv: 800, sauna: 4, mech: 3, blue: 4, potion269: 1, potion279: 2 });
+  assert.deepEqual(input, before, "환산이 입력·저장 재고를 바꾸지 않는다");
+  for (const start of ["2026-10-22", "2026-11-18"]) {
+    input.start = start;
+    assert.deepEqual(ownedRewardInventory(input), { crimson: 5, adv: 500, sauna: 5, mech: 3, blue: 4, potion269: 1, potion279: 2 });
+  }
+  input.plusOctober.enabled = false;
+  assert.equal(ownedRewardInventory(input).crimson, 5, "자동 수령을 꺼도 이미 보유한 수량은 쓸 수 있다");
+  input.start = "2026-11-19";
+  assert.deepEqual(ownedRewardInventory(input), { crimson: 0, adv: 0, sauna: 0, mech: 3, blue: 4, potion269: 0, potion279: 0 });
+});
+
+test("10월 크림슨 마지막 날 사용은 11/18에 한 번만 소비한다", () => {
+  const input = rewardOnly("2026-10-22", 285, 0);
+  input.end = "2026-11-18";
+  input.plusOctober.items.crimson = 2;
+  input.crimsonHold = 999;
+  const result = simulateMain(input, createMainContext());
+  const uses = result.rows.filter(row => row.events.some(event => event.includes("크림슨")));
+  assert.deepEqual(uses.map(row => row.date), ["2026-11-18"]);
+  assert.equal(result.items.crimsonUsed, 2);
+  assert.equal(result.items.octoberExpired.crimson, 0);
+});
 
 
 // 필요 경험치는 app/page.tsx 의 표를 그대로 옮긴 값이다. 표가 바뀌면 아래 연동 테스트가 먼저 깨진다.
@@ -107,19 +142,19 @@ test("PLUS와 두 목표 입력도 숫자 문자열·범위를 정리하고 받�
   assert.equal(normalizeInput({ personal: { mission: { secondTarget: null } } }, ctx).personal.mission.secondTarget, null);
 });
 
-test("두 대표 사례: 원본 아이템 정수로 바로잡아도 단계 수는 30·18을 유지한다", () => {
+test("두 대표 사례: 원본 아이템 정수로 바로잡아도 10월 보상을 더하면 40·21단계를 지난다", () => {
   const real = createMainContext();
   const main = defaultMainInput("2026-10-09");
   const a = analyzeMain(main, real).best.summary;
   assert.equal(a.level, 290);
-  assert.ok(Math.abs(a.exp - 31.977621138629274) < 1e-9);
-  assert.equal(a.stepsCleared, 30);
+  assert.ok(Math.abs(a.exp - 43.79923989507148) < 1e-9);
+  assert.equal(a.stepsCleared, 40);
   Object.assign(main, { level: 286, exp: 68 }); main.plus.tier = "free";
   main.personal.mission = { ...main.personal.mission, stepsDone: 4, nextTarget: { level: 286, exp: 69.714 }, nextRewardPct: 1.888 };
   const b = analyzeMain(main, real).best.summary;
   assert.equal(b.level, 288);
-  assert.ok(Math.abs(b.exp - 5.4377544692575075) < 1e-9);
-  assert.equal(b.stepsCleared, 18);
+  assert.ok(Math.abs(b.exp - 29.542098105420344) < 1e-9);
+  assert.equal(b.stepsCleared, 21);
 });
 
 test("직접 옮긴 두 목표의 경험치 간격을 반복한다: 290레벨 4.178%p", () => {
@@ -187,7 +222,7 @@ test("성장 미션 단계 크기는 레벨마다 한 값이고 290에서 뛴다
 test("모형이 본섭 287레벨 사례의 30개 목표와 보상을 재현한다 (모형을 맞춘 표본이라 독립 검증은 아니다)", () => {
   const built = buildMissionTable({ mode: "model", designLevel: 287, designExp: 20.162, stepsDone: 0 }, ctx);
   assert.equal(built.steps.length, MISSION_STEPS);
-  built.steps.forEach(step => {
+  built.steps.slice(0, 30).forEach(step => {
     const [level, exp] = SAMPLE_TARGETS[step.index - 1];
     const errorPoints = Math.abs(coord(step.level, step.exp) - coord(level, exp)) * 100;
     assert.ok(errorPoints < 0.02, `${step.index}단계 목표 오차 ${errorPoints.toFixed(4)}%p`);
@@ -200,22 +235,22 @@ test("화면 입력 방식은 1단계 목표와 보상만으로 나머지 단계
   const rewardPct = SAMPLE_REWARD_RAW[0] / REQ[287] * 100;
   const built = buildMissionTable({ mode: "screen", stepsDone: 0, nextTarget: { level: 287, exp: 29.741 }, nextRewardPct: rewardPct }, ctx);
   assert.equal(built.steps.length, MISSION_STEPS);
-  built.steps.forEach(step => {
+  built.steps.slice(0, 30).forEach(step => {
     const [level, exp] = SAMPLE_TARGETS[step.index - 1];
     assert.ok(Math.abs(coord(step.level, step.exp) - coord(level, exp)) * 100 < 0.2, `${step.index}단계`);
   });
   // 13단계까지 끝낸 사용자는 14단계부터 받는다.
   const mid = buildMissionTable({ mode: "screen", stepsDone: 13, nextTarget: { level: 288, exp: 49.948 }, nextRewardPct: 1.601 }, ctx);
   assert.equal(mid.steps[0].index, 14);
-  assert.equal(mid.steps.at(-1).index, 30);
-  assert.equal(buildMissionTable({ mode: "screen", stepsDone: 30, nextTarget: { level: 289, exp: 83.62 }, nextRewardPct: 1.4 }, ctx).steps.length, 0);
+  assert.equal(mid.steps.at(-1).index, 45);
+  assert.equal(buildMissionTable({ mode: "screen", stepsDone: 30, nextTarget: { level: 289, exp: 83.62 }, nextRewardPct: 1.4 }, ctx).requiresTargetInput, true);
 });
 
 test("9/11 테섭 표본 285 이상 6개를 0.007레벨 안쪽으로 맞춘다", () => {
   const samples = [[285, 71.5, 288.6561], [286, 0, 288.8775], [290, 6.3, 291.51851], [291, 0, 292.34842], [293, 8.4, 294.22975], [294, 0, 295.0401]];
   samples.forEach(([level, exp, target]) => {
     const built = buildMissionTable({ mode: "model", designLevel: level, designExp: exp, stepsDone: 0 }, ctx);
-    const last = built.steps.at(-1);
+    const last = built.steps[29];
     assert.ok(Math.abs(coord(last.level, last.exp) - target) < 0.007, `${level}/${exp}% 30단계 ${coord(last.level, last.exp).toFixed(4)} vs ${target}`);
   });
 });
@@ -233,7 +268,7 @@ test("단계 보상은 레벨의 몬스터 기본 경험치 × 502,828.8이다 (
   assert.ok(Math.abs(stepRewardRawForLevel(296) / req296 * 100 - 0.300) < 0.0005);
   // 단계표의 보상은 이 값을 그대로 쓴다.
   const built = buildMissionTable({ mode: "model", designLevel: 290, designExp: 6.3, stepsDone: 0 }, ctx);
-  built.steps.forEach(step => assert.equal(step.rewardRaw, stepRewardRawForLevel(step.level)));
+  built.steps.forEach(step => assert.equal(step.rewardRaw, stepRewardRawForLevel(step.level, step.index)));
 });
 
 test("단계 간격은 구간마다 몬스터 기본 경험치의 배수다", () => {
@@ -266,7 +301,7 @@ test("본섭 286레벨 캐릭터의 미션 화면을 다음 목표 하나로 재
     assert.equal(step.level, level, `${index}단계 레벨`);
     assert.ok(Math.abs(step.exp - exp) < 0.01, `${index}단계 ${step.exp.toFixed(3)}% vs 화면 ${exp}%`);
   });
-  assert.equal(built.steps.length, 26);
+  assert.equal(built.steps.length, 41);
   assert.equal(built.scale, 1, "화면 보상 %의 반올림 차이로는 보상을 조정하지 않는다");
   assert.equal(built.warnings.length, 0);
   // 보상: 화면 5단계 2조 667억 7920만 7004, 8단계 2조 936억 5388만 7402, 30단계 2조 1448억 1069만 4332
@@ -287,6 +322,7 @@ test("입력한 보상이 표와 크게 다르면 입력값 쪽으로 맞추고 
 
 const baseInput = (patch = {}) => {
   const input = defaultMainInput("2026-10-04");
+  input.plusOctober.enabled = false; input.magnifiers.detectivePerDay = 0;
   // 이 묶음의 테스트는 교환권이 쌓이는 배분(EXP 3)을 전제로 한다. 기본값은 조각 3이다.
   return { ...input, ...patch, personal: { ...input.personal, ...(patch.personal || {}), flame: { ...input.personal.flame, alloc: { shard: 0, exp: 3, erda: 0 }, ...(patch.personal?.flame || {}) } } };
 };
@@ -331,7 +367,7 @@ test("단계 보상으로 들어온 경험치가 새로 넘은 단계 보상의 
   const table = buildMissionTable(baseInput().personal.mission, ctx).steps;
   const expected = result.mission.newlyCleared.reduce((sum, step) => sum + table.find(row => row.index === step.index).rewardRaw, 0);
   assert.ok(Math.abs(result.sourceRaw.missionReward - expected) / expected < 1e-9);
-  assert.equal(result.mission.coins, result.mission.newlyCleared.length * 1000);
+  assert.equal(result.mission.coins, result.mission.newlyCleared.filter(step => step.index <= 30).length * 1000);
   assert.equal(result.mission.stepsCleared, 13 + result.mission.newlyCleared.length);
   // 단계는 번호 순서대로, 같은 날이면 한 번에 넘을 수 있다.
   result.mission.newlyCleared.forEach((step, index) => { if (index) assert.equal(step.index, result.mission.newlyCleared[index - 1].index + 1); });
@@ -493,7 +529,7 @@ test("실제 표로 기본 입력을 돌려 앞뒤가 맞는 결과가 나온다
   assert.ok(result.rows.length === diffDays("2026-11-18", "2026-10-04") + 1);
   assert.ok(result.progress > result.startPosition);
   assert.ok(result.mission.stepsCleared >= 13);
-  assert.ok(result.mission.stepsCleared <= 30);
+  assert.ok(result.mission.stepsCleared <= 45);
   // 입력의 13단계 이후만 새로 센다.
   assert.equal(result.mission.stepsCleared, 13 + result.mission.newlyCleared.length);
   // 원천별 합이 위치 차이와 맞는다.
@@ -582,8 +618,8 @@ const isolated = () => {
   const x = defaultMainInput("2026-10-04");
   x.end = x.start;
   Object.assign(x.routine, { runsPerDay: 0, grandis: false, extreme: false, epic: false, todayPending: false });
-  x.plus.enabled = false;
-  x.personal.mission.stepsDone = 30;
+  x.plus.enabled = false; x.plusOctober.enabled = false; x.magnifiers.detectivePerDay = 0;
+  x.personal.mission.stepsDone = 45;
   x.personal.flame.killsPerWeek = 0;
   x.personal.bosses = [];
   x.routine.huntHoursPerWeek = 0;
@@ -864,7 +900,7 @@ test("숫자 문자열과 깨진 값을 같은 규칙으로 정리한다", () =>
   const numbers = simulateMain({ ...base, level: 288, exp: 45, plus: received, items: { ...base.items, crimson: 2 } }, real);
   assert.equal(strings.level, numbers.level);
   assert.equal(strings.progress, numbers.progress);
-  assert.equal(strings.items.crimsonUsed, 2);
+  assert.equal(strings.items.crimsonUsed, 3);
   // 등급 비교에서 문자열이 수량에 이어 붙지 않는다.
   const tiers = compareTiers({ ...base, items: { ...base.items, crimson: "2" }, plus: { ...base.plus, claimedLevel: 10 } }, real);
   const reference = analyzeMain({ ...base, plus: received, items: { ...base.items, crimson: 2 } }, real);
@@ -1214,14 +1250,14 @@ test("사냥터를 고르지 않으면 레벨을 따라 지역의 가장 높은 
   assert.ok(same.sourceRaw.flame < follow.sourceRaw.flame, "내 레벨과 같은 몬스터(289→290)는 추천(289→294)보다 낮다");
 });
 
-test("커스텀 포인트 비교: 30단계를 넘는 사람은 조각 3, 못 넘는 사람은 필요한 만큼만 EXP", () => {
+test("커스텀 포인트 비교: 같은 단계라면 조각 3, 더 넘길 수 있으면 필요한 만큼만 EXP", () => {
   const real = createMainContext();
   // 프라임·몰아쓰기 기본값은 EXP에 하나도 안 줘도 30단계를 넘는다.
   const rich = compareAlloc(defaultMainInput("2026-10-05"), real);
   assert.equal(rich.length, 4);
   assert.deepEqual(rich.map(row => row.alloc.exp), [0, 1, 2, 3]);
-  assert.ok(rich.every(row => row.summary.stepsCleared === 30));
-  assert.deepEqual(rich.find(row => row.recommended).alloc, { shard: 3, exp: 0, erda: 0 });
+  assert.deepEqual(rich.map(row => row.summary.stepsCleared), [42, 42, 42, 43]);
+  assert.deepEqual(rich.find(row => row.recommended).alloc, { shard: 0, exp: 3, erda: 0 });
   // EXP에 많이 줄수록 교환권은 늘고 조각은 준다. 마감 위치는 줄지 않는다.
   for (let i = 1; i < 4; i += 1) {
     assert.ok(rich[i].couponsMade > rich[i - 1].couponsMade);
@@ -1462,10 +1498,10 @@ test("본섭 화면 5장: 실제 필요 경험치로 293·295·297 지정과 297
   assert.equal(Number((2_937_852_688_320 / real.reqRaw(298) * 100).toFixed(3)), 0.254);
 });
 
-test("공식300레벨 보정 목표는 30단계를 유지하고 경험치 없이 코인만 준다", () => {
+test("공식300레벨 보정 목표는 45단계를 유지하고 첫 30단계만 코인을 준다", () => {
   const real = createMainContext();
   const table = buildMissionTable({ mode: "model", designLevel: 299, designExp: 99.999 }, real);
-  assert.equal(table.steps.length, 30);
+  assert.equal(table.steps.length, 45);
   assert.ok(table.steps.every(s => s.level === 300 && s.exp === 0 && s.rewardRaw === 0));
   const x = rewardOnly("2026-11-18", 299, 99.999);
   x.personal.enabled = true;
@@ -1473,11 +1509,11 @@ test("공식300레벨 보정 목표는 30단계를 유지하고 경험치 없이
   Object.assign(x.personal.flame, { stock: 1000, killsPerWeek: 7000, alloc: { shard: 0, exp: 3, erda: 0 } });
   const r = simulateMain(x, real);
   assert.equal(r.level, 300); assert.equal(r.exp, 0);
-  assert.equal(r.mission.stepsCleared, 30); assert.equal(r.mission.coins, 30_000);
+  assert.equal(r.mission.stepsCleared, 45); assert.equal(r.mission.coins, 30_000);
   assert.equal(r.mission.rewardRaw, 0);
   assert.ok(Math.abs(r.sourceRaw.flame - 17_377_598_540) < 1);
   const manual = buildMissionTable({ mode: "screen", stepsDone: 29, nextTarget: { level: 300, exp: 95 }, nextRewardPct: 1 }, real);
-  assert.deepEqual(manual.steps.map(s => [s.index, s.level, s.exp, s.rewardRaw]), [[30, 300, 0, 0]]);
+  assert.deepEqual(manual.steps.map(s => [s.index, s.level, s.exp, s.rewardRaw]), Array.from({length:16}, (_,i)=>[30+i,300,0,0]));
   const exact = buildMissionTable({ mode: "model", designLevel: 299, designExp: 98.94294013874703 }, real);
   assert.deepEqual([exact.steps[0].level, exact.steps[0].exp, exact.steps[0].rewardRaw], [300, 0, 0], "한 단계 끝이 정확히 299·100%여도 300 목표다");
 });
@@ -1786,6 +1822,169 @@ test("등급 비교 extra는 새 입력에서도 이미 받은 레벨의 추가 
   assert.deepEqual(row.analysis.chosen.result.items.plusReceived,{crimson:5,adv:5000,sauna:1,coupon4x:4,booster:20});
 });
 
+test("10/22 확장 전 1~30단계 목표·보상은 여덟 지정 레벨에서 한 자리도 바뀌지 않는다", () => {
+  const rows=JSON.parse(readFileSync(new URL('./mission-first30-fixture.json',import.meta.url),'utf8'));
+  const real=createMainContext();
+  for(const row of rows) assert.deepEqual(buildMissionTable(row.mission,real).steps.slice(0,30),row.steps);
+  assert.equal(stepRewardRawForLevel(286,31),413_371_629_158.4);
+  assert.ok(Math.abs(stepRewardRawForLevel(290,45)-482_062_073_932.8)<0.001);
+});
+
+test("부스터 추가 보정을 제외하면 10/21까지 아홉 계산은 이전 경험치 내역과 같다", () => {
+  const rows=JSON.parse(readFileSync(new URL('./pre-october-fixture.json',import.meta.url),'utf8'));
+  for(const row of rows) {
+    const x={...row.input,plusOctober:defaultMainInput().plusOctober,magnifiers:defaultMainInput().magnifiers};
+    // 역사 스냅샷은 보정 전 부스터이다. +300%(×4)와 새 레벨 차 보정만 상쇄하고 나머지 계산은 고정한다.
+    const real=createMainContext();assert.equal(x.routine.huntBonusPct,300);
+    const r=simulateMain(x,{...real,boosterRaw:field=>real.boosterRaw(field)/4,huntLevelFactor:()=>1});
+    assert.deepEqual({level:r.level,exp:r.exp,steps:r.mission.stepsCleared,coins:r.mission.coins,sourceRaw:r.sourceRaw},row.expected);
+  }
+});
+
+test("이미 넘은 31단계는 10/22에 열리고 경험치만 받으며 코인은 30,000개를 넘지 않는다", () => {
+  const x=rewardOnly('2026-10-21',290,90);x.personal.enabled=true;
+  x.personal.mission={mode:'screen',stepsDone:30,nextRewardPct:0.164,nextTarget:{level:290,exp:80},secondTarget:{level:290,exp:95},intervalEnabled:true};
+  const a=simulateMain(x,createMainContext());assert.equal(a.mission.stepsCleared,30);assert.equal(a.mission.rewardRaw,0);
+  x.end='2026-10-22';const b=simulateMain(x,createMainContext());
+  assert.equal(b.mission.stepsCleared,31);assert.equal(b.mission.coins,0);assert.equal(b.mission.totalCoins,30_000);
+  assert.deepEqual(b.mission.newlyCleared.map(s=>[s.index,s.date]),[[31,'2026-10-22']]);
+  assert.ok(Math.abs(b.mission.rewardRaw-482_062_073_932.8)<0.001);
+});
+
+test("299레벨 45단계 보정 문턱은 52.432% 부근이고 보정된 단계는 경험치가 없다", () => {
+  const a=buildMissionTable({mode:'model',designLevel:299,designExp:52.431},createMainContext());
+  assert.equal(a.steps[44].level,299);assert.ok(Math.abs(a.steps[44].exp-99.99869375638349)<1e-8);
+  const b=buildMissionTable({mode:'model',designLevel:299,designExp:52.433},createMainContext());
+  assert.deepEqual([b.steps[44].level,b.steps[44].exp,b.steps[44].rewardRaw],[300,0,0]);
+});
+
+test("10월 PLUS는 새 0레벨에서 시작해 3주차에 10레벨이 되고 9월 프라임 구매자는 무료만 받는다", () => {
+  const period={plusStart:'2026-10-22',plusLastUseDay:'2026-11-18'};
+  assert.deepEqual(plusLevelSchedule({enabled:true,currentLevel:0,levelPoints:0,weeklyPoints:2500,thisWeekRemaining:2500},'2026-10-22',period).map(r=>[r.date,r.level]),[['2026-10-22',0],['2026-10-28',3],['2026-10-29',6],['2026-11-05',10]]);
+  for(const tier of ['prime']) {
+    const x=rewardOnly('2026-10-22');x.end='2026-11-18';x.plus.tier=tier;x.plus.enabled=true;
+    x.plusOctober={...defaultMainInput().plusOctober,tier:'prime'};
+    assert.equal(normalizeInput(x,createMainContext()).plusOctober.tier,'free');
+    assert.deepEqual(simulateMain(x,createMainContext()).items.octoberReceived,{crimson:1,adv:500,sauna:1.5,coupon4x:0,booster:0});
+  }
+});
+
+test("10월 늦은 프라임 구매일에 지난 유료 보상만 받아 무료 보상을 중복하지 않는다", () => {
+  const x=rewardOnly('2026-10-22');x.plus.tier='free';x.end='2026-10-29';
+  x.plusOctober={...defaultMainInput().plusOctober,tier:'prime',purchaseDate:'2026-10-30'};
+  const a=simulateMain(x,createMainContext());
+  assert.deepEqual(a.items.octoberReceived,{crimson:1,adv:100,sauna:1,coupon4x:0,booster:0});
+  x.end='2026-10-30';const b=simulateMain(x,createMainContext());
+  assert.deepEqual(b.items.octoberReceived,{crimson:11,adv:7600,sauna:1,coupon4x:6,booster:20});
+  x.plusOctober={...x.plusOctober,currentLevel:10,claimedLevels:{free:10,premium:0,prime:0},purchaseDate:'2026-10-22'};
+  x.end=x.start;
+  assert.deepEqual(simulateMain(x,createMainContext()).items.octoberReceived,{crimson:16,adv:13_500,sauna:0,coupon4x:10,booster:40});
+});
+
+test("9월 재고는 10/21에 끝나고 10월 재고만 11/18까지 쓰며 이후에는 재지급하지 않는다", () => {
+  const x=rewardOnly('2026-10-22');x.items.adv=100;x.plusOctober.items.adv=200;
+  const r=simulateMain(x,createMainContext());
+  assert.equal(r.items.expired.adv,100);assert.ok(Math.abs(r.sourceRaw.adv-200*createMainContext().itemRaw('adv',286))<1);
+  x.start=x.end='2026-11-18';x.plusOctober.items={booster:40,coupon4x:10};
+  const last=simulateMain(x,createMainContext());assert.equal(last.items.octoberExpired.booster,40);assert.equal(last.items.octoberExpired.coupon4x,10);
+  x.start=x.end='2026-11-19';x.plusOctober.enabled=true;x.plusOctober.currentLevel=10;
+  const after=simulateMain(x,createMainContext());assert.equal(after.items.octoberReceived.crimson,0);assert.equal(after.items.octoberExpired.booster,40);assert.equal(after.items.huntItemsUsed.booster,0);
+});
+
+test("돋보기는 10/22부터 일과를 하는 날만 쓰고 탐정 유령에는 추가 경험치가 붙지 않는다", () => {
+  const x=rewardOnly('2026-10-22',293,0);x.magnifiers={detectivePerDay:1,ordinaryPerDay:1,killsPerUse:190,bonusPct:300,fieldKey:'direct',fieldLevel:294};
+  const a=simulateMain(x,createMainContext());
+  assert.equal(a.sourceRaw.detectiveMagnifier,763_570_632_000);assert.equal(a.sourceRaw.ordinaryMagnifier,45_814_237_920);
+  x.magnifiers.bonusPct=0;const b=simulateMain(x,createMainContext());assert.equal(b.sourceRaw.detectiveMagnifier,763_570_632_000);assert.equal(b.sourceRaw.ordinaryMagnifier,11_453_559_480);
+  for(const date of ['2026-10-21','2026-11-19']) {x.start=x.end=date;assert.equal(simulateMain(x,createMainContext()).sourceRaw.detectiveMagnifier||0,0);}
+  x.start=x.end='2026-10-22';x.routine.todayPending=false;assert.equal(simulateMain(x,createMainContext()).sourceRaw.detectiveMagnifier||0,0);
+  x.routine.todayPending=true;x.level=299;x.exp=99.999;const cap=simulateMain(x,createMainContext());
+  assert.equal(cap.level,300);assert.ok(Math.abs(cap.sourceRaw.detectiveMagnifier-17_377_598_540)<1);assert.equal(cap.sourceRaw.ordinaryMagnifier||0,0);
+  const n=normalizeInput({...x,magnifiers:{detectivePerDay:'9',ordinaryPerDay:'30',killsPerUse:'-1',fieldKey:'direct',fieldLevel:'250'}},createMainContext());
+  assert.deepEqual([n.magnifiers.detectivePerDay,n.magnifiers.ordinaryPerDay,n.magnifiers.killsPerUse,n.magnifiers.fieldLevel],[3,10,0,260]);
+});
+
+test("익스트림 림보·발드릭스는 청크 정수와 같고 10/22 전에는 지급하지 않는다", () => {
+  const real=createMainContext();const x=rewardOnly('2026-10-21');x.personal.enabled=true;
+  x.personal.bosses=[{id:'limbo-extreme',party:3},{id:'baldrix-extreme',party:3}];
+  assert.equal(simulateMain(x,real).sourceRaw.boss||0,0);
+  x.start=x.end='2026-10-22';const r=simulateMain(x,real);
+  assert.equal(r.sourceRaw.boss,4_810_077_633_333);assert.equal(r.boss.clears,2);
+});
+
+test("285·287·290 지정의 9월 프라임과 10월 프라임 여섯 사례를 재현한다", () => {
+  const expected=[
+    [285,'prime',288,56.843943281725906,35],[285,'free',288,57.51388730963595,35],
+    [287,'prime',290,4.842149590437379,35],[287,'free',290,5.143289909395084,35],
+    [290,'prime',291,66.91351670257242,34],[290,'free',291,67.07385152856259,34],
+  ];
+  for(const [level,tier,targetLevel,targetExp,steps] of expected) {
+    const x=defaultMainInput('2026-09-17');Object.assign(x,{level,exp:0});x.plus.tier=tier;
+    x.personal.mission={mode:'model',designLevel:level,designExp:0,stepsDone:0};x.plusOctober.tier='prime';
+    const r=analyzeMain(x,createMainContext()).chosen;
+    assert.equal(r.summary.level,targetLevel);assert.ok(Math.abs(r.summary.exp-targetExp)<1e-8);assert.equal(r.summary.stepsCleared,steps);
+    assert.equal(r.result.items.octoberReceived.crimson,tier==='prime'?1:17);assert.equal(r.result.mission.totalCoins,30_000);
+  }
+});
+
+test("옛 30단계 완료 화면 값으로는 새 목표를 만들지 않고 실제 31단계 입력을 받는다", () => {
+  const mission={mode:'screen',stepsDone:30,nextTarget:{level:290,exp:44.965},nextRewardPct:0.819};
+  const old=buildMissionTable(mission,createMainContext());
+  assert.equal(old.requiresTargetInput,true);assert.equal(old.scale,1);assert.deepEqual(old.steps,[]);
+  assert.match(old.warnings[0],/31단계.*게임 화면에서 다시 넣어/);
+  for (const value of [0, null, undefined, '']) assert.equal(buildMissionTable({...mission,nextRewardPct:value},createMainContext()).requiresTargetInput,true);
+  const actual=buildMissionTable({...mission,nextTarget:{level:290,exp:49.969538},nextRewardPct:0.164},createMainContext());
+  assert.equal(actual.steps.length,15);assert.equal(actual.steps[0].index,31);assert.equal(actual.scale,1);
+  assert.equal(actual.steps[0].exp,49.969538);
+  assert.ok(Math.abs(actual.steps[0].rewardRaw-482_062_073_932.8)<0.001);
+  assert.ok(Math.abs(actual.steps[1].rewardRaw-482_062_073_932.8)<0.001);
+  const x=rewardOnly('2026-10-22',290,40);x.personal.enabled=true;x.personal.mission=mission;
+  const r=simulateMain(x,createMainContext());assert.equal(r.mission.requiresTargetInput,true);assert.equal(r.mission.stepsCleared,30);assert.equal(r.mission.rewardRaw,0);
+});
+
+test("9월 미참여자는 기본 등급 값이 남아 있어도 10월 프라임을 살 수 있다", () => {
+  const x=rewardOnly('2026-10-22');x.end='2026-11-18';x.plus.tier='prime';x.plus.enabled=false;
+  x.plusOctober={...defaultMainInput().plusOctober,tier:'prime'};
+  assert.equal(normalizeInput(x,createMainContext()).plusOctober.tier,'prime');
+  assert.deepEqual(simulateMain(x,createMainContext()).items.octoberReceived,{crimson:17,adv:14000,sauna:1.5,coupon4x:10,booster:40});
+  x.plus.enabled=true;assert.equal(normalizeInput(x,createMainContext()).plusOctober.tier,'free');
+});
+
+test("10월 남은 PLUS는 9월 소멸량에 합산하지 않는다", () => {
+  const x=rewardOnly('2026-11-18',299,99.999);x.plusOctober={...defaultMainInput().plusOctober,items:{crimson:2,adv:1000}};
+  const r=simulateMain(x,createMainContext());
+  assert.deepEqual(r.items.expired,{crimson:0,adv:0,sauna:0,coupon4x:0,booster:0});
+  assert.equal(r.items.octoberExpired.crimson,3);assert.equal(r.items.octoberExpired.adv,983);assert.equal(r.items.octoberExpired.sauna,0.5);
+});
+
+test("10월 항목이 없는 직접 엔진 입력은 옛 계산을 유지하고 새 방문 기본값과 구분한다", () => {
+  const legacy=normalizeInput({start:'2026-10-18'},createMainContext());
+  assert.equal(legacy.plusOctober.enabled,false);assert.equal(legacy.magnifiers.detectivePerDay,0);
+  const fresh=normalizeInput(defaultMainInput('2026-10-18'),createMainContext());
+  assert.equal(fresh.plusOctober.enabled,true);assert.equal(fresh.magnifiers.detectivePerDay,1);
+});
+
+test("코인 시점 비교의 합계와 차이는 모두 30단계까지만 센다", () => {
+  const rows=[{index:29,date:'2026-10-20'},{index:30,date:'2026-10-21'},{index:31,date:'2026-10-22'},{index:45,date:'2026-11-18'}];
+  assert.equal(missionCoinsThroughDay(rows,'2026-10-20'),1000);
+  assert.equal(missionCoinsThroughDay(rows,'2026-10-21'),2000);
+  assert.equal(missionCoinsThroughDay(rows,'2026-11-18'),2000);
+  assert.equal(missionCoinsThroughDay(rows.slice(2),'2026-11-18'),0);
+});
+
+test("10/22 전에도 완료한 30단계 목표를 직접 넣으면 31단계부터 이어 볼 수 있다", () => {
+  const mission={mode:'screen',targetKind:'last30',stepsDone:30,nextTarget:{level:290,exp:34.956},nextRewardPct:0.819};
+  const table=buildMissionTable(mission,createMainContext());
+  assert.equal(table.steps.length,15);assert.equal(table.steps[0].index,31);
+  assert.ok(Math.abs(table.steps[0].exp-39.960538140622795)<1e-9);
+  assert.ok(Math.abs(table.steps[0].rewardRaw-482_062_073_932.8)<0.001);
+  assert.equal(table.steps[14].level,291);assert.ok(Math.abs(table.steps[14].exp-9.206344012892561)<1e-9);
+  const x=rewardOnly('2026-10-18',290,40);x.end='2026-10-21';x.personal.enabled=true;x.personal.mission=mission;
+  const before=simulateMain(x,createMainContext());assert.equal(before.mission.requiresTargetInput,false);assert.equal(before.mission.stepsCleared,30);assert.equal(before.mission.rewardRaw,0);
+  x.end='2026-10-22';const after=simulateMain(x,createMainContext());assert.equal(after.mission.stepsCleared,31);assert.deepEqual(after.mission.newlyCleared.map(s=>[s.index,s.date]),[[31,'2026-10-22']]);
+  assert.ok(Math.abs(after.mission.rewardRaw-482_062_073_932.8)<0.001);
+  x.personal.mission.nextTarget.exp=44.965;assert.equal(simulateMain(x,createMainContext()).mission.requiresTargetInput,true,'이미 완료한 목표는 지금 위치보다 앞일 수 없다');
+});
 
 test("PLUS·출석·사과 부스터는 모두 사냥 추가 경험치와 같은 레벨 보정을 받는다", () => {
   for(const kind of ['plus','attendance','compensation']) {
@@ -1801,6 +2000,17 @@ test("PLUS·출석·사과 부스터는 모두 사냥 추가 경험치와 같은
   }
 });
 
+test("일반 돋보기와 VIP 부스터는 같은 몬스터·추가 경험치·레벨 차에서 같은 양이다", () => {
+  const x=rewardOnly('2026-10-22',290,0);
+  Object.assign(x.routine,{huntHoursPerWeek:3.5,huntBonusPct:300,huntFieldKey:'direct',huntFieldLevel:288});
+  x.attendance.booster=1;x.magnifiers={detectivePerDay:1,ordinaryPerDay:1,killsPerUse:190,bonusPct:300,fieldKey:'direct',fieldLevel:288};
+  const r=simulateMain(x,{...createMainContext(),huntRaw:()=>1e-20});
+  assert.ok(Math.abs(r.sourceRaw.attendanceBooster-35_258_517_360)<0.001);assert.ok(Math.abs(r.sourceRaw.ordinaryMagnifier-35_258_517_360)<0.001);
+  assert.equal(r.sourceRaw.detectiveMagnifier,641_063_952_000,'탐정은 레벨 차 +2여도 ×800만 적용');
+  x.magnifiers.bonusPct=0;
+  const zero=simulateMain(x,{...createMainContext(),huntRaw:()=>1e-20});
+  assert.ok(Math.abs(zero.sourceRaw.ordinaryMagnifier-8_814_629_340)<0.001);assert.equal(zero.sourceRaw.detectiveMagnifier,641_063_952_000);
+});
 
 test("부스터 한 개 도중 레벨이 오르면 나머지 분량은 새 몬스터 값으로 다시 계산한다", () => {
   const x=rewardOnly('2026-10-21',289,99.99);
@@ -1814,12 +2024,50 @@ test("부스터 한 개 도중 레벨이 오르면 나머지 분량은 새 몬�
 });
 
 
+test("9월 프리미엄만 사면 10월은 무료·프라임만 받고 프리미엄 줄을 중복 지급하지 않는다", () => {
+  const x=rewardOnly('2026-10-22');x.end='2026-11-18';x.plus.enabled=true;x.plus.tier='premium';
+  x.plusOctober={...defaultMainInput().plusOctober,tier:'prime'};
+  assert.deepEqual(octoberPlusTierOptions(x.plus),['free','prime']);
+  assert.deepEqual(octoberPlusRewardLines(x.plus,'prime'),['free','prime']);
+  assert.deepEqual(simulateMain(x,createMainContext()).items.octoberReceived,{crimson:12,adv:9500,sauna:1.5,coupon4x:6,booster:20});
+  x.plusOctober.tier='premium';assert.equal(normalizeInput(x,createMainContext()).plusOctober.tier,'free');
+  assert.deepEqual(simulateMain(x,createMainContext()).items.octoberReceived,{crimson:1,adv:500,sauna:1.5,coupon4x:0,booster:0});
+  x.plus.enabled=false;assert.deepEqual(octoberPlusTierOptions(x.plus),['free','premium','prime']);
+  assert.deepEqual(octoberPlusRewardLines(x.plus,'prime'),['free','premium','prime']);
+});
+
+test("9월 프리미엄의 10월 늦은 프라임 구매는 그날 지난 프라임 줄만 받고 무료는 한 번만 받는다", () => {
+  const x=rewardOnly('2026-10-22');x.plus.enabled=true;x.plus.tier='premium';x.end='2026-10-29';
+  x.plusOctober={...defaultMainInput().plusOctober,tier:'prime',purchaseDate:'2026-10-30'};
+  assert.deepEqual(simulateMain(x,createMainContext()).items.octoberReceived,{crimson:1,adv:100,sauna:1,coupon4x:0,booster:0});
+  x.end='2026-10-30';
+  assert.deepEqual(simulateMain(x,createMainContext()).items.octoberReceived,{crimson:8,adv:6100,sauna:1,coupon4x:4,booster:0});
+  x.start=x.end='2026-11-05';x.plusOctober.currentLevel=10;x.plusOctober.claimedLevels={free:10,premium:0,prime:0};x.plusOctober.purchaseDate=x.start;
+  assert.deepEqual(simulateMain(x,createMainContext()).items.octoberReceived,{crimson:11,adv:9000,sauna:0,coupon4x:6,booster:20});
+  x.plusOctober.claimedLevels.prime=10;
+  assert.deepEqual(simulateMain(x,createMainContext()).items.octoberReceived,{crimson:0,adv:0,sauna:0,coupon4x:0,booster:0});
+});
+
+test("285·287·290 지정의 9월 프리미엄·10/22 프라임 구매는 무료와 프라임 줄로 이어진다", () => {
+  for(const [level,targetLevel,targetExp,steps] of [[285,288,57.29221330380595,35],[287,290,5.024200714359453,35],[290,291,66.99588623504303,34]]) {
+    const x=defaultMainInput('2026-09-17');Object.assign(x,{level,exp:0});x.plus.tier='premium';
+    x.personal.mission={mode:'model',designLevel:level,designExp:0,stepsDone:0};x.plusOctober.tier='prime';x.plusOctober.purchaseDate='2026-10-22';
+    const r=analyzeMain(x,createMainContext()).chosen;
+    assert.equal(x.personal.bosses.length,12);assert.equal(r.summary.level,targetLevel);assert.ok(Math.abs(r.summary.exp-targetExp)<1e-8);assert.equal(r.summary.stepsCleared,steps);
+    assert.deepEqual(r.result.items.octoberReceived,{crimson:12,adv:9500,sauna:1.5,coupon4x:6,booster:20});assert.equal(r.result.mission.totalCoins,30000);
+  }
+});
+
 test("부스터가 없는 18사례는 게시본45d2861과 10/21까지 위치·단계·경험치 내역·재고가 같다", () => {
   const fixture=JSON.parse(readFileSync(new URL('./booster-zero-fixture.json',import.meta.url),'utf8'));
   assert.equal(fixture.baseline,'45d2861');assert.equal(fixture.rows.length,18);
   for(const row of fixture.rows) {
     const r=simulateMain(row.input,createMainContext());
     assert.equal(r.items.plusReceived.booster,0);assert.equal(r.sourceRaw.booster||0,0);assert.equal(r.sourceRaw.attendanceBooster||0,0);assert.equal(r.sourceRaw.compensationBooster||0,0);
-    assert.deepEqual({level:r.level,exp:r.exp,steps:r.mission.stepsCleared,sourceRaw:r.sourceRaw,items:r.items,flame:r.flame},row.expected);
+    // 10월 판의 추가 재고 칸은 모두 0이어야 하며, 게시본에 있던 칸만 같은 구조로 비교한다.
+    const {octoberReceived,octoberExpired,...septemberItems}=r.items;
+    assert.deepEqual(octoberReceived,{crimson:0,adv:0,sauna:0,coupon4x:0,booster:0});
+    assert.deepEqual(octoberExpired,{crimson:0,adv:0,sauna:0,coupon4x:0,booster:0});
+    assert.deepEqual({level:r.level,exp:r.exp,steps:r.mission.stepsCleared,sourceRaw:r.sourceRaw,items:septemberItems,flame:r.flame},row.expected);
   }
 });
