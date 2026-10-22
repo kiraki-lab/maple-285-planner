@@ -1,0 +1,67 @@
+{
+  "audit": {
+    "branch": "claude/followup-280-magnifiers",
+    "baseCommit": "413d5587ed7dda78e82270ee3467829a025c0d50",
+    "mainAtStart": "413d5587ed7dda78e82270ee3467829a025c0d50 (차이 없음)",
+    "auditedAt": "2026-10-23 00:24~01:40 KST",
+    "grades": { "R": "공식 본섭 공지", "L": "본섭 게임 화면(커뮤니티 캡처, 직접 열어 읽음)", "T": "테섭 표본", "F": "커뮤니티 계산·계산 사이트 코드·출처 불명 표본", "H": "이번 분석의 가설·추정" }
+  },
+  "access": {
+    "ok": ["maplestory.nexon.com", "lwi.nexon.com", "www.inven.co.kr", "upload3.inven.co.kr(Referer 필요)", "haru1sojae.kr"],
+    "blocked": [
+      { "domain": "arca.live", "error": "HTTP 403 (사이트 응답)" },
+      { "domain": "namu.wiki", "error": "프록시 CONNECT 403 (환경 네트워크 정책)" },
+      { "domain": "www.fmkorea.com, image.fmkorea.com, gall.dcinside.com, m.dcinside.com, maple.ai.kr, hoonjaelab.com, www.youtube.com", "error": "프록시 CONNECT 403" }
+    ]
+  },
+  "officialCheck": {
+    "grade": "R", "checkedAt": "2026-10-23 00:55 KST",
+    "lists": ["https://maplestory.nexon.com/News/Notice", "https://maplestory.nexon.com/News/Update", "https://maplestory.nexon.com/News/Event"],
+    "result": "최신 공지 150347(10/22 15:52 마이너 패치, 스킬·메이플 홈 오류). 업데이트 목록 최신 815(수정 표기 없음). 성장 미션 간격·돋보기 보정 관련 정정 공지 없음"
+  },
+  "samples": {
+    "P": { "grade": "L", "independentCharacters": 1, "posts": ["https://www.inven.co.kr/board/maple/5974/7216372", "https://www.inven.co.kr/board/maple/5974/7244158", "https://www.inven.co.kr/board/maple/5974/7298175"], "use": "레벨별 간격 추정(281·282·283 같은 레벨, 278·279·280 경계)", "detail": "live-samples.json missionScreens280.P" },
+    "Q": { "grade": "L", "independentCharacters": 1, "posts": ["https://www.inven.co.kr/board/maple/5974/7290647"], "use": "검증 전용(추정에 쓰지 않음)" },
+    "SLIDE": { "grade": "T", "reuse": true, "use": "280 1단계 대조, 284·285 정합성" },
+    "EUNSUL": { "grade": "T", "reuse": true, "use": "정밀도 해석별 범위 계산" },
+    "T1": { "grade": "T", "reuse": "기존 보고서 인용 글을 이번에 원본 이미지로 재판독", "post": "https://www.inven.co.kr/board/maple/5974/7312331", "use": "탐정 유령 보정 판정" },
+    "M1": { "grade": "L", "reuse": true, "mixed": true, "use": "판정 불가 표시" },
+    "maple_ai_285": { "grade": "F", "source": "docs/research/mission-target-evidence.json samples[0] (maple.ai.kr 번들, 서버·시점 미확인)", "use": "285 간격 참고값(2,773,776)" }
+  },
+  "findings": [
+    {
+      "id": "N1", "class": "confirmed", "topic": "280~284 간격",
+      "statement": "281·282·283 본섭 간격은 현재 below285(2,730,206)와 이전 후보(2,740,725) 모두와 다르다",
+      "evidence": ["P·Q 같은 레벨 연속 목표: 281 25.838~25.8387%p(배수 2,745,762~2,745,833), 282 23.7597~23.7600%p(2,744,412~2,744,450), 283 21.876~21.878%p(2,742,758~2,743,008)"],
+      "engine": { "pct": { "281": 25.6916, "282": 23.6367, "283": 21.7759 }, "source": "lib/main-planner.mjs:68 STEP_MOB_MULTIPLE.below285, :82-87 stepRawForLevel" },
+      "validation": "Q(검증 전용) 21→30단계 9목표: 본섭 레벨별 값 최대 |오차| 0.0009%p, 현재 엔진 −1.0369%p, 이전 후보 −0.2818%p"
+    },
+    {
+      "id": "N2", "class": "recommend", "topic": "280 간격",
+      "statement": "280 배수 2,747,299(2,747,062~2,747,536). 본섭 P 15→21단계(279→280→281 경계 두 개)에서 추정, 테섭 슬라이드 1단계(2,747,262~2,747,360)와 독립으로 겹친다",
+      "caveat": "본섭 280 같은 레벨 연속 목표는 없다. 279 추정(경계 1개)에 의존"
+    },
+    {
+      "id": "N3", "class": "insufficient", "topic": "284 간격(과 285)",
+      "statement": "본섭 284 표본 없음. 281~283 선형 연장 2,741,335. 슬라이드 역산은 285 가정에 따라 2,731,706(엔진 285) 또는 2,741,651(285=2,773,776)",
+      "note": "285=2,773,776(출처 불명 표본)일 때 슬라이드 36단계 286·62.281%(화면 62.287)로 맞는다. 엔진 285(2,779,473)는 9/11 테섭 표본 맞춤값이라 본섭 285 연속 목표로 재확인 필요"
+    },
+    {
+      "id": "N4", "class": "confirmed-out-of-scope", "topic": "단계 보상 레벨 넘김",
+      "statement": "성장 미션 보상은 '목표 지점부터 몬스터 N마리분(1~30단계 502,828.8, 31~45단계 100,569.6)'을 레벨을 넘겨 계산한다. 엔진은 목표 레벨 몬스터 × N 만 쓴다",
+      "evidence": ["P 7단계 273·80.466%: 화면 1,283,034,328,078 / 넘김 모형 −384,175 / 엔진 −2,757,281,787", "P 8단계 274·99.872%: 화면 1,458,835,917,903 / 넘김 −5,338,555 / 엔진 −160,076,393,410", "P 11단계 276·93.532%: 화면 1,487,539,147,116 / 넘김 +196,941 / 엔진 −9,415,561,375", "이전 F5 294·99.991%(31~45): 화면 0.131% / 넘김 0.1306% / 엔진 0.11725%"],
+      "source": "lib/main-planner.mjs:54 stepRewardRawForLevel, :283(screen 모드)·:304(model 모드) rewardRaw",
+      "residual": "넘김 모형 잔차는 목표 % 표시 반올림(±0.0005%p) 범위 수준(10^-6 상대). 넘지 않는 행은 두 모형이 같고 화면과 1~4만 EXP 차(배수 끝자리)"
+    },
+    {
+      "id": "N5", "class": "maintain-T", "topic": "탐정 유령 레벨 차 보정",
+      "statement": "테섭 1.2.207 채팅 로그 한 장에서 일반 몹 기본 줄은 기본 EXP×1.1(5,525,840 = floor(5,023,491×1.1)), 같은 창 탐정 유령은 정확히 800×5,023,491 = 4,018,792,800. 레벨 차 보정 없음을 지지(T 1건). 몬스터 기본 EXP 표 값은 보정 전 값이라 이중 적용이 아니다",
+      "limits": "캐릭터 레벨 미표시(보정 1.1이므로 차이 ±2~4), 처치 수·멀티킬 출처 미구분, 본섭 동일 로그 없음"
+    },
+    {
+      "id": "N6", "class": "insufficient", "topic": "일반 유령 레벨 차·추가 경험치",
+      "statement": "본섭·테섭 일반 유령 처치 로그·1회 전후 표본 0건(10/22~10/23 01시 돋보기·유령·부스터 97글). VIP 부스터 대조군 실측도 찾지 못함. 공식은 '추가 경험치 적용'만 명시. 하루1소재 식은 보정 없음, 컴과 글은 '부스터류 레벨 차 패널티 적용'(설명, 실측 아님)",
+      "engine": "lib/main-planner.mjs:1086 (같은 레벨 ×1.2)"
+    }
+  ]
+}
