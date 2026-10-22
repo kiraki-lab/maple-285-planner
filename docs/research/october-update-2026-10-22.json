@@ -1,0 +1,559 @@
+{
+  "title": "10/22 업데이트(테섭 1.2.207) 퍼스널 버닝 계산 원값",
+  "generatedAt": "2026-10-17",
+  "note": "mobBaseExp·requiredExp 는 계산기 lib(personal-data.mjs MOB_BASE_EXP, exp-tables.ts REQUIRED_EXP)의 기존 값. 아래 배수는 이 문서의 근거 절 참조. 레벨은 31~45 보상은 '목표가 걸린 레벨', 돋보기는 '사냥터(필드) 몬스터 레벨'로 읽는다.",
+  "constants": {
+    "step31to45RewardMobMultiple": {
+      "value": 100569.6,
+      "grade": "S+C",
+      "source": [
+        "메이플 나우 2026-10-15 슬라이드 프레임 20261015-163012.jpg(286·287)",
+        "인벤 7312858 마빡도로시 테섭 캡처(290)"
+      ],
+      "ratioToStep1to30": 0.2
+    },
+    "step31to45Coins": {
+      "value": 0,
+      "grade": "R"
+    },
+    "step31to45IntervalRule": {
+      "value": "1~30단계와 같은 레벨별 간격",
+      "grade": "S+C",
+      "check": "286 10.409%p, 287 9.580%p(슬라이드), 290 5.004~5.005%p(테섭 캡처) = 계산기 stepRawForLevel 과 일치"
+    },
+    "missionStepsTotal": {
+      "value": 45,
+      "grade": "R"
+    },
+    "level299CapThresholdPct": {
+      "value": 52,
+      "before": 68,
+      "grade": "R",
+      "impliedStep299Pct": "≈1.067%p (48/45, 32/30)"
+    },
+    "detectiveGhostMobMultiple": {
+      "value": 800,
+      "perLevelBasis": "사냥터 몬스터 레벨(캐릭터 레벨 아님)",
+      "ignoresAllExpBonus": true,
+      "grade": "C(실측 2건) + 하루1소재 상수",
+      "sources": [
+        "인벤 7312331 아루루나나 2026-10-15 캡처: Lv.294 밤의 인도자 필드 1마리 4,018,792,800 = 800×5,023,491",
+        "인벤 7314489 컴과 2026-10-15: 1마리당 사냥터몹 순경험치 800배",
+        "haru1sojae.kr 29m80xfm160xd.js tT mobRate:800,usesBonus:!1"
+      ]
+    },
+    "detectiveGhostKillsPerUse": {
+      "value": 190,
+      "grade": "C(단일 출처, 부스터 가정을 옮김)",
+      "source": "컴과(인벤 7314489)=하루1소재 작성자 사이트, 식 ×(10×19). 독립 실측 확인 못함"
+    },
+    "suspiciousGhostMobMultiple": {
+      "value": 10,
+      "killsPerUse": 190,
+      "appliesExpBonus": true,
+      "grade": "X(작성자 예상) + R(추가 경험치 적용)",
+      "source": "컴과: 'VIP/HEXA 부스터와 동일 아이템이라고 예상', 테섭 4시간 동안 1개도 못 얻음"
+    },
+    "dailyLimits": {
+      "suspiciousPerCharacter": 10,
+      "detectivePerMapleId": 3,
+      "detectiveFromDailyMission": 1,
+      "dailyMissionKills": 10000,
+      "grade": "R"
+    },
+    "dropRate": {
+      "value": null,
+      "grade": "확인 못함"
+    },
+    "momentumPlusOctober": {
+      "start": "2026-10-22",
+      "lastClaim": "2026-11-18 23:59",
+      "lastUse": "2026-11-19 02:00",
+      "tablesSameAsSeptember": true,
+      "septemberPaidBuyersOctober": "무료 줄만",
+      "grade": "R(표·기간) + V·C(규칙) + 대표 결정 2026-10-17"
+    }
+  },
+  "perLevel": [
+    {
+      "level": 260,
+      "mobBaseExp": 1725461,
+      "requiredExp": null,
+      "step31to45RewardRaw": 173528922586,
+      "step31to45RewardPctOfLevel": null,
+      "step1to30RewardRaw_current": 867611484077,
+      "detectiveGhostPerKillRaw_fieldMob": 1380368800,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 262270072000,
+      "detectivePerUsePctIfCharSameLevel": null,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 3278375900
+    },
+    {
+      "level": 261,
+      "mobBaseExp": 1750290,
+      "requiredExp": null,
+      "step31to45RewardRaw": 176025965184,
+      "step31to45RewardPctOfLevel": null,
+      "step1to30RewardRaw_current": 880096220352,
+      "detectiveGhostPerKillRaw_fieldMob": 1400232000,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 266044080000,
+      "detectivePerUsePctIfCharSameLevel": null,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 3325551000
+    },
+    {
+      "level": 262,
+      "mobBaseExp": 1775159,
+      "requiredExp": null,
+      "step31to45RewardRaw": 178527030566,
+      "step31to45RewardPctOfLevel": null,
+      "step1to30RewardRaw_current": 892601069779,
+      "detectiveGhostPerKillRaw_fieldMob": 1420127200,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 269824168000,
+      "detectivePerUsePctIfCharSameLevel": null,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 3372802100
+    },
+    {
+      "level": 263,
+      "mobBaseExp": 1800203,
+      "requiredExp": null,
+      "step31to45RewardRaw": 181045695629,
+      "step31to45RewardPctOfLevel": null,
+      "step1to30RewardRaw_current": 905193914246,
+      "detectiveGhostPerKillRaw_fieldMob": 1440162400,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 273630856000,
+      "detectivePerUsePctIfCharSameLevel": null,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 3420385700
+    },
+    {
+      "level": 264,
+      "mobBaseExp": 1828409,
+      "requiredExp": null,
+      "step31to45RewardRaw": 183882361766,
+      "step31to45RewardPctOfLevel": null,
+      "step1to30RewardRaw_current": 919376703379,
+      "detectiveGhostPerKillRaw_fieldMob": 1462727200,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 277918168000,
+      "detectivePerUsePctIfCharSameLevel": null,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 3473977100
+    },
+    {
+      "level": 265,
+      "mobBaseExp": 2056974,
+      "requiredExp": null,
+      "step31to45RewardRaw": 206869052390,
+      "step31to45RewardPctOfLevel": null,
+      "step1to30RewardRaw_current": 1034305768051,
+      "detectiveGhostPerKillRaw_fieldMob": 1645579200,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 312660048000,
+      "detectivePerUsePctIfCharSameLevel": null,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 3908250600
+    },
+    {
+      "level": 266,
+      "mobBaseExp": 2085219,
+      "requiredExp": null,
+      "step31to45RewardRaw": 209709640742,
+      "step31to45RewardPctOfLevel": null,
+      "step1to30RewardRaw_current": 1048508167507,
+      "detectiveGhostPerKillRaw_fieldMob": 1668175200,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 316953288000,
+      "detectivePerUsePctIfCharSameLevel": null,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 3961916100
+    },
+    {
+      "level": 267,
+      "mobBaseExp": 2113572,
+      "requiredExp": null,
+      "step31to45RewardRaw": 212561090611,
+      "step31to45RewardPctOfLevel": null,
+      "step1to30RewardRaw_current": 1062764872474,
+      "detectiveGhostPerKillRaw_fieldMob": 1690857600,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 321262944000,
+      "detectivePerUsePctIfCharSameLevel": null,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 4015786800
+    },
+    {
+      "level": 268,
+      "mobBaseExp": 2145596,
+      "requiredExp": null,
+      "step31to45RewardRaw": 215781731482,
+      "step31to45RewardPctOfLevel": null,
+      "step1to30RewardRaw_current": 1078867461965,
+      "detectiveGhostPerKillRaw_fieldMob": 1716476800,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 326130592000,
+      "detectivePerUsePctIfCharSameLevel": null,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 4076632400
+    },
+    {
+      "level": 269,
+      "mobBaseExp": 2174274,
+      "requiredExp": null,
+      "step31to45RewardRaw": 218665866470,
+      "step31to45RewardPctOfLevel": null,
+      "step1to30RewardRaw_current": 1093287586291,
+      "detectiveGhostPerKillRaw_fieldMob": 1739419200,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 330489648000,
+      "detectivePerUsePctIfCharSameLevel": null,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 4131120600
+    },
+    {
+      "level": 270,
+      "mobBaseExp": 2445217,
+      "requiredExp": null,
+      "step31to45RewardRaw": 245914495603,
+      "step31to45RewardPctOfLevel": null,
+      "step1to30RewardRaw_current": 1229525529850,
+      "detectiveGhostPerKillRaw_fieldMob": 1956173600,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 371672984000,
+      "detectivePerUsePctIfCharSameLevel": null,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 4645912300
+    },
+    {
+      "level": 271,
+      "mobBaseExp": 2481337,
+      "requiredExp": null,
+      "step31to45RewardRaw": 249547069555,
+      "step31to45RewardPctOfLevel": null,
+      "step1to30RewardRaw_current": 1247687706106,
+      "detectiveGhostPerKillRaw_fieldMob": 1985069600,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 377163224000,
+      "detectivePerUsePctIfCharSameLevel": null,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 4714540300
+    },
+    {
+      "level": 272,
+      "mobBaseExp": 2513634,
+      "requiredExp": null,
+      "step31to45RewardRaw": 252795165926,
+      "step31to45RewardPctOfLevel": null,
+      "step1to30RewardRaw_current": 1263927567859,
+      "detectiveGhostPerKillRaw_fieldMob": 2010907200,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 382072368000,
+      "detectivePerUsePctIfCharSameLevel": null,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 4775904600
+    },
+    {
+      "level": 273,
+      "mobBaseExp": 2546149,
+      "requiredExp": null,
+      "step31to45RewardRaw": 256065186470,
+      "step31to45RewardPctOfLevel": null,
+      "step1to30RewardRaw_current": 1280277046291,
+      "detectiveGhostPerKillRaw_fieldMob": 2036919200,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 387014648000,
+      "detectivePerUsePctIfCharSameLevel": null,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 4837683100
+    },
+    {
+      "level": 274,
+      "mobBaseExp": 2582906,
+      "requiredExp": null,
+      "step31to45RewardRaw": 259761823258,
+      "step31to45RewardPctOfLevel": null,
+      "step1to30RewardRaw_current": 1298759524493,
+      "detectiveGhostPerKillRaw_fieldMob": 2066324800,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 392601712000,
+      "detectivePerUsePctIfCharSameLevel": null,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 4907521400
+    },
+    {
+      "level": 275,
+      "mobBaseExp": 2903024,
+      "requiredExp": null,
+      "step31to45RewardRaw": 291955962470,
+      "step31to45RewardPctOfLevel": null,
+      "step1to30RewardRaw_current": 1459724074291,
+      "detectiveGhostPerKillRaw_fieldMob": 2322419200,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 441259648000,
+      "detectivePerUsePctIfCharSameLevel": null,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 5515745600
+    },
+    {
+      "level": 276,
+      "mobBaseExp": 2939616,
+      "requiredExp": null,
+      "step31to45RewardRaw": 295636005274,
+      "step31to45RewardPctOfLevel": null,
+      "step1to30RewardRaw_current": 1478123585741,
+      "detectiveGhostPerKillRaw_fieldMob": 2351692800,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 446821632000,
+      "detectivePerUsePctIfCharSameLevel": null,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 5585270400
+    },
+    {
+      "level": 277,
+      "mobBaseExp": 2981010,
+      "requiredExp": null,
+      "step31to45RewardRaw": 299798983296,
+      "step31to45RewardPctOfLevel": null,
+      "step1to30RewardRaw_current": 1498937681088,
+      "detectiveGhostPerKillRaw_fieldMob": 2384808000,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 453113520000,
+      "detectivePerUsePctIfCharSameLevel": null,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 5663919000
+    },
+    {
+      "level": 278,
+      "mobBaseExp": 3017988,
+      "requiredExp": null,
+      "step31to45RewardRaw": 303517845965,
+      "step31to45RewardPctOfLevel": null,
+      "step1to30RewardRaw_current": 1517531284454,
+      "detectiveGhostPerKillRaw_fieldMob": 2414390400,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 458734176000,
+      "detectivePerUsePctIfCharSameLevel": null,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 5734177200
+    },
+    {
+      "level": 279,
+      "mobBaseExp": 3059716,
+      "requiredExp": null,
+      "step31to45RewardRaw": 307714414234,
+      "step31to45RewardPctOfLevel": null,
+      "step1to30RewardRaw_current": 1538513324621,
+      "detectiveGhostPerKillRaw_fieldMob": 2447772800,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 465076832000,
+      "detectivePerUsePctIfCharSameLevel": null,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 5813460400
+    },
+    {
+      "level": 280,
+      "mobBaseExp": 3436027,
+      "requiredExp": 33647601750165,
+      "step31to45RewardRaw": 345559860979,
+      "step31to45RewardPctOfLevel": 1.027,
+      "step1to30RewardRaw_current": 1727733333178,
+      "detectiveGhostPerKillRaw_fieldMob": 2748821600,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 522276104000,
+      "detectivePerUsePctIfCharSameLevel": 1.5522,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 6528451300
+    },
+    {
+      "level": 281,
+      "mobBaseExp": 3482914,
+      "requiredExp": 37012361925181,
+      "step31to45RewardRaw": 350275267814,
+      "step31to45RewardPctOfLevel": 0.9464,
+      "step1to30RewardRaw_current": 1751309467123,
+      "detectiveGhostPerKillRaw_fieldMob": 2786331200,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 529402928000,
+      "detectivePerUsePctIfCharSameLevel": 1.4303,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 6617536600
+    },
+    {
+      "level": 282,
+      "mobBaseExp": 3524768,
+      "requiredExp": 40713598117699,
+      "step31to45RewardRaw": 354484507853,
+      "step31to45RewardPctOfLevel": 0.8707,
+      "step1to30RewardRaw_current": 1772354863718,
+      "detectiveGhostPerKillRaw_fieldMob": 2819814400,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 535764736000,
+      "detectivePerUsePctIfCharSameLevel": 1.3159,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 6697059200
+    },
+    {
+      "level": 283,
+      "mobBaseExp": 3572010,
+      "requiredExp": 44784957929468,
+      "step31to45RewardRaw": 359235616896,
+      "step31to45RewardPctOfLevel": 0.8021,
+      "step1to30RewardRaw_current": 1796109501888,
+      "detectiveGhostPerKillRaw_fieldMob": 2857608000,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 542945520000,
+      "detectivePerUsePctIfCharSameLevel": 1.2123,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 6786819000
+    },
+    {
+      "level": 284,
+      "mobBaseExp": 3614278,
+      "requiredExp": 49263453722414,
+      "step31to45RewardRaw": 363486492749,
+      "step31to45RewardPctOfLevel": 0.7378,
+      "step1to30RewardRaw_current": 1817363069606,
+      "detectiveGhostPerKillRaw_fieldMob": 2891422400,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 549370256000,
+      "detectivePerUsePctIfCharSameLevel": 1.1152,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 6867128200
+    },
+    {
+      "level": 285,
+      "mobBaseExp": 4062965,
+      "requiredExp": 99512176519276,
+      "step31to45RewardRaw": 408610764864,
+      "step31to45RewardPctOfLevel": 0.4106,
+      "step1to30RewardRaw_current": 2042975815392,
+      "detectiveGhostPerKillRaw_fieldMob": 3250372000,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 617570680000,
+      "detectivePerUsePctIfCharSameLevel": 0.6206,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 7719633500
+    },
+    {
+      "level": 286,
+      "mobBaseExp": 4110304,
+      "requiredExp": 109463394171203,
+      "step31to45RewardRaw": 413371629158,
+      "step31to45RewardPctOfLevel": 0.3776,
+      "step1to30RewardRaw_current": 2066779227955,
+      "detectiveGhostPerKillRaw_fieldMob": 3288243200,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 624766208000,
+      "detectivePerUsePctIfCharSameLevel": 0.5708,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 7809577600
+    },
+    {
+      "level": 287,
+      "mobBaseExp": 4163751,
+      "requiredExp": 120409733588323,
+      "step31to45RewardRaw": 418746772570,
+      "step31to45RewardPctOfLevel": 0.3478,
+      "step1to30RewardRaw_current": 2093653918829,
+      "detectiveGhostPerKillRaw_fieldMob": 3331000800,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 632890152000,
+      "detectivePerUsePctIfCharSameLevel": 0.5256,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 7911126900
+    },
+    {
+      "level": 288,
+      "mobBaseExp": 4217526,
+      "requiredExp": 132450706947155,
+      "step31to45RewardRaw": 424154902810,
+      "step31to45RewardPctOfLevel": 0.3202,
+      "step1to30RewardRaw_current": 2120693537549,
+      "detectiveGhostPerKillRaw_fieldMob": 3374020800,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 641063952000,
+      "detectivePerUsePctIfCharSameLevel": 0.484,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 8013299400
+    },
+    {
+      "level": 289,
+      "mobBaseExp": 4265489,
+      "requiredExp": 145695777641870,
+      "step31to45RewardRaw": 428978522534,
+      "step31to45RewardPctOfLevel": 0.2944,
+      "step1to30RewardRaw_current": 2144810715283,
+      "detectiveGhostPerKillRaw_fieldMob": 3412391200,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 648354328000,
+      "detectivePerUsePctIfCharSameLevel": 0.445,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 8104429100
+    },
+    {
+      "level": 290,
+      "mobBaseExp": 4793318,
+      "requiredExp": 294305470836577,
+      "step31to45RewardRaw": 482062073933,
+      "step31to45RewardPctOfLevel": 0.1638,
+      "step1to30RewardRaw_current": 2410218337958,
+      "detectiveGhostPerKillRaw_fieldMob": 3834654400,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 728584336000,
+      "detectivePerUsePctIfCharSameLevel": 0.2476,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 9107304200
+    },
+    {
+      "level": 291,
+      "mobBaseExp": 4847012,
+      "requiredExp": 323736017920234,
+      "step31to45RewardRaw": 487462058035,
+      "step31to45RewardPctOfLevel": 0.1506,
+      "step1to30RewardRaw_current": 2437217227546,
+      "detectiveGhostPerKillRaw_fieldMob": 3877609600,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 736745824000,
+      "detectivePerUsePctIfCharSameLevel": 0.2276,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 9209322800
+    },
+    {
+      "level": 292,
+      "mobBaseExp": 4907812,
+      "requiredExp": 356109619712257,
+      "step31to45RewardRaw": 493576689715,
+      "step31to45RewardPctOfLevel": 0.1386,
+      "step1to30RewardRaw_current": 2467789218586,
+      "detectiveGhostPerKillRaw_fieldMob": 3926249600,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 745987424000,
+      "detectivePerUsePctIfCharSameLevel": 0.2095,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 9324842800
+    },
+    {
+      "level": 293,
+      "mobBaseExp": 4968977,
+      "requiredExp": 391720581683482,
+      "step31to45RewardRaw": 499728029299,
+      "step31to45RewardPctOfLevel": 0.1276,
+      "step1to30RewardRaw_current": 2498544742138,
+      "detectiveGhostPerKillRaw_fieldMob": 3975181600,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 755284504000,
+      "detectivePerUsePctIfCharSameLevel": 0.1928,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 9441056300
+    },
+    {
+      "level": 294,
+      "mobBaseExp": 5023491,
+      "requiredExp": 430892639851830,
+      "step31to45RewardRaw": 505210480474,
+      "step31to45RewardPctOfLevel": 0.1172,
+      "step1to30RewardRaw_current": 2525955951341,
+      "detectiveGhostPerKillRaw_fieldMob": 4018792800,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 763570632000,
+      "detectivePerUsePctIfCharSameLevel": 0.1772,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 9544632900
+    },
+    {
+      "level": 295,
+      "mobBaseExp": 5643220,
+      "requiredExp": 870403132500696,
+      "step31to45RewardRaw": 567536378112,
+      "step31to45RewardPctOfLevel": 0.0652,
+      "step1to30RewardRaw_current": 2837573540736,
+      "detectiveGhostPerKillRaw_fieldMob": 4514576000,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 857769440000,
+      "detectivePerUsePctIfCharSameLevel": 0.0985,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 10722118000
+    },
+    {
+      "level": 296,
+      "mobBaseExp": 5711948,
+      "requiredExp": 957443445750765,
+      "step31to45RewardRaw": 574448325581,
+      "step31to45RewardPctOfLevel": 0.06,
+      "step1to30RewardRaw_current": 2872131958502,
+      "detectiveGhostPerKillRaw_fieldMob": 4569558400,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 868216096000,
+      "detectivePerUsePctIfCharSameLevel": 0.0907,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 10852701200
+    },
+    {
+      "level": 297,
+      "mobBaseExp": 5781080,
+      "requiredExp": 1053187790325841,
+      "step31to45RewardRaw": 581400903168,
+      "step31to45RewardPctOfLevel": 0.0552,
+      "step1to30RewardRaw_current": 2906893519104,
+      "detectiveGhostPerKillRaw_fieldMob": 4624864000,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 878724160000,
+      "detectivePerUsePctIfCharSameLevel": 0.0834,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 10984052000
+    },
+    {
+      "level": 298,
+      "mobBaseExp": 5842650,
+      "requiredExp": 1158506569358425,
+      "step31to45RewardRaw": 587592973440,
+      "step31to45RewardPctOfLevel": 0.0507,
+      "step1to30RewardRaw_current": 2937852688320,
+      "detectiveGhostPerKillRaw_fieldMob": 4674120000,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 888082800000,
+      "detectivePerUsePctIfCharSameLevel": 0.0767,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 11101035000
+    },
+    {
+      "level": 299,
+      "mobBaseExp": 5912186,
+      "requiredExp": 1737759854037637,
+      "step31to45RewardRaw": 594586181146,
+      "step31to45RewardPctOfLevel": 0.0342,
+      "step1to30RewardRaw_current": 2972817391757,
+      "detectiveGhostPerKillRaw_fieldMob": 4729748800,
+      "detectiveMagnifierPerUseRaw_fieldMob_190kills": 898652272000,
+      "detectivePerUsePctIfCharSameLevel": 0.0517,
+      "suspiciousMagnifierPerUseRaw_beforeBonus_190kills": 11233153400
+    }
+  ]
+}

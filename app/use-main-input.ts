@@ -5,7 +5,7 @@ import { defaultMainInput } from "@/lib/main-planner.mjs";
 import { loadSaved, persistSaved } from "@/lib/saved-input.mjs";
 
 // 서버 렌더와 첫 화면이 같도록 고정 날짜로 시작하고, 마운트 뒤에 오늘 날짜와 저장값을 적용한다.
-export const SSR_START = "2026-10-04";
+export const SSR_START = "2026-10-22";
 
 // 엔진 입력은 중첩 객체라 화면에서는 느슨하게 다룬다.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

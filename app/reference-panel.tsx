@@ -4,7 +4,7 @@ import { couponRawForLevel, flameModelRaw, mobBaseExp, stepRawForLevel } from "@
 import { itemConversionRequiredExperience, MOMENTUM_PLUS_FREE, MOMENTUM_PLUS_PREMIUM, MOMENTUM_PLUS_PRIME } from "@/lib/exp-tables";
 import { PERSONAL_BOSS_TABLE, PERSONAL_COUPON_MULTIPLE, PERSONAL_FLAME_MULTIPLE } from "@/lib/personal-data.mjs";
 
-// 모멘텀 패스 PLUS 레벨별 보상 (넥슨 공지 update-813, 2026-10-03 대조). 계산에는 경험치가 되는 것만 쓴다.
+// 모멘텀 패스 PLUS 레벨별 보상 (넥슨 본섭 update-813/815, 2026-10-22 대조). 계산에는 경험치가 되는 것만 쓴다.
 const PLUS_LEVEL_ROWS: { level: number; free: string; premium: string; prime: string }[] = [
   { level: 1, free: "크림슨 메카베리 농장 1", premium: "VIP 부스터 10", prime: "경험치 4배 쿠폰(30분) 2" },
   { level: 2, free: "VIP 사우나 1", premium: "크림슨 메카베리 농장 1", prime: "상급 EXP 3,000" },
@@ -35,14 +35,15 @@ export default function ReferencePanel() {
   const free = total(MOMENTUM_PLUS_FREE as Rewards);
   const premium = total(MOMENTUM_PLUS_FREE as Rewards, MOMENTUM_PLUS_PREMIUM as Rewards);
   const prime = total(MOMENTUM_PLUS_FREE as Rewards, MOMENTUM_PLUS_PREMIUM as Rewards, MOMENTUM_PLUS_PRIME as Rewards);
+  const octoberPrimeOnly = total(MOMENTUM_PLUS_FREE as Rewards, MOMENTUM_PLUS_PRIME as Rewards);
   const bosses = [...PERSONAL_BOSS_TABLE].sort((a, b) => b.unitExp - a.unitExp);
   const req287 = itemConversionRequiredExperience(287);
 
   return <section className="rewards-section passes-panel tab-panel" id="reference-panel" role="tabpanel" aria-labelledby="reference-tab">
-    <div className="section-heading light"><span>표</span><div><p>본섭 · 2026-10-03 대조</p><h2>보상표와 자료</h2></div></div>
+    <div className="section-heading light"><span>표</span><div><p>본섭 이벤트 규칙 · 2026-10-22 대조</p><h2>보상표와 자료</h2></div></div>
     <div className="pass-grid">
       <article>
-        <div className="table-title"><span>MOMENTUM PLUS · 10/21 23:59 수령 마감</span><h3>모멘텀 패스 PLUS</h3></div>
+        <div className="table-title"><span>9월 10/21 · 10월 11/18 23:59 수령 마감</span><h3>모멘텀 패스 PLUS</h3></div>
         <div className="pb-table-wrap"><table>
           <thead><tr><th>레벨</th><th>무료</th><th>프리미엄</th><th>프라임</th></tr></thead>
           <tbody>
@@ -50,9 +51,11 @@ export default function ReferencePanel() {
             <tr className="total"><td>무료 합계</td><td colSpan={3}>{totalText(free)}</td></tr>
             <tr className="total"><td>프리미엄까지</td><td colSpan={3}>{totalText(premium)} · 29,800 넥슨캐시</td></tr>
             <tr className="total"><td>프라임까지</td><td colSpan={3}>{totalText(prime)} · 69,600 넥슨캐시</td></tr>
+            <tr className="total"><td>9월 프리미엄 → 10월 프라임</td><td colSpan={3}>{totalText(octoberPrimeOnly)} · 39,800 넥슨캐시</td></tr>
           </tbody>
         </table></div>
-        <p className="pb-note light">750포인트마다 1레벨, 주간 최대 2,500포인트 → 1주 Lv.3, 2주 Lv.6, 3주 Lv.10. 모든 보상은 10/22 02:00까지 사용합니다. 프라임은 프리미엄을 먼저 사야 하고 명의당 1회입니다. 프리미엄·프라임은 10/21 23:00까지 판매합니다. 전 주에 못 얻은 포인트는 100포인트당 1,000 메이플포인트로 살 수 있습니다.</p>
+        <p className="pb-note light">750포인트마다 1레벨, 주간 최대 2,500포인트 → 1주 Lv.3, 2주 Lv.6, 3주 Lv.10. 9월 보상은 10/22 02:00, 10월 보상은 11/19 02:00까지 사용합니다. 10월은 10/22에 0레벨부터 시작합니다. 9월 프라임 구매자는 10월 무료 보상만 받습니다. 9월 프리미엄만 샀다면 같은 캐릭터로 10월 프라임을 살 수 있고, 무료·프라임 보상만 받습니다. 9월에 둘 다 활성화했거나 둘 다 활성화하지 않았다면 같은 메이플ID의 다른 캐릭터도 참여할 수 있습니다.</p>
+        <p className="pb-note light">각 유료 패스는 명의당 1회 구매할 수 있습니다. 9월 미구매자는 프리미엄을 먼저 활성화한 뒤 프라임을 살 수 있습니다. 10월 프리미엄·프라임은 11/18 23:00까지 판매합니다. 전 주에 못 얻은 포인트는 100포인트당 1,000 메이플포인트로 살 수 있습니다. <a href="https://maplestory.nexon.com/news/update/815" target="_blank" rel="noreferrer">10/22 본섭 공지</a></p>
       </article>
 
       <article>
@@ -60,11 +63,11 @@ export default function ReferencePanel() {
         <div className="pb-table-wrap"><table>
           <tbody>
             <tr><td>대상</td><td>260~299레벨 · 어센틱포스 퀘스트 완료 · 명의당 1캐릭터 · 지정 후 취소 불가</td></tr>
-            <tr><td>성장 미션</td><td>30단계. 목표를 넘으면 경험치와 퍼스널 코인 1,000개를 즉시 지급. 299레벨 약 68% 초과로 지정하면 300 초과 단계는 경험치 없음</td></tr>
+            <tr><td>성장 미션</td><td>45단계. 1~30단계는 코인 1,000개, 31~45단계는 경험치만 지급. 299레벨 약 52% 초과로 지정하면 300 초과 단계는 경험치 없음</td></tr>
             <tr><td>플레임</td><td>매주 목요일 0시 24,000마리 추가 · 보유 36,000 상한 · 처치 시 몬스터 레벨 경험치와 리워드 포인트 3 · 추가 경험치 효과 적용 안 됨 · 못 받은 수는 10 메이플포인트당 1마리 충전</td></tr>
             <tr><td>커스텀</td><td>포인트 3개를 솔 에르다 / 조각 / EXP에 분배. 모두 써야 플레임이 나옴</td></tr>
             <tr><td>교환</td><td>솔 에르다 포인트 1,500p → 희미한 솔 에르다의 기운 6 · 조각 포인트 1,500p → 솔 에르다 조각 1(영구) · EXP 포인트 100p → 퍼스널 EXP 교환권 1</td></tr>
-            <tr><td>보스 미션</td><td>9/24부터. 지정 35개 보스·난이도, 보상 몬스터 처치 시 지급, 연습모드 제외, 파티원 수로 나눔, 파티 데미지 5% 미만이면 불가, 300레벨 지급 없음</td></tr>
+            <tr><td>보스 미션</td><td>9/24부터. 10/22부터 익스트림 림보·발드릭스를 포함한 37개 보스·난이도, 보상 몬스터 처치 시 지급, 연습모드 제외, 파티원 수로 나눔, 파티 데미지 5% 미만이면 불가, 300레벨 지급 없음</td></tr>
             <tr><td>코인샵</td><td>같은 메이플ID의 260레벨 이상 모두 이용 · 카르마 블랙 큐브 85(100개) · 화이트 에디셔널 큐브 130(100개) · 심연의 환생의 불꽃 85(100개) · 솔 에르다 200(10개) · 솔 에르다 조각 15(300개) · 전 품목 36,500 / 30단계 30,000</td></tr>
             <tr><td>사용 기한</td><td>교환권·코인샵 구매품(조각 제외) 11/19 02:00까지</td></tr>
           </tbody>
@@ -87,7 +90,7 @@ export default function ReferencePanel() {
       </article>
 
       <article>
-        <div className="table-title"><span>하루1소재 · 솔로 경험치 · 레벨과 무관</span><h3>퍼스널 보스 미션 35개</h3></div>
+        <div className="table-title"><span>하루1소재 · 솔로 경험치 · 레벨과 무관</span><h3>퍼스널 보스 미션 37개</h3></div>
         <div className="pb-table-wrap"><table>
           <thead><tr><th>보스</th><th>난이도</th><th>솔로 경험치</th><th>Lv.287 환산</th><th>최대 파티</th></tr></thead>
           <tbody>{bosses.map(entry => {
@@ -95,7 +98,7 @@ export default function ReferencePanel() {
             return <tr key={entry.id}><td>{entry.boss}</td><td>{entry.difficulty}</td><td>{jo(raw)}</td><td>{(raw / req287 * 100).toFixed(2)}%</td><td>{entry.maxParty}인</td></tr>;
           })}</tbody>
         </table></div>
-        <p className="pb-note light">한 번 처치한 경험치 = 표 값 ÷ 파티원 수. 주간 보스는 보스당 난이도 1개, 최대 12개까지 셉니다. 공식 공지에 보스별 수치가 없어 하루1소재 값을 씁니다. 본섭 9/27 보스 미션 화면의 5개 값(세렌 노멀·하드, 칼로스 이지, 대적자 이지, 카링 이지)은 표와 정확히 일치했고 나머지 30개는 대조 전입니다. 경험치를 받는 인원은 총 피해의 5% 이상을 가한 파티원입니다.</p>
+        <p className="pb-note light">한 번 처치한 경험치 = 표 값 ÷ 파티원 수. 주간 보스는 보스당 난이도 1개, 최대 12개까지 셉니다. 공식 공지에 보스별 수치가 없어 하루1소재 값을 씁니다. 본섭 9/27 보스 미션 화면의 5개 값(세렌 노멀·하드, 칼로스 이지, 대적자 이지, 카링 이지)은 표와 정확히 일치했고 기존 나머지 30개와 추가 2개는 게임 화면 대조 전입니다. 경험치를 받는 인원은 총 피해의 5% 이상을 가한 파티원입니다.</p>
       </article>
     </div>
   </section>;

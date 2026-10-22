@@ -14,6 +14,7 @@ import {
   bossRaw,
   buildMissionTable,
   COINS_PER_STEP,
+  COIN_MISSION_STEPS,
   compareAlloc,
   epicBonusStage1Info,
   eventWeek,
@@ -27,9 +28,12 @@ import {
   MAIN_SCHEDULE,
   huntFieldLevelFor,
   MISSION_STEPS,
+  missionCoinsThroughDay,
   mobBaseExp,
   plusLevelSchedule,
   plusClaimedLevels,
+  octoberPlusTierOptions,
+  octoberPlusRewardLines,
 } from "@/lib/main-planner.mjs";
 import { BOSS_CUT_ORDER, BOSS_COMMUNITY_PRESETS, HUNTING_FIELDS, PERSONAL_BOSS_TABLE, PERSONAL_COUPON_MULTIPLE, PERSONAL_FLAME_MULTIPLE, WEEKLY_BOSS_LIMIT } from "@/lib/personal-data.mjs";
 import type { MainInput, MainInputState } from "./use-main-input";
@@ -116,12 +120,16 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
   const chosen = analysis.chosen;
 
   const r: Result = chosen.result;
+  const octoberPeriod = input.start >= MAIN_SCHEDULE.plusOctoberStart;
+  const activePass = octoberPeriod ? input.plusOctober : input.plus;
+  const activePassTier = octoberPeriod && !octoberPlusTierOptions(input.plus).includes(activePass.tier) ? "free" : activePass.tier;
   const plusAvailable = input.plus.enabled && diffDays(MAIN_SCHEDULE.plusLastUseDay, input.start) >= 0;
   const plusPlan = useMemo(() => plusLevelSchedule(input.plus, input.start), [input.plus, input.start]);
   const tiers = useMemo(() => (plusAvailable ? compareTiers(input, ctx) : []), [plusAvailable, input, ctx]);
   const designations = useMemo(() => compareDesignation(input, ctx), [input, ctx]);
   const allocRows = useMemo(() => compareAlloc(input, ctx), [input, ctx]);
   const eventOver = diffDays(input.start, MAIN_SCHEDULE.personalEnd) > 0;
+  const last30Input = input.personal.mission.stepsDone === 30 && input.personal.mission.targetKind === "last30";
   const startLevel = Math.max(280, Math.min(ctx.levelCap - 1, Math.floor(input.level)));
   const days = r.rows.length;
 
@@ -164,6 +172,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
     monsterPark: "몬스터파크", grandis: "그란디스 일퀘", extreme: "익스트림 몬파(주간)", epic: "에픽 던전(주간)", routine: "일과(직접 입력)", weekly: "주간 컨텐츠(직접 입력)",
     flame: "퍼스널 플레임", coupon: "퍼스널 EXP 교환권", boss: "퍼스널 보스 미션", missionReward: "성장 미션 단계 보상",
     crimson: "크림슨 메카베리", adv: "상급 EXP 교환권", sauna: "VIP 사우나", blue: "블루베리", mech: "메카베리", potion: "성장의 비약",
+    detectiveMagnifier: "탐정예티 돋보기", ordinaryMagnifier: "수상한 돋보기",
     hunt: "사냥", coupon4x: "경험치 4배 쿠폰(PLUS)", booster: "VIP 부스터(PLUS)",
     compensationAdv: "상급 EXP(사과 보상)", compensationBooster: "VIP 부스터(사과 보상)",
     attendanceAdv: "상급 EXP(출석·보유)", attendanceSauna: "VIP 사우나(출석·보유)", attendanceBooster: "VIP 부스터(출석·보유)", attendancePotion269: "성장의 비약(200~269)", attendancePotion279: "성장의 비약(200~279)",
@@ -178,15 +187,14 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
     const perDay = shortfall.remainingRaw / days;
     advices.push({
       tone: "warn",
-      text: `마감까지 ${shortfall.index}단계(${shortfall.level}레벨 ${shortfall.exp.toFixed(1)}%)부터 못 넘습니다. 부족한 경험치는 ${fmtJo(shortfall.remainingRaw)}입니다. 하루 ${fmtJo(perDay, 2)}씩 더 얻거나, 퍼스널 EXP 교환권 약 ${fmtInt(shortfall.remainingRaw / Math.max(1, couponRawForLevel(r.level)))}장, 플레임 약 ${fmtInt(shortfall.remainingRaw / Math.max(1, flameRaw))}마리에 해당합니다. 단계마다 코인 ${fmtInt(COINS_PER_STEP)}개도 같이 놓칩니다.`,
+      text: `마감까지 ${shortfall.index}단계(${shortfall.level}레벨 ${shortfall.exp.toFixed(1)}%)부터 못 넘습니다. 부족한 경험치는 ${fmtJo(shortfall.remainingRaw)}입니다. 하루 ${fmtJo(perDay, 2)}씩 더 얻거나, 퍼스널 EXP 교환권 약 ${fmtInt(shortfall.remainingRaw / Math.max(1, couponRawForLevel(r.level)))}장, 플레임 약 ${fmtInt(shortfall.remainingRaw / Math.max(1, flameRaw))}마리에 해당합니다. 1~30단계는 단계마다 코인 ${fmtInt(COINS_PER_STEP)}개를 받습니다.`,
     });
   }
-  const expiredPlus = r.items.expired.crimson + r.items.expired.adv + r.items.expired.sauna;
-  if (expiredPlus > 0) advices.push({ tone: "warn", text: `PLUS 아이템이 10/22 02:00에 소멸합니다. 크림슨 ${fmtInt(r.items.expired.crimson)}장, 상급 EXP ${fmtInt(r.items.expired.adv)}장, 사우나 ${r.items.expired.sauna.toFixed(1)}시간이 남습니다. 300레벨에 닿으면 더 쓸 수 없습니다.` });
+  for (const [name, deadline, expired] of [["9월 PLUS", "10/22 02:00", r.items.expired], ["10월 PLUS", "11/19 02:00", r.items.octoberExpired]] as [string, string, Record<string, number>][]) {
+    if (Object.values(expired).some(value => value > 0.01)) advices.push({ tone: "warn", text: `${name} 보상을 다 쓰지 못합니다. 크림슨 ${fmtInt(expired.crimson)}장 · 상급 EXP ${fmtInt(expired.adv)}장 · 사우나 ${expired.sauna.toFixed(1)}시간 · 4배 쿠폰 ${expired.coupon4x.toFixed(1)}장 · VIP 부스터 ${expired.booster.toFixed(1)}개가 남습니다. 사용 기한은 ${deadline}입니다. 쿠폰과 부스터는 사냥할 때 쓸 수 있습니다.` });
+  }
   if (Object.values(r.attendance.expired).some(value => Number(value) > 0)) advices.push({ tone: "warn", text: `출석·보유 보상을 마감까지 다 쓰지 못합니다. 비약(269) ${fmtInt(r.attendance.expired.potion269)}개 · 비약(279) ${fmtInt(r.attendance.expired.potion279)}개 · 상급 EXP ${fmtInt(r.attendance.expired.adv)}장 · 부스터 ${r.attendance.expired.booster.toFixed(1)}개 · 사우나 ${r.attendance.expired.sauna.toFixed(1)}시간. 사용 기한은 11/19 02:00입니다.` });
   if (Object.values(r.compensation.expired).some(value => Number(value) > 0)) advices.push({ tone: "warn", text: `사과 보상을 10/21까지 다 쓰지 못합니다. 상급 EXP ${fmtInt(r.compensation.expired.adv)}장 · VIP 부스터 ${r.compensation.expired.booster.toFixed(1)}개가 남습니다. 사용 기한은 10/22 02:00입니다.` });
-  const unusedHuntItems = (r.items.expired.coupon4x || 0) + (r.items.expired.booster || 0);
-  if (unusedHuntItems > 0.01) advices.push({ tone: "warn", text: `PLUS로 받은 경험치 4배 쿠폰 ${(r.items.expired.coupon4x || 0).toFixed(1)}장, VIP 부스터 ${(r.items.expired.booster || 0).toFixed(1)}개를 10/21까지 다 쓰지 못합니다. 둘 다 사냥하는 동안에만 쓸 수 있으니 「주간 사냥 시간」을 늘려야 합니다(쿠폰은 30분에 1장).` });
   if (r.coupons.expired > 0) advices.push({ tone: "warn", text: `교환권 ${fmtInt(r.coupons.expired)}장을 마감까지 쓰지 못합니다. 11/19 02:00에 소멸합니다.` });
   if (allocTotal > 3 + 1e-9) advices.push({ tone: "warn", text: "커스텀 포인트 합계가 3을 넘습니다. 게임에서는 3개를 나눠 씁니다." });
   if (allocTotal < 3 - 1e-9) advices.push({ tone: "info", text: "커스텀 포인트를 모두 쓰지 않으면 플레임을 소환할 수 없습니다. 합계를 3으로 맞추세요." });
@@ -207,17 +215,13 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
     return matching.reduce((best: typeof matching[number], option: typeof matching[number]) => (option.summary.stepsCleared !== best.summary.stepsCleared ? (option.summary.stepsCleared > best.summary.stepsCleared ? option : best) : (option.summary.progress > best.summary.progress ? option : best)), matching[0]);
   };
   // 30단계와의 코인 차이, 그리고 사용 시점에 따라 코인을 얼마나 먼저 받는지(패스 보상 마감일 기준).
-  const totalCoins = r.mission.stepsCleared * COINS_PER_STEP;
-  const coinGap = (MISSION_STEPS - r.mission.stepsCleared) * COINS_PER_STEP;
+  const totalCoins = Math.min(COIN_MISSION_STEPS, r.mission.stepsCleared) * COINS_PER_STEP;
+  const coinGap = Math.max(0, COIN_MISSION_STEPS - r.mission.stepsCleared) * COINS_PER_STEP;
   // 모아 쓰는 쪽은 마감일(10/21)에 한꺼번에 쓰므로, 그 전날까지 받은 코인으로 비교해야 차이가 보인다.
   const refDay = addDay(MAIN_SCHEDULE.plusLastUseDay, -1);
   const showRefCoins = diffDays(refDay, input.start) > 0 && diffDays(MAIN_SCHEDULE.personalEnd, refDay) > 0;
-  const coinsBy = (option: { result?: { mission: { stepsAtStart: number; newlyCleared: { date: string }[] } } }) => {
-    const mission = option.result?.mission;
-    if (!mission) return "-";
-    return `${fmtInt((mission.newlyCleared.filter(step => diffDays(step.date, refDay) <= 0).length) * COINS_PER_STEP)}`;
-  };
-  const coinsByNumber = (option: { result?: { mission: { newlyCleared: { date: string }[] } } }) => (option.result?.mission.newlyCleared.filter(step => diffDays(step.date, refDay) <= 0).length ?? 0) * COINS_PER_STEP;
+  const coinsByNumber = (option: { result?: { mission: { newlyCleared: { date: string; index: number }[] } } }) => missionCoinsThroughDay(option.result?.mission.newlyCleared ?? [], refDay);
+  const coinsBy = (option: Parameters<typeof coinsByNumber>[0]) => option.result ? fmtInt(coinsByNumber(option)) : "-";
   const signed = (value: number) => `${value > 0 ? "+" : ""}${fmtInt(value)}`;
   const crimsonRows = [...new Set(analysis.options.map((option: { crimsonHold: number }) => option.crimsonHold))].map(hold => bestOf(option => option.crimsonHold === hold));
   const couponRows = [...new Set(analysis.options.map(option => option.couponPolicy))].map(policy => bestOf(option => option.couponPolicy === policy));
@@ -248,8 +252,8 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
 
       <div className="pb-tabs" role="tablist" aria-label="입력 묶음">
         <button type="button" role="tab" id="pb-tab-s0" aria-controls="pb-pane-s0" tabIndex={sec === "s0" ? 0 : -1} onKeyDown={tabKeys} aria-selected={sec === "s0"} className={sec === "s0" ? "on" : ""} onClick={() => setSec("s0")}><b>캐릭터</b><small>{`Lv.${startLevel} ${input.exp}%`}</small></button>
-        <button type="button" role="tab" id="pb-tab-s1" aria-controls="pb-pane-s1" tabIndex={sec === "s1" ? 0 : -1} onKeyDown={tabKeys} aria-selected={sec === "s1"} className={sec === "s1" ? "on" : ""} onClick={() => setSec("s1")}><b>성장 미션</b><small>{input.personal.designated ? `${input.personal.mission.stepsDone}/30단계 통과` : "지정 전"}</small></button>
-        <button type="button" role="tab" id="pb-tab-s2" aria-controls="pb-pane-s2" tabIndex={sec === "s2" ? 0 : -1} onKeyDown={tabKeys} aria-selected={sec === "s2"} className={sec === "s2" ? "on" : ""} onClick={() => setSec("s2")}><b>패스</b><small>{input.plus.enabled ? ({ free: "무료", premium: "프리미엄", prime: "프라임" } as Record<string, string>)[input.plus.tier] : "참여 안 함"}</small></button>
+        <button type="button" role="tab" id="pb-tab-s1" aria-controls="pb-pane-s1" tabIndex={sec === "s1" ? 0 : -1} onKeyDown={tabKeys} aria-selected={sec === "s1"} className={sec === "s1" ? "on" : ""} onClick={() => setSec("s1")}><b>성장 미션</b><small>{input.personal.designated ? `${input.personal.mission.stepsDone}/${MISSION_STEPS}단계 통과` : "지정 전"}</small></button>
+        <button type="button" role="tab" id="pb-tab-s2" aria-controls="pb-pane-s2" tabIndex={sec === "s2" ? 0 : -1} onKeyDown={tabKeys} aria-selected={sec === "s2"} className={sec === "s2" ? "on" : ""} onClick={() => setSec("s2")}><b>패스</b><small>{octoberPeriod ? "10월" : "9월"} · {activePass.enabled ? ({ free: "무료", premium: "프리미엄", prime: "프라임" } as Record<string, string>)[activePassTier] : "참여 안 함"}</small></button>
         <button type="button" role="tab" id="pb-tab-s3" aria-controls="pb-pane-s3" tabIndex={sec === "s3" ? 0 : -1} onKeyDown={tabKeys} aria-selected={sec === "s3"} className={sec === "s3" ? "on" : ""} onClick={() => setSec("s3")}><b>보유 보상</b><small>출석 · 사과 보상</small></button>
         <button type="button" role="tab" id="pb-tab-s4" aria-controls="pb-pane-s4" tabIndex={sec === "s4" ? 0 : -1} onKeyDown={tabKeys} aria-selected={sec === "s4"} className={sec === "s4" ? "on" : ""} onClick={() => setSec("s4")}><b>보스</b><small>{`${Math.min(bosses.length, WEEKLY_BOSS_LIMIT)}/${WEEKLY_BOSS_LIMIT}마리 · 주 ${fmtJo(weeklyBossRaw, 2)}`}</small></button>
         <button type="button" role="tab" id="pb-tab-s5" aria-controls="pb-pane-s5" tabIndex={sec === "s5" ? 0 : -1} onKeyDown={tabKeys} aria-selected={sec === "s5"} className={sec === "s5" ? "on" : ""} onClick={() => setSec("s5")}><b>일과·사냥</b><small>{`몬파 ${input.routine.runsPerDay}판 · 에픽 ${input.routine.epic ? input.routine.epicMult : 0}배 · 사냥 주 ${input.routine.huntHoursPerWeek}시간`}</small></button>
@@ -274,13 +278,16 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
           <button type="button" className={input.personal.mission.mode === "screen" ? "on" : ""} onClick={() => upd((draft: MainInput) => { draft.personal.mission.mode = "screen"; })}>다음 목표 직접 입력</button>
           <button type="button" className={input.personal.mission.mode === "model" ? "on" : ""} onClick={() => upd((draft: MainInput) => { draft.personal.mission.mode = "model"; })}>지정할 때의 레벨로 입력</button>
         </div>
-        {input.personal.mission.mode === "screen" ? <><div className="field-grid compact">
-          <NumField label="통과한 단계 수" value={input.personal.mission.stepsDone} min={0} max={30} step={1} onChange={value => upd((draft: MainInput) => { draft.personal.mission.stepsDone = value; })} hint="남은 단계 개수만 정합니다. 목표 위치는 아래 다음 목표로 정해집니다" />
-          <NumField label="다음 단계 보상 %" value={input.personal.mission.nextTarget.level >= ctx.levelCap ? 0 : input.personal.mission.nextRewardPct} disabled={input.personal.mission.nextTarget.level >= ctx.levelCap} min={0} step={0.001} onChange={value => upd((draft: MainInput) => { draft.personal.mission.nextRewardPct = value; })} hint="화면의 경험치 보상 %" />
-          <NumField label="다음 단계 목표 레벨" value={input.personal.mission.nextTarget.level} min={280} max={ctx.levelCap} step={1} onChange={value => upd((draft: MainInput) => { draft.personal.mission.nextTarget.level = value; if (value >= ctx.levelCap) { draft.personal.mission.nextTarget.exp = 0; draft.personal.mission.nextRewardPct = 0; } })} />
-          <NumField label="다음 단계 목표 %" value={input.personal.mission.nextTarget.level >= ctx.levelCap ? 0 : input.personal.mission.nextTarget.exp} disabled={input.personal.mission.nextTarget.level >= ctx.levelCap} min={0} max={99.999} step={0.001} onChange={value => upd((draft: MainInput) => { draft.personal.mission.nextTarget.exp = value; })} />
+        {input.personal.mission.mode === "screen" ? <>
+        {input.personal.mission.stepsDone === 30 && <div className="pb-choice" role="group" aria-label="30단계 완료 후 목표 입력"><button type="button" className={!last30Input ? "on" : ""} onClick={() => upd((draft: MainInput) => { draft.personal.mission.targetKind="next"; })}>다음 단계 목표</button><button type="button" className={last30Input ? "on" : ""} onClick={() => upd((draft: MainInput) => { draft.personal.mission.targetKind="last30"; })}>30단계 마지막 목표</button></div>}
+        {last30Input && <p className="pb-note">완료한 30단계의 목표 레벨과 경험치 %를 넣어 주세요.</p>}
+        <div className="field-grid compact">
+          <NumField label="통과한 단계 수" value={input.personal.mission.stepsDone} min={0} max={MISSION_STEPS} step={1} onChange={value => upd((draft: MainInput) => { draft.personal.mission.stepsDone = value; })} hint="남은 단계 개수만 정합니다. 목표 위치는 아래 다음 목표로 정해집니다" />
+          {!last30Input && <NumField label="다음 단계 보상 %" value={input.personal.mission.nextTarget.level >= ctx.levelCap ? 0 : input.personal.mission.nextRewardPct} disabled={input.personal.mission.nextTarget.level >= ctx.levelCap} min={0} step={0.001} onChange={value => upd((draft: MainInput) => { draft.personal.mission.nextRewardPct = value; })} hint="화면의 경험치 보상 %" />}
+          <NumField label={last30Input ? "30단계 목표 레벨" : "다음 단계 목표 레벨"} value={input.personal.mission.nextTarget.level} min={280} max={ctx.levelCap} step={1} onChange={value => upd((draft: MainInput) => { draft.personal.mission.nextTarget.level = value; if (value >= ctx.levelCap) { draft.personal.mission.nextTarget.exp = 0; draft.personal.mission.nextRewardPct = 0; } })} />
+          <NumField label={last30Input ? "30단계 목표 %" : "다음 단계 목표 %"} value={input.personal.mission.nextTarget.level >= ctx.levelCap ? 0 : input.personal.mission.nextTarget.exp} disabled={input.personal.mission.nextTarget.level >= ctx.levelCap} min={0} max={99.999} step={0.001} onChange={value => upd((draft: MainInput) => { draft.personal.mission.nextTarget.exp = value; })} />
         </div>
-        {input.personal.mission.stepsDone < 29 && <details className="pb-more"><summary>그다음 목표도 넣기</summary>
+        {!last30Input && input.personal.mission.stepsDone < MISSION_STEPS - 1 && <details className="pb-more"><summary>그다음 목표도 넣기</summary>
           <Check label="두 목표의 간격으로 계산" checked={Boolean(input.personal.mission.intervalEnabled)} onChange={value => upd((draft: MainInput) => {
             if (value && !draft.personal.mission.secondTarget) {
               const second = buildMissionTable({ ...draft.personal.mission, intervalEnabled: false }, ctx).steps[1];
@@ -294,7 +301,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
           </div>
           <p className="pb-note">두 목표 사이의 경험치를 마지막 단계까지 반복합니다.</p>
         </details>}</> : <div className="field-grid compact">
-          <NumField label="통과한 단계 수" value={input.personal.mission.stepsDone} min={0} max={30} step={1} onChange={value => upd((draft: MainInput) => { draft.personal.mission.stepsDone = value; })} />
+          <NumField label="통과한 단계 수" value={input.personal.mission.stepsDone} min={0} max={MISSION_STEPS} step={1} onChange={value => upd((draft: MainInput) => { draft.personal.mission.stepsDone = value; })} />
           <NumField label="지정 당시 레벨" value={input.personal.mission.designLevel} min={280} max={ctx.levelCap - 1} step={1} onChange={value => upd((draft: MainInput) => { draft.personal.mission.designLevel = value; })} />
           <NumField label="지정 당시 경험치 %" value={input.personal.mission.designExp} min={0} max={99.999} step={0.001} onChange={value => upd((draft: MainInput) => { draft.personal.mission.designExp = value; })} />
         </div>}
@@ -303,10 +310,14 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
       </div>}
       </div>
       <div className="pb-pane" role="tabpanel" id="pb-pane-s2" aria-labelledby="pb-tab-s2" hidden={sec !== "s2"}>
-      <div className="pb-checks"><Check label="PLUS 참여 중 (10/21까지)" checked={input.plus.enabled} onChange={value => upd((draft: MainInput) => { draft.plus.enabled = value; })} /></div>
+      <div className="pb-checks"><Check label="9월 PLUS 참여" checked={input.plus.enabled} onChange={value => upd((draft: MainInput) => { draft.plus.enabled = value; })} /></div>
       <div className="field-grid compact">
-        <label className="field"><span>보유 등급</span><select value={input.plus.tier} disabled={!input.plus.enabled} onChange={event => upd((draft: MainInput) => { draft.plus.claimedLevels = plusClaimedLevels(draft.plus); draft.plus.tier = event.target.value as Tier; })}><option value="free">무료</option><option value="premium">프리미엄</option><option value="prime">프라임</option></select></label>
-        <NumField label="지금 PLUS 레벨" value={input.plus.currentLevel} min={0} max={10} step={1} onChange={value => upd((draft: MainInput) => { draft.plus.currentLevel = Math.max(0, Math.min(10, Math.floor(value))); draft.plus.claimedLevel = Math.min(draft.plus.claimedLevel, draft.plus.currentLevel); if (draft.plus.claimedLevels) Object.keys(draft.plus.claimedLevels).forEach(key => { draft.plus.claimedLevels[key] = Math.min(draft.plus.claimedLevels[key], draft.plus.currentLevel); }); draft.plus.levelPoints = 0; })} hint="게임의 패스 화면에 표시된 레벨" />
+        <label className="field"><span>9월 구매 기록</span><select value={input.plus.tier} disabled={!input.plus.enabled} onChange={event => upd((draft: MainInput) => { draft.plus.claimedLevels = plusClaimedLevels(draft.plus); draft.plus.tier = event.target.value as Tier; })}><option value="free">구매 안 함</option><option value="premium">프리미엄만</option><option value="prime">프라임까지</option></select></label>
+      </div>
+      <p className="pb-note">9월 참여·구매 기록으로 10월에 살 수 있는 등급을 확인합니다. 같은 명의의 9월 구매 기록을 넣어 주세요.</p>
+      <details className="pb-more" open={input.start <= MAIN_SCHEDULE.plusLastUseDay}><summary>9월 패스 진행도·남은 보상 · 10/21까지</summary>
+      <div className="field-grid compact">
+        <NumField label="9월 PLUS 레벨" value={input.plus.currentLevel} min={0} max={10} step={1} onChange={value => upd((draft: MainInput) => { draft.plus.currentLevel = Math.max(0, Math.min(10, Math.floor(value))); draft.plus.claimedLevel = Math.min(draft.plus.claimedLevel, draft.plus.currentLevel); if (draft.plus.claimedLevels) Object.keys(draft.plus.claimedLevels).forEach(key => { draft.plus.claimedLevels[key] = Math.min(draft.plus.claimedLevels[key], draft.plus.currentLevel); }); draft.plus.levelPoints = 0; })} hint="9월 패스에서 달성한 레벨" />
         {(["free", "premium", "prime"] as Tier[]).filter(tier => ["free", "premium", "prime"].indexOf(tier) <= ["free", "premium", "prime"].indexOf(input.plus.tier)).map(tier => <NumField key={tier} label={(tier === "free" ? "무료" : tier === "premium" ? "프리미엄" : "프라임") + " 이미 받은 보상 레벨"} value={plusClaimedLevels(input.plus)[tier]} min={0} max={input.plus.currentLevel} step={1} onChange={value => upd((draft: MainInput) => { draft.plus.claimedLevels = { ...plusClaimedLevels(draft.plus), [tier]: value }; })} hint="받은 보상 중 남은 것만 아래에 넣어 주세요" />)}
         <NumField label="주간 획득 포인트" value={input.plus.weeklyPoints} min={0} max={2500} step={100} onChange={value => upd((draft: MainInput) => { draft.plus.weeklyPoints = value; })} hint="다음 목요일부터 매주 받을 포인트 · 최대 2,500" />
       </div>
@@ -325,7 +336,23 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
         <NumField label="PLUS VIP 부스터" value={input.items.booster || 0} min={0} step={1} onChange={value => upd((draft: MainInput) => { draft.items.booster = value; })} hint="개 · 10/21까지 사냥할 때 사용" />
         <NumField label="PLUS 경험치 4배 쿠폰" value={input.items.coupon4x || 0} min={0} step={1} onChange={value => upd((draft: MainInput) => { draft.items.coupon4x = value; })} hint="장 · 10/21까지 사냥할 때 사용" />
       </div>
-      <p className="pb-note">아직 안 받은 보상은 레벨에 맞춰 더해요. 이미 받은 보상은 아래 남은 수량만 계산해요.</p>
+      <p className="pb-note">9월 보상은 10/21까지의 계산에만 포함합니다. 아직 안 받은 보상은 레벨에 맞춰 더하고, 받은 보상은 입력한 남은 수량만 계산합니다.</p>
+      </details>
+      <details className="pb-more" open={input.start >= "2026-10-22"}><summary>10월 모멘텀 패스 PLUS · 11/18까지</summary>
+        <Check label="10월 PLUS 참여" checked={input.plusOctober.enabled} onChange={value => upd((draft: MainInput) => { draft.plusOctober.enabled = value; })} />
+        <p className="pb-note">9월 프리미엄만 샀다면 10월에는 무료·프라임 보상을 받을 수 있습니다. 9월 프라임 구매자는 무료 보상만 받습니다.</p>
+        <p className="pb-note">9월 프리미엄만 활성화했다면 같은 캐릭터로 참여해야 합니다. 둘 다 활성화했거나 둘 다 활성화하지 않았다면 같은 메이플ID의 다른 캐릭터도 참여할 수 있습니다. 이 계산에는 현재 캐릭터가 받을 보상만 넣어 주세요.</p>
+        <div className="field-grid compact">
+          <label className="field"><span>10월 구매 등급</span><select value={octoberPlusTierOptions(input.plus).includes(input.plusOctober.tier) ? input.plusOctober.tier : "free"} onChange={event => upd((draft: MainInput) => { draft.plusOctober.claimedLevels = plusClaimedLevels(draft.plusOctober); draft.plusOctober.tier = event.target.value; })}>{octoberPlusTierOptions(input.plus).map(tier => <option key={tier} value={tier}>{({free:"무료",premium:"프리미엄",prime:"프라임"})[tier]}</option>)}</select></label>
+          <label className="field"><span>10월 패스 구매일</span><input type="date" min="2026-10-22" max="2026-11-18" value={input.plusOctober.purchaseDate} onChange={event => upd((draft: MainInput) => { draft.plusOctober.purchaseDate = event.target.value; })} /><small className="pb-hint">그날까지 오른 레벨의 유료 보상도 받습니다</small></label>
+          <NumField label="10월 지금 PLUS 레벨" value={input.plusOctober.currentLevel} min={0} max={10} step={1} onChange={value => upd((draft: MainInput) => { draft.plusOctober.currentLevel=value; draft.plusOctober.claimedLevel=Math.min(value,draft.plusOctober.claimedLevel); if(draft.plusOctober.claimedLevels) Object.keys(draft.plusOctober.claimedLevels).forEach(key=>{draft.plusOctober.claimedLevels[key]=Math.min(value,draft.plusOctober.claimedLevels[key]);}); })} hint="10월 패스 화면의 레벨 · 새로 시작하면 0" />
+          {(octoberPlusRewardLines(input.plus, input.plusOctober.tier) as Tier[]).map(tier => <NumField key={tier} label={"10월 " + ({free:"무료",premium:"프리미엄",prime:"프라임"}[tier]) + " 이미 받은 레벨"} value={plusClaimedLevels(input.plusOctober)[tier]} min={0} max={input.plusOctober.currentLevel} step={1} onChange={value => upd((draft: MainInput) => { draft.plusOctober.claimedLevels={...plusClaimedLevels(draft.plusOctober),[tier]:value}; })} />)}
+          <NumField label="10월 주간 획득 포인트" value={input.plusOctober.weeklyPoints} min={0} max={2500} step={100} onChange={value => upd((draft: MainInput) => { draft.plusOctober.weeklyPoints=value; })} />
+          <NumField label="10월 이번 주 더 받을 포인트" value={input.plusOctober.thisWeekRemaining} min={0} max={2500} step={100} onChange={value => upd((draft: MainInput) => { draft.plusOctober.thisWeekRemaining=value; })} hint="이번 수요일에 더합니다" />
+          <NumField label="10월 레벨 안의 포인트" value={input.plusOctober.levelPoints} min={0} max={749} step={1} onChange={value => upd((draft: MainInput) => { draft.plusOctober.levelPoints=value; })} />
+          {(["crimson","adv","sauna","coupon4x","booster"] as const).map(key => <NumField key={key} label={"10월 남은 " + ({crimson:"크림슨",adv:"상급 EXP",sauna:"사우나 시간",coupon4x:"4배 쿠폰",booster:"VIP 부스터"}[key])} value={input.plusOctober.items[key]} min={0} onChange={value => upd((draft: MainInput) => { draft.plusOctober.items[key]=value; })} />)}
+        </div>
+      </details>
       </div>
       <div className="pb-pane" role="tabpanel" id="pb-pane-s3" aria-labelledby="pb-tab-s3" hidden={sec !== "s3"}>
         <h3>운영자 사과 보상</h3>
@@ -418,6 +445,14 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
         <Check label="오늘 일과 아직 안 함" checked={input.routine.todayPending} onChange={value => upd((draft: MainInput) => { draft.routine.todayPending = value; })} />
         <Check label="이번 주 주간 컨텐츠 아직 안 함" checked={input.routine.weeklyPending} onChange={value => upd((draft: MainInput) => { draft.routine.weeklyPending = value; })} />
       </div>
+      <details className="pb-more"><summary>탐정예티와 수상한 돋보기 · 10/22~11/18</summary><div className="field-grid compact">
+        <NumField label="탐정예티 돋보기 하루 사용 횟수" value={input.magnifiers.detectivePerDay} min={0} max={3} step={1} onChange={value => upd((draft: MainInput) => { draft.magnifiers.detectivePerDay=value; })} hint="매일 10,000마리 처치 후 미션 완료 시 1개 · 메이플ID당 하루 최대 3개" />
+        <NumField label="수상한 돋보기 하루 사용 횟수" value={input.magnifiers.ordinaryPerDay} min={0} max={10} step={1} onChange={value => upd((draft: MainInput) => { draft.magnifiers.ordinaryPerDay=value; })} hint="보유한 만큼 넣어 주세요 · 하루 최대 10개" />
+        <NumField label="한 번에 잡는 유령 수" value={input.magnifiers.killsPerUse} min={0} step={1} onChange={value => upd((draft: MainInput) => { draft.magnifiers.killsPerUse=value; })} hint="탐정 유령은 몬스터 기본 경험치의 800배" />
+        <NumField label="수상한 돋보기 추가 경험치 %" value={input.magnifiers.bonusPct} min={0} max={3000} onChange={value => upd((draft: MainInput) => { draft.magnifiers.bonusPct=value; })} hint="탐정예티 돋보기에는 붙지 않습니다" />
+        <label className="field"><span>돋보기 사냥터 몬스터</span><select value={input.magnifiers.fieldKey} onChange={event => upd((draft: MainInput) => { draft.magnifiers.fieldKey=event.target.value; if(event.target.value === "direct" && !draft.magnifiers.fieldLevel) draft.magnifiers.fieldLevel=draft.level; })}><option value="flame">플레임과 같게</option><option value="same">내 레벨 몬스터</option><option value="direct">몬스터 레벨 직접 입력</option></select></label>
+        {input.magnifiers.fieldKey === "direct" && <NumField label="돋보기 몬스터 레벨" value={input.magnifiers.fieldLevel || startLevel} min={260} max={299} step={1} onChange={value => upd((draft: MainInput) => { draft.magnifiers.fieldLevel=value; })} />}
+      </div></details>
       </div>
       <div className="pb-pane" role="tabpanel" id="pb-pane-s6" aria-labelledby="pb-tab-s6" hidden={sec !== "s6"}>
       <div className="field-grid compact">
@@ -454,18 +489,19 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
         <label className="field"><span>EXP 교환권 사용</span><select value={couponPlan} onChange={event => upd((draft: MainInput) => { draft.couponPlan = event.target.value; })}><option value="auto">자동 추천</option><option value="now">받는 즉시</option>{[290, 295].filter(level => level > startLevel || couponPlan === `level${level}`).map(level => <option key={level} value={`level${level}`}>Lv.{level}에 닿은 뒤</option>)}<option value="end">마감 직전에 몰아서</option></select></label>
         <label className="field"><span>상급 EXP · 사우나 · 비약 사용</span><select value={rewardHold} onChange={event => upd((draft: MainInput) => { draft.rewardHold = Number(event.target.value); })}><option value="0">받는 즉시</option>{[290, 295].filter(level => level > startLevel || rewardHold === level).map(level => <option key={level} value={level}>Lv.{level}에 닿은 뒤</option>)}<option value="999">각 보상의 마지막 날</option></select></label>
       </div>
-      <p className="pb-note">고른 레벨에 못 닿으면 마지막 사용일에 씁니다. PLUS·사과 보상은 10/21, 출석 보상과 퍼스널 교환권은 11/18입니다. 부스터와 4배 쿠폰은 사냥할 때 씁니다.</p>
+      <p className="pb-note">고른 레벨에 못 닿으면 마지막 사용일에 씁니다. 9월 PLUS·사과 보상은 10/21, 10월 PLUS·출석 보상과 퍼스널 교환권은 11/18입니다. 부스터와 4배 쿠폰은 사냥할 때 씁니다.</p>
       </div>
     </aside>
 
-    {!eventOver && <a className="pb-sticky" href="#pb-result" aria-label="계산 결과로 이동">
+    {!eventOver && !r.mission.requiresTargetInput && <a className="pb-sticky" href="#pb-result" aria-label="계산 결과로 이동">
       <span>11/18 마감</span><b>{place(r.level, r.exp)}</b><b>{r.mission.stepsCleared}/{MISSION_STEPS}단계</b><i>결과 보기</i>
     </a>}
     <div className="results pb-results" id="pb-result">
       <div className="section-heading"><span>결과</span><div><p>{md(input.start)} → 11/18 마감</p><h2>퍼스널 버닝 시점 계산</h2></div></div>
       {eventOver && <div className="callout-mini" role="status">퍼스널 버닝은 11/18에 끝났습니다. 기준일을 이벤트 기간으로 바꿔 주세요.</div>}
-      {!eventOver && <>
-        <p className="pb-cond">계산 조건 · PLUS {input.plus.enabled ? ({ free: "무료", premium: "프리미엄", prime: "프라임" } as Record<string, string>)[input.plus.tier] : "참여 안 함"} · 보스 {Math.min(bosses.length, WEEKLY_BOSS_LIMIT)}마리 주 {fmtJo(weeklyBossRaw, 2)} · 몬파 하루 {input.routine.runsPerDay}판 · 에픽 던전 {!input.routine.epic ? "안 함" : input.routine.epicMult > 1 ? `${input.routine.epicMult}배(주 ${fmtInt(epicStage1.maplePoint * (input.routine.epicMult >= 9 ? 4 : 1))} 메이플포인트 사용)` : "보너스 없음"} · 사냥 주 {input.routine.huntHoursPerWeek}시간 · 커스텀 조각 {flame.alloc.shard}·EXP {flame.alloc.exp}</p>
+      {!eventOver && r.mission.requiresTargetInput && <div className="callout-mini" role="status"><p>{r.warnings.find((text: string) => text.includes("게임 화면에서 다시 넣어"))}</p>{input.personal.mission.stepsDone === 30 && <p>{input.start < MAIN_SCHEDULE.expansionStart ? "10/22 전에는 완료한 30단계의 마지막 목표로 입력할 수 있습니다." : "업데이트 후 게임 화면에 표시된 다음 목표와 보상 %를 넣어 주세요."}</p>}<button type="button" className="pb-add" onClick={() => setSec("s1")}>성장 미션 입력하기</button></div>}
+      {!eventOver && !r.mission.requiresTargetInput && <>
+        <p className="pb-cond">계산 조건 · 9월 PLUS {input.plus.enabled ? ({ free: "무료", premium: "프리미엄", prime: "프라임" } as Record<string, string>)[input.plus.tier] : "참여 안 함"} · 10월 PLUS {input.plusOctober.enabled ? ({free:"무료",premium:"프리미엄",prime:"프라임"} as Record<string,string>)[octoberPlusTierOptions(input.plus).includes(input.plusOctober.tier) ? input.plusOctober.tier : "free"] : "참여 안 함"} · 보스 {Math.min(bosses.length, WEEKLY_BOSS_LIMIT)}마리 주 {fmtJo(weeklyBossRaw, 2)} · 몬파 하루 {input.routine.runsPerDay}판 · 에픽 던전 {!input.routine.epic ? "안 함" : input.routine.epicMult > 1 ? `${input.routine.epicMult}배(주 ${fmtInt(epicStage1.maplePoint * (input.routine.epicMult >= 9 ? 4 : 1))} 메이플포인트 사용)` : "보너스 없음"} · 사냥 주 {input.routine.huntHoursPerWeek}시간 · 커스텀 조각 {flame.alloc.shard}·EXP {flame.alloc.exp}</p>
         <div className="pb-cards">
           <article className="pb-card primary"><span>11/18 마감 위치</span><strong>{place(r.level, r.exp)}</strong><em>시작 {place(startLevel, input.exp)} · +{(r.progress - r.startPosition).toFixed(2)}레벨</em></article>
           <article className="pb-card"><span>성장 미션</span><strong>{r.mission.stepsCleared}/{MISSION_STEPS}단계</strong><em>{coinGap > 0 ? `30단계보다 ${fmtInt(coinGap)}코인 적음` : "30,000코인 전부"} · 앞으로 받을 코인 {fmtInt(r.mission.coins)}개</em></article>
@@ -519,7 +555,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
         </div>}
 
         {allocRows.length > 0 && <div className="pb-result-section" role="tabpanel" id="pb-pane-r2" aria-labelledby="pb-tab-r2" tabIndex={0} hidden={resTab !== "r2"}>
-          <p className="pb-note">플레임 한 마리마다 리워드 포인트 3개를 어디에 줄지 고릅니다. 30단계를 어차피 넘으면 솔 에르다 조각에 다 주고, 못 넘으면 넘는 데 필요한 만큼만 퍼스널 EXP에 주는 쪽을 추천합니다. 나머지는 조각으로 계산했습니다.</p>
+          <p className="pb-note">플레임 한 마리마다 리워드 포인트 3개를 어디에 줄지 고릅니다. 45단계를 어차피 넘으면 솔 에르다 조각에 다 주고, 못 넘으면 넘는 데 필요한 만큼만 퍼스널 EXP에 주는 쪽을 추천합니다. 나머지는 조각으로 계산했습니다.</p>
           <div className="pb-table-wrap"><table className="hold-table pb-table">
             <thead><tr><th>배분</th><th>마감 위치</th><th>단계</th><th>교환권</th><th>조각</th><th></th></tr></thead>
             <tbody>{allocRows.map((row: { alloc: { shard: number; exp: number; erda: number }; summary: { level: number; exp: number; stepsCleared: number }; couponsMade: number; shardFragments: number; recommended: boolean }) => {
@@ -553,7 +589,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
             <td>{md(week.start)}({dow(week.start)})</td><td>{fmtInt(week.kills)}{week.overflow > 0 ? ` · 소실 ${fmtInt(week.overflow)}` : ""}</td><td>{week.bosses}</td><td>{week.couponsUsed ? fmtInt(week.couponsUsed) : "-"}</td>
             <td>{place(week.levelEnd, week.expEnd)}</td><td>{week.steps}</td></tr>)}</tbody>
         </table></div>
-        <p className="pb-note">마감: PLUS 수령 10/21 23:59 · 사용 10/22 02:00 / 퍼스널 단계·코인샵 11/18 23:59 · 보상 사용 11/19 02:00. {nextRefill ? `남은 플레임 추가는 ${md(nextRefill)}(목)부터 매주 목요일 0시입니다.` : "기준일 이후에는 플레임 추가가 없습니다."}</p>
+        <p className="pb-note">마감: 9월 PLUS 수령 10/21 23:59 · 사용 10/22 02:00 / 10월 PLUS 수령 11/18 23:59 · 사용 11/19 02:00 / 퍼스널 단계·코인샵 11/18 23:59 · 보상 사용 11/19 02:00. {nextRefill ? `남은 플레임 추가는 ${md(nextRefill)}(목)부터 매주 목요일 0시입니다.` : "기준일 이후에는 플레임 추가가 없습니다."}</p>
 
         </div>
         <div className="pb-result-section" role="tabpanel" id="pb-pane-r5" aria-labelledby="pb-tab-r5" tabIndex={0} hidden={resTab !== "r5"}>
