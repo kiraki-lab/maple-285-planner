@@ -269,7 +269,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
       {weekInfo.week > 0 && <p className="pb-note">기준일은 이벤트 <b>{weekInfo.week}주차</b>(전체 {weekInfo.total}주)입니다. 마감 11/18까지 {weekInfo.daysLeft}일, 플레임 충전은 {weekInfo.refillsLeft}번 남았습니다.</p>}
       </div>
       <div className="pb-pane" role="tabpanel" id="pb-pane-s1" aria-labelledby="pb-tab-s1" hidden={sec !== "s1"}>
-      <p className="pb-note light">31~45단계 경험치는 테섭 표본 기반 추정입니다. 280~284 구간은 공개 목표 표본에 차이가 있어, 게임에 표시된 다음 목표와 그다음 목표를 함께 넣는 것을 권합니다.</p>
+      <p className="pb-note light">31~45단계 경험치는 본섭 공개 화면과 대조한 추정치이며, 정수 단위와 일부 레벨 경계에는 차이가 남아 있습니다. 280~284 구간은 게임에 표시된 다음 목표와 그다음 목표를 함께 넣는 것을 권합니다.</p>
       <div className="pb-choice" role="group" aria-label="지정 여부">
         <button type="button" className={input.personal.designated ? "on" : ""} onClick={() => upd((draft: MainInput) => { draft.personal.designated = true; })}>이미 지정했어요</button>
         <button type="button" className={!input.personal.designated ? "on" : ""} onClick={() => upd((draft: MainInput) => { draft.personal.designated = false; })}>아직 안 했어요</button>
@@ -446,7 +446,9 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
         <Check label="오늘 일과 아직 안 함" checked={input.routine.todayPending} onChange={value => upd((draft: MainInput) => { draft.routine.todayPending = value; })} />
         <Check label="이번 주 주간 컨텐츠 아직 안 함" checked={input.routine.weeklyPending} onChange={value => upd((draft: MainInput) => { draft.routine.weeklyPending = value; })} />
       </div>
-      <details className="pb-more"><summary>탐정예티와 수상한 돋보기 · 10/22~11/18</summary><div className="field-grid compact">
+      <details className="pb-more"><summary>탐정예티와 수상한 돋보기 · 10/22~11/18</summary>
+      <p className="pb-note light">돋보기는 위 사냥 시간 외에 1개당 100초씩 추가로 사용한다고 계산합니다. 게임에서는 VIP·HEXA 부스터와 동시에 사용할 수 없습니다. 같은 사냥 시간 안에 사용할 계획이라면 돋보기의 주간 사용 시간을 위 사냥 시간에서 빼 주세요.</p>
+      <div className="field-grid compact">
         <NumField label="탐정예티 돋보기 하루 사용 횟수" value={input.magnifiers.detectivePerDay} min={0} max={3} step={1} onChange={value => upd((draft: MainInput) => { draft.magnifiers.detectivePerDay=value; })} hint="매일 10,000마리 처치 후 미션 완료 시 1개 · 메이플ID당 하루 최대 3개" />
         <NumField label="수상한 돋보기 하루 사용 횟수" value={input.magnifiers.ordinaryPerDay} min={0} max={10} step={1} onChange={value => upd((draft: MainInput) => { draft.magnifiers.ordinaryPerDay=value; })} hint="보유한 만큼 넣어 주세요 · 하루 최대 10개" />
         <NumField label="한 번에 잡는 유령 수" value={input.magnifiers.killsPerUse} min={0} step={1} onChange={value => upd((draft: MainInput) => { draft.magnifiers.killsPerUse=value; })} hint="190마리·탐정 800배·일반 10배는 본섭 실측 대조 전 추정값입니다. 마릿수는 실제 기록으로 바꿀 수 있습니다" />

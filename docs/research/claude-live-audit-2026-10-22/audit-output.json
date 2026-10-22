@@ -1,0 +1,1487 @@
+{
+  "missionChains": [
+    {
+      "id": "A",
+      "post": "https://www.inven.co.kr/board/maple/5974/7339498",
+      "start": "37단계 294·99.991",
+      "rows": [
+        {
+          "stage": 38,
+          "screen": "295·2.02",
+          "engine": "295·2.0199",
+          "errPctPoint": -0.0001,
+          "stepsFromStart": 1
+        },
+        {
+          "stage": 39,
+          "screen": "295·4.046",
+          "engine": "295·4.0449",
+          "errPctPoint": -0.0011,
+          "stepsFromStart": 2
+        },
+        {
+          "stage": 40,
+          "screen": "295·6.071",
+          "engine": "295·6.0699",
+          "errPctPoint": -0.0011,
+          "stepsFromStart": 3
+        },
+        {
+          "stage": 41,
+          "screen": "295·8.096",
+          "engine": "295·8.0949",
+          "errPctPoint": -0.0011,
+          "stepsFromStart": 4
+        },
+        {
+          "stage": 42,
+          "screen": "295·10.122",
+          "engine": "295·10.1199",
+          "errPctPoint": -0.0021,
+          "stepsFromStart": 5
+        },
+        {
+          "stage": 43,
+          "screen": "295·12.147",
+          "engine": "295·12.1449",
+          "errPctPoint": -0.0021,
+          "stepsFromStart": 6
+        },
+        {
+          "stage": 44,
+          "screen": "295·14.173",
+          "engine": "295·14.1699",
+          "errPctPoint": -0.0031,
+          "stepsFromStart": 7
+        },
+        {
+          "stage": 45,
+          "screen": "295·16.198",
+          "engine": "295·16.1949",
+          "errPctPoint": -0.0031,
+          "stepsFromStart": 8
+        }
+      ],
+      "maxAbsErr": 0.0031
+    },
+    {
+      "id": "B",
+      "post": "https://www.inven.co.kr/board/maple/5974/7339469",
+      "start": "1단계 290·90.049",
+      "rows": [
+        {
+          "stage": 2,
+          "screen": "290·95.054",
+          "engine": "290·95.0535",
+          "errPctPoint": -0.0005,
+          "stepsFromStart": 1
+        },
+        {
+          "stage": 3,
+          "screen": "291·0.053",
+          "engine": "291·0.0533",
+          "errPctPoint": 0.0003,
+          "stepsFromStart": 2
+        },
+        {
+          "stage": 4,
+          "screen": "291·4.65",
+          "engine": "291·4.6496",
+          "errPctPoint": -0.0004,
+          "stepsFromStart": 3
+        },
+        {
+          "stage": 5,
+          "screen": "291·9.246",
+          "engine": "291·9.2459",
+          "errPctPoint": -0.0001,
+          "stepsFromStart": 4
+        },
+        {
+          "stage": 6,
+          "screen": "291·13.842",
+          "engine": "291·13.8422",
+          "errPctPoint": 0.0002,
+          "stepsFromStart": 5
+        },
+        {
+          "stage": 7,
+          "screen": "291·18.439",
+          "engine": "291·18.4385",
+          "errPctPoint": -0.0005,
+          "stepsFromStart": 6
+        },
+        {
+          "stage": 8,
+          "screen": "291·23.035",
+          "engine": "291·23.0348",
+          "errPctPoint": -0.0002,
+          "stepsFromStart": 7
+        },
+        {
+          "stage": 45,
+          "screen": "292·85.612",
+          "engine": "292·85.6117",
+          "errPctPoint": -0.0003,
+          "stepsFromStart": 44
+        }
+      ],
+      "maxAbsErr": 0.0005
+    },
+    {
+      "id": "C",
+      "post": "https://www.inven.co.kr/board/maple/5974/7339453",
+      "start": "39단계 297·69.692",
+      "rows": [
+        {
+          "stage": 40,
+          "screen": "297·71.402",
+          "engine": "297·71.4019",
+          "errPctPoint": -0.0001,
+          "stepsFromStart": 1
+        },
+        {
+          "stage": 41,
+          "screen": "297·73.111",
+          "engine": "297·73.1117",
+          "errPctPoint": 0.0007,
+          "stepsFromStart": 2
+        },
+        {
+          "stage": 42,
+          "screen": "297·74.821",
+          "engine": "297·74.8216",
+          "errPctPoint": 0.0006,
+          "stepsFromStart": 3
+        },
+        {
+          "stage": 43,
+          "screen": "297·76.531",
+          "engine": "297·76.5314",
+          "errPctPoint": 0.0004,
+          "stepsFromStart": 4
+        },
+        {
+          "stage": 44,
+          "screen": "297·78.241",
+          "engine": "297·78.2413",
+          "errPctPoint": 0.0003,
+          "stepsFromStart": 5
+        },
+        {
+          "stage": 45,
+          "screen": "297·79.951",
+          "engine": "297·79.9512",
+          "errPctPoint": 0.0002,
+          "stepsFromStart": 6
+        }
+      ],
+      "maxAbsErr": 0.0007
+    },
+    {
+      "id": "D",
+      "post": "https://www.inven.co.kr/board/maple/5974/7340391",
+      "start": "40단계 294·58.975",
+      "rows": [
+        {
+          "stage": 41,
+          "screen": "294·62.544",
+          "engine": "294·62.5438",
+          "errPctPoint": -0.0002,
+          "stepsFromStart": 1
+        },
+        {
+          "stage": 42,
+          "screen": "294·66.113",
+          "engine": "294·66.1126",
+          "errPctPoint": -0.0004,
+          "stepsFromStart": 2
+        },
+        {
+          "stage": 43,
+          "screen": "294·69.682",
+          "engine": "294·69.6815",
+          "errPctPoint": -0.0005,
+          "stepsFromStart": 3
+        },
+        {
+          "stage": 44,
+          "screen": "294·73.251",
+          "engine": "294·73.2503",
+          "errPctPoint": -0.0007,
+          "stepsFromStart": 4
+        },
+        {
+          "stage": 45,
+          "screen": "294·76.82",
+          "engine": "294·76.8191",
+          "errPctPoint": -0.0009,
+          "stepsFromStart": 5
+        }
+      ],
+      "maxAbsErr": 0.0009
+    },
+    {
+      "id": "E",
+      "post": "https://www.inven.co.kr/board/maple/5974/7339407",
+      "start": "37단계 292·80.982",
+      "rows": [
+        {
+          "stage": 38,
+          "screen": "292·85.209",
+          "engine": "292·85.2087",
+          "errPctPoint": -0.0003,
+          "stepsFromStart": 1
+        },
+        {
+          "stage": 39,
+          "screen": "292·89.436",
+          "engine": "292·89.4354",
+          "errPctPoint": -0.0006,
+          "stepsFromStart": 2
+        },
+        {
+          "stage": 40,
+          "screen": "292·93.662",
+          "engine": "292·93.6621",
+          "errPctPoint": 0.0001,
+          "stepsFromStart": 3
+        },
+        {
+          "stage": 41,
+          "screen": "292·97.889",
+          "engine": "292·97.8889",
+          "errPctPoint": -0.0001,
+          "stepsFromStart": 4
+        },
+        {
+          "stage": 42,
+          "screen": "293·1.946",
+          "engine": "293·1.9453",
+          "errPctPoint": -0.0007,
+          "stepsFromStart": 5
+        },
+        {
+          "stage": 43,
+          "screen": "293·5.832",
+          "engine": "293·5.8319",
+          "errPctPoint": -0.0001,
+          "stepsFromStart": 6
+        },
+        {
+          "stage": 44,
+          "screen": "293·9.719",
+          "engine": "293·9.7185",
+          "errPctPoint": -0.0005,
+          "stepsFromStart": 7
+        },
+        {
+          "stage": 45,
+          "screen": "293·13.605",
+          "engine": "293·13.6050",
+          "errPctPoint": 0,
+          "stepsFromStart": 8
+        }
+      ],
+      "maxAbsErr": 0.0007
+    },
+    {
+      "id": "F",
+      "post": "https://www.inven.co.kr/board/maple/5974/7342244",
+      "start": "13단계 296·83.882",
+      "rows": [
+        {
+          "stage": 14,
+          "screen": "296·85.743",
+          "engine": "296·85.7434",
+          "errPctPoint": 0.0004,
+          "stepsFromStart": 1
+        },
+        {
+          "stage": 45,
+          "screen": "297·39.904",
+          "engine": "297·39.9101",
+          "errPctPoint": 0.0061,
+          "stepsFromStart": 32
+        }
+      ],
+      "maxAbsErr": 0.0061
+    },
+    {
+      "id": "G",
+      "post": "https://www.inven.co.kr/board/maple/5974/7342047",
+      "start": "37단계 299·72.739",
+      "rows": [
+        {
+          "stage": 38,
+          "screen": "299·73.796",
+          "engine": "299·73.7961",
+          "errPctPoint": 0.0001,
+          "stepsFromStart": 1
+        },
+        {
+          "stage": 39,
+          "screen": "299·74.854",
+          "engine": "299·74.8531",
+          "errPctPoint": -0.0009,
+          "stepsFromStart": 2
+        },
+        {
+          "stage": 40,
+          "screen": "299·75.911",
+          "engine": "299·75.9102",
+          "errPctPoint": -0.0008,
+          "stepsFromStart": 3
+        },
+        {
+          "stage": 41,
+          "screen": "299·76.968",
+          "engine": "299·76.9672",
+          "errPctPoint": -0.0008,
+          "stepsFromStart": 4
+        },
+        {
+          "stage": 42,
+          "screen": "299·78.025",
+          "engine": "299·78.0243",
+          "errPctPoint": -0.0007,
+          "stepsFromStart": 5
+        },
+        {
+          "stage": 43,
+          "screen": "299·79.082",
+          "engine": "299·79.0814",
+          "errPctPoint": -0.0006,
+          "stepsFromStart": 6
+        },
+        {
+          "stage": 44,
+          "screen": "299·80.14",
+          "engine": "299·80.1384",
+          "errPctPoint": -0.0016,
+          "stepsFromStart": 7
+        },
+        {
+          "stage": 45,
+          "screen": "299·81.197",
+          "engine": "299·81.1955",
+          "errPctPoint": -0.0015,
+          "stepsFromStart": 8
+        }
+      ],
+      "maxAbsErr": 0.0016
+    },
+    {
+      "id": "H",
+      "post": "https://www.inven.co.kr/board/maple/5974/7344355",
+      "start": "40단계 294·57.389",
+      "rows": [
+        {
+          "stage": 41,
+          "screen": "294·60.957",
+          "engine": "294·60.9578",
+          "errPctPoint": 0.0008,
+          "stepsFromStart": 1
+        },
+        {
+          "stage": 42,
+          "screen": "294·64.526",
+          "engine": "294·64.5266",
+          "errPctPoint": 0.0006,
+          "stepsFromStart": 2
+        },
+        {
+          "stage": 43,
+          "screen": "294·68.095",
+          "engine": "294·68.0955",
+          "errPctPoint": 0.0005,
+          "stepsFromStart": 3
+        },
+        {
+          "stage": 44,
+          "screen": "294·71.664",
+          "engine": "294·71.6643",
+          "errPctPoint": 0.0003,
+          "stepsFromStart": 4
+        },
+        {
+          "stage": 45,
+          "screen": "294·75.233",
+          "engine": "294·75.2331",
+          "errPctPoint": 0.0001,
+          "stepsFromStart": 5
+        }
+      ],
+      "maxAbsErr": 0.0008
+    },
+    {
+      "id": "I",
+      "post": "https://www.inven.co.kr/board/maple/5974/7343565",
+      "start": "36단계 298·0.337",
+      "rows": [
+        {
+          "stage": 37,
+          "screen": "298·1.907",
+          "engine": "298·1.9059",
+          "errPctPoint": -0.0011,
+          "stepsFromStart": 1
+        },
+        {
+          "stage": 38,
+          "screen": "298·3.477",
+          "engine": "298·3.4749",
+          "errPctPoint": -0.0021,
+          "stepsFromStart": 2
+        },
+        {
+          "stage": 39,
+          "screen": "298·5.046",
+          "engine": "298·5.0438",
+          "errPctPoint": -0.0022,
+          "stepsFromStart": 3
+        },
+        {
+          "stage": 40,
+          "screen": "298·6.616",
+          "engine": "298·6.6128",
+          "errPctPoint": -0.0032,
+          "stepsFromStart": 4
+        },
+        {
+          "stage": 41,
+          "screen": "298·8.185",
+          "engine": "298·8.1817",
+          "errPctPoint": -0.0033,
+          "stepsFromStart": 5
+        },
+        {
+          "stage": 42,
+          "screen": "298·9.755",
+          "engine": "298·9.7507",
+          "errPctPoint": -0.0043,
+          "stepsFromStart": 6
+        },
+        {
+          "stage": 43,
+          "screen": "298·11.324",
+          "engine": "298·11.3196",
+          "errPctPoint": -0.0044,
+          "stepsFromStart": 7
+        },
+        {
+          "stage": 44,
+          "screen": "298·12.894",
+          "engine": "298·12.8886",
+          "errPctPoint": -0.0054,
+          "stepsFromStart": 8
+        },
+        {
+          "stage": 45,
+          "screen": "298·14.464",
+          "engine": "298·14.4575",
+          "errPctPoint": -0.0065,
+          "stepsFromStart": 9
+        }
+      ],
+      "maxAbsErr": 0.0065
+    },
+    {
+      "id": "K",
+      "post": "https://www.inven.co.kr/board/maple/5974/7339821",
+      "start": "37단계 298·27.477",
+      "rows": [
+        {
+          "stage": 38,
+          "screen": "298·29.047",
+          "engine": "298·29.0459",
+          "errPctPoint": -0.0011,
+          "stepsFromStart": 1
+        },
+        {
+          "stage": 39,
+          "screen": "298·30.616",
+          "engine": "298·30.6149",
+          "errPctPoint": -0.0011,
+          "stepsFromStart": 2
+        },
+        {
+          "stage": 40,
+          "screen": "298·32.186",
+          "engine": "298·32.1838",
+          "errPctPoint": -0.0022,
+          "stepsFromStart": 3
+        },
+        {
+          "stage": 41,
+          "screen": "298·33.755",
+          "engine": "298·33.7528",
+          "errPctPoint": -0.0022,
+          "stepsFromStart": 4
+        },
+        {
+          "stage": 42,
+          "screen": "298·35.325",
+          "engine": "298·35.3217",
+          "errPctPoint": -0.0033,
+          "stepsFromStart": 5
+        },
+        {
+          "stage": 43,
+          "screen": "298·36.894",
+          "engine": "298·36.8907",
+          "errPctPoint": -0.0033,
+          "stepsFromStart": 6
+        },
+        {
+          "stage": 44,
+          "screen": "298·38.464",
+          "engine": "298·38.4596",
+          "errPctPoint": -0.0044,
+          "stepsFromStart": 7
+        },
+        {
+          "stage": 45,
+          "screen": "298·40.034",
+          "engine": "298·40.0286",
+          "errPctPoint": -0.0054,
+          "stepsFromStart": 8
+        }
+      ],
+      "maxAbsErr": 0.0054
+    }
+  ],
+  "intervals": {
+    "290": {
+      "engine": 5.004538,
+      "samples": [
+        {
+          "id": "B",
+          "steps": 1,
+          "screen": 5.005,
+          "tolerance": 0.001,
+          "diff": 0.000462,
+          "withinRounding": true
+        }
+      ],
+      "impliedMobMultiple": [
+        3073026
+      ],
+      "engineMobMultiple": 3072742
+    },
+    "291": {
+      "engine": 4.596286,
+      "samples": [
+        {
+          "id": "B",
+          "steps": 5,
+          "screen": 4.5964,
+          "tolerance": 0.0002,
+          "diff": 0.000114,
+          "withinRounding": true
+        }
+      ],
+      "impliedMobMultiple": [
+        3069974
+      ],
+      "engineMobMultiple": 3069898
+    },
+    "292": {
+      "engine": 4.226714,
+      "samples": [
+        {
+          "id": "E",
+          "steps": 4,
+          "screen": 4.22675,
+          "tolerance": 0.00025,
+          "diff": 0.000036,
+          "withinRounding": true
+        }
+      ],
+      "impliedMobMultiple": [
+        3066919
+      ],
+      "engineMobMultiple": 3066893
+    },
+    "293": {
+      "engine": 3.886571,
+      "samples": [
+        {
+          "id": "E",
+          "steps": 3,
+          "screen": 3.886333,
+          "tolerance": 0.000333,
+          "diff": -0.000238,
+          "withinRounding": true
+        }
+      ],
+      "impliedMobMultiple": [
+        3063722
+      ],
+      "engineMobMultiple": 3063910
+    },
+    "294": {
+      "engine": 3.568824,
+      "samples": [
+        {
+          "id": "D",
+          "steps": 5,
+          "screen": 3.569,
+          "tolerance": 0.0002,
+          "diff": 0.000176,
+          "withinRounding": true
+        },
+        {
+          "id": "H",
+          "steps": 5,
+          "screen": 3.5688,
+          "tolerance": 0.0002,
+          "diff": -0.000024,
+          "withinRounding": true
+        }
+      ],
+      "impliedMobMultiple": [
+        3061329,
+        3061157
+      ],
+      "engineMobMultiple": 3061178
+    },
+    "295": {
+      "engine": 2.025,
+      "samples": [
+        {
+          "id": "A",
+          "steps": 7,
+          "screen": 2.025429,
+          "tolerance": 0.000143,
+          "diff": 0.000429,
+          "withinRounding": false
+        }
+      ],
+      "impliedMobMultiple": [
+        3123996
+      ],
+      "engineMobMultiple": 3123334
+    },
+    "296": {
+      "engine": 1.86144,
+      "samples": [
+        {
+          "id": "F",
+          "steps": 1,
+          "screen": 1.861,
+          "tolerance": 0.001,
+          "diff": -0.00044,
+          "withinRounding": true
+        }
+      ],
+      "impliedMobMultiple": [
+        3119430
+      ],
+      "engineMobMultiple": 3120168
+    },
+    "297": {
+      "engine": 1.709862,
+      "samples": [
+        {
+          "id": "C",
+          "steps": 6,
+          "screen": 1.709833,
+          "tolerance": 0.000167,
+          "diff": -0.000029,
+          "withinRounding": true
+        }
+      ],
+      "impliedMobMultiple": [
+        3114946
+      ],
+      "engineMobMultiple": 3114999
+    },
+    "298": {
+      "engine": 1.568947,
+      "samples": [
+        {
+          "id": "I",
+          "steps": 9,
+          "screen": 1.569667,
+          "tolerance": 0.000111,
+          "diff": 0.00072,
+          "withinRounding": false
+        },
+        {
+          "id": "K",
+          "steps": 8,
+          "screen": 1.569625,
+          "tolerance": 0.000125,
+          "diff": 0.000678,
+          "withinRounding": false
+        }
+      ],
+      "impliedMobMultiple": [
+        3112405,
+        3112322
+      ],
+      "engineMobMultiple": 3110978
+    },
+    "299": {
+      "engine": 1.05706,
+      "samples": [
+        {
+          "id": "G",
+          "steps": 8,
+          "screen": 1.05725,
+          "tolerance": 0.000125,
+          "diff": 0.00019,
+          "withinRounding": false
+        }
+      ],
+      "impliedMobMultiple": [
+        3107559
+      ],
+      "engineMobMultiple": 3107000
+    }
+  },
+  "rewards": [
+    {
+      "id": "A",
+      "stage": 36,
+      "level": 294,
+      "screenPct": 0.117,
+      "digits": "…7만 4188",
+      "enginePct": 0.11725,
+      "roundsTo": 0.117,
+      "match": true
+    },
+    {
+      "id": "A",
+      "stage": 37,
+      "level": 294,
+      "screenPct": 0.131,
+      "digits": "…8만 1750",
+      "enginePct": 0.11725,
+      "roundsTo": 0.117,
+      "match": false
+    },
+    {
+      "id": "A",
+      "stage": 38,
+      "level": 295,
+      "screenPct": 0.065,
+      "digits": "…7만 8112",
+      "enginePct": 0.0652,
+      "roundsTo": 0.065,
+      "match": true
+    },
+    {
+      "id": "A",
+      "stage": 45,
+      "level": 295,
+      "screenPct": 0.065,
+      "digits": "…7만 8112",
+      "enginePct": 0.0652,
+      "roundsTo": 0.065,
+      "match": true
+    },
+    {
+      "id": "B",
+      "stage": 1,
+      "level": 290,
+      "screenPct": 0.819,
+      "digits": null,
+      "enginePct": 0.81895,
+      "roundsTo": 0.819,
+      "match": true
+    },
+    {
+      "id": "B",
+      "stage": 3,
+      "level": 291,
+      "screenPct": 0.753,
+      "digits": null,
+      "enginePct": 0.75284,
+      "roundsTo": 0.753,
+      "match": true
+    },
+    {
+      "id": "B",
+      "stage": 45,
+      "level": 292,
+      "screenPct": 0.139,
+      "digits": null,
+      "enginePct": 0.1386,
+      "roundsTo": 0.139,
+      "match": true
+    },
+    {
+      "id": "C",
+      "stage": 45,
+      "level": 297,
+      "screenPct": 0.055,
+      "digits": null,
+      "enginePct": 0.0552,
+      "roundsTo": 0.055,
+      "match": true
+    },
+    {
+      "id": "D",
+      "stage": 45,
+      "level": 294,
+      "screenPct": 0.117,
+      "digits": null,
+      "enginePct": 0.11725,
+      "roundsTo": 0.117,
+      "match": true
+    },
+    {
+      "id": "E",
+      "stage": 41,
+      "level": 292,
+      "screenPct": 0.139,
+      "digits": null,
+      "enginePct": 0.1386,
+      "roundsTo": 0.139,
+      "match": true
+    },
+    {
+      "id": "E",
+      "stage": 42,
+      "level": 293,
+      "screenPct": 0.128,
+      "digits": null,
+      "enginePct": 0.12757,
+      "roundsTo": 0.128,
+      "match": true
+    },
+    {
+      "id": "F",
+      "stage": 13,
+      "level": 296,
+      "screenPct": 0.3,
+      "digits": null,
+      "enginePct": 0.29998,
+      "roundsTo": 0.3,
+      "match": true
+    },
+    {
+      "id": "F",
+      "stage": 45,
+      "level": 297,
+      "screenPct": 0.055,
+      "digits": null,
+      "enginePct": 0.0552,
+      "roundsTo": 0.055,
+      "match": true
+    },
+    {
+      "id": "G",
+      "stage": 45,
+      "level": 299,
+      "screenPct": 0.034,
+      "digits": null,
+      "enginePct": 0.03422,
+      "roundsTo": 0.034,
+      "match": true
+    },
+    {
+      "id": "H",
+      "stage": 40,
+      "level": 294,
+      "screenExact": 505210474188,
+      "engineRaw": 505210480473.60004,
+      "diffWon": 6286,
+      "impliedMultiple": 100569.5987,
+      "screenPct": 0.117
+    },
+    {
+      "id": "I",
+      "stage": 45,
+      "level": 298,
+      "screenPct": 0.051,
+      "digits": null,
+      "enginePct": 0.05072,
+      "roundsTo": 0.051,
+      "match": true
+    },
+    {
+      "id": "K",
+      "stage": 45,
+      "level": 298,
+      "screenPct": 0.051,
+      "digits": null,
+      "enginePct": 0.05072,
+      "roundsTo": 0.051,
+      "match": true
+    }
+  ],
+  "rewardAnomalyA37": {
+    "screenPctOf294": 0.131,
+    "rangeRaw": [
+      562314895007,
+      566623821405
+    ],
+    "reward294": 505210480473.60004,
+    "reward295": 567536378112,
+    "reward295AsPctOf294": 0.13171
+  },
+  "payout290": {
+    "screenPrefix": "4820억 6206만",
+    "engineRaw": 482062073932.80005,
+    "engineEokMan": "4820억 6207만"
+  },
+  "threshold299": {
+    "officialSeptember30": "약 68%",
+    "officialOctober45": "약 52%",
+    "engine": {
+      "step30": 68.2882,
+      "step45": 52.4323
+    },
+    "liveInterval": 1.05725,
+    "live": {
+      "step30": 68.2825,
+      "step45": 52.4237
+    }
+  },
+  "conflict280": {
+    "tauGapEndSteps": 0.30425,
+    "requiredStep280PctOfLevel": 36.154,
+    "slideStep280Pct": 28.055,
+    "engineStep280Pct": 27.88,
+    "conclusion": "두 표본이 모두 맞으려면 280 간격이 약 36%여야 하지만 슬라이드 1단계는 28.055%다. 285·286 간격은 본섭 실측값이므로 281~284 값과 무관하게 셋 중 하나 이상이 틀렸다.",
+    "slideStep30Backtrack": {
+      "step36": "286·62.287",
+      "step30": "285·99.818",
+      "broadcastStep30": "285·99.818"
+    }
+  },
+  "slideFit280": {
+    "m280": 2747311,
+    "m281to284Uniform": 2740725,
+    "engineBelow285": 2730206,
+    "checkpoints": [
+      {
+        "stage": 1,
+        "slide": "280·28.055",
+        "slideFit": "280·28.0550",
+        "engine": "280·27.8803",
+        "usedForFit": true
+      },
+      {
+        "stage": 30,
+        "slide": "285·99.818",
+        "slideFit": "285·99.8180",
+        "engine": "285·98.7933",
+        "usedForFit": true
+      },
+      {
+        "stage": 36,
+        "slide": "286·62.287",
+        "slideFit": "286·62.2868",
+        "engine": "286·61.3469",
+        "usedForFit": false
+      },
+      {
+        "stage": 39,
+        "slide": "286·93.514",
+        "slideFit": "286·93.5137",
+        "engine": "286·92.5738",
+        "usedForFit": false
+      },
+      {
+        "stage": 40,
+        "slide": "287·3.610",
+        "slideFit": "287·3.6101",
+        "engine": "287·2.7452",
+        "usedForFit": false
+      },
+      {
+        "stage": 45,
+        "slide": "287·51.509",
+        "slideFit": "287·51.5087",
+        "engine": "287·50.6437",
+        "usedForFit": false
+      }
+    ],
+    "eunsul280_11": {
+      "posted": "286·3%",
+      "slideFit": "286·3.9143",
+      "engine": "286·3.0000"
+    },
+    "eunsulPrecisionNote": "같은 글의 260·0% → 283·23% 는 공식 1389 일러스트의 283·23.118% 를 소수점 아래 버린 값이다."
+  },
+  "bosses": [
+    {
+      "id": "limbo-extreme",
+      "unitExp": 645780340,
+      "hex": "0x267dd374",
+      "maxParty": 3,
+      "availableFrom": "2026-10-22",
+      "solo": 6457803400000,
+      "party2": 3228901700000,
+      "party3": 2152601133333,
+      "floorCheck3": 2152601133333
+    },
+    {
+      "id": "baldrix-extreme",
+      "unitExp": 797242950,
+      "hex": "0x2f84f646",
+      "maxParty": 3,
+      "availableFrom": "2026-10-22",
+      "solo": 7972429500000,
+      "party2": 3986214750000,
+      "party3": 2657476500000,
+      "floorCheck3": 2657476500000
+    }
+  ],
+  "bossStartDay": {
+    "official815": "익스트림 림보 10/23(금) 19시, 익스트림 발드릭스 10/23(금) 20시 이후 입장",
+    "engineAvailableFrom": "2026-10-22",
+    "simulate1022Only": {
+      "bossRaw": 14430232900000,
+      "clears": 2
+    },
+    "simulate1023Only": {
+      "bossRaw": 14430232900000,
+      "clears": 2
+    }
+  },
+  "autoClear": {
+    "input": "지정 290·6.3%, 30단계 완료, 현재 293·50%",
+    "step45Target": "292·19.106",
+    "on1021": {
+      "stepsCleared": 30,
+      "rewardRaw": 0
+    },
+    "on1022": {
+      "stepsCleared": 45,
+      "rewardRaw": 7342504028928.002,
+      "newly": 15
+    }
+  },
+  "detective283": {
+    "gainPctShown": 1.184,
+    "perField": [
+      {
+        "field": 276,
+        "pctFor190": 0.9977,
+        "killsRange": [
+          225.29,
+          225.67
+        ],
+        "integer190Fits": false
+      },
+      {
+        "field": 277,
+        "pctFor190": 1.0118,
+        "killsRange": [
+          222.16,
+          222.53
+        ],
+        "integer190Fits": false
+      },
+      {
+        "field": 278,
+        "pctFor190": 1.0243,
+        "killsRange": [
+          219.44,
+          219.81
+        ],
+        "integer190Fits": false
+      },
+      {
+        "field": 279,
+        "pctFor190": 1.0385,
+        "killsRange": [
+          216.44,
+          216.81
+        ],
+        "integer190Fits": false
+      },
+      {
+        "field": 280,
+        "pctFor190": 1.1662,
+        "killsRange": [
+          192.74,
+          193.07
+        ],
+        "integer190Fits": false
+      },
+      {
+        "field": 281,
+        "pctFor190": 1.1821,
+        "killsRange": [
+          190.14,
+          190.47
+        ],
+        "integer190Fits": false
+      },
+      {
+        "field": 282,
+        "pctFor190": 1.1963,
+        "killsRange": [
+          187.89,
+          188.2
+        ],
+        "integer190Fits": false
+      },
+      {
+        "field": 283,
+        "pctFor190": 1.2123,
+        "killsRange": [
+          185.4,
+          185.72
+        ],
+        "integer190Fits": false
+      },
+      {
+        "field": 284,
+        "pctFor190": 1.2267,
+        "killsRange": [
+          183.23,
+          183.54
+        ],
+        "integer190Fits": false
+      },
+      {
+        "field": 285,
+        "pctFor190": 1.379,
+        "killsRange": [
+          163,
+          163.27
+        ],
+        "integer190Fits": false
+      }
+    ]
+  },
+  "magnifierFormula": {
+    "detectivePerUse288": 641063952000,
+    "detectivePctOf288": 0.484,
+    "ordinaryEngine288_bonus300": 38463837120,
+    "ordinaryHaru1sojae288_bonus300": 32053197600,
+    "levelFactorAtGap0": 1.2
+  },
+  "plusOctober": [
+    {
+      "name": "9월 미참여",
+      "options": [
+        "free",
+        "premium",
+        "prime"
+      ],
+      "linesIfPrime": [
+        "free",
+        "premium",
+        "prime"
+      ],
+      "linesIfPremium": [
+        "free",
+        "premium"
+      ]
+    },
+    {
+      "name": "9월 무료",
+      "options": [
+        "free",
+        "premium",
+        "prime"
+      ],
+      "linesIfPrime": [
+        "free",
+        "premium",
+        "prime"
+      ],
+      "linesIfPremium": [
+        "free",
+        "premium"
+      ]
+    },
+    {
+      "name": "9월 프리미엄만",
+      "options": [
+        "free",
+        "prime"
+      ],
+      "linesIfPrime": [
+        "free",
+        "prime"
+      ],
+      "linesIfPremium": [
+        "free"
+      ]
+    },
+    {
+      "name": "9월 프라임까지",
+      "options": [
+        "free"
+      ],
+      "linesIfPrime": [
+        "free"
+      ],
+      "linesIfPremium": [
+        "free"
+      ]
+    }
+  ],
+  "plusOctoberSchedule": [
+    {
+      "date": "2026-10-22",
+      "level": 0,
+      "levelPoints": 0
+    },
+    {
+      "date": "2026-10-28",
+      "level": 3,
+      "levelPoints": 250
+    },
+    {
+      "date": "2026-10-29",
+      "level": 6,
+      "levelPoints": 500
+    },
+    {
+      "date": "2026-11-05",
+      "level": 10,
+      "levelPoints": 0
+    }
+  ],
+  "plusTableLib": [
+    {
+      "level": 1,
+      "free": {
+        "crimson": 1,
+        "adv": 0,
+        "sauna": 0,
+        "coupon4x": 0,
+        "booster": 0
+      },
+      "premium": {
+        "crimson": 1,
+        "adv": 0,
+        "sauna": 0,
+        "coupon4x": 0,
+        "booster": 10
+      },
+      "prime": {
+        "crimson": 1,
+        "adv": 0,
+        "sauna": 0,
+        "coupon4x": 2,
+        "booster": 10
+      }
+    },
+    {
+      "level": 2,
+      "free": {
+        "crimson": 0,
+        "adv": 0,
+        "sauna": 0.5,
+        "coupon4x": 0,
+        "booster": 0
+      },
+      "premium": {
+        "crimson": 1,
+        "adv": 0,
+        "sauna": 0.5,
+        "coupon4x": 0,
+        "booster": 0
+      },
+      "prime": {
+        "crimson": 1,
+        "adv": 3000,
+        "sauna": 0.5,
+        "coupon4x": 0,
+        "booster": 0
+      }
+    },
+    {
+      "level": 3,
+      "free": {
+        "crimson": 0,
+        "adv": 0,
+        "sauna": 0,
+        "coupon4x": 0,
+        "booster": 0
+      },
+      "premium": {
+        "crimson": 0,
+        "adv": 0,
+        "sauna": 0,
+        "coupon4x": 2,
+        "booster": 0
+      },
+      "prime": {
+        "crimson": 3,
+        "adv": 0,
+        "sauna": 0,
+        "coupon4x": 2,
+        "booster": 0
+      }
+    },
+    {
+      "level": 4,
+      "free": {
+        "crimson": 0,
+        "adv": 100,
+        "sauna": 0,
+        "coupon4x": 0,
+        "booster": 0
+      },
+      "premium": {
+        "crimson": 0,
+        "adv": 1600,
+        "sauna": 0,
+        "coupon4x": 0,
+        "booster": 0
+      },
+      "prime": {
+        "crimson": 0,
+        "adv": 1600,
+        "sauna": 0,
+        "coupon4x": 2,
+        "booster": 0
+      }
+    },
+    {
+      "level": 5,
+      "free": {
+        "crimson": 0,
+        "adv": 0,
+        "sauna": 0.5,
+        "coupon4x": 0,
+        "booster": 0
+      },
+      "premium": {
+        "crimson": 2,
+        "adv": 0,
+        "sauna": 0.5,
+        "coupon4x": 0,
+        "booster": 0
+      },
+      "prime": {
+        "crimson": 2,
+        "adv": 3000,
+        "sauna": 0.5,
+        "coupon4x": 0,
+        "booster": 0
+      }
+    },
+    {
+      "level": 6,
+      "free": {
+        "crimson": 0,
+        "adv": 0,
+        "sauna": 0,
+        "coupon4x": 0,
+        "booster": 0
+      },
+      "premium": {
+        "crimson": 0,
+        "adv": 0,
+        "sauna": 0,
+        "coupon4x": 0,
+        "booster": 10
+      },
+      "prime": {
+        "crimson": 4,
+        "adv": 0,
+        "sauna": 0,
+        "coupon4x": 0,
+        "booster": 10
+      }
+    },
+    {
+      "level": 7,
+      "free": {
+        "crimson": 0,
+        "adv": 100,
+        "sauna": 0,
+        "coupon4x": 0,
+        "booster": 0
+      },
+      "premium": {
+        "crimson": 0,
+        "adv": 1600,
+        "sauna": 0,
+        "coupon4x": 0,
+        "booster": 0
+      },
+      "prime": {
+        "crimson": 0,
+        "adv": 1600,
+        "sauna": 0,
+        "coupon4x": 2,
+        "booster": 0
+      }
+    },
+    {
+      "level": 8,
+      "free": {
+        "crimson": 0,
+        "adv": 0,
+        "sauna": 0.5,
+        "coupon4x": 0,
+        "booster": 0
+      },
+      "premium": {
+        "crimson": 2,
+        "adv": 0,
+        "sauna": 0.5,
+        "coupon4x": 0,
+        "booster": 0
+      },
+      "prime": {
+        "crimson": 2,
+        "adv": 3000,
+        "sauna": 0.5,
+        "coupon4x": 0,
+        "booster": 0
+      }
+    },
+    {
+      "level": 9,
+      "free": {
+        "crimson": 0,
+        "adv": 0,
+        "sauna": 0,
+        "coupon4x": 0,
+        "booster": 0
+      },
+      "premium": {
+        "crimson": 0,
+        "adv": 0,
+        "sauna": 0,
+        "coupon4x": 2,
+        "booster": 0
+      },
+      "prime": {
+        "crimson": 0,
+        "adv": 0,
+        "sauna": 0,
+        "coupon4x": 2,
+        "booster": 20
+      }
+    },
+    {
+      "level": 10,
+      "free": {
+        "crimson": 0,
+        "adv": 300,
+        "sauna": 0,
+        "coupon4x": 0,
+        "booster": 0
+      },
+      "premium": {
+        "crimson": 0,
+        "adv": 1800,
+        "sauna": 0,
+        "coupon4x": 0,
+        "booster": 0
+      },
+      "prime": {
+        "crimson": 4,
+        "adv": 1800,
+        "sauna": 0,
+        "coupon4x": 0,
+        "booster": 0
+      }
+    }
+  ]
+}

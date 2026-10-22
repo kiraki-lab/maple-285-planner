@@ -1904,12 +1904,25 @@ test("돋보기는 10/22부터 일과를 하는 날만 쓰고 탐정 유령에�
   assert.deepEqual([n.magnifiers.detectivePerDay,n.magnifiers.ordinaryPerDay,n.magnifiers.killsPerUse,n.magnifiers.fieldLevel],[3,10,0,260]);
 });
 
-test("익스트림 림보·발드릭스는 청크 정수와 같고 10/22 전에는 지급하지 않는다", () => {
+test("익스트림 림보·발드릭스는 청크 정수와 같고 실제 입장일 10/23 전에는 지급하지 않는다", () => {
   const real=createMainContext();const x=rewardOnly('2026-10-21');x.personal.enabled=true;
   x.personal.bosses=[{id:'limbo-extreme',party:3},{id:'baldrix-extreme',party:3}];
   assert.equal(simulateMain(x,real).sourceRaw.boss||0,0);
-  x.start=x.end='2026-10-22';const r=simulateMain(x,real);
+  x.start=x.end='2026-10-22';assert.equal(simulateMain(x,real).sourceRaw.boss||0,0);
+  x.start=x.end='2026-10-23';const r=simulateMain(x,real);
   assert.equal(r.sourceRaw.boss,4_810_077_633_333);assert.equal(r.boss.clears,2);
+});
+
+test("개방 전 시작한 신규 보스는 10/23에 지급하고 다음 목요일에만 다시 지급한다", () => {
+  const input = rewardOnly("2026-10-22", 290, 0);
+  input.end = "2026-10-29";
+  input.personal.enabled = true;
+  input.personal.bosses = [{ id: "limbo-extreme", party: 1 }, { id: "baldrix-extreme", party: 1 }];
+  const result = simulateMain(input, createMainContext());
+  const bossDays = result.rows.filter(row => row.events.some(event => event.startsWith("보스 미션")));
+  assert.deepEqual(bossDays.map(row => row.date), ["2026-10-23", "2026-10-29"]);
+  assert.equal(result.sourceRaw.boss, 14_430_232_900_000 * 2);
+  assert.equal(result.boss.clears, 4);
 });
 
 test("285·287·290 지정의 9월 프라임과 10월 프라임 여섯 사례를 재현한다", () => {
