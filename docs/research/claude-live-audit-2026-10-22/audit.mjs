@@ -89,7 +89,6 @@ out.threshold299 = { officialSeptember30: "약 68%", officialOctober45: "약 52%
 
 // 5. 280 표본 충돌: 단계 좌표 τ(위치)=∫dx/간격 은 30단계 후 정확히 30 늘어난다(레벨별 간격 고정 가정).
 //    280·0% → 285·99.818%(방송) 와 280·11% → 286·3%(9/11 테섭) 가 둘 다 성립하면 τ 차이가 같아야 한다.
-const tauGapStart = s280 => 0.11 * req(280) / s280;
 const tauGapEnd = 0.00182 * req(285) / stepRawForLevel(285) + 0.03 * req(286) / stepRawForLevel(286);
 out.conflict280 = {
   tauGapEndSteps: +tauGapEnd.toFixed(5),
