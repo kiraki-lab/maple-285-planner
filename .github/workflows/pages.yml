@@ -35,6 +35,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Verify planner
+        run: |
+          pnpm lint
+          pnpm test
+
       - name: Build static site
         run: pnpm run build
         env:

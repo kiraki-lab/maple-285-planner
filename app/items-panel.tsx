@@ -8,6 +8,7 @@ import {
   simulateItemInventoryConversion,
 } from "@/lib/exp-tables";
 import type { CustomRewardType } from "@/lib/exp-tables";
+import { ownedRewardInventory } from "@/lib/owned-rewards.mjs";
 import { assetUrl } from "./asset-url";
 import type { MainInputState } from "./use-main-input";
 
@@ -34,11 +35,7 @@ export default function ItemsPanel({ state, goPersonal }: { state: MainInputStat
   const [expText, setExpText] = useState<string | null>(null);
   const level = clampLevel(levelText === null ? input.level : Number(levelText));
   const exp = clampExp(expText === null ? input.exp : Number(expText));
-  const inventory = {
-    crimson: Math.max(0, input.items.crimson), adv: Math.max(0, input.items.adv) + input.attendance.adv + input.compensation.adv, mech: Math.max(0, input.items.mech),
-    blue: Math.max(0, input.items.blue), sauna: Math.max(0, input.items.sauna) + input.attendance.sauna, potion279: Math.max(0, input.items.potion279) + input.attendance.potion279,
-    potion269: input.attendance.potion269,
-  };
+  const inventory = ownedRewardInventory(input);
   const result = simulateItemInventoryConversion({ level, exp, inventory });
   const gain = (result.level - result.startLevel) * 100 + result.exp - result.startExp;
   const hasInventory = ROWS.some(row => inventory[row.type] > 0);
@@ -79,7 +76,7 @@ export default function ItemsPanel({ state, goPersonal }: { state: MainInputStat
       {!hasInventory && <div className="item-conversion-empty"><p>보유량이 0이라 결과가 그대로입니다. 퍼스널 버닝 탭의 PLUS와 「남은 출석·보유 보상」에 실제 남은 수량을 입력해 주세요.</p><button type="button" onClick={goPersonal}>퍼스널 버닝 탭으로 이동</button></div>}
       <div className="item-conversion-notes">
         <p><b>사용 순서:</b> 블루베리 → 메카베리 → 크림슨 → VIP 사우나 → 비약(269) → 비약(279) → 상급 EXP. 크림슨은 메카베리와 같은 농장이지만 동렙몹 마릿수가 고정입니다.</p>
-        <p><b>보유량:</b> PLUS 보유분과 출석·사과 보상 입력을 합한 값입니다. PLUS·사과 보상은 10/22 02:00, 출석 보상은 11/19 02:00까지 사용 가능합니다. 이 탭은 기한 안에 전부 쓰는 경험치 환산이며 자동으로 받을 PLUS 보상·사냥용 부스터·4배 쿠폰은 포함하지 않습니다.</p>
+        <p><b>보유량 기준일: {input.start}.</b> 그날 사용할 수 있는 9월·10월 PLUS 보유분과 출석·사과 보상만 합합니다. 9월 PLUS·사과 보상은 10/22 02:00, 10월 PLUS·출석 보상은 11/19 02:00 만료입니다. 일 단위 계산이라 만료일 새벽 2시간은 제외합니다. 자동으로 받을 PLUS 보상·사냥용 부스터·4배 쿠폰은 포함하지 않습니다.</p>
         {level < 280 && <p><b>260~279:</b> 이 표는 아이템 자체 경험치 환산입니다.</p>}
         <a href="https://maplescouter.com/ko/exp/item" target="_blank" rel="noreferrer">메이플스카우터 소비아이템 환산과 대조</a>
       </div>

@@ -35,6 +35,38 @@ import {
 } from "../lib/main-planner.mjs";
 import { createMainContext } from "../lib/exp-tables.ts";
 import { MOB_BASE_EXP, PERSONAL_BOSS_TABLE } from "../lib/personal-data.mjs";
+import { ownedRewardInventory } from "../lib/owned-rewards.mjs";
+
+test("즉시 아이템 환산은 10월 보유분을 읽고 날짜가 다른 회차·만료 보상을 섞지 않는다", () => {
+  const input = defaultMainInput("2026-10-21");
+  input.items = { crimson: 2, adv: 100, sauna: 1, mech: 3, blue: 4, potion279: 0 };
+  input.plusOctober.items = { crimson: 5, adv: 200, sauna: 2 };
+  input.attendance = { adv: 300, sauna: 3, potion269: 1, potion279: 2 };
+  input.compensation = { adv: 400 };
+  const before = structuredClone(input);
+  assert.deepEqual(ownedRewardInventory(input), { crimson: 2, adv: 800, sauna: 4, mech: 3, blue: 4, potion269: 1, potion279: 2 });
+  assert.deepEqual(input, before, "환산이 입력·저장 재고를 바꾸지 않는다");
+  for (const start of ["2026-10-22", "2026-11-18"]) {
+    input.start = start;
+    assert.deepEqual(ownedRewardInventory(input), { crimson: 5, adv: 500, sauna: 5, mech: 3, blue: 4, potion269: 1, potion279: 2 });
+  }
+  input.plusOctober.enabled = false;
+  assert.equal(ownedRewardInventory(input).crimson, 5, "자동 수령을 꺼도 이미 보유한 수량은 쓸 수 있다");
+  input.start = "2026-11-19";
+  assert.deepEqual(ownedRewardInventory(input), { crimson: 0, adv: 0, sauna: 0, mech: 3, blue: 4, potion269: 0, potion279: 0 });
+});
+
+test("10월 크림슨 마지막 날 사용은 11/18에 한 번만 소비한다", () => {
+  const input = rewardOnly("2026-10-22", 285, 0);
+  input.end = "2026-11-18";
+  input.plusOctober.items.crimson = 2;
+  input.crimsonHold = 999;
+  const result = simulateMain(input, createMainContext());
+  const uses = result.rows.filter(row => row.events.some(event => event.includes("크림슨")));
+  assert.deepEqual(uses.map(row => row.date), ["2026-11-18"]);
+  assert.equal(result.items.crimsonUsed, 2);
+  assert.equal(result.items.octoberExpired.crimson, 0);
+});
 
 
 // 필요 경험치는 app/page.tsx 의 표를 그대로 옮긴 값이다. 표가 바뀌면 아래 연동 테스트가 먼저 깨진다.

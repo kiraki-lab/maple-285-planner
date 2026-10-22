@@ -76,6 +76,7 @@ export default function ReferencePanel() {
 
       <article>
         <div className="table-title"><span>하루1소재 · 몬스터 기본 경험치</span><h3>레벨별 플레임·교환권</h3></div>
+        <p className="pb-note light">성장 미션 31~45단계의 경험치 계수와 돋보기 경험치는 본섭 실측 대조 전 추정값입니다. 45단계 확장·코인 지급 범위·사용 횟수와 기한은 10/22 공식 공지로 확인했습니다.</p>
         <div className="pb-table-wrap"><table>
           <thead><tr><th>레벨</th><th>몬스터 기본 EXP</th><th>플레임 ×{PERSONAL_FLAME_MULTIPLE}</th><th>교환권 ×{PERSONAL_COUPON_MULTIPLE}</th><th>교환권 %</th><th>미션 한 칸</th></tr></thead>
           <tbody>{LEVEL_ROWS.map(level => {

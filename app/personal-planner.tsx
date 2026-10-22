@@ -205,10 +205,10 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
   const crimsonOptions: { label: string; value: "auto" | number }[] = [
     { label: "자동 추천", value: "auto" }, { label: "받는 즉시", value: 0 },
     ...[285, 290, 295].filter(level => level > startLevel || level === crimsonPlan).map(level => ({ label: `Lv.${level}까지 모음`, value: level })),
-    { label: "10/21까지 모음", value: 999 },
+    { label: "각 회차 마지막 날까지 모음", value: 999 },
   ];
 
-  const holdLabel = (hold: number) => (hold === 0 ? "받는 즉시" : hold >= 999 ? "10/21까지 모음" : `Lv.${hold}까지 모음`);
+  const holdLabel = (hold: number) => (hold === 0 ? "받는 즉시" : hold >= 999 ? "각 회차 마지막 날까지 모음" : `Lv.${hold}까지 모음`);
   const couponLabel = (policy: string) => (policy === "now" ? "받는 즉시" : policy === "end" ? "마감 직전에 몰아서" : `Lv.${policy.slice(5)}에 닿은 뒤`);
   const bestOf = (predicate: (option: typeof analysis.options[number]) => boolean) => {
     const matching = analysis.options.filter(predicate);
@@ -217,8 +217,8 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
   // 30단계와의 코인 차이, 그리고 사용 시점에 따라 코인을 얼마나 먼저 받는지(패스 보상 마감일 기준).
   const totalCoins = Math.min(COIN_MISSION_STEPS, r.mission.stepsCleared) * COINS_PER_STEP;
   const coinGap = Math.max(0, COIN_MISSION_STEPS - r.mission.stepsCleared) * COINS_PER_STEP;
-  // 모아 쓰는 쪽은 마감일(10/21)에 한꺼번에 쓰므로, 그 전날까지 받은 코인으로 비교해야 차이가 보인다.
-  const refDay = addDay(MAIN_SCHEDULE.plusLastUseDay, -1);
+  // 현재 회차 마감 전날까지 받은 코인으로 사용 시점의 차이를 비교한다.
+  const refDay = addDay(octoberPeriod ? MAIN_SCHEDULE.plusOctoberLastUseDay : MAIN_SCHEDULE.plusLastUseDay, -1);
   const showRefCoins = diffDays(refDay, input.start) > 0 && diffDays(MAIN_SCHEDULE.personalEnd, refDay) > 0;
   const coinsByNumber = (option: { result?: { mission: { newlyCleared: { date: string; index: number }[] } } }) => missionCoinsThroughDay(option.result?.mission.newlyCleared ?? [], refDay);
   const coinsBy = (option: Parameters<typeof coinsByNumber>[0]) => option.result ? fmtInt(coinsByNumber(option)) : "-";
@@ -269,6 +269,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
       {weekInfo.week > 0 && <p className="pb-note">기준일은 이벤트 <b>{weekInfo.week}주차</b>(전체 {weekInfo.total}주)입니다. 마감 11/18까지 {weekInfo.daysLeft}일, 플레임 충전은 {weekInfo.refillsLeft}번 남았습니다.</p>}
       </div>
       <div className="pb-pane" role="tabpanel" id="pb-pane-s1" aria-labelledby="pb-tab-s1" hidden={sec !== "s1"}>
+      <p className="pb-note light">31~45단계 경험치는 테섭 표본 기반 추정입니다. 280~284 구간은 공개 목표 표본에 차이가 있어, 게임에 표시된 다음 목표와 그다음 목표를 함께 넣는 것을 권합니다.</p>
       <div className="pb-choice" role="group" aria-label="지정 여부">
         <button type="button" className={input.personal.designated ? "on" : ""} onClick={() => upd((draft: MainInput) => { draft.personal.designated = true; })}>이미 지정했어요</button>
         <button type="button" className={!input.personal.designated ? "on" : ""} onClick={() => upd((draft: MainInput) => { draft.personal.designated = false; })}>아직 안 했어요</button>
@@ -448,7 +449,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
       <details className="pb-more"><summary>탐정예티와 수상한 돋보기 · 10/22~11/18</summary><div className="field-grid compact">
         <NumField label="탐정예티 돋보기 하루 사용 횟수" value={input.magnifiers.detectivePerDay} min={0} max={3} step={1} onChange={value => upd((draft: MainInput) => { draft.magnifiers.detectivePerDay=value; })} hint="매일 10,000마리 처치 후 미션 완료 시 1개 · 메이플ID당 하루 최대 3개" />
         <NumField label="수상한 돋보기 하루 사용 횟수" value={input.magnifiers.ordinaryPerDay} min={0} max={10} step={1} onChange={value => upd((draft: MainInput) => { draft.magnifiers.ordinaryPerDay=value; })} hint="보유한 만큼 넣어 주세요 · 하루 최대 10개" />
-        <NumField label="한 번에 잡는 유령 수" value={input.magnifiers.killsPerUse} min={0} step={1} onChange={value => upd((draft: MainInput) => { draft.magnifiers.killsPerUse=value; })} hint="탐정 유령은 몬스터 기본 경험치의 800배" />
+        <NumField label="한 번에 잡는 유령 수" value={input.magnifiers.killsPerUse} min={0} step={1} onChange={value => upd((draft: MainInput) => { draft.magnifiers.killsPerUse=value; })} hint="190마리·탐정 800배·일반 10배는 본섭 실측 대조 전 추정값입니다. 마릿수는 실제 기록으로 바꿀 수 있습니다" />
         <NumField label="수상한 돋보기 추가 경험치 %" value={input.magnifiers.bonusPct} min={0} max={3000} onChange={value => upd((draft: MainInput) => { draft.magnifiers.bonusPct=value; })} hint="탐정예티 돋보기에는 붙지 않습니다" />
         <label className="field"><span>돋보기 사냥터 몬스터</span><select value={input.magnifiers.fieldKey} onChange={event => upd((draft: MainInput) => { draft.magnifiers.fieldKey=event.target.value; if(event.target.value === "direct" && !draft.magnifiers.fieldLevel) draft.magnifiers.fieldLevel=draft.level; })}><option value="flame">플레임과 같게</option><option value="same">내 레벨 몬스터</option><option value="direct">몬스터 레벨 직접 입력</option></select></label>
         {input.magnifiers.fieldKey === "direct" && <NumField label="돋보기 몬스터 레벨" value={input.magnifiers.fieldLevel || startLevel} min={260} max={299} step={1} onChange={value => upd((draft: MainInput) => { draft.magnifiers.fieldLevel=value; })} />}
