@@ -22,6 +22,7 @@ import {
   compareTiers,
   couponRawForLevel,
   diffDays,
+  detectiveDailyPlan,
   FLAME_STOCK_CAP,
   FLAME_WEEKLY_ADD,
   flameModelRaw,
@@ -123,6 +124,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
   const octoberPeriod = input.start >= MAIN_SCHEDULE.plusOctoberStart;
   const activePass = octoberPeriod ? input.plusOctober : input.plus;
   const activePassTier = octoberPeriod && !octoberPlusTierOptions(input.plus).includes(activePass.tier) ? "free" : activePass.tier;
+  const detective = detectiveDailyPlan(input, ctx);
   const plusAvailable = input.plus.enabled && diffDays(MAIN_SCHEDULE.plusLastUseDay, input.start) >= 0;
   const plusPlan = useMemo(() => plusLevelSchedule(input.plus, input.start), [input.plus, input.start]);
   const tiers = useMemo(() => (plusAvailable ? compareTiers(input, ctx) : []), [plusAvailable, input, ctx]);
@@ -172,7 +174,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
     monsterPark: "몬스터파크", grandis: "그란디스 일퀘", extreme: "익스트림 몬파(주간)", epic: "에픽 던전(주간)", routine: "일과(직접 입력)", weekly: "주간 컨텐츠(직접 입력)",
     flame: "퍼스널 플레임", coupon: "퍼스널 EXP 교환권", boss: "퍼스널 보스 미션", missionReward: "성장 미션 단계 보상",
     crimson: "크림슨 메카베리", adv: "상급 EXP 교환권", sauna: "VIP 사우나", blue: "블루베리", mech: "메카베리", potion: "성장의 비약",
-    detectiveMagnifier: "탐정예티 돋보기", ordinaryMagnifier: "수상한 돋보기",
+    detectiveFreeMagnifier: "무료 탐정예티 돋보기", detectiveBoughtMagnifier: "구매 탐정예티 돋보기", ordinaryMagnifier: "수상한 돋보기",
     hunt: "사냥", coupon4x: "경험치 4배 쿠폰(PLUS)", booster: "VIP 부스터(PLUS)",
     compensationAdv: "상급 EXP(사과 보상)", compensationBooster: "VIP 부스터(사과 보상)",
     attendanceAdv: "상급 EXP(출석·보유)", attendanceSauna: "VIP 사우나(출석·보유)", attendanceBooster: "VIP 부스터(출석·보유)", attendancePotion269: "성장의 비약(200~269)", attendancePotion279: "성장의 비약(200~279)",
@@ -448,8 +450,11 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
       </div>
       <details className="pb-more"><summary>탐정예티와 수상한 돋보기 · 10/22~11/18</summary>
       <p className="pb-note light">돋보기는 위 사냥 시간 외에 1개당 100초씩 추가로 사용한다고 계산합니다. 게임에서는 VIP·HEXA 부스터와 동시에 사용할 수 없습니다. 같은 사냥 시간 안에 사용할 계획이라면 돋보기의 주간 사용 시간을 위 사냥 시간에서 빼 주세요.</p>
+        <Check label="일일 수집 미션 무료 돋보기 사용" checked={input.magnifiers.detectiveFree} onChange={value => upd((draft: MainInput) => { draft.magnifiers.detectiveFree=value; })} />
+        <p className="pb-note">하루 1만 마리 이상 사냥하면 매일 1개를 받아요. 위 주간 사냥 시간을 7일로 나눠 세며, 플레임 처치는 뺍니다.</p>
+        <p className="pb-note" role="status" aria-live="polite">하루 {fmtInt(Math.floor(detective.huntKillsPerDay + 1e-9))}마리 사냥 · {detective.free ? "무료 돋보기 1개 받음" : "무료 돋보기 없음"}</p>
       <div className="field-grid compact">
-        <NumField label="탐정예티 돋보기 하루 사용 횟수" value={input.magnifiers.detectivePerDay} min={0} max={3} step={1} onChange={value => upd((draft: MainInput) => { draft.magnifiers.detectivePerDay=value; })} hint="매일 10,000마리 처치 후 미션 완료 시 1개 · 메이플ID당 하루 최대 3개" />
+        <NumField label="탐정예티 돋보기 하루 구매 개수" value={Math.min(input.magnifiers.detectiveBoughtPerDay,detective.boughtMax)} min={0} max={detective.boughtMax} step={1} onChange={value => upd((draft: MainInput) => { draft.magnifiers.detectiveBoughtPerDay=value; })} hint={"무료·구매 합쳐 하루 최대 3개 · 구매는 최대 " + detective.boughtMax + "개"} />
         <NumField label="수상한 돋보기 하루 사용 횟수" value={input.magnifiers.ordinaryPerDay} min={0} max={10} step={1} onChange={value => upd((draft: MainInput) => { draft.magnifiers.ordinaryPerDay=value; })} hint="보유한 만큼 넣어 주세요 · 하루 최대 10개" />
         <NumField label="한 번에 잡는 유령 수" value={input.magnifiers.killsPerUse} min={0} step={1} onChange={value => upd((draft: MainInput) => { draft.magnifiers.killsPerUse=value; })} hint="190마리·탐정 800배·일반 10배는 본섭 실측 대조 전 추정값입니다. 마릿수는 실제 기록으로 바꿀 수 있습니다" />
         <NumField label="수상한 돋보기 추가 경험치 %" value={input.magnifiers.bonusPct} min={0} max={3000} onChange={value => upd((draft: MainInput) => { draft.magnifiers.bonusPct=value; })} hint="탐정예티 돋보기에는 붙지 않습니다" />

@@ -393,13 +393,13 @@ test("10월 입력은 9월 수령 레벨·재고와 섞이지 않고 저장된�
   assert.equal(y.items.adv,123);assert.equal(y.plusOctober.items.adv,456);assert.equal(y.plusOctober.items.booster,2.5);
   assert.deepEqual(y.plusOctober.claimedLevels,{free:6,premium:0,prime:0});assert.equal(y.plus.claimedLevel,10);
   const old=mergeSaved({start:'2026-10-09',plus:{tier:'prime',claimedLevel:3}},'2026-10-22');
-  assert.equal(old.plus.claimedLevel,3);assert.equal(old.plusOctober.currentLevel,0);assert.equal(old.plusOctober.tier,'free');assert.equal(old.magnifiers.detectivePerDay,1);
+  assert.equal(old.plus.claimedLevel,3);assert.equal(old.plusOctober.currentLevel,0);assert.equal(old.plusOctober.tier,'free');assert.equal(old.magnifiers.detectiveFree,true);assert.equal(old.magnifiers.detectiveBoughtPerDay,0);
 });
 
 test("서버 화면에 45단계·10월 PLUS 구매일·두 돋보기 입력이 있다", async () => {
   const html=await renderBuiltSsrHtml('october-update');
   assert.match(html,/\/45段階|\/45<!-- -->段階|\/<!-- -->45<!-- -->段階|\/45단계|\/<!-- -->45<!-- -->단계/);
-  for(const label of ['10월 구매 등급','10월 패스 구매일','10월 지금 PLUS 레벨','한 번에 잡는 유령 수','탐정예티 돋보기 하루 사용 횟수','수상한 돋보기 하루 사용 횟수']) assert.ok(html.includes(label),label);
+  for(const label of ['10월 구매 등급','10월 패스 구매일','10월 지금 PLUS 레벨','한 번에 잡는 유령 수','탐정예티 돋보기 하루 구매 개수','수상한 돋보기 하루 사용 횟수']) assert.ok(html.includes(label),label);
   assert.doesNotMatch(html,/1,710마리/);
 });
 
@@ -420,4 +420,24 @@ test("9월 프리미엄만 구매한 10월 프라임과 무료 수령 기록은 
   old.plusOctober.claimedLevels={free:10,premium:0,prime:0};old.plusOctober.tier='prime';old.plusOctober.purchaseDate='2026-10-30';
   const saved=parseSaved(serializeSaved(old),'2026-10-30');
   assert.equal(saved.plusOctober.tier,'prime');assert.equal(saved.plusOctober.purchaseDate,'2026-10-30');assert.deepEqual(saved.plusOctober.claimedLevels,{free:10,premium:0,prime:0});
+});
+
+
+test("옛 탐정 돋보기 횟수는 무료·구매로 옮기고 새 저장값은 다시 나누지 않는다", async () => {
+  const {mergeSaved,parseSaved,serializeSaved}=await import('../lib/saved-input.mjs');
+  for(const[old,free,bought]of[[0,false,0],[1,true,0],[2,true,1],[3,true,2],['2',true,1]]){
+    const x=mergeSaved({magnifiers:{detectivePerDay:old,ordinaryPerDay:4,killsPerUse:180}},'2026-10-23');
+    assert.equal(x.magnifiers.detectiveFree,free);assert.equal(x.magnifiers.detectiveBoughtPerDay,bought);assert.equal(x.magnifiers.ordinaryPerDay,4);assert.equal(x.magnifiers.killsPerUse,180);assert.ok(!('detectivePerDay' in x.magnifiers));
+    assert.deepEqual(parseSaved(serializeSaved(x),'2026-10-24').magnifiers,x.magnifiers);
+  }
+  const modern=mergeSaved({magnifiers:{detectivePerDay:1,detectiveFree:false,detectiveBoughtPerDay:3}},'2026-10-23');
+  assert.equal(modern.magnifiers.detectiveFree,false);assert.equal(modern.magnifiers.detectiveBoughtPerDay,3);
+  assert.equal(mergeSaved({magnifiers:{detectiveBoughtPerDay:2}},'2026-10-23').magnifiers.detectiveFree,true,'빠진 무료 선택은 기본값');
+  for(const bad of [null,'broken',[]])assert.equal(mergeSaved({magnifiers:bad},'2026-10-23').magnifiers.detectiveFree,true);
+});
+
+test("서버 화면에 무료 탐정 돋보기 자격·구매 한도와 구분된 경험치 이름이 있다", async () => {
+  const html=await renderBuiltSsrHtml('detective-daily');
+  for(const label of ['일일 수집 미션 무료 돋보기 사용','하루 1만 마리 이상 사냥하면 매일 1개를 받아요','무료 돋보기 1개 받음','탐정예티 돋보기 하루 구매 개수','구매는 최대 2개','10,971'])assert.ok(html.includes(label),label);
+  assert.doesNotMatch(html,/탐정예티 돋보기 하루 사용 횟수/);
 });

@@ -19,6 +19,7 @@ import {
   couponRawForLevel,
   defaultMainInput,
   diffDays,
+  detectiveDailyPlan,
   FLAME_STOCK_CAP,
   FLAME_WEEKLY_ADD,
   MAIN_SCHEDULE,
@@ -323,7 +324,7 @@ test("입력한 보상이 표와 크게 다르면 입력값 쪽으로 맞추고 
 
 const baseInput = (patch = {}) => {
   const input = defaultMainInput("2026-10-04");
-  input.plusOctober.enabled = false; input.magnifiers.detectivePerDay = 0;
+  input.plusOctober.enabled = false; input.magnifiers.detectiveFree = false;
   // 이 묶음의 테스트는 교환권이 쌓이는 배분(EXP 3)을 전제로 한다. 기본값은 조각 3이다.
   return { ...input, ...patch, personal: { ...input.personal, ...(patch.personal || {}), flame: { ...input.personal.flame, alloc: { shard: 0, exp: 3, erda: 0 }, ...(patch.personal?.flame || {}) } } };
 };
@@ -619,7 +620,7 @@ const isolated = () => {
   const x = defaultMainInput("2026-10-04");
   x.end = x.start;
   Object.assign(x.routine, { runsPerDay: 0, grandis: false, extreme: false, epic: false, todayPending: false });
-  x.plus.enabled = false; x.plusOctober.enabled = false; x.magnifiers.detectivePerDay = 0;
+  x.plus.enabled = false; x.plusOctober.enabled = false; x.magnifiers.detectiveFree = false;
   x.personal.mission.stepsDone = 45;
   x.personal.flame.killsPerWeek = 0;
   x.personal.bosses = [];
@@ -1893,16 +1894,16 @@ test("9월 재고는 10/21에 끝나고 10월 재고만 11/18까지 쓰며 이�
 });
 
 test("돋보기는 10/22부터 일과를 하는 날만 쓰고 탐정 유령에는 추가 경험치가 붙지 않는다", () => {
-  const x=rewardOnly('2026-10-22',293,0);x.magnifiers={detectivePerDay:1,ordinaryPerDay:1,killsPerUse:190,bonusPct:300,fieldKey:'direct',fieldLevel:294};
+  const x=rewardOnly('2026-10-22',293,0);x.magnifiers={detectiveFree:false,detectiveBoughtPerDay:1,ordinaryPerDay:1,killsPerUse:190,bonusPct:300,fieldKey:'direct',fieldLevel:294};
   const a=simulateMain(x,createMainContext());
-  assert.equal(a.sourceRaw.detectiveMagnifier,763_570_632_000);assert.equal(a.sourceRaw.ordinaryMagnifier,45_814_237_920);
-  x.magnifiers.bonusPct=0;const b=simulateMain(x,createMainContext());assert.equal(b.sourceRaw.detectiveMagnifier,763_570_632_000);assert.equal(b.sourceRaw.ordinaryMagnifier,11_453_559_480);
-  for(const date of ['2026-10-21','2026-11-19']) {x.start=x.end=date;assert.equal(simulateMain(x,createMainContext()).sourceRaw.detectiveMagnifier||0,0);}
-  x.start=x.end='2026-10-22';x.routine.todayPending=false;assert.equal(simulateMain(x,createMainContext()).sourceRaw.detectiveMagnifier||0,0);
+  assert.equal(a.sourceRaw.detectiveBoughtMagnifier,763_570_632_000);assert.equal(a.sourceRaw.ordinaryMagnifier,45_814_237_920);
+  x.magnifiers.bonusPct=0;const b=simulateMain(x,createMainContext());assert.equal(b.sourceRaw.detectiveBoughtMagnifier,763_570_632_000);assert.equal(b.sourceRaw.ordinaryMagnifier,11_453_559_480);
+  for(const date of ['2026-10-21','2026-11-19']) {x.start=x.end=date;assert.equal(simulateMain(x,createMainContext()).sourceRaw.detectiveBoughtMagnifier||0,0);}
+  x.start=x.end='2026-10-22';x.routine.todayPending=false;assert.equal(simulateMain(x,createMainContext()).sourceRaw.detectiveBoughtMagnifier||0,0);
   x.routine.todayPending=true;x.level=299;x.exp=99.999;const cap=simulateMain(x,createMainContext());
-  assert.equal(cap.level,300);assert.ok(Math.abs(cap.sourceRaw.detectiveMagnifier-17_377_598_540)<1);assert.equal(cap.sourceRaw.ordinaryMagnifier||0,0);
+  assert.equal(cap.level,300);assert.ok(Math.abs(cap.sourceRaw.detectiveBoughtMagnifier-17_377_598_540)<1);assert.equal(cap.sourceRaw.ordinaryMagnifier||0,0);
   const n=normalizeInput({...x,magnifiers:{detectivePerDay:'9',ordinaryPerDay:'30',killsPerUse:'-1',fieldKey:'direct',fieldLevel:'250'}},createMainContext());
-  assert.deepEqual([n.magnifiers.detectivePerDay,n.magnifiers.ordinaryPerDay,n.magnifiers.killsPerUse,n.magnifiers.fieldLevel],[3,10,0,260]);
+  assert.deepEqual([n.magnifiers.detectiveFree,n.magnifiers.detectiveBoughtPerDay,n.magnifiers.ordinaryPerDay,n.magnifiers.killsPerUse,n.magnifiers.fieldLevel],[true,2,10,0,260]);
 });
 
 test("익스트림 림보·발드릭스는 청크 정수와 같고 실제 입장일 10/23 전에는 지급하지 않는다", () => {
@@ -1973,9 +1974,9 @@ test("10월 남은 PLUS는 9월 소멸량에 합산하지 않는다", () => {
 
 test("10월 항목이 없는 직접 엔진 입력은 옛 계산을 유지하고 새 방문 기본값과 구분한다", () => {
   const legacy=normalizeInput({start:'2026-10-18'},createMainContext());
-  assert.equal(legacy.plusOctober.enabled,false);assert.equal(legacy.magnifiers.detectivePerDay,0);
+  assert.equal(legacy.plusOctober.enabled,false);assert.equal(legacy.magnifiers.detectiveFree,false);assert.equal(legacy.magnifiers.detectiveBoughtPerDay,0);
   const fresh=normalizeInput(defaultMainInput('2026-10-18'),createMainContext());
-  assert.equal(fresh.plusOctober.enabled,true);assert.equal(fresh.magnifiers.detectivePerDay,1);
+  assert.equal(fresh.plusOctober.enabled,true);assert.equal(fresh.magnifiers.detectiveFree,true);assert.equal(fresh.magnifiers.detectiveBoughtPerDay,0);
 });
 
 test("코인 시점 비교의 합계와 차이는 모두 30단계까지만 센다", () => {
@@ -2017,13 +2018,13 @@ test("PLUS·출석·사과 부스터는 모두 사냥 추가 경험치와 같은
 test("일반 돋보기와 VIP 부스터는 같은 몬스터·추가 경험치·레벨 차에서 같은 양이다", () => {
   const x=rewardOnly('2026-10-22',290,0);
   Object.assign(x.routine,{huntHoursPerWeek:3.5,huntBonusPct:300,huntFieldKey:'direct',huntFieldLevel:288});
-  x.attendance.booster=1;x.magnifiers={detectivePerDay:1,ordinaryPerDay:1,killsPerUse:190,bonusPct:300,fieldKey:'direct',fieldLevel:288};
+  x.attendance.booster=1;x.magnifiers={detectiveFree:false,detectiveBoughtPerDay:1,ordinaryPerDay:1,killsPerUse:190,bonusPct:300,fieldKey:'direct',fieldLevel:288};
   const r=simulateMain(x,{...createMainContext(),huntRaw:()=>1e-20});
   assert.ok(Math.abs(r.sourceRaw.attendanceBooster-35_258_517_360)<0.001);assert.ok(Math.abs(r.sourceRaw.ordinaryMagnifier-35_258_517_360)<0.001);
-  assert.equal(r.sourceRaw.detectiveMagnifier,641_063_952_000,'탐정은 레벨 차 +2여도 ×800만 적용');
+  assert.equal(r.sourceRaw.detectiveBoughtMagnifier,641_063_952_000,'탐정은 레벨 차 +2여도 ×800만 적용');
   x.magnifiers.bonusPct=0;
   const zero=simulateMain(x,{...createMainContext(),huntRaw:()=>1e-20});
-  assert.ok(Math.abs(zero.sourceRaw.ordinaryMagnifier-8_814_629_340)<0.001);assert.equal(zero.sourceRaw.detectiveMagnifier,641_063_952_000);
+  assert.ok(Math.abs(zero.sourceRaw.ordinaryMagnifier-8_814_629_340)<0.001);assert.equal(zero.sourceRaw.detectiveBoughtMagnifier,641_063_952_000);
 });
 
 test("부스터 한 개 도중 레벨이 오르면 나머지 분량은 새 몬스터 값으로 다시 계산한다", () => {
@@ -2126,4 +2127,61 @@ test("레벨 경계 보상은 단계30·31의 서로 다른 마릿수와 300 종
   assert.ok(Math.abs(stepRewardRawForTarget(290,99.999,ctx,31)-487429090395.7671)<1);
   assert.ok(Math.abs(stepRewardRawForTarget(299,99.999,ctx,45)-17377598540.25)<1);
   assert.equal(stepRewardRawForTarget(300,0,ctx,45),0);
+});
+
+
+test("무료 탐정 돋보기는 일반 사냥 하루10000마리 경계를 쓰고 30분 실측과 무관하다", () => {
+  const x=defaultMainInput('2026-10-23');
+  assert.equal(detectiveDailyPlan(x,createMainContext()).free,1);
+  assert.ok(Math.abs(detectiveDailyPlan(x,createMainContext()).huntKillsPerDay-10971.42857142857)<1e-8);
+  x.routine.huntHoursPerWeek=2;assert.equal(detectiveDailyPlan(x,createMainContext()).free,0);
+  assert.ok(Math.abs(detectiveDailyPlan(x,createMainContext()).huntKillsPerDay-5485.714285714285)<1e-8);
+  x.routine.huntHoursPerWeek=5;assert.equal(detectiveDailyPlan(x,{huntKillsPer30Min:7000}).free,1,'정확히10000');
+  x.routine.huntHoursPerWeek=4.999999;assert.equal(detectiveDailyPlan(x,{huntKillsPer30Min:7000}).free,0,'10000미만');
+  x.routine.huntHoursPerWeek=4;x.routine.huntMeasuredEokPer30Min=999999;assert.equal(detectiveDailyPlan(x,createMainContext()).free,1);
+  assert.equal(detectiveDailyPlan(x,{huntKillsPer30Min:0}).free,0);
+});
+
+test("무료1개를 쓰면 구매는2개까지이며 무료를 못 받으면3개까지 쓴다", () => {
+  const x=rewardOnly('2026-10-23',293,0);x.routine.huntHoursPerWeek=4;
+  x.magnifiers={detectiveFree:true,detectiveBoughtPerDay:3,ordinaryPerDay:0,killsPerUse:190,fieldKey:'direct',fieldLevel:294};
+  const ctx={...createMainContext(),huntRaw:()=>1e-20};let r=simulateMain(x,ctx);
+  assert.equal(r.sourceRaw.detectiveFreeMagnifier,763570632000);assert.equal(r.sourceRaw.detectiveBoughtMagnifier,1527141264000);
+  assert.equal(r.sourceRaw.detectiveMagnifier,undefined,'합계와 내역을 이중으로 세지 않는다');
+  assert.equal(detectiveDailyPlan(x,ctx).boughtMax,2);assert.equal(normalizeInput(x,ctx).magnifiers.detectiveBoughtPerDay,2);
+  assert.ok(Math.abs(Object.values(r.sourceRaw).reduce((sum,value)=>sum+value,0)-ctx.reqRaw(r.level)*r.exp/100)<2,'무료·구매를 나눠도 경험치 보존');
+  x.routine.huntHoursPerWeek=2;r=simulateMain(x,ctx);
+  assert.equal(r.sourceRaw.detectiveFreeMagnifier||0,0);assert.equal(r.sourceRaw.detectiveBoughtMagnifier,2290711896000);assert.equal(detectiveDailyPlan(x,ctx).boughtMax,3);
+  x.routine.huntHoursPerWeek=4;x.magnifiers.detectiveFree=false;r=simulateMain(x,ctx);
+  assert.equal(r.sourceRaw.detectiveFreeMagnifier||0,0);assert.equal(r.sourceRaw.detectiveBoughtMagnifier,2290711896000);
+});
+
+test("무료 돋보기는 기간·오늘 일과·플레임 제외를 지키고 실측 사냥에서도 같은 수를 받는다", () => {
+  const x=rewardOnly('2026-10-22',293,0);x.routine.huntHoursPerWeek=4;
+  x.magnifiers={detectiveFree:true,detectiveBoughtPerDay:0,killsPerUse:190,fieldKey:'direct',fieldLevel:294};
+  const ctx={...createMainContext(),huntRaw:()=>1e-20};
+  for(const date of ['2026-10-21','2026-11-19']) {x.start=x.end=date;assert.equal(simulateMain(x,ctx).sourceRaw.detectiveFreeMagnifier||0,0);}
+  x.start=x.end='2026-11-18';assert.equal(simulateMain(x,ctx).sourceRaw.detectiveFreeMagnifier,763570632000);
+  x.routine.todayPending=false;assert.equal(simulateMain(x,ctx).sourceRaw.detectiveFreeMagnifier||0,0);
+  x.routine.todayPending=true;x.routine.huntMeasuredEokPer30Min=1e-9;assert.equal(simulateMain(x,ctx).sourceRaw.detectiveFreeMagnifier,763570632000);
+  x.routine.huntHoursPerWeek=2;x.personal.enabled=true;x.personal.flame.stock=36000;x.personal.flame.killsPerWeek=252000;
+  const flame=simulateMain(x,ctx);assert.ok(flame.flame.killed>10000);assert.equal(flame.sourceRaw.detectiveFreeMagnifier||0,0);
+});
+
+test("무료 돋보기로300에 닿으면 실제 남은 경험치만 넣고 구매분은 더하지 않는다", () => {
+  const x=rewardOnly('2026-10-23',299,99.999);x.routine.huntHoursPerWeek=4;
+  x.magnifiers={detectiveFree:true,detectiveBoughtPerDay:2,killsPerUse:190,fieldKey:'same'};
+  const r=simulateMain(x,{...createMainContext(),huntRaw:()=>1e-20});
+  assert.equal(r.level,300);assert.ok(Math.abs(r.sourceRaw.detectiveFreeMagnifier-17377598540.25)<1);assert.equal(r.sourceRaw.detectiveBoughtMagnifier||0,0);
+});
+
+test("옛 돋보기0~3개 입력은 하루1만마리 이상일 때 ca0ec4a의 마감 위치·단계·경험치를 유지한다", () => {
+  const fixture=JSON.parse(readFileSync(new URL('./detective-legacy-fixture.json',import.meta.url),'utf8'));
+  assert.equal(fixture.baseline,'ca0ec4a');assert.equal(fixture.rows.length,4);
+  for(const row of fixture.rows){const r=simulateMain(row.input,createMainContext());assert.equal(r.level,row.expected.level);assert.ok(Math.abs(r.exp-row.expected.exp)<1e-8);assert.equal(r.mission.stepsCleared,row.expected.steps);
+    const {detectiveFreeMagnifier=0,detectiveBoughtMagnifier=0,...sources}=r.sourceRaw;
+    if(detectiveFreeMagnifier+detectiveBoughtMagnifier>0)sources.detectiveMagnifier=detectiveFreeMagnifier+detectiveBoughtMagnifier;
+    assert.deepEqual(Object.keys(sources).sort(),Object.keys(row.expected.sourceRaw).sort());
+    for(const key of Object.keys(sources))assert.ok(Math.abs(sources[key]-row.expected.sourceRaw[key])<2,key);
+  }
 });
