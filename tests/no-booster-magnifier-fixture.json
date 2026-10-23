@@ -1,0 +1,1433 @@
+{
+  "base": "db3bac6",
+  "rows": [
+    {
+      "input": {
+        "start": "2026-10-09",
+        "level": 285,
+        "exp": 0,
+        "routine": {
+          "runsPerDay": 2,
+          "sundayRuns": 2,
+          "argoMonsterPark": 50,
+          "argoGrandis": 10,
+          "epicBonus": 0,
+          "huntHoursPerWeek": 4,
+          "huntBonusPct": 300,
+          "huntFieldKey": "flame",
+          "huntFieldLevel": 0,
+          "huntMeasuredEokPer30Min": 0,
+          "grandis": true,
+          "extreme": true,
+          "epic": true,
+          "epicMult": 5,
+          "specialSundays": 0,
+          "todayPending": true,
+          "weeklyPending": false,
+          "measuredPercentPerDay": 0,
+          "weeklyMeasuredPercent": 0
+        },
+        "personal": {
+          "enabled": true,
+          "designated": true,
+          "designDate": "2026-10-09",
+          "mission": {
+            "mode": "model",
+            "designLevel": 285,
+            "designExp": 0,
+            "stepsDone": 0
+          },
+          "flame": {
+            "stock": 20571,
+            "expPerKill": 0,
+            "killsPerWeek": 24000,
+            "alloc": {
+              "shard": 3,
+              "exp": 0,
+              "erda": 0
+            },
+            "couponsOwned": 0,
+            "expPointsOwned": 0,
+            "fieldLevel": 0,
+            "fieldKey": ""
+          },
+          "bosses": [
+            {
+              "id": "seren-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "kaling-easy",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "adversary-easy",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "kalos-easy",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "hilla-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "dunkel-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "will-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "dusk-chaos",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "gas-chaos",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "lucid-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "lotus-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "damien-hard",
+              "party": 1,
+              "doneThisWeek": false
+            }
+          ],
+          "couponPolicy": "end"
+        },
+        "plus": {
+          "enabled": true,
+          "tier": "free",
+          "claimedLevel": 0,
+          "currentLevel": 10,
+          "levelPoints": 0,
+          "weeklyPoints": 2500,
+          "thisWeekRemaining": 0
+        },
+        "plusOctober": {
+          "enabled": true,
+          "tier": "free",
+          "purchaseDate": "2026-10-22",
+          "currentLevel": 0,
+          "claimedLevel": 0,
+          "levelPoints": 0,
+          "weeklyPoints": 2500,
+          "thisWeekRemaining": 2500,
+          "items": {
+            "crimson": 0,
+            "adv": 0,
+            "sauna": 0,
+            "coupon4x": 0,
+            "booster": 0
+          }
+        },
+        "magnifiers": {
+          "detectiveFree": true,
+          "detectiveBoughtPerDay": 0,
+          "ordinaryPerDay": 0,
+          "killsPerUse": 190,
+          "bonusPct": 300,
+          "fieldKey": "flame",
+          "fieldLevel": 0
+        },
+        "items": {
+          "crimson": 0,
+          "mech": 0,
+          "blue": 0,
+          "sauna": 0,
+          "adv": 0,
+          "potion279": 0
+        },
+        "attendance": {
+          "potion269": 0,
+          "potion279": 0,
+          "adv": 0,
+          "booster": 0,
+          "sauna": 0
+        },
+        "compensation": {
+          "adv": 0,
+          "booster": 0
+        },
+        "crimsonHold": 0,
+        "crimsonPlan": "auto",
+        "couponPlan": "auto",
+        "rewardHold": 0
+      },
+      "expected": {
+        "level": 286,
+        "exp": 83.17571073871106,
+        "steps": 16,
+        "sourceRaw": {
+          "adv": 918428400000,
+          "sauna": 1113785823240,
+          "monsterPark": 20126303424000,
+          "grandis": 7911862306022.406,
+          "hunt": 8442450822582.854,
+          "flame": 43171491903767.984,
+          "boss": 7160838600000,
+          "crimson": 12013374912000,
+          "missionReward": 32878040346777.594,
+          "extreme": 7806634897500,
+          "epic": 30862000000000,
+          "detectiveFreeMagnifier": 18153921184000
+        },
+        "items": {
+          "crimsonUsed": 2,
+          "expired": {
+            "crimson": 0,
+            "adv": 0,
+            "sauna": 0,
+            "coupon4x": 0,
+            "booster": 0
+          },
+          "plusReceived": {
+            "crimson": 1,
+            "adv": 500,
+            "sauna": 1.5,
+            "coupon4x": 0,
+            "booster": 0
+          },
+          "octoberReceived": {
+            "crimson": 1,
+            "adv": 500,
+            "sauna": 1.5,
+            "coupon4x": 0,
+            "booster": 0
+          },
+          "octoberExpired": {
+            "crimson": 0,
+            "adv": 0,
+            "sauna": 0,
+            "coupon4x": 0,
+            "booster": 0
+          },
+          "huntItemsUsed": {
+            "coupon4x": 0,
+            "booster": 0
+          },
+          "leftover": {
+            "crimson": 0,
+            "mech": 0,
+            "blue": 0,
+            "sauna": 0,
+            "adv": 0,
+            "potion279": 0,
+            "coupon4x": 0,
+            "booster": 0
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "start": "2026-10-09",
+        "level": 288,
+        "exp": 0,
+        "routine": {
+          "runsPerDay": 2,
+          "sundayRuns": 2,
+          "argoMonsterPark": 50,
+          "argoGrandis": 10,
+          "epicBonus": 0,
+          "huntHoursPerWeek": 4,
+          "huntBonusPct": 300,
+          "huntFieldKey": "flame",
+          "huntFieldLevel": 0,
+          "huntMeasuredEokPer30Min": 0,
+          "grandis": true,
+          "extreme": true,
+          "epic": true,
+          "epicMult": 5,
+          "specialSundays": 0,
+          "todayPending": true,
+          "weeklyPending": false,
+          "measuredPercentPerDay": 0,
+          "weeklyMeasuredPercent": 0
+        },
+        "personal": {
+          "enabled": true,
+          "designated": true,
+          "designDate": "2026-10-09",
+          "mission": {
+            "mode": "model",
+            "designLevel": 288,
+            "designExp": 0,
+            "stepsDone": 0
+          },
+          "flame": {
+            "stock": 20571,
+            "expPerKill": 0,
+            "killsPerWeek": 24000,
+            "alloc": {
+              "shard": 3,
+              "exp": 0,
+              "erda": 0
+            },
+            "couponsOwned": 0,
+            "expPointsOwned": 0,
+            "fieldLevel": 0,
+            "fieldKey": ""
+          },
+          "bosses": [
+            {
+              "id": "seren-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "kaling-easy",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "adversary-easy",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "kalos-easy",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "hilla-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "dunkel-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "will-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "dusk-chaos",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "gas-chaos",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "lucid-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "lotus-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "damien-hard",
+              "party": 1,
+              "doneThisWeek": false
+            }
+          ],
+          "couponPolicy": "end"
+        },
+        "plus": {
+          "enabled": true,
+          "tier": "free",
+          "claimedLevel": 0,
+          "currentLevel": 10,
+          "levelPoints": 0,
+          "weeklyPoints": 2500,
+          "thisWeekRemaining": 0
+        },
+        "plusOctober": {
+          "enabled": true,
+          "tier": "free",
+          "purchaseDate": "2026-10-22",
+          "currentLevel": 0,
+          "claimedLevel": 0,
+          "levelPoints": 0,
+          "weeklyPoints": 2500,
+          "thisWeekRemaining": 2500,
+          "items": {
+            "crimson": 0,
+            "adv": 0,
+            "sauna": 0,
+            "coupon4x": 0,
+            "booster": 0
+          }
+        },
+        "magnifiers": {
+          "detectiveFree": true,
+          "detectiveBoughtPerDay": 0,
+          "ordinaryPerDay": 0,
+          "killsPerUse": 190,
+          "bonusPct": 300,
+          "fieldKey": "flame",
+          "fieldLevel": 0
+        },
+        "items": {
+          "crimson": 0,
+          "mech": 0,
+          "blue": 0,
+          "sauna": 0,
+          "adv": 0,
+          "potion279": 0
+        },
+        "attendance": {
+          "potion269": 0,
+          "potion279": 0,
+          "adv": 0,
+          "booster": 0,
+          "sauna": 0
+        },
+        "compensation": {
+          "adv": 0,
+          "booster": 0
+        },
+        "crimsonHold": 0,
+        "crimsonPlan": "auto",
+        "couponPlan": "auto",
+        "rewardHold": 0
+      },
+      "expected": {
+        "level": 289,
+        "exp": 42.520754250474155,
+        "steps": 16,
+        "sourceRaw": {
+          "adv": 948944000000,
+          "sauna": 1153915053120,
+          "monsterPark": 20126303424000,
+          "grandis": 7911862306022.406,
+          "hunt": 9209946351908.574,
+          "flame": 43171491903767.984,
+          "boss": 7160838600000,
+          "crimson": 12470380876800,
+          "missionReward": 34051682489452.8,
+          "extreme": 8084364322500,
+          "epic": 31958000000000,
+          "detectiveFreeMagnifier": 18153921184000
+        },
+        "items": {
+          "crimsonUsed": 2,
+          "expired": {
+            "crimson": 0,
+            "adv": 0,
+            "sauna": 0,
+            "coupon4x": 0,
+            "booster": 0
+          },
+          "plusReceived": {
+            "crimson": 1,
+            "adv": 500,
+            "sauna": 1.5,
+            "coupon4x": 0,
+            "booster": 0
+          },
+          "octoberReceived": {
+            "crimson": 1,
+            "adv": 500,
+            "sauna": 1.5,
+            "coupon4x": 0,
+            "booster": 0
+          },
+          "octoberExpired": {
+            "crimson": 0,
+            "adv": 0,
+            "sauna": 0,
+            "coupon4x": 0,
+            "booster": 0
+          },
+          "huntItemsUsed": {
+            "coupon4x": 0,
+            "booster": 0
+          },
+          "leftover": {
+            "crimson": 0,
+            "mech": 0,
+            "blue": 0,
+            "sauna": 0,
+            "adv": 0,
+            "potion279": 0,
+            "coupon4x": 0,
+            "booster": 0
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "start": "2026-10-09",
+        "level": 293,
+        "exp": 0,
+        "routine": {
+          "runsPerDay": 2,
+          "sundayRuns": 2,
+          "argoMonsterPark": 50,
+          "argoGrandis": 10,
+          "epicBonus": 0,
+          "huntHoursPerWeek": 4,
+          "huntBonusPct": 300,
+          "huntFieldKey": "flame",
+          "huntFieldLevel": 0,
+          "huntMeasuredEokPer30Min": 0,
+          "grandis": true,
+          "extreme": true,
+          "epic": true,
+          "epicMult": 5,
+          "specialSundays": 0,
+          "todayPending": true,
+          "weeklyPending": false,
+          "measuredPercentPerDay": 0,
+          "weeklyMeasuredPercent": 0
+        },
+        "personal": {
+          "enabled": true,
+          "designated": true,
+          "designDate": "2026-10-09",
+          "mission": {
+            "mode": "model",
+            "designLevel": 293,
+            "designExp": 0,
+            "stepsDone": 0
+          },
+          "flame": {
+            "stock": 20571,
+            "expPerKill": 0,
+            "killsPerWeek": 24000,
+            "alloc": {
+              "shard": 3,
+              "exp": 0,
+              "erda": 0
+            },
+            "couponsOwned": 0,
+            "expPointsOwned": 0,
+            "fieldLevel": 0,
+            "fieldKey": ""
+          },
+          "bosses": [
+            {
+              "id": "seren-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "kaling-easy",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "adversary-easy",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "kalos-easy",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "hilla-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "dunkel-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "will-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "dusk-chaos",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "gas-chaos",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "lucid-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "lotus-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "damien-hard",
+              "party": 1,
+              "doneThisWeek": false
+            }
+          ],
+          "couponPolicy": "end"
+        },
+        "plus": {
+          "enabled": true,
+          "tier": "free",
+          "claimedLevel": 0,
+          "currentLevel": 10,
+          "levelPoints": 0,
+          "weeklyPoints": 2500,
+          "thisWeekRemaining": 0
+        },
+        "plusOctober": {
+          "enabled": true,
+          "tier": "free",
+          "purchaseDate": "2026-10-22",
+          "currentLevel": 0,
+          "claimedLevel": 0,
+          "levelPoints": 0,
+          "weeklyPoints": 2500,
+          "thisWeekRemaining": 2500,
+          "items": {
+            "crimson": 0,
+            "adv": 0,
+            "sauna": 0,
+            "coupon4x": 0,
+            "booster": 0
+          }
+        },
+        "magnifiers": {
+          "detectiveFree": true,
+          "detectiveBoughtPerDay": 0,
+          "ordinaryPerDay": 0,
+          "killsPerUse": 190,
+          "bonusPct": 300,
+          "fieldKey": "flame",
+          "fieldLevel": 0
+        },
+        "items": {
+          "crimson": 0,
+          "mech": 0,
+          "blue": 0,
+          "sauna": 0,
+          "adv": 0,
+          "potion279": 0
+        },
+        "attendance": {
+          "potion269": 0,
+          "potion279": 0,
+          "adv": 0,
+          "booster": 0,
+          "sauna": 0
+        },
+        "compensation": {
+          "adv": 0,
+          "booster": 0
+        },
+        "crimsonHold": 0,
+        "crimsonPlan": "auto",
+        "couponPlan": "auto",
+        "rewardHold": 0
+      },
+      "expected": {
+        "level": 293,
+        "exp": 64.67627546317613,
+        "steps": 16,
+        "sourceRaw": {
+          "adv": 1078497000000,
+          "sauna": 1359512035200,
+          "monsterPark": 28196215764000,
+          "grandis": 11957332306022.408,
+          "hunt": 10846606944548.568,
+          "flame": 50843315041991.98,
+          "boss": 7160838600000,
+          "crimson": 14692271193600,
+          "missionReward": 39976715874201.61,
+          "extreme": 9504000000000,
+          "epic": 56355000000000,
+          "detectiveFreeMagnifier": 21379977696000
+        },
+        "items": {
+          "crimsonUsed": 2,
+          "expired": {
+            "crimson": 0,
+            "adv": 0,
+            "sauna": 0,
+            "coupon4x": 0,
+            "booster": 0
+          },
+          "plusReceived": {
+            "crimson": 1,
+            "adv": 500,
+            "sauna": 1.5,
+            "coupon4x": 0,
+            "booster": 0
+          },
+          "octoberReceived": {
+            "crimson": 1,
+            "adv": 500,
+            "sauna": 1.5,
+            "coupon4x": 0,
+            "booster": 0
+          },
+          "octoberExpired": {
+            "crimson": 0,
+            "adv": 0,
+            "sauna": 0,
+            "coupon4x": 0,
+            "booster": 0
+          },
+          "huntItemsUsed": {
+            "coupon4x": 0,
+            "booster": 0
+          },
+          "leftover": {
+            "crimson": 0,
+            "mech": 0,
+            "blue": 0,
+            "sauna": 0,
+            "adv": 0,
+            "potion279": 0,
+            "coupon4x": 0,
+            "booster": 0
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "start": "2026-10-23",
+        "level": 285,
+        "exp": 0,
+        "routine": {
+          "runsPerDay": 2,
+          "sundayRuns": 2,
+          "argoMonsterPark": 50,
+          "argoGrandis": 10,
+          "epicBonus": 0,
+          "huntHoursPerWeek": 4,
+          "huntBonusPct": 300,
+          "huntFieldKey": "flame",
+          "huntFieldLevel": 0,
+          "huntMeasuredEokPer30Min": 0,
+          "grandis": true,
+          "extreme": true,
+          "epic": true,
+          "epicMult": 5,
+          "specialSundays": 0,
+          "todayPending": true,
+          "weeklyPending": false,
+          "measuredPercentPerDay": 0,
+          "weeklyMeasuredPercent": 0
+        },
+        "personal": {
+          "enabled": true,
+          "designated": true,
+          "designDate": "2026-10-23",
+          "mission": {
+            "mode": "model",
+            "designLevel": 285,
+            "designExp": 0,
+            "stepsDone": 0
+          },
+          "flame": {
+            "stock": 20571,
+            "expPerKill": 0,
+            "killsPerWeek": 24000,
+            "alloc": {
+              "shard": 3,
+              "exp": 0,
+              "erda": 0
+            },
+            "couponsOwned": 0,
+            "expPointsOwned": 0,
+            "fieldLevel": 0,
+            "fieldKey": ""
+          },
+          "bosses": [
+            {
+              "id": "seren-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "kaling-easy",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "adversary-easy",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "kalos-easy",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "hilla-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "dunkel-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "will-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "dusk-chaos",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "gas-chaos",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "lucid-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "lotus-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "damien-hard",
+              "party": 1,
+              "doneThisWeek": false
+            }
+          ],
+          "couponPolicy": "end"
+        },
+        "plus": {
+          "enabled": true,
+          "tier": "free",
+          "claimedLevel": 0,
+          "currentLevel": 10,
+          "levelPoints": 0,
+          "weeklyPoints": 2500,
+          "thisWeekRemaining": 0
+        },
+        "plusOctober": {
+          "enabled": true,
+          "tier": "free",
+          "purchaseDate": "2026-10-22",
+          "currentLevel": 0,
+          "claimedLevel": 0,
+          "levelPoints": 0,
+          "weeklyPoints": 2500,
+          "thisWeekRemaining": 2500,
+          "items": {
+            "crimson": 0,
+            "adv": 0,
+            "sauna": 0,
+            "coupon4x": 0,
+            "booster": 0
+          }
+        },
+        "magnifiers": {
+          "detectiveFree": true,
+          "detectiveBoughtPerDay": 0,
+          "ordinaryPerDay": 0,
+          "killsPerUse": 190,
+          "bonusPct": 300,
+          "fieldKey": "flame",
+          "fieldLevel": 0
+        },
+        "items": {
+          "crimson": 0,
+          "mech": 0,
+          "blue": 0,
+          "sauna": 0,
+          "adv": 0,
+          "potion279": 0
+        },
+        "attendance": {
+          "potion269": 0,
+          "potion279": 0,
+          "adv": 0,
+          "booster": 0,
+          "sauna": 0
+        },
+        "compensation": {
+          "adv": 0,
+          "booster": 0
+        },
+        "crimsonHold": 0,
+        "crimsonPlan": "auto",
+        "couponPlan": "auto",
+        "rewardHold": 0
+      },
+      "expected": {
+        "level": 286,
+        "exp": 25.475783694021032,
+        "steps": 11,
+        "sourceRaw": {
+          "monsterPark": 13261517760000,
+          "grandis": 5210250786892.801,
+          "hunt": 5559662736822.857,
+          "detectiveFreeMagnifier": 17505566856000,
+          "flame": 28429961919767.992,
+          "boss": 4773892400000,
+          "missionReward": 22544144207001.598,
+          "sauna": 555813582480,
+          "crimson": 6006687456000,
+          "adv": 457084000000,
+          "extreme": 4662252337500,
+          "epic": 18432000000000
+        },
+        "items": {
+          "crimsonUsed": 1,
+          "expired": {
+            "crimson": 0,
+            "adv": 0,
+            "sauna": 0,
+            "coupon4x": 0,
+            "booster": 0
+          },
+          "plusReceived": {
+            "crimson": 0,
+            "adv": 0,
+            "sauna": 0,
+            "coupon4x": 0,
+            "booster": 0
+          },
+          "octoberReceived": {
+            "crimson": 1,
+            "adv": 500,
+            "sauna": 1.5,
+            "coupon4x": 0,
+            "booster": 0
+          },
+          "octoberExpired": {
+            "crimson": 0,
+            "adv": 0,
+            "sauna": 0,
+            "coupon4x": 0,
+            "booster": 0
+          },
+          "huntItemsUsed": {
+            "coupon4x": 0,
+            "booster": 0
+          },
+          "leftover": {
+            "crimson": 0,
+            "mech": 0,
+            "blue": 0,
+            "sauna": 0,
+            "adv": 0,
+            "potion279": 0,
+            "coupon4x": 0,
+            "booster": 0
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "start": "2026-10-23",
+        "level": 288,
+        "exp": 0,
+        "routine": {
+          "runsPerDay": 2,
+          "sundayRuns": 2,
+          "argoMonsterPark": 50,
+          "argoGrandis": 10,
+          "epicBonus": 0,
+          "huntHoursPerWeek": 4,
+          "huntBonusPct": 300,
+          "huntFieldKey": "flame",
+          "huntFieldLevel": 0,
+          "huntMeasuredEokPer30Min": 0,
+          "grandis": true,
+          "extreme": true,
+          "epic": true,
+          "epicMult": 5,
+          "specialSundays": 0,
+          "todayPending": true,
+          "weeklyPending": false,
+          "measuredPercentPerDay": 0,
+          "weeklyMeasuredPercent": 0
+        },
+        "personal": {
+          "enabled": true,
+          "designated": true,
+          "designDate": "2026-10-23",
+          "mission": {
+            "mode": "model",
+            "designLevel": 288,
+            "designExp": 0,
+            "stepsDone": 0
+          },
+          "flame": {
+            "stock": 20571,
+            "expPerKill": 0,
+            "killsPerWeek": 24000,
+            "alloc": {
+              "shard": 3,
+              "exp": 0,
+              "erda": 0
+            },
+            "couponsOwned": 0,
+            "expPointsOwned": 0,
+            "fieldLevel": 0,
+            "fieldKey": ""
+          },
+          "bosses": [
+            {
+              "id": "seren-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "kaling-easy",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "adversary-easy",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "kalos-easy",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "hilla-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "dunkel-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "will-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "dusk-chaos",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "gas-chaos",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "lucid-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "lotus-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "damien-hard",
+              "party": 1,
+              "doneThisWeek": false
+            }
+          ],
+          "couponPolicy": "end"
+        },
+        "plus": {
+          "enabled": true,
+          "tier": "free",
+          "claimedLevel": 0,
+          "currentLevel": 10,
+          "levelPoints": 0,
+          "weeklyPoints": 2500,
+          "thisWeekRemaining": 0
+        },
+        "plusOctober": {
+          "enabled": true,
+          "tier": "free",
+          "purchaseDate": "2026-10-22",
+          "currentLevel": 0,
+          "claimedLevel": 0,
+          "levelPoints": 0,
+          "weeklyPoints": 2500,
+          "thisWeekRemaining": 2500,
+          "items": {
+            "crimson": 0,
+            "adv": 0,
+            "sauna": 0,
+            "coupon4x": 0,
+            "booster": 0
+          }
+        },
+        "magnifiers": {
+          "detectiveFree": true,
+          "detectiveBoughtPerDay": 0,
+          "ordinaryPerDay": 0,
+          "killsPerUse": 190,
+          "bonusPct": 300,
+          "fieldKey": "flame",
+          "fieldLevel": 0
+        },
+        "items": {
+          "crimson": 0,
+          "mech": 0,
+          "blue": 0,
+          "sauna": 0,
+          "adv": 0,
+          "potion279": 0
+        },
+        "attendance": {
+          "potion269": 0,
+          "potion279": 0,
+          "adv": 0,
+          "booster": 0,
+          "sauna": 0
+        },
+        "compensation": {
+          "adv": 0,
+          "booster": 0
+        },
+        "crimsonHold": 0,
+        "crimsonPlan": "auto",
+        "couponPlan": "auto",
+        "rewardHold": 0
+      },
+      "expected": {
+        "level": 288,
+        "exp": 96.42111070124461,
+        "steps": 10,
+        "sourceRaw": {
+          "monsterPark": 13261517760000,
+          "grandis": 5210250786892.801,
+          "hunt": 6065086621988.573,
+          "detectiveFreeMagnifier": 17505566856000,
+          "flame": 28429961919768,
+          "boss": 4773892400000,
+          "missionReward": 21206935375488.004,
+          "sauna": 576957526560,
+          "crimson": 6235190438400,
+          "adv": 474472000000,
+          "extreme": 4839611085000,
+          "epic": 19131000000000
+        },
+        "items": {
+          "crimsonUsed": 1,
+          "expired": {
+            "crimson": 0,
+            "adv": 0,
+            "sauna": 0,
+            "coupon4x": 0,
+            "booster": 0
+          },
+          "plusReceived": {
+            "crimson": 0,
+            "adv": 0,
+            "sauna": 0,
+            "coupon4x": 0,
+            "booster": 0
+          },
+          "octoberReceived": {
+            "crimson": 1,
+            "adv": 500,
+            "sauna": 1.5,
+            "coupon4x": 0,
+            "booster": 0
+          },
+          "octoberExpired": {
+            "crimson": 0,
+            "adv": 0,
+            "sauna": 0,
+            "coupon4x": 0,
+            "booster": 0
+          },
+          "huntItemsUsed": {
+            "coupon4x": 0,
+            "booster": 0
+          },
+          "leftover": {
+            "crimson": 0,
+            "mech": 0,
+            "blue": 0,
+            "sauna": 0,
+            "adv": 0,
+            "potion279": 0,
+            "coupon4x": 0,
+            "booster": 0
+          }
+        }
+      }
+    },
+    {
+      "input": {
+        "start": "2026-10-23",
+        "level": 293,
+        "exp": 0,
+        "routine": {
+          "runsPerDay": 2,
+          "sundayRuns": 2,
+          "argoMonsterPark": 50,
+          "argoGrandis": 10,
+          "epicBonus": 0,
+          "huntHoursPerWeek": 4,
+          "huntBonusPct": 300,
+          "huntFieldKey": "flame",
+          "huntFieldLevel": 0,
+          "huntMeasuredEokPer30Min": 0,
+          "grandis": true,
+          "extreme": true,
+          "epic": true,
+          "epicMult": 5,
+          "specialSundays": 0,
+          "todayPending": true,
+          "weeklyPending": false,
+          "measuredPercentPerDay": 0,
+          "weeklyMeasuredPercent": 0
+        },
+        "personal": {
+          "enabled": true,
+          "designated": true,
+          "designDate": "2026-10-23",
+          "mission": {
+            "mode": "model",
+            "designLevel": 293,
+            "designExp": 0,
+            "stepsDone": 0
+          },
+          "flame": {
+            "stock": 20571,
+            "expPerKill": 0,
+            "killsPerWeek": 24000,
+            "alloc": {
+              "shard": 3,
+              "exp": 0,
+              "erda": 0
+            },
+            "couponsOwned": 0,
+            "expPointsOwned": 0,
+            "fieldLevel": 0,
+            "fieldKey": ""
+          },
+          "bosses": [
+            {
+              "id": "seren-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "kaling-easy",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "adversary-easy",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "kalos-easy",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "hilla-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "dunkel-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "will-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "dusk-chaos",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "gas-chaos",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "lucid-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "lotus-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "damien-hard",
+              "party": 1,
+              "doneThisWeek": false
+            }
+          ],
+          "couponPolicy": "end"
+        },
+        "plus": {
+          "enabled": true,
+          "tier": "free",
+          "claimedLevel": 0,
+          "currentLevel": 10,
+          "levelPoints": 0,
+          "weeklyPoints": 2500,
+          "thisWeekRemaining": 0
+        },
+        "plusOctober": {
+          "enabled": true,
+          "tier": "free",
+          "purchaseDate": "2026-10-22",
+          "currentLevel": 0,
+          "claimedLevel": 0,
+          "levelPoints": 0,
+          "weeklyPoints": 2500,
+          "thisWeekRemaining": 2500,
+          "items": {
+            "crimson": 0,
+            "adv": 0,
+            "sauna": 0,
+            "coupon4x": 0,
+            "booster": 0
+          }
+        },
+        "magnifiers": {
+          "detectiveFree": true,
+          "detectiveBoughtPerDay": 0,
+          "ordinaryPerDay": 0,
+          "killsPerUse": 190,
+          "bonusPct": 300,
+          "fieldKey": "flame",
+          "fieldLevel": 0
+        },
+        "items": {
+          "crimson": 0,
+          "mech": 0,
+          "blue": 0,
+          "sauna": 0,
+          "adv": 0,
+          "potion279": 0
+        },
+        "attendance": {
+          "potion269": 0,
+          "potion279": 0,
+          "adv": 0,
+          "booster": 0,
+          "sauna": 0
+        },
+        "compensation": {
+          "adv": 0,
+          "booster": 0
+        },
+        "crimsonHold": 0,
+        "crimsonPlan": "auto",
+        "couponPlan": "auto",
+        "rewardHold": 0
+      },
+      "expected": {
+        "level": 293,
+        "exp": 42.258322649608594,
+        "steps": 10,
+        "sourceRaw": {
+          "monsterPark": 18578901860000,
+          "grandis": 7874340786892.804,
+          "hunt": 7142887500068.573,
+          "detectiveFreeMagnifier": 20616407064000,
+          "flame": 33482130145991.984,
+          "boss": 4773892400000,
+          "missionReward": 24985447421376.004,
+          "sauna": 679756017600,
+          "crimson": 7346135596800,
+          "adv": 539248500000,
+          "extreme": 5702400000000,
+          "epic": 33813000000000
+        },
+        "items": {
+          "crimsonUsed": 1,
+          "expired": {
+            "crimson": 0,
+            "adv": 0,
+            "sauna": 0,
+            "coupon4x": 0,
+            "booster": 0
+          },
+          "plusReceived": {
+            "crimson": 0,
+            "adv": 0,
+            "sauna": 0,
+            "coupon4x": 0,
+            "booster": 0
+          },
+          "octoberReceived": {
+            "crimson": 1,
+            "adv": 500,
+            "sauna": 1.5,
+            "coupon4x": 0,
+            "booster": 0
+          },
+          "octoberExpired": {
+            "crimson": 0,
+            "adv": 0,
+            "sauna": 0,
+            "coupon4x": 0,
+            "booster": 0
+          },
+          "huntItemsUsed": {
+            "coupon4x": 0,
+            "booster": 0
+          },
+          "leftover": {
+            "crimson": 0,
+            "mech": 0,
+            "blue": 0,
+            "sauna": 0,
+            "adv": 0,
+            "potion279": 0,
+            "coupon4x": 0,
+            "booster": 0
+          }
+        }
+      }
+    }
+  ]
+}
