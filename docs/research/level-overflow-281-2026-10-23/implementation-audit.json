@@ -1,0 +1,2337 @@
+{
+  "targets": [
+    {
+      "sample": "P",
+      "index": 21,
+      "observed": {
+        "level": 281,
+        "exp": 15.516
+      },
+      "calculated": {
+        "level": 281,
+        "exp": 15.516
+      },
+      "errorPP": 0
+    },
+    {
+      "sample": "P",
+      "index": 22,
+      "observed": {
+        "level": 281,
+        "exp": 41.354
+      },
+      "calculated": {
+        "level": 281,
+        "exp": 41.35433562068799
+      },
+      "errorPP": 0.00033562068799142253
+    },
+    {
+      "sample": "P",
+      "index": 23,
+      "observed": {
+        "level": 281,
+        "exp": 67.192
+      },
+      "calculated": {
+        "level": 281,
+        "exp": 67.19267124137598
+      },
+      "errorPP": 0.0006712413759828451
+    },
+    {
+      "sample": "P",
+      "index": 24,
+      "observed": {
+        "level": 281,
+        "exp": 93.031
+      },
+      "calculated": {
+        "level": 281,
+        "exp": 93.03100686206396
+      },
+      "errorPP": 0.000006862063955281883
+    },
+    {
+      "sample": "P",
+      "index": 25,
+      "observed": {
+        "level": 282,
+        "exp": 17.351
+      },
+      "calculated": {
+        "level": 282,
+        "exp": 17.35144307987497
+      },
+      "errorPP": 0.00044307987496949863
+    },
+    {
+      "sample": "P",
+      "index": 26,
+      "observed": {
+        "level": 282,
+        "exp": 41.111
+      },
+      "calculated": {
+        "level": 282,
+        "exp": 41.111275210267664
+      },
+      "errorPP": 0.0002752102676666368
+    },
+    {
+      "sample": "P",
+      "index": 27,
+      "observed": {
+        "level": 282,
+        "exp": 64.871
+      },
+      "calculated": {
+        "level": 282,
+        "exp": 64.87110734066034
+      },
+      "errorPP": 0.00010734066034956413
+    },
+    {
+      "sample": "P",
+      "index": 28,
+      "observed": {
+        "level": 282,
+        "exp": 88.631
+      },
+      "calculated": {
+        "level": 282,
+        "exp": 88.63093947105305
+      },
+      "errorPP": -0.000060528946946192264
+    },
+    {
+      "sample": "P",
+      "index": 29,
+      "observed": {
+        "level": 283,
+        "exp": 11.409
+      },
+      "calculated": {
+        "level": 283,
+        "exp": 11.408873429406258
+      },
+      "errorPP": -0.0001265705937427697
+    },
+    {
+      "sample": "P",
+      "index": 30,
+      "observed": {
+        "level": 283,
+        "exp": 33.286
+      },
+      "calculated": {
+        "level": 283,
+        "exp": 33.28587400683291
+      },
+      "errorPP": -0.00012599316708872266
+    },
+    {
+      "sample": "Q",
+      "index": 21,
+      "observed": {
+        "level": 281,
+        "exp": 17.752
+      },
+      "calculated": {
+        "level": 281,
+        "exp": 17.752
+      },
+      "errorPP": 0
+    },
+    {
+      "sample": "Q",
+      "index": 22,
+      "observed": {
+        "level": 281,
+        "exp": 43.59
+      },
+      "calculated": {
+        "level": 281,
+        "exp": 43.59033562068799
+      },
+      "errorPP": 0.0003356206879843171
+    },
+    {
+      "sample": "Q",
+      "index": 23,
+      "observed": {
+        "level": 281,
+        "exp": 69.429
+      },
+      "calculated": {
+        "level": 281,
+        "exp": 69.42867124137597
+      },
+      "errorPP": -0.00032875862403614065
+    },
+    {
+      "sample": "Q",
+      "index": 24,
+      "observed": {
+        "level": 281,
+        "exp": 95.267
+      },
+      "calculated": {
+        "level": 281,
+        "exp": 95.26700686206397
+      },
+      "errorPP": 0.000006862063969492738
+    },
+    {
+      "sample": "Q",
+      "index": 25,
+      "observed": {
+        "level": 282,
+        "exp": 19.408
+      },
+      "calculated": {
+        "level": 282,
+        "exp": 19.4075733749324
+      },
+      "errorPP": -0.00042662506760038355
+    },
+    {
+      "sample": "Q",
+      "index": 26,
+      "observed": {
+        "level": 282,
+        "exp": 43.168
+      },
+      "calculated": {
+        "level": 282,
+        "exp": 43.167405505325085
+      },
+      "errorPP": -0.0005944946749139035
+    },
+    {
+      "sample": "Q",
+      "index": 27,
+      "observed": {
+        "level": 282,
+        "exp": 66.927
+      },
+      "calculated": {
+        "level": 282,
+        "exp": 66.92723763571779
+      },
+      "errorPP": 0.0002376357177809041
+    },
+    {
+      "sample": "Q",
+      "index": 28,
+      "observed": {
+        "level": 282,
+        "exp": 90.687
+      },
+      "calculated": {
+        "level": 282,
+        "exp": 90.68706976611047
+      },
+      "errorPP": 0.00006976611047093684
+    },
+    {
+      "sample": "Q",
+      "index": 29,
+      "observed": {
+        "level": 283,
+        "exp": 13.303
+      },
+      "calculated": {
+        "level": 283,
+        "exp": 13.30206709362817
+      },
+      "errorPP": -0.0009329063718315211
+    },
+    {
+      "sample": "Q",
+      "index": 30,
+      "observed": {
+        "level": 283,
+        "exp": 35.18
+      },
+      "calculated": {
+        "level": 283,
+        "exp": 35.179067671054824
+      },
+      "errorPP": -0.0009323289451756978
+    }
+  ],
+  "rewards": [
+    {
+      "sample": "P",
+      "index": 3,
+      "level": 268,
+      "exp": 24.266,
+      "observed": 1078867430538,
+      "calculated": 1078867461964.7999,
+      "error": 31426.799926757812,
+      "insideDisplayRange": true
+    },
+    {
+      "sample": "P",
+      "index": 4,
+      "level": 270,
+      "exp": 24.735,
+      "observed": 1229525519374,
+      "calculated": 1229525529849.5999,
+      "error": 10475.599853515625,
+      "insideDisplayRange": true
+    },
+    {
+      "sample": "P",
+      "index": 5,
+      "level": 271,
+      "exp": 42.904,
+      "observed": 1247687695630,
+      "calculated": 1247687706105.5999,
+      "error": 10475.599853515625,
+      "insideDisplayRange": true
+    },
+    {
+      "sample": "P",
+      "index": 6,
+      "level": 272,
+      "exp": 61.523,
+      "observed": 1263927546908,
+      "calculated": 1263927567859.2,
+      "error": 20951.199951171875,
+      "insideDisplayRange": true
+    },
+    {
+      "sample": "P",
+      "index": 7,
+      "level": 273,
+      "exp": 80.466,
+      "observed": 1283034328078,
+      "calculated": 1283033943902.602,
+      "error": -384175.39794921875,
+      "insideDisplayRange": true
+    },
+    {
+      "sample": "P",
+      "index": 8,
+      "level": 274,
+      "exp": 99.872,
+      "observed": 1458835917903,
+      "calculated": 1458830579347.8804,
+      "error": -5338555.119628906,
+      "insideDisplayRange": true
+    },
+    {
+      "sample": "P",
+      "index": 9,
+      "level": 275,
+      "exp": 67.169,
+      "observed": 1459724053340,
+      "calculated": 1459724074291.2,
+      "error": 20951.199951171875,
+      "insideDisplayRange": true
+    },
+    {
+      "sample": "P",
+      "index": 10,
+      "level": 276,
+      "exp": 31.662,
+      "observed": 1478123554314,
+      "calculated": 1478123585740.8,
+      "error": 31426.800048828125,
+      "insideDisplayRange": true
+    },
+    {
+      "sample": "P",
+      "index": 11,
+      "level": 276,
+      "exp": 93.532,
+      "observed": 1487539147116,
+      "calculated": 1487539344057.496,
+      "error": 196941.49609375,
+      "insideDisplayRange": true
+    },
+    {
+      "sample": "P",
+      "index": 12,
+      "level": 277,
+      "exp": 51.049,
+      "observed": 1498937681088,
+      "calculated": 1498937681088,
+      "error": 0,
+      "insideDisplayRange": true
+    },
+    {
+      "sample": "P",
+      "index": 13,
+      "level": 278,
+      "exp": 7.414,
+      "observed": 1517531242552,
+      "calculated": 1517531284454.4,
+      "error": 41902.39990234375,
+      "insideDisplayRange": true
+    },
+    {
+      "sample": "P",
+      "index": 14,
+      "level": 278,
+      "exp": 59.86,
+      "observed": 1517531242552,
+      "calculated": 1517531284454.4,
+      "error": 41902.39990234375,
+      "insideDisplayRange": true
+    },
+    {
+      "sample": "P",
+      "index": 15,
+      "level": 279,
+      "exp": 11.337,
+      "observed": 1538513293194,
+      "calculated": 1538513324620.8,
+      "error": 31426.800048828125,
+      "insideDisplayRange": true
+    },
+    {
+      "sample": "P",
+      "index": 22,
+      "level": 281,
+      "exp": 41.354,
+      "observed": 1751309446172,
+      "calculated": 1751309467123.2,
+      "error": 20951.199951171875,
+      "insideDisplayRange": true
+    },
+    {
+      "sample": "P",
+      "index": 25,
+      "level": 282,
+      "exp": 17.351,
+      "observed": 1772354821816,
+      "calculated": 1772354863718.4,
+      "error": 41902.39990234375,
+      "insideDisplayRange": true
+    },
+    {
+      "sample": "P",
+      "index": 29,
+      "level": 283,
+      "exp": 11.409,
+      "observed": 1796109501888,
+      "calculated": 1796109501888,
+      "error": 0,
+      "insideDisplayRange": true
+    },
+    {
+      "sample": "P",
+      "index": 30,
+      "level": 283,
+      "exp": 33.286,
+      "observed": 1796109501888,
+      "calculated": 1796109501888,
+      "error": 0,
+      "insideDisplayRange": true
+    },
+    {
+      "sample": "Q",
+      "index": 24,
+      "level": 281,
+      "exp": 95.267,
+      "observed": 1751309446172,
+      "calculated": 1751309467123.2,
+      "error": 20951.199951171875,
+      "insideDisplayRange": true
+    },
+    {
+      "sample": "Q",
+      "index": 25,
+      "level": 282,
+      "exp": 19.408,
+      "observed": 1772354821816,
+      "calculated": 1772354863718.4,
+      "error": 41902.39990234375,
+      "insideDisplayRange": true
+    },
+    {
+      "sample": "Q",
+      "index": 29,
+      "level": 283,
+      "exp": 13.303,
+      "observed": 1796109501888,
+      "calculated": 1796109501888,
+      "error": 0,
+      "insideDisplayRange": true
+    }
+  ],
+  "cases": [
+    {
+      "input": {
+        "start": "2026-09-17",
+        "level": 280,
+        "exp": 0,
+        "routine": {
+          "runsPerDay": 2,
+          "sundayRuns": 2,
+          "argoMonsterPark": 50,
+          "argoGrandis": 10,
+          "epicBonus": 0,
+          "huntHoursPerWeek": 4,
+          "huntBonusPct": 300,
+          "huntFieldKey": "flame",
+          "huntFieldLevel": 0,
+          "huntMeasuredEokPer30Min": 0,
+          "grandis": true,
+          "extreme": true,
+          "epic": true,
+          "epicMult": 5,
+          "specialSundays": 0,
+          "todayPending": true,
+          "weeklyPending": false,
+          "measuredPercentPerDay": 0,
+          "weeklyMeasuredPercent": 0
+        },
+        "personal": {
+          "enabled": true,
+          "designated": true,
+          "designDate": "2026-09-17",
+          "mission": {
+            "mode": "model",
+            "stepsDone": 0,
+            "designLevel": 280,
+            "designExp": 0
+          },
+          "flame": {
+            "stock": 24000,
+            "expPerKill": 0,
+            "killsPerWeek": 24000,
+            "alloc": {
+              "shard": 3,
+              "exp": 0,
+              "erda": 0
+            },
+            "couponsOwned": 0,
+            "expPointsOwned": 0,
+            "fieldLevel": 0,
+            "fieldKey": ""
+          },
+          "bosses": [
+            {
+              "id": "seren-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "kaling-easy",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "adversary-easy",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "kalos-easy",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "hilla-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "dunkel-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "will-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "dusk-chaos",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "gas-chaos",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "lucid-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "lotus-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "damien-hard",
+              "party": 1,
+              "doneThisWeek": false
+            }
+          ],
+          "couponPolicy": "end"
+        },
+        "plus": {
+          "enabled": true,
+          "tier": "prime",
+          "claimedLevel": 0,
+          "currentLevel": 3,
+          "levelPoints": 250,
+          "weeklyPoints": 2500,
+          "thisWeekRemaining": 0
+        },
+        "plusOctober": {
+          "enabled": true,
+          "tier": "free",
+          "purchaseDate": "2026-10-22",
+          "currentLevel": 0,
+          "claimedLevel": 0,
+          "levelPoints": 0,
+          "weeklyPoints": 2500,
+          "thisWeekRemaining": 2500,
+          "items": {
+            "crimson": 0,
+            "adv": 0,
+            "sauna": 0,
+            "coupon4x": 0,
+            "booster": 0
+          }
+        },
+        "magnifiers": {
+          "detectivePerDay": 1,
+          "ordinaryPerDay": 0,
+          "killsPerUse": 190,
+          "bonusPct": 300,
+          "fieldKey": "flame",
+          "fieldLevel": 0
+        },
+        "items": {
+          "crimson": 0,
+          "mech": 0,
+          "blue": 0,
+          "sauna": 0,
+          "adv": 0,
+          "potion279": 0
+        },
+        "attendance": {
+          "potion269": 0,
+          "potion279": 0,
+          "adv": 0,
+          "booster": 0,
+          "sauna": 0
+        },
+        "compensation": {
+          "adv": 0,
+          "booster": 0
+        },
+        "crimsonHold": 0,
+        "crimsonPlan": "auto",
+        "couponPlan": "auto",
+        "rewardHold": 0
+      },
+      "before": {
+        "level": 286,
+        "exp": 55.46988593568677,
+        "progress": 286.55469885935685,
+        "stepsCleared": 35,
+        "coins": 30000
+      },
+      "after": {
+        "level": 286,
+        "exp": 55.489376362484464,
+        "progress": 286.5548937636248,
+        "stepsCleared": 35,
+        "coins": 30000
+      }
+    },
+    {
+      "input": {
+        "start": "2026-09-17",
+        "level": 282,
+        "exp": 0,
+        "routine": {
+          "runsPerDay": 2,
+          "sundayRuns": 2,
+          "argoMonsterPark": 50,
+          "argoGrandis": 10,
+          "epicBonus": 0,
+          "huntHoursPerWeek": 4,
+          "huntBonusPct": 300,
+          "huntFieldKey": "flame",
+          "huntFieldLevel": 0,
+          "huntMeasuredEokPer30Min": 0,
+          "grandis": true,
+          "extreme": true,
+          "epic": true,
+          "epicMult": 5,
+          "specialSundays": 0,
+          "todayPending": true,
+          "weeklyPending": false,
+          "measuredPercentPerDay": 0,
+          "weeklyMeasuredPercent": 0
+        },
+        "personal": {
+          "enabled": true,
+          "designated": true,
+          "designDate": "2026-09-17",
+          "mission": {
+            "mode": "model",
+            "stepsDone": 0,
+            "designLevel": 282,
+            "designExp": 0
+          },
+          "flame": {
+            "stock": 24000,
+            "expPerKill": 0,
+            "killsPerWeek": 24000,
+            "alloc": {
+              "shard": 3,
+              "exp": 0,
+              "erda": 0
+            },
+            "couponsOwned": 0,
+            "expPointsOwned": 0,
+            "fieldLevel": 0,
+            "fieldKey": ""
+          },
+          "bosses": [
+            {
+              "id": "seren-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "kaling-easy",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "adversary-easy",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "kalos-easy",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "hilla-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "dunkel-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "will-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "dusk-chaos",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "gas-chaos",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "lucid-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "lotus-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "damien-hard",
+              "party": 1,
+              "doneThisWeek": false
+            }
+          ],
+          "couponPolicy": "end"
+        },
+        "plus": {
+          "enabled": true,
+          "tier": "prime",
+          "claimedLevel": 0,
+          "currentLevel": 3,
+          "levelPoints": 250,
+          "weeklyPoints": 2500,
+          "thisWeekRemaining": 0
+        },
+        "plusOctober": {
+          "enabled": true,
+          "tier": "free",
+          "purchaseDate": "2026-10-22",
+          "currentLevel": 0,
+          "claimedLevel": 0,
+          "levelPoints": 0,
+          "weeklyPoints": 2500,
+          "thisWeekRemaining": 2500,
+          "items": {
+            "crimson": 0,
+            "adv": 0,
+            "sauna": 0,
+            "coupon4x": 0,
+            "booster": 0
+          }
+        },
+        "magnifiers": {
+          "detectivePerDay": 1,
+          "ordinaryPerDay": 0,
+          "killsPerUse": 190,
+          "bonusPct": 300,
+          "fieldKey": "flame",
+          "fieldLevel": 0
+        },
+        "items": {
+          "crimson": 0,
+          "mech": 0,
+          "blue": 0,
+          "sauna": 0,
+          "adv": 0,
+          "potion279": 0
+        },
+        "attendance": {
+          "potion269": 0,
+          "potion279": 0,
+          "adv": 0,
+          "booster": 0,
+          "sauna": 0
+        },
+        "compensation": {
+          "adv": 0,
+          "booster": 0
+        },
+        "crimsonHold": 0,
+        "crimsonPlan": "auto",
+        "couponPlan": "auto",
+        "rewardHold": 0
+      },
+      "before": {
+        "level": 287,
+        "exp": 29.77731028108553,
+        "progress": 287.2977731028109,
+        "stepsCleared": 35,
+        "coins": 30000
+      },
+      "after": {
+        "level": 287,
+        "exp": 29.77731028108553,
+        "progress": 287.2977731028109,
+        "stepsCleared": 35,
+        "coins": 30000
+      }
+    },
+    {
+      "input": {
+        "start": "2026-09-17",
+        "level": 285,
+        "exp": 0,
+        "routine": {
+          "runsPerDay": 2,
+          "sundayRuns": 2,
+          "argoMonsterPark": 50,
+          "argoGrandis": 10,
+          "epicBonus": 0,
+          "huntHoursPerWeek": 4,
+          "huntBonusPct": 300,
+          "huntFieldKey": "flame",
+          "huntFieldLevel": 0,
+          "huntMeasuredEokPer30Min": 0,
+          "grandis": true,
+          "extreme": true,
+          "epic": true,
+          "epicMult": 5,
+          "specialSundays": 0,
+          "todayPending": true,
+          "weeklyPending": false,
+          "measuredPercentPerDay": 0,
+          "weeklyMeasuredPercent": 0
+        },
+        "personal": {
+          "enabled": true,
+          "designated": true,
+          "designDate": "2026-09-17",
+          "mission": {
+            "mode": "model",
+            "stepsDone": 0,
+            "designLevel": 285,
+            "designExp": 0
+          },
+          "flame": {
+            "stock": 24000,
+            "expPerKill": 0,
+            "killsPerWeek": 24000,
+            "alloc": {
+              "shard": 3,
+              "exp": 0,
+              "erda": 0
+            },
+            "couponsOwned": 0,
+            "expPointsOwned": 0,
+            "fieldLevel": 0,
+            "fieldKey": ""
+          },
+          "bosses": [
+            {
+              "id": "seren-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "kaling-easy",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "adversary-easy",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "kalos-easy",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "hilla-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "dunkel-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "will-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "dusk-chaos",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "gas-chaos",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "lucid-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "lotus-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "damien-hard",
+              "party": 1,
+              "doneThisWeek": false
+            }
+          ],
+          "couponPolicy": "end"
+        },
+        "plus": {
+          "enabled": true,
+          "tier": "prime",
+          "claimedLevel": 0,
+          "currentLevel": 3,
+          "levelPoints": 250,
+          "weeklyPoints": 2500,
+          "thisWeekRemaining": 0
+        },
+        "plusOctober": {
+          "enabled": true,
+          "tier": "free",
+          "purchaseDate": "2026-10-22",
+          "currentLevel": 0,
+          "claimedLevel": 0,
+          "levelPoints": 0,
+          "weeklyPoints": 2500,
+          "thisWeekRemaining": 2500,
+          "items": {
+            "crimson": 0,
+            "adv": 0,
+            "sauna": 0,
+            "coupon4x": 0,
+            "booster": 0
+          }
+        },
+        "magnifiers": {
+          "detectivePerDay": 1,
+          "ordinaryPerDay": 0,
+          "killsPerUse": 190,
+          "bonusPct": 300,
+          "fieldKey": "flame",
+          "fieldLevel": 0
+        },
+        "items": {
+          "crimson": 0,
+          "mech": 0,
+          "blue": 0,
+          "sauna": 0,
+          "adv": 0,
+          "potion279": 0
+        },
+        "attendance": {
+          "potion269": 0,
+          "potion279": 0,
+          "adv": 0,
+          "booster": 0,
+          "sauna": 0
+        },
+        "compensation": {
+          "adv": 0,
+          "booster": 0
+        },
+        "crimsonHold": 0,
+        "crimsonPlan": "auto",
+        "couponPlan": "auto",
+        "rewardHold": 0
+      },
+      "before": {
+        "level": 288,
+        "exp": 56.843943281725906,
+        "progress": 288.5684394328173,
+        "stepsCleared": 35,
+        "coins": 30000
+      },
+      "after": {
+        "level": 288,
+        "exp": 56.843943281725906,
+        "progress": 288.5684394328173,
+        "stepsCleared": 35,
+        "coins": 30000
+      }
+    },
+    {
+      "input": {
+        "start": "2026-09-17",
+        "level": 287,
+        "exp": 0,
+        "routine": {
+          "runsPerDay": 2,
+          "sundayRuns": 2,
+          "argoMonsterPark": 50,
+          "argoGrandis": 10,
+          "epicBonus": 0,
+          "huntHoursPerWeek": 4,
+          "huntBonusPct": 300,
+          "huntFieldKey": "flame",
+          "huntFieldLevel": 0,
+          "huntMeasuredEokPer30Min": 0,
+          "grandis": true,
+          "extreme": true,
+          "epic": true,
+          "epicMult": 5,
+          "specialSundays": 0,
+          "todayPending": true,
+          "weeklyPending": false,
+          "measuredPercentPerDay": 0,
+          "weeklyMeasuredPercent": 0
+        },
+        "personal": {
+          "enabled": true,
+          "designated": true,
+          "designDate": "2026-09-17",
+          "mission": {
+            "mode": "model",
+            "stepsDone": 0,
+            "designLevel": 287,
+            "designExp": 0
+          },
+          "flame": {
+            "stock": 24000,
+            "expPerKill": 0,
+            "killsPerWeek": 24000,
+            "alloc": {
+              "shard": 3,
+              "exp": 0,
+              "erda": 0
+            },
+            "couponsOwned": 0,
+            "expPointsOwned": 0,
+            "fieldLevel": 0,
+            "fieldKey": ""
+          },
+          "bosses": [
+            {
+              "id": "seren-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "kaling-easy",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "adversary-easy",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "kalos-easy",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "hilla-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "dunkel-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "will-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "dusk-chaos",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "gas-chaos",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "lucid-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "lotus-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "damien-hard",
+              "party": 1,
+              "doneThisWeek": false
+            }
+          ],
+          "couponPolicy": "end"
+        },
+        "plus": {
+          "enabled": true,
+          "tier": "prime",
+          "claimedLevel": 0,
+          "currentLevel": 3,
+          "levelPoints": 250,
+          "weeklyPoints": 2500,
+          "thisWeekRemaining": 0
+        },
+        "plusOctober": {
+          "enabled": true,
+          "tier": "free",
+          "purchaseDate": "2026-10-22",
+          "currentLevel": 0,
+          "claimedLevel": 0,
+          "levelPoints": 0,
+          "weeklyPoints": 2500,
+          "thisWeekRemaining": 2500,
+          "items": {
+            "crimson": 0,
+            "adv": 0,
+            "sauna": 0,
+            "coupon4x": 0,
+            "booster": 0
+          }
+        },
+        "magnifiers": {
+          "detectivePerDay": 1,
+          "ordinaryPerDay": 0,
+          "killsPerUse": 190,
+          "bonusPct": 300,
+          "fieldKey": "flame",
+          "fieldLevel": 0
+        },
+        "items": {
+          "crimson": 0,
+          "mech": 0,
+          "blue": 0,
+          "sauna": 0,
+          "adv": 0,
+          "potion279": 0
+        },
+        "attendance": {
+          "potion269": 0,
+          "potion279": 0,
+          "adv": 0,
+          "booster": 0,
+          "sauna": 0
+        },
+        "compensation": {
+          "adv": 0,
+          "booster": 0
+        },
+        "crimsonHold": 0,
+        "crimsonPlan": "auto",
+        "couponPlan": "auto",
+        "rewardHold": 0
+      },
+      "before": {
+        "level": 290,
+        "exp": 4.842149590437379,
+        "progress": 290.0484214959044,
+        "stepsCleared": 35,
+        "coins": 30000
+      },
+      "after": {
+        "level": 290,
+        "exp": 4.842149590437379,
+        "progress": 290.0484214959044,
+        "stepsCleared": 35,
+        "coins": 30000
+      }
+    },
+    {
+      "input": {
+        "start": "2026-09-17",
+        "level": 290,
+        "exp": 0,
+        "routine": {
+          "runsPerDay": 2,
+          "sundayRuns": 2,
+          "argoMonsterPark": 50,
+          "argoGrandis": 10,
+          "epicBonus": 0,
+          "huntHoursPerWeek": 4,
+          "huntBonusPct": 300,
+          "huntFieldKey": "flame",
+          "huntFieldLevel": 0,
+          "huntMeasuredEokPer30Min": 0,
+          "grandis": true,
+          "extreme": true,
+          "epic": true,
+          "epicMult": 5,
+          "specialSundays": 0,
+          "todayPending": true,
+          "weeklyPending": false,
+          "measuredPercentPerDay": 0,
+          "weeklyMeasuredPercent": 0
+        },
+        "personal": {
+          "enabled": true,
+          "designated": true,
+          "designDate": "2026-09-17",
+          "mission": {
+            "mode": "model",
+            "stepsDone": 0,
+            "designLevel": 290,
+            "designExp": 0
+          },
+          "flame": {
+            "stock": 24000,
+            "expPerKill": 0,
+            "killsPerWeek": 24000,
+            "alloc": {
+              "shard": 3,
+              "exp": 0,
+              "erda": 0
+            },
+            "couponsOwned": 0,
+            "expPointsOwned": 0,
+            "fieldLevel": 0,
+            "fieldKey": ""
+          },
+          "bosses": [
+            {
+              "id": "seren-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "kaling-easy",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "adversary-easy",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "kalos-easy",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "hilla-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "dunkel-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "will-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "dusk-chaos",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "gas-chaos",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "lucid-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "lotus-hard",
+              "party": 1,
+              "doneThisWeek": false
+            },
+            {
+              "id": "damien-hard",
+              "party": 1,
+              "doneThisWeek": false
+            }
+          ],
+          "couponPolicy": "end"
+        },
+        "plus": {
+          "enabled": true,
+          "tier": "prime",
+          "claimedLevel": 0,
+          "currentLevel": 3,
+          "levelPoints": 250,
+          "weeklyPoints": 2500,
+          "thisWeekRemaining": 0
+        },
+        "plusOctober": {
+          "enabled": true,
+          "tier": "free",
+          "purchaseDate": "2026-10-22",
+          "currentLevel": 0,
+          "claimedLevel": 0,
+          "levelPoints": 0,
+          "weeklyPoints": 2500,
+          "thisWeekRemaining": 2500,
+          "items": {
+            "crimson": 0,
+            "adv": 0,
+            "sauna": 0,
+            "coupon4x": 0,
+            "booster": 0
+          }
+        },
+        "magnifiers": {
+          "detectivePerDay": 1,
+          "ordinaryPerDay": 0,
+          "killsPerUse": 190,
+          "bonusPct": 300,
+          "fieldKey": "flame",
+          "fieldLevel": 0
+        },
+        "items": {
+          "crimson": 0,
+          "mech": 0,
+          "blue": 0,
+          "sauna": 0,
+          "adv": 0,
+          "potion279": 0
+        },
+        "attendance": {
+          "potion269": 0,
+          "potion279": 0,
+          "adv": 0,
+          "booster": 0,
+          "sauna": 0
+        },
+        "compensation": {
+          "adv": 0,
+          "booster": 0
+        },
+        "crimsonHold": 0,
+        "crimsonPlan": "auto",
+        "couponPlan": "auto",
+        "rewardHold": 0
+      },
+      "before": {
+        "level": 291,
+        "exp": 66.91351670257242,
+        "progress": 291.66913516702573,
+        "stepsCleared": 34,
+        "coins": 30000
+      },
+      "after": {
+        "level": 291,
+        "exp": 66.91351670257242,
+        "progress": 291.66913516702573,
+        "stepsCleared": 34,
+        "coins": 30000
+      }
+    }
+  ],
+  "maxTargetErrorPP": 0.0009329063718315211,
+  "previousF5": {
+    "raw": 562752195193.7423,
+    "percent": 0.13060148704031113
+  },
+  "fixtureChanges": [
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 1,
+      "key": "exp",
+      "before": 27.880327404065277,
+      "after": 28.054877762652758
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 1,
+      "key": "coordinate",
+      "before": 280.2788032740406,
+      "after": 280.2805487776265
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 2,
+      "key": "exp",
+      "before": 55.76065480813055,
+      "after": 56.109755525305516
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 2,
+      "key": "coordinate",
+      "before": 280.5576065480813,
+      "after": 280.56109755525307
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 3,
+      "key": "exp",
+      "before": 83.64098221219582,
+      "after": 84.16463328795827
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 3,
+      "key": "coordinate",
+      "before": 280.83640982212194,
+      "after": 280.8416463328796
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 4,
+      "key": "exp",
+      "before": 10.616841792943625,
+      "after": 11.254079604891459
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 4,
+      "key": "coordinate",
+      "before": 281.10616841792944,
+      "after": 281.1125407960489
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 5,
+      "key": "exp",
+      "before": 36.30845455601507,
+      "after": 37.092415225579444
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 5,
+      "key": "coordinate",
+      "before": 281.3630845455601,
+      "after": 281.3709241522558
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 6,
+      "key": "exp",
+      "before": 62.000067319086526,
+      "after": 62.93075084626742
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 6,
+      "key": "coordinate",
+      "before": 281.6200006731909,
+      "after": 281.62930750846266
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 7,
+      "key": "exp",
+      "before": 87.69168008215799,
+      "after": 88.76908646695541
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 7,
+      "key": "coordinate",
+      "before": 281.87691680082156,
+      "after": 281.88769086466954
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 8,
+      "key": "exp",
+      "before": 12.312835630137128,
+      "after": 13.432362740203322
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 8,
+      "key": "coordinate",
+      "before": 282.1231283563014,
+      "after": 282.134323627402
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 9,
+      "key": "exp",
+      "before": 35.949515233811226,
+      "after": 37.19219487059601
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 9,
+      "key": "coordinate",
+      "before": 282.3594951523381,
+      "after": 282.37192194870596
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 10,
+      "key": "exp",
+      "before": 59.586194837485316,
+      "after": 60.95202700098869
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 10,
+      "key": "coordinate",
+      "before": 282.5958619483749,
+      "after": 282.6095202700099
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 11,
+      "key": "exp",
+      "before": 83.22287444115942,
+      "after": 84.7118591313814
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 11,
+      "key": "coordinate",
+      "before": 282.83222874441157,
+      "after": 282.8471185913138
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 12,
+      "key": "exp",
+      "before": 6.319537947071656,
+      "after": 7.800357915346467
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 12,
+      "key": "coordinate",
+      "before": 283.0631953794707,
+      "after": 283.07800357915346
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 13,
+      "key": "exp",
+      "before": 28.09542785506034,
+      "after": 29.677358492773127
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 13,
+      "key": "coordinate",
+      "before": 283.2809542785506,
+      "after": 283.29677358492773
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 14,
+      "key": "exp",
+      "before": 49.871317763049014,
+      "after": 51.55435907019979
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 14,
+      "key": "coordinate",
+      "before": 283.49871317763046,
+      "after": 283.515543590702
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 15,
+      "key": "exp",
+      "before": 71.6472076710377,
+      "after": 73.43135964762644
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 15,
+      "key": "coordinate",
+      "before": 283.7164720767104,
+      "after": 283.7343135964763
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 16,
+      "key": "exp",
+      "before": 93.42309757902638,
+      "after": 95.30836022505311
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 16,
+      "key": "coordinate",
+      "before": 283.9342309757903,
+      "after": 283.95308360225056
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 17,
+      "key": "exp",
+      "before": 13.980762574622425,
+      "after": 15.734863922627515
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 17,
+      "key": "coordinate",
+      "before": 284.13980762574624,
+      "after": 284.15734863922626
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 18,
+      "key": "exp",
+      "before": 34.011277562203084,
+      "after": 35.76537891020818
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 18,
+      "key": "coordinate",
+      "before": 284.340112775622,
+      "after": 284.3576537891021
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 19,
+      "key": "exp",
+      "before": 54.04179254978375,
+      "after": 55.79589389778884
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 19,
+      "key": "coordinate",
+      "before": 284.5404179254978,
+      "after": 284.5579589389779
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 20,
+      "key": "exp",
+      "before": 74.07230753736441,
+      "after": 75.8264088853695
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 20,
+      "key": "coordinate",
+      "before": 284.74072307537364,
+      "after": 284.7582640888537
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 21,
+      "key": "exp",
+      "before": 94.10282252494507,
+      "after": 95.85692387295016
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 21,
+      "key": "coordinate",
+      "before": 284.94102822524945,
+      "after": 284.9585692387295
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 22,
+      "key": "exp",
+      "before": 8.00722312841794,
+      "after": 9.001006859322802
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 22,
+      "key": "coordinate",
+      "before": 285.0800722312842,
+      "after": 285.09001006859324
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 23,
+      "key": "exp",
+      "before": 19.35548412767114,
+      "after": 20.349267858576
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 23,
+      "key": "coordinate",
+      "before": 285.1935548412767,
+      "after": 285.20349267858575
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 24,
+      "key": "exp",
+      "before": 30.703745126924343,
+      "after": 31.697528857829205
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 24,
+      "key": "coordinate",
+      "before": 285.30703745126925,
+      "after": 285.3169752885783
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 25,
+      "key": "exp",
+      "before": 42.052006126177545,
+      "after": 43.0457898570824
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 25,
+      "key": "coordinate",
+      "before": 285.42052006126175,
+      "after": 285.4304578985708
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 26,
+      "key": "exp",
+      "before": 53.400267125430744,
+      "after": 54.39405085633561
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 26,
+      "key": "coordinate",
+      "before": 285.5340026712543,
+      "after": 285.54394050856337
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 27,
+      "key": "exp",
+      "before": 64.74852812468394,
+      "after": 65.74231185558881
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 27,
+      "key": "coordinate",
+      "before": 285.6474852812468,
+      "after": 285.65742311855587
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 28,
+      "key": "exp",
+      "before": 76.09678912393716,
+      "after": 77.090572854842
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 28,
+      "key": "coordinate",
+      "before": 285.7609678912394,
+      "after": 285.7709057285484
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 29,
+      "key": "exp",
+      "before": 87.44505012319036,
+      "after": 88.4388338540952
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 29,
+      "key": "coordinate",
+      "before": 285.8744505012319,
+      "after": 285.88438833854093
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 30,
+      "key": "exp",
+      "before": 98.79331112244355,
+      "after": 99.7870948533484
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 30,
+      "key": "coordinate",
+      "before": 285.98793311122444,
+      "after": 285.9978709485335
+    },
+    {
+      "mission": {
+        "mode": "model",
+        "designLevel": 280,
+        "designExp": 0,
+        "stepsDone": 0
+      },
+      "index": 30,
+      "key": "rewardRaw",
+      "before": 2042975815392,
+      "after": 2064310698103.0994
+    }
+  ],
+  "alternativeStarts": [
+    {
+      "sample": "P",
+      "start": 22,
+      "index": 22,
+      "errorPP": 0
+    },
+    {
+      "sample": "P",
+      "start": 22,
+      "index": 23,
+      "errorPP": 0.0003356206880056334
+    },
+    {
+      "sample": "P",
+      "start": 22,
+      "index": 24,
+      "errorPP": -0.00032875862403614065
+    },
+    {
+      "sample": "P",
+      "start": 22,
+      "index": 25,
+      "errorPP": 0.0001344573954504824
+    },
+    {
+      "sample": "P",
+      "start": 22,
+      "index": 26,
+      "errorPP": -0.000033412211863037555
+    },
+    {
+      "sample": "P",
+      "start": 22,
+      "index": 27,
+      "errorPP": -0.0002012818191730048
+    },
+    {
+      "sample": "P",
+      "start": 22,
+      "index": 28,
+      "errorPP": -0.00036915142648297206
+    },
+    {
+      "sample": "P",
+      "start": 22,
+      "index": 29,
+      "errorPP": -0.0004107364971783767
+    },
+    {
+      "sample": "P",
+      "start": 22,
+      "index": 30,
+      "errorPP": -0.0004101590705190006
+    },
+    {
+      "sample": "P",
+      "start": 24,
+      "index": 24,
+      "errorPP": 0
+    },
+    {
+      "sample": "P",
+      "start": 24,
+      "index": 25,
+      "errorPP": 0.0004367698134437603
+    },
+    {
+      "sample": "P",
+      "start": 24,
+      "index": 26,
+      "errorPP": 0.0002689002061373458
+    },
+    {
+      "sample": "P",
+      "start": 24,
+      "index": 27,
+      "errorPP": 0.00010103059882737853
+    },
+    {
+      "sample": "P",
+      "start": 24,
+      "index": 28,
+      "errorPP": -0.00006683900849679958
+    },
+    {
+      "sample": "P",
+      "start": 24,
+      "index": 29,
+      "errorPP": -0.00013238061879050633
+    },
+    {
+      "sample": "P",
+      "start": 24,
+      "index": 30,
+      "errorPP": -0.0001318031921329066
+    },
+    {
+      "sample": "Q",
+      "start": 22,
+      "index": 22,
+      "errorPP": 0
+    },
+    {
+      "sample": "Q",
+      "start": 22,
+      "index": 23,
+      "errorPP": -0.0006643793120133523
+    },
+    {
+      "sample": "Q",
+      "start": 22,
+      "index": 24,
+      "errorPP": -0.0003287586240219298
+    },
+    {
+      "sample": "Q",
+      "start": 22,
+      "index": 25,
+      "errorPP": -0.0007352475471300579
+    },
+    {
+      "sample": "Q",
+      "start": 22,
+      "index": 26,
+      "errorPP": -0.0009031171544364724
+    },
+    {
+      "sample": "Q",
+      "start": 22,
+      "index": 27,
+      "errorPP": -0.0000709867617558757
+    },
+    {
+      "sample": "Q",
+      "start": 22,
+      "index": 28,
+      "errorPP": -0.0002388563690516321
+    },
+    {
+      "sample": "Q",
+      "start": 22,
+      "index": 29,
+      "errorPP": -0.0012170722752671281
+    },
+    {
+      "sample": "Q",
+      "start": 22,
+      "index": 30,
+      "errorPP": -0.0012164948486059757
+    },
+    {
+      "sample": "Q",
+      "start": 24,
+      "index": 24,
+      "errorPP": 0
+    },
+    {
+      "sample": "Q",
+      "start": 24,
+      "index": 25,
+      "errorPP": -0.00043293512914743815
+    },
+    {
+      "sample": "Q",
+      "start": 24,
+      "index": 26,
+      "errorPP": -0.0006008047364574054
+    },
+    {
+      "sample": "Q",
+      "start": 24,
+      "index": 27,
+      "errorPP": 0.00023132565623029677
+    },
+    {
+      "sample": "Q",
+      "start": 24,
+      "index": 28,
+      "errorPP": 0.00006345604892032952
+    },
+    {
+      "sample": "Q",
+      "start": 24,
+      "index": 29,
+      "errorPP": -0.000938716396895245
+    },
+    {
+      "sample": "Q",
+      "start": 24,
+      "index": 30,
+      "errorPP": -0.0009381389702340925
+    }
+  ],
+  "maxAlternativeErrorPP": 0.0012170722752671281
+}

@@ -32,6 +32,7 @@ import {
   simulateMain,
   stepRawForLevel,
   stepRewardRawForLevel,
+  stepRewardRawForTarget,
 } from "../lib/main-planner.mjs";
 import { createMainContext } from "../lib/exp-tables.ts";
 import { MOB_BASE_EXP, PERSONAL_BOSS_TABLE } from "../lib/personal-data.mjs";
@@ -147,7 +148,7 @@ test("두 대표 사례: 원본 아이템 정수로 바로잡아도 10월 보상
   const main = defaultMainInput("2026-10-09");
   const a = analyzeMain(main, real).best.summary;
   assert.equal(a.level, 290);
-  assert.ok(Math.abs(a.exp - 43.79923989507148) < 1e-9);
+  assert.ok(Math.abs(a.exp - 43.80640829544078) < 1e-9);
   assert.equal(a.stepsCleared, 40);
   Object.assign(main, { level: 286, exp: 68 }); main.plus.tier = "free";
   main.personal.mission = { ...main.personal.mission, stepsDone: 4, nextTarget: { level: 286, exp: 69.714 }, nextRewardPct: 1.888 };
@@ -282,7 +283,7 @@ test("단계 간격은 구간마다 몬스터 기본 경험치의 배수다", ()
   assert.ok(Math.abs(stepRawForLevel(292) / 356_110_000_000_000 * 100 - 4.226714) < 0.0005);
   assert.ok(Math.abs(multiple(295) - 3_123_334) < 1);
   Object.entries({ 296: 3_120_168, 297: 3_114_999, 298: 3_110_978 }).forEach(([level, expected]) => assert.ok(Math.abs(multiple(Number(level)) - expected) < 1, level));
-  [280, 284].forEach(level => assert.ok(Math.abs(multiple(level) - 2_730_206) < 1));
+  Object.entries({280:2_747_299,281:2_745_798,282:2_744_431,283:2_742_883,284:2_730_206}).forEach(([level,expected])=>assert.ok(Math.abs(multiple(Number(level))-expected)<1));
   // 커뮤니티 296레벨 계산의 단계 간격 1.861%
   const req296 = 2.5911e12 / 0.002706;
   assert.ok(Math.abs(stepRawForLevel(296) / req296 * 100 - 1.861) < 0.0005);
@@ -1822,7 +1823,7 @@ test("등급 비교 extra는 새 입력에서도 이미 받은 레벨의 추가 
   assert.deepEqual(row.analysis.chosen.result.items.plusReceived,{crimson:5,adv:5000,sauna:1,coupon4x:4,booster:20});
 });
 
-test("10/22 확장 전 1~30단계 목표·보상은 여덟 지정 레벨에서 한 자리도 바뀌지 않는다", () => {
+test("본섭280~283 간격과 레벨 경계 보상을 반영한 여덟 지정 레벨의 1~30단계 회귀", () => {
   const rows=JSON.parse(readFileSync(new URL('./mission-first30-fixture.json',import.meta.url),'utf8'));
   const real=createMainContext();
   for(const row of rows) assert.deepEqual(buildMissionTable(row.mission,real).steps.slice(0,30),row.steps);
@@ -2083,4 +2084,46 @@ test("부스터가 없는 18사례는 게시본45d2861과 10/21까지 위치·�
     assert.deepEqual(octoberExpired,{crimson:0,adv:0,sauna:0,coupon4x:0,booster:0});
     assert.deepEqual({level:r.level,exp:r.exp,steps:r.mission.stepsCleared,sourceRaw:r.sourceRaw,items:septemberItems,flame:r.flame},row.expected);
   }
+});
+
+
+test("본섭 P·Q의 281~283 연속 목표는 시작행을 바꿔도 누적 표시 오차 안쪽이다", () => {
+  const live=JSON.parse(readFileSync(new URL('../docs/research/claude-followup-280-magnifiers-2026-10-23/live-samples.json',import.meta.url),'utf8'));
+  for(const sample of live.missionScreens280) {
+    for(const start of [21,22,24]) {
+      const targets=sample.targets.filter(t=>t[0]>=start),first=targets[0];
+      const built=buildMissionTable({mode:'screen',stepsDone:start-1,nextTarget:{level:first[1],exp:first[2]},nextRewardPct:0},createMainContext());
+      for(const[index,level,exp]of targets){const got=built.steps.find(s=>s.index===index);assert.ok(Math.abs((got.level-level)*100+got.exp-exp)<(start===21?0.001:0.0015),sample.id+' '+start+'→'+index);}
+    }
+  }
+  const first=buildMissionTable({mode:'model',designLevel:280,designExp:0},createMainContext()).steps[0];
+  assert.equal(first.level,280);assert.ok(Math.abs(first.exp-28.055)<0.0005,'독립 테섭 슬라이드 첫 목표');
+});
+
+test("본섭 정수 보상3건은 표시 목표의 반올림·버림 범위에서 레벨 넘김으로 재현한다", () => {
+  const ctx=createMainContext();
+  // 목표는 소수셋째자리 표시여서 실제 위치는 반올림/버림의 합집합[-0.0005,+0.001)%p에 있다.
+  // N=502828.8도 화면 정수와 비경계에서 최대4.2만EXP 차이가 있어 그 범위만 별도 허용한다.
+  for(const[level,exp,index,observed,calculated]of [[273,80.466,7,1283034328078,1283033943902.602],[274,99.872,8,1458835917903,1458830579347.8804],[276,93.532,11,1487539147116,1487539344057.496]]) {
+    const actual=stepRewardRawForTarget(level,exp,ctx,index);
+    assert.ok(Math.abs(actual-calculated)<1);
+    const edges=[exp-0.0005,exp+0.001].map(p=>stepRewardRawForTarget(level,p,ctx,index));
+    assert.ok(observed>=Math.min(...edges)-42000&&observed<=Math.max(...edges)+42000,'원본 정수가 표시 정밀도 범위 안');
+  }
+});
+
+test("294·99.991% 추가단계는 다음 레벨 몬스터로 이어 보상0.131%를 재현하고 입력을 차단하지 않는다", () => {
+  const ctx=createMainContext(),raw=stepRewardRawForTarget(294,99.991,ctx,37);
+  assert.ok(Math.abs(raw-562752195193.7423)<1);
+  assert.equal((raw/ctx.reqRaw(294)*100).toFixed(3),'0.131');
+  const table=buildMissionTable({mode:'screen',stepsDone:36,nextTarget:{level:294,exp:99.991},nextRewardPct:0.131},ctx);
+  assert.ok(!table.requiresTargetInput);assert.equal(table.scale,1);assert.ok(Math.abs(table.steps[0].rewardRaw-562752195193.7423)<1);
+});
+
+test("레벨 경계 보상은 단계30·31의 서로 다른 마릿수와 300 종료를 지킨다", () => {
+  const ctx=createMainContext();
+  assert.ok(Math.abs(stepRewardRawForTarget(290,99.999,ctx,30)-2437184259906.167)<1);
+  assert.ok(Math.abs(stepRewardRawForTarget(290,99.999,ctx,31)-487429090395.7671)<1);
+  assert.ok(Math.abs(stepRewardRawForTarget(299,99.999,ctx,45)-17377598540.25)<1);
+  assert.equal(stepRewardRawForTarget(300,0,ctx,45),0);
 });
