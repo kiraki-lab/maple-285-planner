@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import efficiencyFixture from "./exp-efficiency-fixture.json" with { type: "json" };
+import { compareExpEfficiency, efficiencyDefaults } from "../lib/exp-efficiency.mjs";
+import { defaultMainInput } from "../lib/main-planner.mjs";
 import { monsterParkExperiencePercent } from "../lib/calculator-core.mjs";
 import {
   createMainContext,
@@ -406,4 +409,65 @@ test("아이템 환산의 경험치 합은 300 이후 버려지는 양을 포함
   assert.ok(Math.abs(r.totalRawExperience - 17_377_598_540.25) < 1);
   assert.equal(r.used.adv, 17);
   assert.equal(r.remaining.adv, 983);
+});
+
+for (const level of [285, 290, 295]) test(`상품 효율 Lv.${level}: 팀장 스크립트의 패스·에픽·돋보기·충전·교환권 숫자`, () => {
+  const planner = defaultMainInput("2026-10-25");
+  planner.plus.tier = "free";
+  const result = compareExpEfficiency({ ...efficiencyDefaults(planner), level, fieldLevel: level, ordinaryPrice: 1000000, detectivePrice: 50000000 }, planner);
+  assert.deepEqual(result.errors, []);
+  const expected = efficiencyFixture[level];
+  for (const row of result.rows) {
+    assert.equal(row.available, true);
+    for (const key of ["rawExp", "costMeso", "percent", "mesoPerMob", "relativeEpic1"]) {
+      assert.ok(Math.abs(row[key] - expected[row.id][key]) <= Math.max(1e-8, Math.abs(expected[row.id][key]) * 1e-12), `${row.id}.${key}: ${row[key]} != ${expected[row.id][key]}`);
+    }
+  }
+  assert.equal(result.rows.length, 9);
+  for (const row of result.magnifiers) row.thresholds.forEach((ref, i) => {
+    assert.ok(Math.abs(ref.price - expected.thresholds[row.id][i]) < 0.00001);
+  });
+  assert.deepEqual(result.rows.map(row => row.mesoPerMob), result.rows.map(row => row.mesoPerMob).sort((a, b) => a - b));
+});
+
+test("상품 비교는 9월 구매로 살 수 없는 줄도 보여 주고 무료 보상을 유료 값에 넣지 않는다", () => {
+  const p = defaultMainInput("2026-10-25"), v = { ...efficiencyDefaults(p), level: 285, fieldLevel: 285 };
+  for (const [enabled, tier, expected] of [[true, "free", [true, true, true]], [false, "prime", [true, true, true]], [true, "premium", [false, true, false]], [true, "prime", [false, false, false]]]) {
+    Object.assign(p.plus, { enabled, tier });
+    const r = compareExpEfficiency(v, p);
+    assert.deepEqual(["premium", "prime", "both"].map(id => r.rows.find(row => row.id === id).available), expected);
+    assert.equal(r.rows.find(row => row.id === "prime").rawExp, 75761141118400);
+  }
+});
+
+test("시세 빈칸·0원·손익분기 위아래와 잘못 넣은 교환 비율을 구분한다", () => {
+  const p = defaultMainInput("2026-10-25"), v = { ...efficiencyDefaults(p), level: 285, fieldLevel: 285 };
+  assert.equal(compareExpEfficiency(v, p).rows.find(row => row.id === "ordinary").mesoPerMob, null);
+  const cheap = compareExpEfficiency({ ...v, ordinaryPrice: 0, detectivePrice: 50000000 }, p);
+  assert.equal(cheap.magnifiers[0].thresholds[0].verdict, "싸요");
+  assert.equal(cheap.magnifiers[1].thresholds[0].verdict, "비싸요");
+  assert.equal(cheap.magnifiers[1].thresholds[1].verdict, "싸요");
+  assert.equal(cheap.rows[0].mesoPerMob, 0);
+  const equal = compareExpEfficiency({ ...v, shardPrice: 7200, ordinaryPrice: 7600 }, p);
+  assert.equal(equal.magnifiers[0].thresholds[2].verdict, "같아요");
+  for (const change of [{ maplePoints: "" }, { won: 0 }, { bonus: -1 }, { fieldLevel: 300 }, { ordinaryPrice: -1 }]) assert.ok(compareExpEfficiency({ ...v, ...change }, p).errors.length > 0);
+  const profitable = compareExpEfficiency({ ...v, maplePoints: 10000 }, p);
+  assert.equal(profitable.rows.find(row => row.id === "epic1").costMeso, -35000000);
+  assert.ok(profitable.rows.every(row => row.relativeEpic1 === null));
+});
+
+test("서로 다른 사냥터·커스텀 배분도 같은 몬스터 단위로 비교하고 플래너 입력은 바꾸지 않는다", () => {
+  const p = defaultMainInput("2026-10-25");
+  Object.assign(p, { level: 285 });
+  Object.assign(p.routine, { huntFieldKey: "direct", huntFieldLevel: 290 });
+  p.personal.flame.alloc = { exp: 3, shard: 0, erda: 0 };
+  const before = structuredClone(p), v = efficiencyDefaults(p), r = compareExpEfficiency(v, p);
+  assert.equal(v.fieldLevel, 290);
+  assert.equal(r.rows.find(row => row.id === "ordinary").rawExp, 36429216800);
+  assert.equal(r.rows.find(row => row.id === "detective").rawExp, 728584336000);
+  assert.equal(r.rows.find(row => row.id === "monster").rawExp, 403625592);
+  assert.equal(r.rows.find(row => row.id === "monster").costMeso, 434782.60869565216);
+  assert.deepEqual(p, before);
+  p.personal.flame.alloc.exp = 2;
+  assert.equal(compareExpEfficiency(v, p).rows.find(row => row.id === "monster").available, false);
 });

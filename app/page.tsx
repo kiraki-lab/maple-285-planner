@@ -13,7 +13,7 @@ type ViewTab = "personal" | "items" | "reference";
 
 const viewTabs: { id: ViewTab; label: string; description: string }[] = [
   { id: "personal", label: "퍼스널 버닝", description: "본섭 · 11/18 마감" },
-  { id: "items", label: "아이템 환산", description: "보유 보상 전부 쓰면" },
+  { id: "items", label: "아이템 환산", description: "상품 효율 · 보유 보상" },
   { id: "reference", label: "보상표·자료", description: "PLUS · 퍼스널 · 보스" },
 ];
 
