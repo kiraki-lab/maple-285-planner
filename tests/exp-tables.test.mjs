@@ -437,6 +437,7 @@ test("상품 비교는 9월 구매로 살 수 없는 줄도 보여 주고 무료
     const r = compareExpEfficiency(v, p);
     assert.deepEqual(["premium", "prime", "both"].map(id => r.rows.find(row => row.id === id).available), expected);
     assert.equal(r.rows.find(row => row.id === "prime").rawExp, 75761141118400);
+    assert.equal(r.rows.find(row => row.id === "prime").label.includes("프리미엄 구매 뒤 추가분"), !enabled || tier === "free");
   }
 });
 
