@@ -53,7 +53,7 @@ export default function ExpEfficiencyPanel({ input }: { input: MainInput }) {
       </article>)}</div>
       {result.rows.find(row => row.id === "epic1")!.costMeso! <= 0 && <p>에픽 1단계는 주화 판매액이 비용 이상이라 배수 비교를 표시하지 않아요.</p>}
     </>}
-    <ul className="exp-compare-notes"><li>돋보기와 부스터는 100초 안에 190마리를 다 잡아야 이 경험치를 받아요. 맵을 옮기면 효과가 사라져요.</li>
+    <ul className="exp-compare-notes"><li>메이플포인트 비용은 메소마켓 수수료 1%를 반영해 메소로 환산해요.</li><li>돋보기와 부스터는 100초 안에 190마리를 다 잡아야 이 경험치를 받아요. 맵을 옮기면 효과가 사라져요.</li>
       <li>탐정예티 돋보기는 높은 레벨 사냥터에서 쓸수록 좋아요. 경험치 버프는 영향을 주지 않아요.</li>
       <li>패스는 크림슨 입장권을 모두 써야 표의 경험치를 받아요.</li></ul>
   </section>;

@@ -11827,12 +11827,12 @@
       },
       "haru": 1053187790325840,
       "before": 1053187790325841,
-      "ours": 1053187790325841,
+      "ours": 1053187790325840,
       "where": "lib/exp-tables.ts:60",
-      "status": "불일치",
-      "delta": 1,
+      "status": "일치",
+      "delta": 0,
       "beforeDelta": 1,
-      "note": "기존 정수 유지: level-299-verification.md의 메이플AI 정수 점화식. 하루 표의 끝자리 손실."
+      "note": "대표 정본 결정 2026-10-25: 메이플 AI와의 1/5/7 EXP 차이는 실측 예외가 아니므로 하루 값을 채택."
     },
     {
       "group": "아이템",
@@ -12057,12 +12057,12 @@
       },
       "haru": 1158506569358420,
       "before": 1158506569358425,
-      "ours": 1158506569358425,
+      "ours": 1158506569358420,
       "where": "lib/exp-tables.ts:61",
-      "status": "불일치",
-      "delta": 5,
+      "status": "일치",
+      "delta": 0,
       "beforeDelta": 5,
-      "note": "기존 정수 유지: level-299-verification.md의 메이플AI 정수 점화식. 하루 표의 끝자리 손실."
+      "note": "대표 정본 결정 2026-10-25: 메이플 AI와의 1/5/7 EXP 차이는 실측 예외가 아니므로 하루 값을 채택."
     },
     {
       "group": "아이템",
@@ -12287,12 +12287,12 @@
       },
       "haru": 1737759854037630,
       "before": 1737759854037637,
-      "ours": 1737759854037637,
+      "ours": 1737759854037630,
       "where": "lib/exp-tables.ts:62",
-      "status": "불일치",
-      "delta": 7,
+      "status": "일치",
+      "delta": 0,
       "beforeDelta": 7,
-      "note": "기존 정수 유지: level-299-verification.md의 메이플AI 정수 점화식. 하루 표의 끝자리 손실."
+      "note": "대표 정본 결정 2026-10-25: 메이플 AI와의 1/5/7 EXP 차이는 실측 예외가 아니므로 하루 값을 채택."
     },
     {
       "group": "아이템",
@@ -16497,13 +16497,13 @@
         "snippet": "function f(e,t){return t>0?e/.99/t*1e8:0}function j(e,t){return t>0?e/t*1e8:0}function y(e,t){return t.reduce((t,a)=>{let r;return t+(n[a.level]??0)*((r=e-a.level)>=40?.7:r>=21?(110-r)/100:r>=19?.95:r>=17?.96:r>=15?.97:r"
       },
       "haru": "MP/0.99/시세×1억",
-      "before": "MP/0.99/시세×1억",
-      "ours": "MP/시세×1억",
+      "before": "MP/시세×1억",
+      "ours": "MP/0.99/시세×1억",
       "where": "lib/exp-efficiency.mjs:39",
-      "status": "조건 차이",
+      "status": "일치",
       "delta": null,
       "beforeDelta": null,
-      "note": "우리 MP/시세×1억. 하루는 1% 수수료 포함. 입력 정의/기존 팀장 기준 유지, EXP는 동일."
+      "note": "대표 정본 결정 2026-10-25: 하루 f(e,t)=e/.99/t*1e8 채택. 수수료1%를 에픽·플레임 충전 가격에 반영."
     },
     {
       "group": "에픽 가격",
@@ -16976,7 +16976,7 @@
           "priceNote": "",
           "percent": 0.031029905163433617,
           "mesoPerMob": 131.57894736842104,
-          "relativeEpic1": 0.4150914342625978
+          "relativeEpic1": 0.40923306224529754
         },
         {
           "id": "prime",
@@ -16987,7 +16987,7 @@
           "priceNote": "39,800원",
           "percent": 76.13253349325014,
           "mesoPerMob": 137.70444133885232,
-          "relativeEpic1": 0.43441549885352226
+          "relativeEpic1": 0.4282843976254612
         },
         {
           "id": "both",
@@ -16998,7 +16998,7 @@
           "priceNote": "69,600원",
           "percent": 111.63213713698825,
           "mesoPerMob": 164.23100792445828,
-          "relativeEpic1": 0.5180987231861416
+          "relativeEpic1": 0.5107865629930393
         },
         {
           "id": "premium",
@@ -17009,17 +17009,17 @@
           "priceNote": "29,800원",
           "percent": 35.49960364373811,
           "mesoPerMob": 221.11994503223374,
-          "relativeEpic1": 0.697565962968975
+          "relativeEpic1": 0.687720900940802
         },
         {
           "id": "epic1",
           "label": "에픽 EXP 보너스 1단계",
           "rawExp": 4915200000000,
-          "costMeso": 383478260.86956525,
+          "costMeso": 388967940.2722882,
           "available": true,
           "priceNote": "12,500 메이플포인트 − 주화 4개 값",
           "percent": 4.939295040992196,
-          "mesoPerMob": 316.98786461871606,
+          "mesoPerMob": 321.525701385172,
           "relativeEpic1": 1
         },
         {
@@ -17031,7 +17031,7 @@
           "priceNote": "",
           "percent": 0.6205981032686724,
           "mesoPerMob": 328.94736842105266,
-          "relativeEpic1": 1.0377285856564948
+          "relativeEpic1": 1.023082655613244
         },
         {
           "id": "coupon",
@@ -17042,29 +17042,29 @@
           "priceNote": "조각 대신 EXP를 고를 때",
           "percent": 0.001959783484006334,
           "mesoPerMob": 819.4444444444445,
-          "relativeEpic1": 2.5850972100465124
+          "relativeEpic1": 2.5486125709832144
         },
         {
           "id": "epic2",
           "label": "에픽 EXP 보너스 1→2단계",
           "rawExp": 4915200000000,
-          "costMeso": 1470434782.6086957,
+          "costMeso": 1486903820.8168645,
           "available": true,
           "priceNote": "37,500 메이플포인트 − 주화 4개 값",
           "percent": 4.939295040992196,
-          "mesoPerMob": 1215.4795443769815,
-          "relativeEpic1": 3.834467120181406
+          "mesoPerMob": 1229.0930546763493,
+          "relativeEpic1": 3.8226899105771834
         },
         {
           "id": "monster",
           "label": "플레임 1마리 충전",
           "rawExp": 292533480,
-          "costMeso": 422982.60869565216,
+          "costMeso": 427374.3522178304,
           "available": true,
           "priceNote": "10 메이플포인트 − 조각 값 · 조각 3 / EXP 0 / 솔 에르다 0",
           "percent": 0.0002939675226009501,
-          "mesoPerMob": 5874.75845410628,
-          "relativeEpic1": 18.533070536225864
+          "mesoPerMob": 5935.754891914312,
+          "relativeEpic1": 18.461214348782555
         }
       ]
     },
@@ -17180,7 +17180,7 @@
           "priceNote": "",
           "percent": 0.012378029092170204,
           "mesoPerMob": 131.57894736842104,
-          "relativeEpic1": 0.48509969942975395
+          "relativeEpic1": 0.4786925288434564
         },
         {
           "id": "prime",
@@ -17191,7 +17191,7 @@
           "priceNote": "39,800원",
           "percent": 30.36975634384696,
           "mesoPerMob": 137.7044494128617,
-          "relativeEpic1": 0.5076829413544242
+          "relativeEpic1": 0.5009774925305333
         },
         {
           "id": "both",
@@ -17202,7 +17202,7 @@
           "priceNote": "69,600원",
           "percent": 44.53077606728335,
           "mesoPerMob": 164.23101777519614,
-          "relativeEpic1": 0.6054799719344057
+          "relativeEpic1": 0.5974828252214089
         },
         {
           "id": "premium",
@@ -17213,17 +17213,17 @@
           "priceNote": "29,800원",
           "percent": 14.161019723436388,
           "mesoPerMob": 221.11995893451285,
-          "relativeEpic1": 0.8152157146895931
+          "relativeEpic1": 0.8044483896329363
         },
         {
           "id": "epic1",
           "label": "에픽 EXP 보너스 1단계",
           "rawExp": 8697600000000,
-          "costMeso": 492173913.04347825,
+          "costMeso": 498761528.32674575,
           "available": true,
           "priceNote": "15,000 메이플포인트 − 주화 4개 값",
           "percent": 2.9552967450033014,
-          "mesoPerMob": 271.24104080685925,
+          "mesoPerMob": 274.8715290926348,
           "relativeEpic1": 1
         },
         {
@@ -17235,7 +17235,7 @@
           "priceNote": "",
           "percent": 0.2475605818434041,
           "mesoPerMob": 328.94736842105266,
-          "relativeEpic1": 1.212749248574385
+          "relativeEpic1": 1.1967313221086413
         },
         {
           "id": "coupon",
@@ -17246,31 +17246,41 @@
           "priceNote": "조각 대신 EXP를 고를 때",
           "percent": 0.000781770258452855,
           "mesoPerMob": 819.4444444444445,
-          "relativeEpic1": 3.021093128115301
+          "relativeEpic1": 2.981190693519526
         },
         {
           "id": "epic2",
           "label": "에픽 EXP 보너스 1→2단계",
           "rawExp": 8697600000000,
-          "costMeso": 1796521739.1304348,
+          "costMeso": 1816284584.980237,
           "available": true,
           "priceNote": "45,000 메이플포인트 − 주화 4개 값",
           "percent": 2.9552967450033014,
-          "mesoPerMob": 990.0777213904086,
-          "relativeEpic1": 3.65017667844523
+          "mesoPerMob": 1000.969186247735,
+          "relativeEpic1": 3.641589180050718
         },
         {
           "id": "monster",
           "label": "플레임 1마리 충전",
           "rawExp": 345118896,
-          "costMeso": 422982.60869565216,
+          "costMeso": 427374.3522178304,
           "available": true,
           "priceNote": "10 메이플포인트 − 조각 값 · 조각 3 / EXP 0 / 솔 에르다 0",
           "percent": 0.00011726553876792826,
-          "mesoPerMob": 5874.75845410628,
-          "relativeEpic1": 21.658811058351155
+          "mesoPerMob": 5935.754891914312,
+          "relativeEpic1": 21.594651550520883
         }
       ]
     }
+  },
+  "canon": {
+    "source": "하루1소재",
+    "decision": "대표 결정 2026-10-25",
+    "exceptions": [
+      "280~283 단계 간격(본섭 P·Q 캐릭터)",
+      "레벨 경계를 넘기는 단계 보상(본섭 정수 3건)",
+      "탐정 유령 ×800(본섭 283 실측)"
+    ],
+    "missingSource": "하루 원본이 없는 항목은 비교 불가로 표시하고 기존 보완값 유지; 정본과 다른 값을 유지하는 예외로 분류하지 않음"
   }
 }

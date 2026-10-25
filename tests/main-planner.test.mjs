@@ -77,7 +77,7 @@ const REQ = {
   285: 99_512_176_519_276, 286: 109_463_394_171_203, 287: 120_409_733_588_323, 288: 132_450_706_947_155, 289: 145_695_777_641_870,
   290: 294_305_470_836_577, 291: 323_736_017_920_234, 292: 356_109_619_712_257, 293: 391_720_581_683_482, 294: 430_892_639_851_830,
   295: 870_403_132_500_696,
-  296: 957_443_445_750_765, 297: 1_053_187_790_325_841, 298: 1_158_506_569_358_425, 299: 1_737_759_854_037_637,
+  296: 957_443_445_750_765, 297: 1_053_187_790_325_840, 298: 1_158_506_569_358_420, 299: 1_737_759_854_037_630,
 };
 // 일과·아이템은 단순한 상수로 둔 시험용 표다. 이 테스트는 엔진의 규칙(일정, 상한, 단계 판정)만 확인한다.
 const makeCtx = (overrides = {}) => ({
@@ -1829,7 +1829,19 @@ test("등급 비교 extra는 새 입력에서도 이미 받은 레벨의 추가 
 test("본섭280~283 간격과 레벨 경계 보상을 반영한 여덟 지정 레벨의 1~30단계 회귀", () => {
   const rows=JSON.parse(readFileSync(new URL('./mission-first30-fixture.json',import.meta.url),'utf8'));
   const real=createMainContext();
-  for(const row of rows) assert.deepEqual(buildMissionTable(row.mission,real).steps.slice(0,30),row.steps);
+  for(const row of rows) {
+    const actual=buildMissionTable(row.mission,real).steps.slice(0,30);
+    if(row.mission.designLevel<297) assert.deepEqual(actual,row.steps);
+    else {
+      // 정본 결정으로 297 필요EXP가 1 작아졌다. 단계·보상은 같고 % 표시에만 1e-12 미만 차이가 난다.
+      assert.equal(actual.length,row.steps.length);
+      actual.forEach((step,i)=>{
+        const {exp,coordinate,...rest}=step,{exp:priorExp,coordinate:priorCoordinate,...prior}=row.steps[i];
+        assert.deepEqual(rest,prior);
+        assert.ok(Math.abs(exp-priorExp)<1e-12);assert.ok(Math.abs(coordinate-priorCoordinate)<1e-12);
+      });
+    }
+  }
   assert.equal(stepRewardRawForLevel(286,31),413_371_629_158.4);
   assert.ok(Math.abs(stepRewardRawForLevel(290,45)-482_062_073_932.8)<0.001);
 });

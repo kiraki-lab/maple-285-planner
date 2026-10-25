@@ -42,6 +42,7 @@ test("10/25 공개 청크 정수와 전 레벨 아이템·몬파·최선 던전�
   const ctx = createMainContext();
   for (let level = 260; level <= 299; level += 1) {
     assert.equal(MOB_BASE_EXP[level], tables.n.value[level]);
+    assert.equal(ctx.reqRaw(level), tables.eo.value[level].required, `${level} 정본 필요 EXP`);
     for (const [type, key] of [["sauna", "l"], ["adv", "c"], ["blue", "eQ"]]) {
       assert.equal(ctx.itemRaw(type, level), tables[key].value[level], `${level} ${type}`);
     }
@@ -380,9 +381,9 @@ test("296~299 원본 정수 표: 필요 경험치·농장·사우나·상급 EXP
   // 2026-10-10 공개 청크에서 직접 옮긴 값. 필요 경험치는 메이플 AI, 나머지는 하루1소재.
   const rows = [
     [296, 957_443_445_750_765n, 520_929_657_600, 7_841_362_214_400, 8_444_543_923_200, 2_591_100_000_000],
-    [297, 1_053_187_790_325_841n, 527_234_496_000, 7_936_266_624_000, 8_546_748_672_000, 2_622_300_000_000],
-    [298, 1_158_506_569_358_425n, 532_849_680_000, 8_020_789_920_000, 8_637_773_760_000, 2_650_500_000_000],
-    [299, 1_737_759_854_037_637n, 539_191_363_200, 8_116_248_940_800, 8_740_575_782_400, 2_682_000_000_000],
+    [297, 1_053_187_790_325_840n, 527_234_496_000, 7_936_266_624_000, 8_546_748_672_000, 2_622_300_000_000],
+    [298, 1_158_506_569_358_420n, 532_849_680_000, 8_020_789_920_000, 8_637_773_760_000, 2_650_500_000_000],
+    [299, 1_737_759_854_037_630n, 539_191_363_200, 8_116_248_940_800, 8_740_575_782_400, 2_682_000_000_000],
   ];
   const real = createMainContext();
   for (const [level, required, sauna, mech, crimson, epic] of rows) {
@@ -497,7 +498,7 @@ test("시세 빈칸·0원·손익분기 위아래와 잘못 넣은 교환 비율
   assert.equal(equal.magnifiers[0].thresholds[2].verdict, "같아요");
   for (const change of [{ maplePoints: "" }, { won: 0 }, { bonus: -1 }, { fieldLevel: 300 }, { ordinaryPrice: -1 }]) assert.ok(compareExpEfficiency({ ...v, ...change }, p).errors.length > 0);
   const profitable = compareExpEfficiency({ ...v, maplePoints: 10000 }, p);
-  assert.equal(profitable.rows.find(row => row.id === "epic1").costMeso, -35000000);
+  assert.equal(profitable.rows.find(row => row.id === "epic1").costMeso, 12500 / 0.99 / 10000 * 1e8 - 160000000);
   assert.ok(profitable.rows.every(row => row.relativeEpic1 === null));
 });
 
@@ -511,7 +512,7 @@ test("서로 다른 사냥터·커스텀 배분도 같은 몬스터 단위로 �
   assert.equal(r.rows.find(row => row.id === "ordinary").rawExp, 36429216800);
   assert.equal(r.rows.find(row => row.id === "detective").rawExp, 728584336000);
   assert.equal(r.rows.find(row => row.id === "monster").rawExp, 403625592);
-  assert.equal(r.rows.find(row => row.id === "monster").costMeso, 434782.60869565216);
+  assert.equal(r.rows.find(row => row.id === "monster").costMeso, 10 / 0.99 / 2300 * 1e8);
   assert.deepEqual(p, before);
   p.personal.flame.alloc.exp = 2;
   assert.equal(compareExpEfficiency(v, p).rows.find(row => row.id === "monster").available, false);
