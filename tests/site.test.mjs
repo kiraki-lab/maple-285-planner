@@ -497,7 +497,9 @@ test("경험치의 모든 출처는 로컬 게임 아이콘이 있고 새 WZ 원
   assert.equal(records.length,11);
   const replacements=JSON.parse(await read('docs/research/doping-breakeven-icons-2026-10-25.json'));
   assert.equal(replacements.length,5);
-  const current=new Map([...records,...replacements].map(record=>[record.asset,record]));
+  const followup=JSON.parse(await read('docs/research/icon-followup-2026-10-25.json'));
+  assert.equal(followup.length,7);
+  const current=new Map([...records,...replacements,...followup].map(record=>[record.asset,record]));
   for(const record of current.values()){
     assert.equal(record.tool,'wz_tool.ps1');assert.match(record.dataRoot,/^C:\\Nexon\\MapleT?\\Data$/);
     const data=await readFile(new URL(`../${record.asset}`,import.meta.url));assert.equal(createHash('sha256').update(data).digest('hex'),record.sha256);

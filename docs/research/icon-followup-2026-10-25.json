@@ -1,0 +1,135 @@
+[
+  {
+    "asset": "public/experience-icons/monster-park-arteria.png",
+    "tool": "wz_tool.ps1",
+    "dataRoot": "C:\\Nexon\\Maple\\Data",
+    "node": "Map\\MapHelper.img\\mark\\arteria",
+    "width": 38,
+    "height": 38,
+    "sha256": "4ca4d596fef30553088ce2287b4cff75b934caf8136fe41fe4c96ae7359b6ed3",
+    "reference": "https://haru1sojae.kr/icons/Arteria.png",
+    "referenceSha256": "72ed9d9243f78bcd2a0be036e32ddce7d5c3bcde1584f5847e355cbeddb0c406",
+    "rgbaExact": true,
+    "alphaExact": true,
+    "meanAbsRgba": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "sourceManifest": "outputs/icon-followup-2026-10-25/map-marks/manifest.json"
+  },
+  {
+    "asset": "public/experience-icons/monster-park-carcion.png",
+    "tool": "wz_tool.ps1",
+    "dataRoot": "C:\\Nexon\\Maple\\Data",
+    "node": "Map\\MapHelper.img\\mark\\carcion",
+    "width": 38,
+    "height": 38,
+    "sha256": "986cd4adb8a1bbf725cd03797373d5ca5e9257e244a222b00094b5bc8c728013",
+    "reference": "https://haru1sojae.kr/icons/Carcion.png",
+    "referenceSha256": "4878a7c19dcdbc48766dea38477bfa5062309a35d147e5d90592531c9bd96adb",
+    "rgbaExact": true,
+    "alphaExact": true,
+    "meanAbsRgba": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "sourceManifest": "outputs/icon-followup-2026-10-25/map-marks/manifest.json"
+  },
+  {
+    "asset": "public/experience-icons/monster-park-tallahart.png",
+    "tool": "wz_tool.ps1",
+    "dataRoot": "C:\\Nexon\\Maple\\Data",
+    "node": "Map\\MapHelper.img\\mark\\tallahart",
+    "width": 38,
+    "height": 38,
+    "sha256": "eb56c1314f31f8fd9ae63cbe2ee0412887db7692a55e524a68af71c055353c1f",
+    "reference": "https://haru1sojae.kr/icons/Tallahart.png",
+    "referenceSha256": "12e5a32bbbfea99c09551be6e09f400e059c74680437efad5e327e898cc54bea",
+    "rgbaExact": false,
+    "alphaExact": true,
+    "meanAbsRgba": [
+      9.10180055401662,
+      4.229916897506925,
+      12.670360110803324,
+      0.0
+    ],
+    "sourceManifest": "outputs/icon-followup-2026-10-25/map-marks/manifest.json"
+  },
+  {
+    "asset": "public/experience-icons/monster-park-geardrak.png",
+    "tool": "wz_tool.ps1",
+    "dataRoot": "C:\\Nexon\\Maple\\Data",
+    "node": "Map\\MapHelper.img\\mark\\Geardrak",
+    "width": 38,
+    "height": 38,
+    "sha256": "ac1f6c547b9e277b4e9033a148bcedc6cea7e586100eaad240c0dccbac0aae98",
+    "reference": "https://haru1sojae.kr/icons/Geardrak.png",
+    "referenceSha256": "2f41123d6b2b4f8cf03b2887b6efab13d3f360ced22ed474c26c3fde56732a20",
+    "rgbaExact": true,
+    "alphaExact": true,
+    "meanAbsRgba": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "sourceManifest": "outputs/icon-followup-2026-10-25/map-marks/manifest.json"
+  },
+  {
+    "asset": "public/experience-icons/epic-dungeon.png",
+    "tool": "wz_tool.ps1",
+    "dataRoot": "C:\\Nexon\\Maple\\Data",
+    "node": "Map\\MapHelper.img\\mark\\nightmareParadise",
+    "width": 38,
+    "height": 38,
+    "sha256": "1c10a94a5251191d34cdaec6042cde99d5b9c35fbf665c508c283c8bd36713bb",
+    "reference": "https://haru1sojae.kr/icons/NightmareParadise.png",
+    "referenceSha256": "065012d0db7ae7fcff91933aaf16732c8140eebf2fea63fb5b375e45080fbfee",
+    "rgbaExact": false,
+    "alphaExact": true,
+    "meanAbsRgba": [
+      5.274930747922438,
+      3.829639889196676,
+      7.373961218836565,
+      0.0
+    ],
+    "sourceManifest": "outputs/icon-followup-2026-10-25/map-marks/manifest.json"
+  },
+  {
+    "asset": "public/efficiency-icons/vip-sauna.png",
+    "tool": "wz_tool.ps1",
+    "dataRoot": "C:\\Nexon\\Maple\\Data",
+    "node": "Map\\MapHelper.img\\mark\\VIPSauna",
+    "width": 38,
+    "height": 38,
+    "sha256": "7cffe6f8e6518e52fd3923dbd67f9452d5a14ad1e71b8a3462315064944db1fb",
+    "reference": "https://haru1sojae.kr/icons/VipSauna.png",
+    "referenceSha256": "7cffe6f8e6518e52fd3923dbd67f9452d5a14ad1e71b8a3462315064944db1fb",
+    "rgbaExact": true,
+    "alphaExact": true,
+    "meanAbsRgba": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "sourceManifest": "outputs/icon-followup-2026-10-25/map-marks/manifest.json"
+  },
+  {
+    "asset": "public/experience-icons/extreme-park.png",
+    "label": "익몬 · 슈피겔만",
+    "tool": "wz_tool.ps1",
+    "dataRoot": "C:\\Nexon\\Maple\\Data",
+    "node": "Npc\\9071000.img\\stand\\0",
+    "width": 115,
+    "height": 86,
+    "sha256": "f0793aed05583ffd3cee659c345033368b6a378f1b0e864a0a3cc5383b91e54c",
+    "reference": "docs/research/owner-icon-refs-2026-10-25/spiegelmann.png",
+    "sourceManifest": "outputs/doping-breakeven/wz-confirmed/spiegelmann-monsterpark/manifest.json",
+    "comparison": "owner screenshot shows the same brown-hat Monster Park NPC; keep the unmodified WZ frame"
+  }
+]

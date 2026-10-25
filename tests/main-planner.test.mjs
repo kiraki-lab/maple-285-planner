@@ -2309,14 +2309,18 @@ test("전 출처의 레벨별EXP·획득%·시작끝 위치와 단계보상 연�
 });
 
 test('몬파 아이콘의 지역은 날짜 시작/끝이 아니라 실제 지급 직전 레벨로 연결한다',async()=>{
-  const {monsterParkRegion}=await import('../lib/experience-source-icons.mjs');
+  const {monsterParkRegion,experienceIcon}=await import('../lib/experience-source-icons.mjs');
   const x=rewardOnly('2026-10-23',284,99);
   x.routine.runsPerDay=1;
   const ctx={...createMainContext(),reqRaw:()=>100,routineRaw:()=>({monsterPark:10,grandis:0})};
   const day=simulateMain(x,ctx).rows[0];
   assert.equal(day.level,285);assert.equal(day.sourceLevels.monsterPark,284);
   assert.equal(monsterParkRegion(day.sourceLevels.monsterPark),'arteria');
-  for(const [level,region]of [[280,'arteria'],[284,'arteria'],[285,'carcion'],[289,'carcion'],[290,'tallahart'],[294,'tallahart'],[295,'geardrak'],[299,'geardrak']])assert.equal(monsterParkRegion(level),region);
+  assert.equal(experienceIcon('monsterPark',day.sourceLevels.monsterPark),'/experience-icons/monster-park-arteria.png');
+  for(const [level,region]of [[280,'arteria'],[284,'arteria'],[285,'carcion'],[289,'carcion'],[290,'tallahart'],[294,'tallahart'],[295,'geardrak'],[299,'geardrak']]){
+    assert.equal(monsterParkRegion(level),region);
+    assert.equal(experienceIcon('monsterPark',level),`/experience-icons/monster-park-${region}.png`);
+  }
 });
 
 test("옛 돋보기0~3개 입력은 하루1만마리 이상일 때 ca0ec4a의 마감 위치·단계·경험치를 유지한다", () => {
