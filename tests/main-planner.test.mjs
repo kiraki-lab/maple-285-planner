@@ -2132,6 +2132,19 @@ test("레벨 경계 보상은 단계30·31의 서로 다른 마릿수와 300 종
 });
 
 
+test("일일 안내는 시작 전 미래 계획·종료 후·무료 사용 선택을 구분한다", async () => {
+  const {dailyHuntDescription,dailyHuntStatus}=await import('../lib/main-planner.mjs');
+  const input=defaultMainInput('2026-10-21');input.routine.huntHoursPerWeek=0;
+  assert.match(dailyHuntDescription(input),/아직 시작 전/);
+  assert.match(dailyHuntStatus(input),/^10\/22부터의 계획/);
+  input.start='2026-10-22';assert.doesNotMatch(dailyHuntStatus(input),/부터의 계획/);
+  assert.match(dailyHuntStatus(input),/무료 돋보기 1개 받음/);
+  input.start='2026-11-19';assert.match(dailyHuntDescription(input),/종료/);
+  assert.equal(dailyHuntStatus(input),'이벤트 종료 · 무료 돋보기 없음 · 사냥 시간 추가 없음');
+  input.start='2026-11-18';input.routine.dailyTenThousand=false;input.routine.huntHoursPerWeek=4;input.magnifiers.detectiveFree=false;
+  assert.match(dailyHuntStatus(input),/무료 돋보기 없음/);
+});
+
 test("매일1만마리 선택은 부족한 일반 사냥과 EXP를 더하고 무료1개를 준다", () => {
   const x=rewardOnly('2026-10-23',293,0);
   x.routine.dailyTenThousand=true;

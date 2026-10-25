@@ -25,6 +25,7 @@ import {
   detectiveDailyPlan,
   DAILY_HUNT_LABEL,
   dailyHuntDescription,
+  dailyHuntStatus,
   FLAME_STOCK_CAP,
   FLAME_WEEKLY_ADD,
   flameModelRaw,
@@ -425,7 +426,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
       <div className="pb-daily-hunt">
         <Check label={DAILY_HUNT_LABEL} checked={input.routine.dailyTenThousand} onChange={value => upd((draft: MainInput) => { draft.routine.dailyTenThousand = value; })} />
         <p className="pb-note">{dailyHuntDescription(input, ctx)}</p>
-        <p className="pb-note" role="status" aria-live="polite">하루 {fmtInt(Math.floor(detective.huntKillsPerDay + 1e-9))}마리 사냥 · {detective.free ? "무료 돋보기 1개 받음" : "무료 돋보기 없음"}{detective.extraSessions > 0 ? ` · 하루 ${((detective.extraSessions * 30)).toFixed(1)}분 추가` : " · 사냥 시간 추가 없음"}</p>
+        <p className="pb-note" role="status" aria-live="polite">{dailyHuntStatus(input, ctx)}</p>
       </div>
       <div className="field-grid compact">
         <NumField label="몬스터파크 하루 판수" value={input.routine.runsPerDay} min={0} max={7} step={1} onChange={value => upd((draft: MainInput) => { draft.routine.runsPerDay = value; })} hint="무료 2판. 이용권·메이플포인트로 하루 7판까지" />
@@ -459,7 +460,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
       <p className="pb-note light">돋보기는 위 사냥 시간 외에 1개당 100초씩 추가로 사용한다고 계산합니다. 게임에서는 VIP·HEXA 부스터와 동시에 사용할 수 없습니다. 같은 사냥 시간 안에 사용할 계획이라면 돋보기의 주간 사용 시간을 위 사냥 시간에서 빼 주세요.</p>
         <Check label="일일 수집 미션 무료 돋보기 사용" checked={input.routine.dailyTenThousand || input.magnifiers.detectiveFree} disabled={input.routine.dailyTenThousand} onChange={value => upd((draft: MainInput) => { draft.magnifiers.detectiveFree=value; })} />
         <p className="pb-note">하루 1만 마리 이상 사냥하면 매일 1개를 받아요. 위 주간 사냥 시간을 7일로 나눠 세며, 플레임 처치는 뺍니다.</p>
-        <p className="pb-note" role="status" aria-live="polite">하루 {fmtInt(Math.floor(detective.huntKillsPerDay + 1e-9))}마리 사냥 · {detective.free ? "무료 돋보기 1개 받음" : "무료 돋보기 없음"}</p>
+        <p className="pb-note" role="status" aria-live="polite">{dailyHuntStatus(input, ctx)}</p>
       <div className="field-grid compact">
         <NumField label="탐정예티 돋보기 하루 구매 개수" value={Math.min(input.magnifiers.detectiveBoughtPerDay,detective.boughtMax)} min={0} max={detective.boughtMax} step={1} onChange={value => upd((draft: MainInput) => { draft.magnifiers.detectiveBoughtPerDay=value; })} hint={"무료·구매 합쳐 하루 최대 3개 · 구매는 최대 " + detective.boughtMax + "개"} />
         <NumField label="수상한 돋보기 하루 사용 횟수" value={input.magnifiers.ordinaryPerDay} min={0} max={10} step={1} onChange={value => upd((draft: MainInput) => { draft.magnifiers.ordinaryPerDay=value; })} hint="보유한 만큼 넣어 주세요 · 하루 최대 10개" />
