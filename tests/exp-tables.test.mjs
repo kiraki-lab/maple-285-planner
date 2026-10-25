@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import efficiencyFixture from "./exp-efficiency-fixture.json" with { type: "json" };
+import haruCrosscheck from "../docs/research/haru1sojae-crosscheck-2026-10-25.json" with { type: "json" };
 import { compareExpEfficiency, efficiencyDefaults } from "../lib/exp-efficiency.mjs";
 import { defaultMainInput } from "../lib/main-planner.mjs";
 import { monsterParkExperiencePercent } from "../lib/calculator-core.mjs";
@@ -35,6 +36,49 @@ import {
   WEEKLY_BOSS_LIMIT,
 } from "../lib/personal-data.mjs";
 import { bossCommunityPreset, bossEntry, bossLabel, bossPreset, bossRaw, couponRawForLevel, flameModelRaw, mobBaseExp } from "../lib/main-planner.mjs";
+
+test("10/25 공개 청크 정수와 전 레벨 아이템·몬파·최선 던전을 대조한다", () => {
+  const { tables } = haruCrosscheck;
+  const ctx = createMainContext();
+  for (let level = 260; level <= 299; level += 1) {
+    assert.equal(MOB_BASE_EXP[level], tables.n.value[level]);
+    for (const [type, key] of [["sauna", "l"], ["adv", "c"], ["blue", "eQ"]]) {
+      assert.equal(ctx.itemRaw(type, level), tables[key].value[level], `${level} ${type}`);
+    }
+    assert.equal(couponRawForLevel(level), tables.o.value[level]);
+    const zone = tables.Z.value[Math.floor((level - 260) / 5)].name;
+    for (const [sundayKind, sundayBonus] of [["none", 0], ["normal", 0.5], ["special", 3]]) {
+      const result = ctx.routineRaw({ level, runs: 7, sundayKind, grandis: false, monsterParkBonusPct: 50 });
+      assert.equal(result.monsterPark, tables.d.value[zone] * 7 * (1 + sundayBonus + 0.5));
+    }
+    const dungeon = level >= 290 ? "b" : level >= 280 ? "u" : level >= 270 ? "p" : "h";
+    for (const [stage, epicMult] of [[0, 1], [1, 5], [2, 9]]) {
+      assert.equal(ctx.weeklyRaw({ level, epicMult }).epic, tables[dungeon].value[level][`stage${stage}`]);
+    }
+    if (level >= 280) {
+      assert.equal(ctx.itemRaw("mech", level), tables.e_.value[level]);
+      assert.equal(ctx.itemRaw("crimson", level), tables.i.value[level]);
+    }
+    if (WEEKLY_CONTENT_RAW[level]) {
+      assert.equal(WEEKLY_CONTENT_RAW[level].sauna, tables.l.value[level]);
+      assert.equal(WEEKLY_CONTENT_RAW[level].epic, tables[dungeon].value[level].stage0);
+    }
+    if (POST_290_EFFICIENCY_RAW[level]) {
+      assert.equal(POST_290_EFFICIENCY_RAW[level].epic, tables[dungeon].value[level].stage0);
+      assert.equal(POST_290_EFFICIENCY_RAW[level].monsterParkPerRun, tables.d.value[zone]);
+    }
+  }
+});
+
+test("280 일과는 반올림된 퍼센트 역산을 제거하고 보유 아이템은 레벨 경계에서 새 정수를 쓴다", () => {
+  const ctx = createMainContext();
+  assert.equal(ctx.routineRaw({ level: 280, runs: 1, sundayKind: "none", grandis: false }).monsterPark, 107_204_032_000);
+  assert.equal(ctx.weeklyRaw({ level: 280, epicMult: 5 }).epic, 5_196_000_000_000);
+  const result = simulateItemInventoryConversion({ level: 269, exp: 99.999, inventory: { adv: 2 } });
+  assert.equal(result.level, 270);
+  assert.equal(result.totalRawExperience, 489_212_000 + 550_174_000);
+  assert.equal(result.used.adv, 2);
+});
 
 test("269용과279용 비약은 범위 밖에서 마지막 레벨 필요 경험치의 정확한 정수를 준다", () => {
   assert.equal(itemConversionRawExperience("potion269", 269), 2_438_047_518_853);

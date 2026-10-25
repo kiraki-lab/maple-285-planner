@@ -1,6 +1,5 @@
 // 경험치 표와 계산 보조 함수. 화면(app/)과 분리해 두어 테스트가 빌드 없이 바로 불러온다.
 // 출처: 하루1소재(haru1sojae.kr) 경험치 효율표·몬스터 기본 경험치·퍼스널 보스 표, 메이플로드, 넥슨 공식 공지.
-import { monsterParkExperiencePercent } from "./calculator-core.mjs";
 import { MOB_BASE_EXP } from "./personal-data.mjs";
 
 export type CustomRewardType = "adv" | "mech" | "crimson" | "blue" | "sauna" | "potion269" | "potion279";
@@ -74,16 +73,37 @@ const GEARDRAK_MONSTER_PARK_PER_RUN = 316_934_208_200;
 // https://mapleroad.kr/lib/exp_calculator?level=299&exp=0&flag_arcane=0&flag_grandis=0&flag_monster_park=0&flag_epic_dungeon=0&flag_add_exp=0
 // (각 레벨로 조회). 일퀘 전 지역 합계 370,429,319,424; API는 %만 공개하므로 정수 정밀도를 증명하지 않는다.
 export const WEEKLY_CONTENT_RAW: Record<number, { extreme: number; epic: number; sauna: number; adv1000: number }> = {
-  285: { extreme: 1_036_056_075_000, epic: 1_228_800_000_000, sauna: 370_542_408_480, adv1000: 914_168_000_000 },
-  286: { extreme: 1_048_127_520_000, epic: 1_243_000_000_000, sauna: 374_859_725_040, adv1000: 924_819_000_000 },
-  287: { extreme: 1_061_756_505_000, epic: 1_259_200_000_000, sauna: 379_734_091_200, adv1000: 936_844_000_000 },
-  288: { extreme: 1_075_469_130_000, epic: 1_275_400_000_000, sauna: 384_638_371_200, adv1000: 948_944_000_000 },
-  289: { extreme: 1_087_699_695_000, epic: 1_290_000_000_000, sauna: 389_012_597_280, adv1000: 959_736_000_000 },
-  290: { extreme: 1_222_296_090_000, epic: 1_449_600_000_000, sauna: 437_150_602_080, adv1000: 1_078_497_000_000 },
+  285: { extreme: 1_036_056_075_000, epic: 1_228_800_000_000, sauna: 370_542_388_320, adv1000: 914_168_000_000 },
+  286: { extreme: 1_048_127_520_000, epic: 1_243_000_000_000, sauna: 374_859_704_880, adv1000: 924_819_000_000 },
+  287: { extreme: 1_061_756_505_000, epic: 1_259_200_000_000, sauna: 379_734_071_040, adv1000: 936_844_000_000 },
+  288: { extreme: 1_075_469_130_000, epic: 1_275_400_000_000, sauna: 384_638_351_040, adv1000: 948_944_000_000 },
+  289: { extreme: 1_087_699_695_000, epic: 1_290_000_000_000, sauna: 389_012_576_400, adv1000: 959_736_000_000 },
+  290: { extreme: 1_222_296_090_000, epic: 2_174_400_000_000, sauna: 437_150_578_320, adv1000: 1_078_497_000_000 },
 };
-// 에픽 던전 1배 기준 경험치(하루1소재 에픽던전 표 stage0, 하이마운틴 환산). 던전별 배수: 악몽선경(280~289) 2, 아우룸 레기스(290~) 3.
+// 에픽 던전 1배 기준 경험치(하루1소재 에픽던전 표 stage0, 하이마운틴 환산).
+// 최선 던전 배수: 260~269 ×1, 270~279 ×1.5, 280~289 ×2, 290~299 ×3.
 // 290레벨부터는 아우룸 레기스가 최선이라 악몽선경 값에 1.5배가 붙는다. 보상 배수 5(= EXP 1단계, 기본 + 400% 추가)는 입력으로 곱한다.
 const EPIC_DUNGEON_BASE_RAW: Record<number, number> = {
+  260: 260_900_000_000,
+  261: 264_700_000_000,
+  262: 268_500_000_000,
+  263: 272_200_000_000,
+  264: 276_500_000_000,
+  265: 311_100_000_000,
+  266: 315_300_000_000,
+  267: 319_600_000_000,
+  268: 324_500_000_000,
+  269: 328_800_000_000,
+  270: 369_800_000_000,
+  271: 375_200_000_000,
+  272: 380_100_000_000,
+  273: 385_000_000_000,
+  274: 390_600_000_000,
+  275: 439_000_000_000,
+  276: 444_500_000_000,
+  277: 450_800_000_000,
+  278: 456_400_000_000,
+  279: 462_700_000_000,
   280: 519_600_000_000,
   281: 526_700_000_000,
   282: 533_000_000_000,
@@ -106,9 +126,9 @@ const EPIC_DUNGEON_BASE_RAW: Record<number, number> = {
   298: 883_500_000_000,
   299: 894_000_000_000,
 };
-export const epicDungeonBaseRaw = (level: number) => EPIC_DUNGEON_BASE_RAW[level] * (level >= 290 ? 3 : 2);
+export const epicDungeonBaseRaw = (level: number) => EPIC_DUNGEON_BASE_RAW[level] * (level >= 290 ? 3 : level >= 280 ? 2 : level >= 270 ? 1.5 : 1);
 export const monsterParkRawForLevel = (level: number, carcionActive = true, tallahartActive = true) =>
-  level >= 295 && tallahartActive ? GEARDRAK_MONSTER_PARK_PER_RUN : level >= 290 && tallahartActive ? TALLAHART_MONSTER_PARK_PER_RUN : level >= 285 && carcionActive ? CARCION_MONSTER_PARK_PER_RUN : ARTERIA_MONSTER_PARK_PER_RUN;
+  level >= 295 && tallahartActive ? GEARDRAK_MONSTER_PARK_PER_RUN : level >= 290 && tallahartActive ? TALLAHART_MONSTER_PARK_PER_RUN : level >= 285 && carcionActive ? CARCION_MONSTER_PARK_PER_RUN : level >= 280 ? ARTERIA_MONSTER_PARK_PER_RUN : pre280MonsterParkRawPerRun(level);
 export const grandisDailyRawForLevel = (level: number, carcionActive = true) => GRANDIS_DAILY_BASE
   + (level >= 285 && carcionActive ? GRANDIS_DAILY_CARCION : 0)
   + (level >= 290 ? GRANDIS_DAILY_TALLAHART : 0)
@@ -135,11 +155,11 @@ efficiency[290] = {
   mech: 2.2359,
 };
 export const POST_290_EFFICIENCY_RAW: Record<number, { sauna: number; adv100: number; blue: number; mech: number; epic: number; extreme: number; monsterParkPerRun: number }> = {
-  291: { sauna: 442_047_471_120, adv100: 107_849_700_000, blue: 2_180_965_564_800, mech: 6_653_978_073_600, epic: 1_465_800_000_000, extreme: 1_236_000_000_000, monsterParkPerRun: 218_575_316_000 },
-  292: { sauna: 447_592_430_880, adv100: 107_849_700_000, blue: 2_180_965_564_800, mech: 6_737_444_313_600, epic: 1_484_200_000_000, extreme: 1_251_400_000_000, monsterParkPerRun: 218_575_316_000 },
-  293: { sauna: 453_170_678_400, adv100: 107_849_700_000, blue: 2_180_965_564_800, mech: 6_821_411_625_600, epic: 1_502_800_000_000, extreme: 1_267_200_000_000, monsterParkPerRun: 218_575_316_000 },
-  294: { sauna: 458_142_355_440, adv100: 107_849_700_000, blue: 2_180_965_564_800, mech: 6_896_248_444_800, epic: 1_519_200_000_000, extreme: 1_281_100_000_000, monsterParkPerRun: 218_575_316_000 },
-  295: { sauna: 514_661_664_000, adv100: 107_849_700_000, blue: 2_180_965_564_800, mech: 7_747_012_416_000, epic: 1_519_200_000_000, extreme: 1_281_100_000_000, monsterParkPerRun: 218_575_316_000 },
+  291: { sauna: 442_047_471_120, adv100: 107_849_700_000, blue: 2_180_965_564_800, mech: 6_653_978_073_600, epic: 2_198_700_000_000, extreme: 1_236_000_000_000, monsterParkPerRun: 218_575_316_000 },
+  292: { sauna: 447_592_430_880, adv100: 107_849_700_000, blue: 2_180_965_564_800, mech: 6_737_444_313_600, epic: 2_226_300_000_000, extreme: 1_251_400_000_000, monsterParkPerRun: 218_575_316_000 },
+  293: { sauna: 453_170_678_400, adv100: 107_849_700_000, blue: 2_180_965_564_800, mech: 6_821_411_625_600, epic: 2_254_200_000_000, extreme: 1_267_200_000_000, monsterParkPerRun: 218_575_316_000 },
+  294: { sauna: 458_142_355_440, adv100: 107_849_700_000, blue: 2_180_965_564_800, mech: 6_896_248_444_800, epic: 2_278_800_000_000, extreme: 1_281_100_000_000, monsterParkPerRun: 218_575_316_000 },
+  295: { sauna: 514_661_664_000, adv100: 107_849_700_000, blue: 2_180_965_564_800, mech: 7_747_012_416_000, epic: 2_559_900_000_000, extreme: 1_281_100_000_000, monsterParkPerRun: 316_934_208_200 },
   // 296~299: https://haru1sojae.kr/_next/static/chunks/3pbsp2-ukxvfz.js (2026-10-10)
   // sauna=l, adv100=c×100, blue=eG, mech=eY, epic=b.stage0, monsterParkPerRun=d.Geardrak.
   // 익몬 정수 원본은 공개 청크에서 찾지 못했다. 기존 295 정수값을 유지하며 메이플로드 각 레벨 API의
@@ -257,11 +277,12 @@ const pre280Content: Record<number, Pre280Content> = {
   279: { daily: 0.8235, extreme: 4.6840, epic: 4.1667, arcaneWeekly: 0.0282 },
 };
 
+// 2026-10-25 하루1소재 22q2t3v1bf7hj.js d 정수 원본. % 반올림을 역산하지 않는다.
 const pre280MonsterParkRawPerRun = (level: number) => {
-  if (level >= 275) return 76_640_000_000;
-  if (level >= 270) return 52_819_000_000;
-  if (level >= 265) return 44_435_000_000;
-  return 37_475_000_000;
+  if (level >= 275) return 76_639_838_000;
+  if (level >= 270) return 52_818_835_200;
+  if (level >= 265) return 44_435_446_300;
+  return 37_474_604_460;
 };
 
 Object.keys(pre280Content).map(Number).forEach(level => {
@@ -295,10 +316,30 @@ export const itemConversionRequiredExperience = (level: number) => {
   return pre280Data[level]?.required || 0;
 };
 
-// 하루1소재 2026-10-12 공개 정수 표: 3pbsp2-ukxvfz.js 의 l(사우나 1시간), c(상급 EXP 1장).
-// https://haru1sojae.kr/_next/static/chunks/3pbsp2-ukxvfz.js
+// 하루1소재 2026-10-25 공개 정수 표: l(사우나 1시간), c(상급 EXP 1장).
+// https://haru1sojae.kr/_next/static/chunks/22q2t3v1bf7hj.js (UTF-8 byte 10243/11281)
 // 농장도 반올림된 퍼센트 대신 i/eY 정수와 일치하는 몬스터 수를 곱한다.
 const EXACT_ITEM_RAW: Record<number, { sauna: number; adv: number }> = {
+  260: { sauna: 157_362_035_040, adv: 388_229_000 },
+  261: { sauna: 159_626_439_360, adv: 393_816_000 },
+  262: { sauna: 161_894_491_920, adv: 399_411_000 },
+  263: { sauna: 164_178_504_720, adv: 405_046_000 },
+  264: { sauna: 166_750_891_920, adv: 411_393_000 },
+  265: { sauna: 187_596_018_720, adv: 462_820_000 },
+  266: { sauna: 190_171_962_720, adv: 469_175_000 },
+  267: { sauna: 192_757_756_320, adv: 475_554_000 },
+  268: { sauna: 195_678_344_880, adv: 482_760_000 },
+  269: { sauna: 198_293_778_720, adv: 489_212_000 },
+  270: { sauna: 223_003_778_400, adv: 550_174_000 },
+  271: { sauna: 226_297_922_400, adv: 558_301_000 },
+  272: { sauna: 229_243_408_560, adv: 565_568_000 },
+  273: { sauna: 232_208_776_800, adv: 572_884_000 },
+  274: { sauna: 235_561_014_720, adv: 581_154_000 },
+  275: { sauna: 264_755_774_880, adv: 653_181_000 },
+  276: { sauna: 268_092_964_800, adv: 661_414_000 },
+  277: { sauna: 271_868_097_600, adv: 670_728_000 },
+  278: { sauna: 275_240_491_200, adv: 679_048_000 },
+  279: { sauna: 279_046_084_320, adv: 688_437_000 },
   280: { sauna: 313_365_646_080, adv: 773_107_000 },
   281: { sauna: 317_641_739_760, adv: 783_656_000 },
   282: { sauna: 321_458_824_800, adv: 793_073_000 },
@@ -321,28 +362,40 @@ const EXACT_ITEM_RAW: Record<number, { sauna: number; adv: number }> = {
   299: { sauna: 539_191_363_200, adv: 1_078_497_000 },
 };
 
+// 하루1소재 eQ: 260~279는 레벨별 정수, 280부터 279 값으로 고정된다.
+const PRE280_BLUE_RAW: Record<number, number> = {
+  260: 819_939_067_200,
+  261: 831_737_808_000,
+  262: 843_555_556_800,
+  263: 855_456_465_600,
+  264: 868_859_956_800,
+  265: 977_474_044_800,
+  266: 990_896_068_800,
+  267: 1_004_369_414_400,
+  268: 1_019_587_219_200,
+  269: 1_033_215_004_800,
+  270: 1_742_950_677_600,
+  271: 1_768_697_013_600,
+  272: 1_791_718_315_200,
+  273: 1_814_895_007_200,
+  274: 1_841_095_396_800,
+  275: 2_069_275_507_200,
+  276: 2_095_358_284_800,
+  277: 2_124_863_928_000,
+  278: 2_151_221_846_400,
+  279: 2_180_965_564_800,
+};
+
 export const itemConversionRawExperience = (type: CustomRewardType, level: number) => {
   const required = itemConversionRequiredExperience(level);
   if (!required || !efficiency[level]) return 0;
   if (type === "potion269") return level <= 269 ? required : GROWTH_POTION_RAW.potion269;
   if (type === "potion279") return level <= 279 ? required : GROWTH_POTION_RAW.potion279;
-  if (level >= 280) {
-    if (type === "blue") return 2_180_965_564_800; // 하루1소재 eG: 280~299 고정 정수
-    if (type === "adv" || type === "sauna") return EXACT_ITEM_RAW[level][type];
-    if (type === "crimson") return (MOB_BASE_EXP as Record<number, number>)[level] * CRIMSON_FARM_MOBS;
-    if (type === "mech") return (MOB_BASE_EXP as Record<number, number>)[level] * (level < 285 ? 950_400 : level < 290 ? 1_267_200 : 1_372_800);
-  }
-  // 새 구간은 %로 바꿨다가 되돌리지 않고 공개 표의 정수를 그대로 사용한다.
-  if (level >= 296) {
-    const raw = POST_290_EFFICIENCY_RAW[level];
-    if (type === "adv") return raw.adv100 / 100;
-    if (type === "crimson") return (MOB_BASE_EXP as Record<number, number>)[level] * CRIMSON_FARM_MOBS;
-    return raw[type];
-  }
-  if (type === "adv") return required * efficiency[level].adv100 / 10_000;
-  if (type === "crimson") return level < 280 ? 0 : required * crimsonPercentForLevel(efficiency[level].mech, level) / 100;
-  if (type === "mech" && level < 280) return 0;
-  return required * efficiency[level][type] / 100;
+  if (type === "blue") return level < 280 ? PRE280_BLUE_RAW[level] : 2_180_965_564_800;
+  if (type === "adv" || type === "sauna") return EXACT_ITEM_RAW[level][type];
+  if (type === "crimson") return level < 280 ? 0 : (MOB_BASE_EXP as Record<number, number>)[level] * CRIMSON_FARM_MOBS;
+  if (type === "mech") return level < 280 ? 0 : (MOB_BASE_EXP as Record<number, number>)[level] * mechFarmMobsForLevel(level);
+  return 0;
 };
 
 export const itemConversionPercent = (type: CustomRewardType, level: number, amount = 1) => {
@@ -444,9 +497,7 @@ export const createMainContext = () => ({
   routineRaw: ({ level, runs, sundayKind, grandis, monsterParkBonusPct = 0 }: { level: number; runs: number; sundayKind: "none" | "normal" | "special"; grandis: boolean; monsterParkBonusPct?: number }) => {
     const sundayBonus = sundayKind === "special" ? 3 : sundayKind === "normal" ? 0.5 : 0;
     const required = itemConversionRequiredExperience(level);
-    const monsterPark = level >= 285
-      ? monsterParkRawForLevel(level, true, true) * runs * (1 + sundayBonus + monsterParkBonusPct / 100)
-      : required * monsterParkExperiencePercent({ baseSevenRunPercent: efficiency[level].mp7, runs, contentBonusPercent: monsterParkBonusPct, sundayKind }) / 100;
+    const monsterPark = monsterParkRawForLevel(level, true, true) * runs * (1 + sundayBonus + monsterParkBonusPct / 100);
     const grandisRaw = !grandis ? 0 : level >= 285 ? grandisDailyRawForLevel(level, true) : required * efficiency[level].grandis / 100;
     return { monsterPark, grandis: grandisRaw };
   },
@@ -454,7 +505,7 @@ export const createMainContext = () => ({
     if (level >= 291) return { extreme: POST_290_EFFICIENCY_RAW[level].extreme, epic: epicDungeonBaseRaw(level) * epicMult };
     if (level >= 285) return { extreme: WEEKLY_CONTENT_RAW[level].extreme, epic: epicDungeonBaseRaw(level) * epicMult };
     const required = itemConversionRequiredExperience(level);
-    return { extreme: required * efficiency[level].extreme / 100, epic: required * efficiency[level].epic / 100 * epicMult };
+    return { extreme: required * efficiency[level].extreme / 100, epic: epicDungeonBaseRaw(level) * epicMult };
   },
   itemRaw: (type: string, level: number) => itemConversionRawExperience(type as CustomRewardType, level),
   plusReward: (level: number, tier: MomentumTier) => {
