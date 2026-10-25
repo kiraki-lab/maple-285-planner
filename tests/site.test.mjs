@@ -441,3 +441,15 @@ test("서버 화면에 무료 탐정 돋보기 자격·구매 한도와 구분�
   for(const label of ['일일 수집 미션 무료 돋보기 사용','하루 1만 마리 이상 사냥하면 매일 1개를 받아요','무료 돋보기 1개 받음','탐정예티 돋보기 하루 구매 개수','구매는 최대 2개','10,971'])assert.ok(html.includes(label),label);
   assert.doesNotMatch(html,/탐정예티 돋보기 하루 사용 횟수/);
 });
+
+test("매일1만마리 선택은 일과 입력에서 기본 켬이고 기간 무료 개수와 경험치가 보인다", async () => {
+  const html=await renderBuiltSsrHtml('daily-10000');
+  const {DAILY_HUNT_LABEL}=await import('../lib/main-planner.mjs');
+  const plain=html.replaceAll('<!-- -->','');
+  assert.ok(plain.includes(DAILY_HUNT_LABEL));
+  assert.match(html.slice(html.indexOf('class="pb-daily-hunt"'),html.indexOf('class="pb-daily-hunt"')+500),/checked=""/);
+  assert.ok(plain.includes('하루 1만 마리 ≈ 31분(30분당 9,600마리 기준)'));
+  assert.match(plain,/탐정 돋보기 무료 28개\(기간 합계\) · 경험치/);
+  const panel=await read('app/exp-efficiency-panel.tsx');
+  assert.match(panel,/DAILY_HUNT_LABEL/);assert.match(panel,/dailyHuntDescription\(input\)/);
+});

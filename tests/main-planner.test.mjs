@@ -324,6 +324,7 @@ test("입력한 보상이 표와 크게 다르면 입력값 쪽으로 맞추고 
 
 const baseInput = (patch = {}) => {
   const input = defaultMainInput("2026-10-04");
+  input.routine.dailyTenThousand = false; // 이 묶음은 기존 일과량을 고정해 다른 현상만 검사한다.
   input.plusOctober.enabled = false; input.magnifiers.detectiveFree = false;
   // 이 묶음의 테스트는 교환권이 쌓이는 배분(EXP 3)을 전제로 한다. 기본값은 조각 3이다.
   return { ...input, ...patch, personal: { ...input.personal, ...(patch.personal || {}), flame: { ...input.personal.flame, alloc: { shard: 0, exp: 3, erda: 0 }, ...(patch.personal?.flame || {}) } } };
@@ -618,6 +619,7 @@ test("깨진 입력은 안전한 값으로 바로잡거나 무시한다", () => 
 // 일과·PLUS·사냥을 꺼서 한 가지 현상만 보는 입력.
 const isolated = () => {
   const x = defaultMainInput("2026-10-04");
+  x.routine.dailyTenThousand = false;
   x.end = x.start;
   Object.assign(x.routine, { runsPerDay: 0, grandis: false, extreme: false, epic: false, todayPending: false });
   x.plus.enabled = false; x.plusOctober.enabled = false; x.magnifiers.detectiveFree = false;
@@ -2130,8 +2132,76 @@ test("레벨 경계 보상은 단계30·31의 서로 다른 마릿수와 300 종
 });
 
 
+test("매일1만마리 선택은 부족한 일반 사냥과 EXP를 더하고 무료1개를 준다", () => {
+  const x=rewardOnly('2026-10-23',293,0);
+  x.routine.dailyTenThousand=true;
+  Object.assign(x.routine,{huntFieldKey:'direct',huntFieldLevel:294,huntBonusPct:300});
+  Object.assign(x.magnifiers,{detectiveFree:false,fieldKey:'direct',fieldLevel:294,detectiveBoughtPerDay:3});
+  const ctx={...createMainContext(),huntRaw:()=>100e9};
+  const r=simulateMain(x,ctx);
+  assert.ok(Math.abs(r.sourceRaw.hunt-100e9*4*10000/9600)<1);
+  assert.equal(r.sourceRaw.detectiveFreeMagnifier,763_570_632_000);
+  assert.equal(r.sourceRaw.detectiveBoughtMagnifier,1_527_141_264_000);
+  assert.equal(r.magnifiers.free,1); assert.equal(r.magnifiers.bought,2);
+  assert.equal(r.magnifiers.freeRaw,r.sourceRaw.detectiveFreeMagnifier);
+  assert.ok(Math.abs(r.hunting.extraHours-10000/9600/2)<1e-12);
+  assert.equal(x.routine.huntHoursPerWeek,0,'계획된 부족분은 원래 입력을 덮어쓰지 않는다');
+  x.routine.dailyTenThousand=false;
+  const off=simulateMain(x,ctx);
+  assert.equal(off.sourceRaw.hunt||0,0);assert.equal(off.magnifiers.free,0);assert.equal(off.magnifiers.bought,3);
+});
+
+test("1만마리 보충은 마릿수에 따라 시간이 달라지고 실측EXP에 추경을 다시 곱하지 않는다", () => {
+  const x=rewardOnly('2026-10-23',293,0);
+  Object.assign(x.routine,{dailyTenThousand:true,huntHoursPerWeek:3.5,huntMeasuredEokPer30Min:1000,huntBonusPct:3000});
+  const ctx={...createMainContext(),huntKillsPer30Min:7000};
+  const r=simulateMain(x,ctx);
+  assert.ok(Math.abs(r.sourceRaw.hunt-100e9*10000/7000)<1);
+  assert.ok(Math.abs(r.hunting.extraHours-(10000/7000-1)/2)<1e-12);
+  assert.equal(r.magnifiers.free,1);
+  x.routine.huntHoursPerWeek=7;
+  const enough=simulateMain(x,ctx);
+  assert.equal(enough.hunting.extraHours,0);assert.equal(enough.sourceRaw.hunt,200e9);
+});
+
+test("1만마리 보충과 무료 합계는 이벤트 경계·오늘 완료·300상한을 지킨다", () => {
+  const ctx={...createMainContext(),huntRaw:()=>100e9};
+  const x=rewardOnly('2026-10-21',293,0);x.routine.dailyTenThousand=true;x.end='2026-10-23';
+  const r=simulateMain(x,ctx);
+  assert.equal(r.magnifiers.free,2);assert.ok(Math.abs(r.hunting.extraHours-10000/9600)<1e-12);
+  x.start='2026-11-18';x.end='2026-11-19';x.routine.todayPending=false;
+  const skipped=simulateMain(x,ctx);assert.equal(skipped.magnifiers.free,0);assert.equal(skipped.hunting.hours,0);
+  x.routine.todayPending=true;
+  assert.equal(simulateMain(x,ctx).magnifiers.free,1);
+  x.start=x.end='2026-10-23';x.level=299;x.exp=99.999;
+  const cap=simulateMain(x,ctx);assert.equal(cap.level,300);assert.equal(cap.magnifiers.free,0);assert.equal(cap.magnifiers.freeRaw,0);
+  assert.ok(cap.hunting.hours<10000/9600/2,'레벨 상한 후 사냥 시간은 쓰지 않는다');
+  const ghostCap=simulateMain(x,{...ctx,huntRaw:()=>1e-20});
+  assert.equal(ghostCap.magnifiers.free,1);assert.ok(Math.abs(ghostCap.magnifiers.freeRaw-17_377_598_540.25)<1);
+});
+
+test("새 방문은1만마리 켬이고 기존 저장·직접 호출의 결과는 명시적으로 끈 값과 같다", async () => {
+  const {mergeSaved,parseSaved,serializeSaved}=await import('../lib/saved-input.mjs');
+  assert.equal(defaultMainInput('2026-10-09').routine.dailyTenThousand,true);
+  const ctx=createMainContext();
+  for(const hours of [0,2,4]){
+    const old=rewardOnly('2026-10-23',287,20.162);old.routine.huntHoursPerWeek=hours;
+    delete old.routine.dailyTenThousand;old.magnifiers.detectiveFree=true;
+    const restored=mergeSaved(old,'2026-10-25');
+    assert.equal(restored.routine.dailyTenThousand,false);
+    restored.end=old.end; // end는 시험 전용 필드라 저장 복원에서 제거한다.
+    const a=simulateMain(old,ctx),b=simulateMain(restored,ctx);
+    assert.equal(a.level,b.level);assert.equal(a.exp,b.exp);assert.deepEqual(a.sourceRaw,b.sourceRaw);
+    for(const selected of [true,false]){
+      restored.routine.dailyTenThousand=selected;
+      assert.equal(parseSaved(serializeSaved(restored),'2026-10-26').routine.dailyTenThousand,selected);
+    }
+  }
+});
+
 test("무료 탐정 돋보기는 일반 사냥 하루10000마리 경계를 쓰고 30분 실측과 무관하다", () => {
   const x=defaultMainInput('2026-10-23');
+  x.routine.dailyTenThousand=false; // 시간으로만 판정하는 기존 경로.
   assert.equal(detectiveDailyPlan(x,createMainContext()).free,1);
   assert.ok(Math.abs(detectiveDailyPlan(x,createMainContext()).huntKillsPerDay-10971.42857142857)<1e-8);
   x.routine.huntHoursPerWeek=2;assert.equal(detectiveDailyPlan(x,createMainContext()).free,0);

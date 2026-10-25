@@ -23,6 +23,8 @@ import {
   couponRawForLevel,
   diffDays,
   detectiveDailyPlan,
+  DAILY_HUNT_LABEL,
+  dailyHuntDescription,
   FLAME_STOCK_CAP,
   FLAME_WEEKLY_ADD,
   flameModelRaw,
@@ -91,8 +93,8 @@ function NumField({ label, value, onChange, step, min, max, hint, disabled }: { 
   </label>;
 }
 
-function Check({ label, checked, onChange }: { label: string; checked: boolean; onChange: (value: boolean) => void }) {
-  return <label className="pb-check"><input type="checkbox" checked={checked} onChange={event => onChange(event.target.checked)} /><span>{label}</span></label>;
+function Check({ label, checked, onChange, disabled = false }: { label: string; checked: boolean; onChange: (value: boolean) => void; disabled?: boolean }) {
+  return <label className="pb-check"><input type="checkbox" checked={checked} disabled={disabled} onChange={event => onChange(event.target.checked)} /><span>{label}</span></label>;
 }
 
 // 버튼 줄에서 좌우 방향키로 옆 버튼으로 옮겨 가며 고른다.
@@ -420,11 +422,16 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
 
       </div>
       <div className="pb-pane" role="tabpanel" id="pb-pane-s5" aria-labelledby="pb-tab-s5" hidden={sec !== "s5"}>
+      <div className="pb-daily-hunt">
+        <Check label={DAILY_HUNT_LABEL} checked={input.routine.dailyTenThousand} onChange={value => upd((draft: MainInput) => { draft.routine.dailyTenThousand = value; })} />
+        <p className="pb-note">{dailyHuntDescription(input, ctx)}</p>
+        <p className="pb-note" role="status" aria-live="polite">하루 {fmtInt(Math.floor(detective.huntKillsPerDay + 1e-9))}마리 사냥 · {detective.free ? "무료 돋보기 1개 받음" : "무료 돋보기 없음"}{detective.extraSessions > 0 ? ` · 하루 ${((detective.extraSessions * 30)).toFixed(1)}분 추가` : " · 사냥 시간 추가 없음"}</p>
+      </div>
       <div className="field-grid compact">
         <NumField label="몬스터파크 하루 판수" value={input.routine.runsPerDay} min={0} max={7} step={1} onChange={value => upd((draft: MainInput) => { draft.routine.runsPerDay = value; })} hint="무료 2판. 이용권·메이플포인트로 하루 7판까지" />
         <NumField label="일요일 판수" value={input.routine.sundayRuns} min={0} max={7} step={1} onChange={value => upd((draft: MainInput) => { draft.routine.sundayRuns = value; })} hint="일요일은 경험치 1.5배. 일요일만 7판 돌면 7" />
         <label className="field"><span>에픽 던전 보상 배수</span><select value={input.routine.epicMult} onChange={event => upd((draft: MainInput) => { draft.routine.epicMult = Number(event.target.value); })}><option value={1}>보너스 없음 (1배 · 0 메이플포인트)</option><option value={5}>EXP 1단계 (합 5배, 흔히 4배 · {fmtInt(epicStage1.maplePoint)} 메이플포인트)</option><option value={9}>EXP 2단계 (합 9배, 흔히 8배 · {fmtInt(epicStage1.maplePoint * 4)} 메이플포인트)</option></select></label>
-        <NumField label="주간 사냥 시간" value={input.routine.huntHoursPerWeek} min={0} max={168} step={0.5} onChange={value => upd((draft: MainInput) => { draft.routine.huntHoursPerWeek = value; })} hint="시간. 위에서 고른 사냥터 기준. 0이면 사냥 없음" />
+        <NumField label="주간 사냥 시간" value={input.routine.huntHoursPerWeek} min={0} max={168} step={0.5} onChange={value => upd((draft: MainInput) => { draft.routine.huntHoursPerWeek = value; })} hint={input.routine.dailyTenThousand ? "시간. 10/22~11/18은 하루 1만 마리에 부족한 만큼 더 사냥" : "시간. 위에서 고른 사냥터 기준. 0이면 사냥 없음"} />
         <label className="field"><span>평소 사냥터 몬스터</span><select value={input.routine.huntFieldKey} onChange={event => upd((draft: MainInput) => { draft.routine.huntFieldKey = event.target.value; if (event.target.value === "direct" && !draft.routine.huntFieldLevel) draft.routine.huntFieldLevel = startLevel; })}><option value="flame">플레임과 같게</option><option value="same">내 레벨 몬스터 (레벨업하면 따라감)</option><option value="direct">몬스터 레벨 직접 입력</option></select></label>
         {input.routine.huntFieldKey === "direct" && <NumField label="평소 사냥터 몬스터 레벨" value={input.routine.huntFieldLevel || startLevel} min={260} max={299} step={1} onChange={value => upd((draft: MainInput) => { draft.routine.huntFieldLevel = value; })} hint="260~299 · 플레임 사냥터는 바뀌지 않음" />}
         <NumField label="사냥 추가 경험치 %" value={input.routine.huntBonusPct} min={0} max={3000} step={10} onChange={value => upd((draft: MainInput) => { draft.routine.huntBonusPct = value; })} hint="룬·경험치 쿠폰·버프·가호 합계. 0이면 순수 경험치" />
@@ -450,7 +457,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
       </div>
       <details className="pb-more"><summary>탐정예티와 수상한 돋보기 · 10/22~11/18</summary>
       <p className="pb-note light">돋보기는 위 사냥 시간 외에 1개당 100초씩 추가로 사용한다고 계산합니다. 게임에서는 VIP·HEXA 부스터와 동시에 사용할 수 없습니다. 같은 사냥 시간 안에 사용할 계획이라면 돋보기의 주간 사용 시간을 위 사냥 시간에서 빼 주세요.</p>
-        <Check label="일일 수집 미션 무료 돋보기 사용" checked={input.magnifiers.detectiveFree} onChange={value => upd((draft: MainInput) => { draft.magnifiers.detectiveFree=value; })} />
+        <Check label="일일 수집 미션 무료 돋보기 사용" checked={input.routine.dailyTenThousand || input.magnifiers.detectiveFree} disabled={input.routine.dailyTenThousand} onChange={value => upd((draft: MainInput) => { draft.magnifiers.detectiveFree=value; })} />
         <p className="pb-note">하루 1만 마리 이상 사냥하면 매일 1개를 받아요. 위 주간 사냥 시간을 7일로 나눠 세며, 플레임 처치는 뺍니다.</p>
         <p className="pb-note" role="status" aria-live="polite">하루 {fmtInt(Math.floor(detective.huntKillsPerDay + 1e-9))}마리 사냥 · {detective.free ? "무료 돋보기 1개 받음" : "무료 돋보기 없음"}</p>
       <div className="field-grid compact">
@@ -515,6 +522,8 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
           <article className="pb-card"><span>성장 미션</span><strong>{r.mission.stepsCleared}/{MISSION_STEPS}단계</strong><em>{coinGap > 0 ? `30단계보다 ${fmtInt(coinGap)}코인 적음` : "30,000코인 전부"} · 앞으로 받을 코인 {fmtInt(r.mission.coins)}개</em></article>
           <article className="pb-card"><span>플레임에서 받을 조각</span><strong>{Math.floor(r.flame.shardFragments + 1e-9).toLocaleString("ko-KR")}개</strong><em>플레임 {fmtInt(r.flame.killed)}마리 · 교환권 {fmtInt(r.coupons.used)}장 · 코인샵 조각은 별도</em></article>
         </div>
+
+        <p className="pb-note pb-detective-total" role="status">탐정 돋보기 무료 {fmtInt(r.magnifiers.free)}개(기간 합계) · 경험치 {fmtJo(r.magnifiers.freeRaw, 3)} ({fmtEok(r.magnifiers.freeRaw)} EXP){r.hunting.extraHours > 0 ? ` · 추가 일반 사냥 ${r.hunting.extraHours.toFixed(2)}시간` : ""}</p>
 
         {advices.length > 0 && <div className="pb-advice" aria-label="확인할 것">{advices.map((advice, index) => <p key={index} className={advice.tone}>{advice.text}</p>)}</div>}
 

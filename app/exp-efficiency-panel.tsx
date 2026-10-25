@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { compareExpEfficiency, efficiencyDefaults } from "@/lib/exp-efficiency.mjs";
-import { detectiveDailyPlan } from "@/lib/main-planner.mjs";
+import { DAILY_HUNT_LABEL, dailyHuntDescription, detectiveDailyPlan } from "@/lib/main-planner.mjs";
 import type { MainInput } from "./use-main-input";
 
 const number = (value: number, digits = 0) => value.toLocaleString("ko-KR", { maximumFractionDigits: digits });
@@ -50,7 +50,7 @@ export default function ExpEfficiencyPanel({ input }: { input: MainInput }) {
         <p>아래 가격 이하면 같은 경험치를 더 싸게 받아요.</p>
         <dl>{row.thresholds.map(ref => <div key={ref.id}><dt>{ref.label}</dt><dd>{ref.price < 0 ? "기준 상품에서 메소가 남아요" : meso(Math.floor(ref.price))}</dd>
           {ref.verdict && <p>지금 시세로는 {ref.label}{ref.verdict === "같아요" ? "와 가격이 같아요" : `보다 ${ref.verdict}`}</p>}</div>)}</dl>
-        <p>{row.id === "detective" ? `하루 1만 마리 사냥하면 매일 1개 무료 · 지금 사냥량은 하루 ${number(Math.floor(daily.huntKillsPerDay))}마리, ${daily.free ? "무료 1개를 받아요" : "무료를 받지 못해요"}. 메이플ID당 하루 3개까지 써요.` : "캐릭터당 하루 10개까지 써요."}</p>
+        <p>{row.id === "detective" ? `${DAILY_HUNT_LABEL}: ${input.routine.dailyTenThousand ? "켬" : "끔"}. ${dailyHuntDescription(input)} 지금 계획은 하루 ${number(Math.floor(daily.huntKillsPerDay))}마리, ${daily.free ? "무료 1개를 써요" : "무료를 쓰지 않아요"}. 메이플ID당 하루 3개까지 써요.` : "캐릭터당 하루 10개까지 써요."}</p>
       </article>)}</div>
       {result.rows.find(row => row.id === "epic1")!.costMeso! <= 0 && <p>에픽 1단계는 주화 판매액이 비용 이상이라 배수 비교를 표시하지 않아요.</p>}
     </>}

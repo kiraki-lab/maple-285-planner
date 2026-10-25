@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+.pb-daily-hunt { margin-bottom: 18px; padding: 14px; border: 1px solid #b7cbea; border-radius: 12px; background: #f1f6ff; }
+.pb-daily-hunt .pb-check { font-weight: 700; }
+.pb-daily-hunt .pb-note { margin-bottom: 0; }
+.pb-detective-total { padding: 10px 0; }
+
 :root {
   --ink: #11121a;
   --paper: #f4f2ec;
