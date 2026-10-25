@@ -81,6 +81,15 @@ test("280 일과는 반올림된 퍼센트 역산을 제거하고 보유 아이�
   assert.equal(result.used.adv, 2);
 });
 
+test("사냥30분은 하루 정본의240젠·40마리·몬스터기본·레벨차·추경과 전 레벨 일치한다", () => {
+  const ctx=createMainContext(),table=haruCrosscheck.tables.n.value;
+  for(let level=280;level<=299;level++)for(let field=Math.max(260,level-5);field<=Math.min(299,level+5);field++)for(const bonus of [0,300]){
+    const factor=haruCrosscheck.rows.find(row=>row.group==='레벨 차 보정'&&row.name===`캐릭터−몬스터 ${level-field}`).haru;
+    const expected=240*40*table[field]*factor*(1+bonus/100);
+    assert.equal(ctx.huntRaw({level,fieldLevel:field})*(1+bonus/100),expected);
+  }
+});
+
 test("269용과279용 비약은 범위 밖에서 마지막 레벨 필요 경험치의 정확한 정수를 준다", () => {
   assert.equal(itemConversionRawExperience("potion269", 269), 2_438_047_518_853);
   assert.equal(itemConversionRawExperience("potion269", 270), 2_438_047_518_853);

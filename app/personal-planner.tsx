@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import DailyExperience from "./daily-experience";
+import { EXPERIENCE_SOURCE_LABELS, dailyExperienceBreakdown } from "@/lib/experience-breakdown.mjs";
 import {
   addDay,
   analyzeMain, normalizeInput,
@@ -114,7 +116,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
   // 사용 시점도 캐릭터 입력과 함께 저장한다. 접힌 패널이나 새로고침으로 초기화하지 않는다.
   const { crimsonPlan, couponPlan, rewardHold } = normalizeInput(input, ctx);
   const [sec, setSec] = useState("s0");
-  const [resPick, setResPick] = useState("r2");
+  const [resPick, setResPick] = useState("r6");
   const setResTab = setResPick;
   const [bossCutoff, setBossCutoff] = useState("");
   const [bossPickMode, setBossPickMode] = useState<"single" | "cutoff">("single");
@@ -169,19 +171,10 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
 
   const shortfall = r.mission.shortfall as { index: number; level: number; exp: number; remainingRaw: number } | null;
   const allocTotal = flame.alloc.shard + flame.alloc.exp + flame.alloc.erda;
-  const sourceRows = (Object.entries(r.sourceRaw) as [string, number][])
-    .map(([id, raw]) => ({ id, raw }))
-    .filter(row => row.raw > 0)
-    .sort((a, b) => b.raw - a.raw);
-  const sourceLabels: Record<string, string> = {
-    monsterPark: "몬스터파크", grandis: "그란디스 일퀘", extreme: "익스트림 몬파(주간)", epic: "에픽 던전(주간)", routine: "일과(직접 입력)", weekly: "주간 컨텐츠(직접 입력)",
-    flame: "퍼스널 플레임", coupon: "퍼스널 EXP 교환권", boss: "퍼스널 보스 미션", missionReward: "성장 미션 단계 보상",
-    crimson: "크림슨 메카베리", adv: "상급 EXP 교환권", sauna: "VIP 사우나", blue: "블루베리", mech: "메카베리", potion: "성장의 비약",
-    detectiveFreeMagnifier: "무료 탐정예티 돋보기", detectiveBoughtMagnifier: "구매 탐정예티 돋보기", ordinaryMagnifier: "수상한 돋보기",
-    hunt: "사냥", coupon4x: "경험치 4배 쿠폰(PLUS)", booster: "VIP 부스터(PLUS)",
-    compensationAdv: "상급 EXP(사과 보상)", compensationBooster: "VIP 부스터(사과 보상)",
-    attendanceAdv: "상급 EXP(출석·보유)", attendanceSauna: "VIP 사우나(출석·보유)", attendanceBooster: "VIP 부스터(출석·보유)", attendancePotion269: "성장의 비약(200~269)", attendancePotion279: "성장의 비약(200~279)",
-  };
+  const breakdown = dailyExperienceBreakdown(r.rows, r.sourceRaw);
+  const periodSources = breakdown.period;
+  const sourceRows = periodSources.entries.sort((a, b) => b.raw - a.raw);
+  const sourceLabels: Record<string, string> = EXPERIENCE_SOURCE_LABELS;
   const totalRaw = sourceRows.reduce((sum, row) => sum + row.raw, 0) || 1;
 
   const advices: { tone: "warn" | "info"; text: string }[] = [];
@@ -261,7 +254,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
         <button type="button" role="tab" id="pb-tab-s2" aria-controls="pb-pane-s2" tabIndex={sec === "s2" ? 0 : -1} onKeyDown={tabKeys} aria-selected={sec === "s2"} className={sec === "s2" ? "on" : ""} onClick={() => setSec("s2")}><b>패스</b><small>{octoberPeriod ? "10월" : "9월"} · {activePass.enabled ? ({ free: "무료", premium: "프리미엄", prime: "프라임" } as Record<string, string>)[activePassTier] : "참여 안 함"}</small></button>
         <button type="button" role="tab" id="pb-tab-s3" aria-controls="pb-pane-s3" tabIndex={sec === "s3" ? 0 : -1} onKeyDown={tabKeys} aria-selected={sec === "s3"} className={sec === "s3" ? "on" : ""} onClick={() => setSec("s3")}><b>보유 보상</b><small>출석 · 사과 보상</small></button>
         <button type="button" role="tab" id="pb-tab-s4" aria-controls="pb-pane-s4" tabIndex={sec === "s4" ? 0 : -1} onKeyDown={tabKeys} aria-selected={sec === "s4"} className={sec === "s4" ? "on" : ""} onClick={() => setSec("s4")}><b>보스</b><small>{`${Math.min(bosses.length, WEEKLY_BOSS_LIMIT)}/${WEEKLY_BOSS_LIMIT}마리 · 주 ${fmtJo(weeklyBossRaw, 2)}`}</small></button>
-        <button type="button" role="tab" id="pb-tab-s5" aria-controls="pb-pane-s5" tabIndex={sec === "s5" ? 0 : -1} onKeyDown={tabKeys} aria-selected={sec === "s5"} className={sec === "s5" ? "on" : ""} onClick={() => setSec("s5")}><b>일과·사냥</b><small>{`몬파 ${input.routine.runsPerDay}판 · 에픽 ${input.routine.epic ? input.routine.epicMult : 0}배 · 사냥 주 ${input.routine.huntHoursPerWeek}시간`}</small></button>
+        <button type="button" role="tab" id="pb-tab-s5" aria-controls="pb-pane-s5" tabIndex={sec === "s5" ? 0 : -1} onKeyDown={tabKeys} aria-selected={sec === "s5"} className={sec === "s5" ? "on" : ""} onClick={() => setSec("s5")}><b>일과·사냥</b><small>{`몬파 ${input.routine.runsPerDay}판 · 에픽 ${input.routine.epic ? input.routine.epicMult : 0}배 · 사냥 하루30분 × ${(input.routine.huntHoursPerWeek * 2 / 7).toLocaleString("ko-KR", { maximumFractionDigits: 4 })}회`}</small></button>
         <button type="button" role="tab" id="pb-tab-s6" aria-controls="pb-pane-s6" tabIndex={sec === "s6" ? 0 : -1} onKeyDown={tabKeys} aria-selected={sec === "s6"} className={sec === "s6" ? "on" : ""} onClick={() => setSec("s6")}><b>플레임</b><small>{`조각 ${flame.alloc.shard} · EXP ${flame.alloc.exp}${flame.alloc.erda ? ` · 솔 에르다 ${flame.alloc.erda}` : ""}`}</small></button>
         <button type="button" role="tab" id="pb-tab-s7" aria-controls="pb-pane-s7" tabIndex={sec === "s7" ? 0 : -1} onKeyDown={tabKeys} aria-selected={sec === "s7"} className={sec === "s7" ? "on" : ""} onClick={() => setSec("s7")}><b>사용 시점</b><small>{"바꿀 때만"}</small></button>
       </div>
@@ -432,7 +425,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
         <NumField label="몬스터파크 하루 판수" value={input.routine.runsPerDay} min={0} max={7} step={1} onChange={value => upd((draft: MainInput) => { draft.routine.runsPerDay = value; })} hint="무료 2판. 이용권·메이플포인트로 하루 7판까지" />
         <NumField label="일요일 판수" value={input.routine.sundayRuns} min={0} max={7} step={1} onChange={value => upd((draft: MainInput) => { draft.routine.sundayRuns = value; })} hint="일요일은 경험치 1.5배. 일요일만 7판 돌면 7" />
         <label className="field"><span>에픽 던전 보상 배수</span><select value={input.routine.epicMult} onChange={event => upd((draft: MainInput) => { draft.routine.epicMult = Number(event.target.value); })}><option value={1}>보너스 없음 (1배 · 0 메이플포인트)</option><option value={5}>EXP 1단계 (합 5배, 흔히 4배 · {fmtInt(epicStage1.maplePoint)} 메이플포인트)</option><option value={9}>EXP 2단계 (합 9배, 흔히 8배 · {fmtInt(epicStage1.maplePoint * 4)} 메이플포인트)</option></select></label>
-        <NumField label="주간 사냥 시간" value={input.routine.huntHoursPerWeek} min={0} max={168} step={0.5} onChange={value => upd((draft: MainInput) => { draft.routine.huntHoursPerWeek = value; })} hint={input.routine.dailyTenThousand ? "시간. 10/22~11/18은 하루 1만 마리에 부족한 만큼 더 사냥" : "시간. 위에서 고른 사냥터 기준. 0이면 사냥 없음"} />
+        <NumField label="하루 사냥 30분 × 횟수" value={input.routine.huntHoursPerWeek * 2 / 7} min={0} max={48} step={0.25} onChange={value => upd((draft: MainInput) => { draft.routine.huntHoursPerWeek = value * 7 * 0.5; })} hint="기본 하루 1회 · 소수 입력 가능. 0이면 일반 사냥 없음" />
         <label className="field"><span>평소 사냥터 몬스터</span><select value={input.routine.huntFieldKey} onChange={event => upd((draft: MainInput) => { draft.routine.huntFieldKey = event.target.value; if (event.target.value === "direct" && !draft.routine.huntFieldLevel) draft.routine.huntFieldLevel = startLevel; })}><option value="flame">플레임과 같게</option><option value="same">내 레벨 몬스터 (레벨업하면 따라감)</option><option value="direct">몬스터 레벨 직접 입력</option></select></label>
         {input.routine.huntFieldKey === "direct" && <NumField label="평소 사냥터 몬스터 레벨" value={input.routine.huntFieldLevel || startLevel} min={260} max={299} step={1} onChange={value => upd((draft: MainInput) => { draft.routine.huntFieldLevel = value; })} hint="260~299 · 플레임 사냥터는 바뀌지 않음" />}
         <NumField label="사냥 추가 경험치 %" value={input.routine.huntBonusPct} min={0} max={3000} step={10} onChange={value => upd((draft: MainInput) => { draft.routine.huntBonusPct = value; })} hint="룬·경험치 쿠폰·버프·가호 합계. 0이면 순수 경험치" />
@@ -458,8 +451,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
       </div>
       <details className="pb-more"><summary>탐정예티와 수상한 돋보기 · 10/22~11/18</summary>
       <p className="pb-note light">돋보기는 위 사냥 시간 외에 1개당 100초씩 추가로 사용한다고 계산합니다. 게임에서는 VIP·HEXA 부스터와 동시에 사용할 수 없습니다. 같은 사냥 시간 안에 사용할 계획이라면 돋보기의 주간 사용 시간을 위 사냥 시간에서 빼 주세요.</p>
-        <Check label="일일 수집 미션 무료 돋보기 사용" checked={input.routine.dailyTenThousand || input.magnifiers.detectiveFree} disabled={input.routine.dailyTenThousand} onChange={value => upd((draft: MainInput) => { draft.magnifiers.detectiveFree=value; })} />
-        <p className="pb-note">하루 1만 마리 이상 사냥하면 매일 1개를 받아요. 위 주간 사냥 시간을 7일로 나눠 세며, 플레임 처치는 뺍니다.</p>
+        <p className="pb-note">위 「매일 1만 마리 사냥」 선택을 켜면 사냥과 일일 퀘스트로 조건을 채운다고 보고 무료 1개를 써요. 끄면 무료분은 없어요.</p>
         <p className="pb-note" role="status" aria-live="polite">{dailyHuntStatus(input, ctx)}</p>
       <div className="field-grid compact">
         <NumField label="탐정예티 돋보기 하루 구매 개수" value={Math.min(input.magnifiers.detectiveBoughtPerDay,detective.boughtMax)} min={0} max={detective.boughtMax} step={1} onChange={value => upd((draft: MainInput) => { draft.magnifiers.detectiveBoughtPerDay=value; })} hint={"무료·구매 합쳐 하루 최대 3개 · 구매는 최대 " + detective.boughtMax + "개"} />
@@ -517,7 +509,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
       {eventOver && <div className="callout-mini" role="status">퍼스널 버닝은 11/18에 끝났습니다. 기준일을 이벤트 기간으로 바꿔 주세요.</div>}
       {!eventOver && r.mission.requiresTargetInput && <div className="callout-mini" role="status"><p>{r.warnings.find((text: string) => text.includes("게임 화면에서 다시 넣어"))}</p>{input.personal.mission.stepsDone === 30 && <p>{input.start < MAIN_SCHEDULE.expansionStart ? "10/22 전에는 완료한 30단계의 마지막 목표로 입력할 수 있습니다." : "업데이트 후 게임 화면에 표시된 다음 목표와 보상 %를 넣어 주세요."}</p>}<button type="button" className="pb-add" onClick={() => setSec("s1")}>성장 미션 입력하기</button></div>}
       {!eventOver && !r.mission.requiresTargetInput && <>
-        <p className="pb-cond">계산 조건 · 9월 PLUS {input.plus.enabled ? ({ free: "무료", premium: "프리미엄", prime: "프라임" } as Record<string, string>)[input.plus.tier] : "참여 안 함"} · 10월 PLUS {input.plusOctober.enabled ? ({free:"무료",premium:"프리미엄",prime:"프라임"} as Record<string,string>)[octoberPlusTierOptions(input.plus).includes(input.plusOctober.tier) ? input.plusOctober.tier : "free"] : "참여 안 함"} · 보스 {Math.min(bosses.length, WEEKLY_BOSS_LIMIT)}마리 주 {fmtJo(weeklyBossRaw, 2)} · 몬파 하루 {input.routine.runsPerDay}판 · 에픽 던전 {!input.routine.epic ? "안 함" : input.routine.epicMult > 1 ? `${input.routine.epicMult}배(주 ${fmtInt(epicStage1.maplePoint * (input.routine.epicMult >= 9 ? 4 : 1))} 메이플포인트 사용)` : "보너스 없음"} · 사냥 주 {input.routine.huntHoursPerWeek}시간 · 커스텀 조각 {flame.alloc.shard}·EXP {flame.alloc.exp}</p>
+        <p className="pb-cond">계산 조건 · 9월 PLUS {input.plus.enabled ? ({ free: "무료", premium: "프리미엄", prime: "프라임" } as Record<string, string>)[input.plus.tier] : "참여 안 함"} · 10월 PLUS {input.plusOctober.enabled ? ({free:"무료",premium:"프리미엄",prime:"프라임"} as Record<string,string>)[octoberPlusTierOptions(input.plus).includes(input.plusOctober.tier) ? input.plusOctober.tier : "free"] : "참여 안 함"} · 보스 {Math.min(bosses.length, WEEKLY_BOSS_LIMIT)}마리 주 {fmtJo(weeklyBossRaw, 2)} · 몬파 하루 {input.routine.runsPerDay}판 · 에픽 던전 {!input.routine.epic ? "안 함" : input.routine.epicMult > 1 ? `${input.routine.epicMult}배(주 ${fmtInt(epicStage1.maplePoint * (input.routine.epicMult >= 9 ? 4 : 1))} 메이플포인트 사용)` : "보너스 없음"} · 사냥 하루 30분 × {(input.routine.huntHoursPerWeek * 2 / 7).toLocaleString("ko-KR", { maximumFractionDigits: 4 })}회 · 커스텀 조각 {flame.alloc.shard}·EXP {flame.alloc.exp}</p>
         <div className="pb-cards">
           <article className="pb-card primary"><span>11/18 마감 위치</span><strong>{place(r.level, r.exp)}</strong><em>시작 {place(startLevel, input.exp)} · +{(r.progress - r.startPosition).toFixed(2)}레벨</em></article>
           <article className="pb-card"><span>성장 미션</span><strong>{r.mission.stepsCleared}/{MISSION_STEPS}단계</strong><em>{coinGap > 0 ? `30단계보다 ${fmtInt(coinGap)}코인 적음` : "30,000코인 전부"} · 앞으로 받을 코인 {fmtInt(r.mission.coins)}개</em></article>
@@ -624,10 +616,12 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
 
         </div>
         <div className="pb-result-section" role="tabpanel" id="pb-pane-r6" aria-labelledby="pb-tab-r6" tabIndex={0} hidden={resTab !== "r6"}>
+        <h3>출처별 기간 합계</h3>
+        <p className="pb-note pb-period-total">기간 전체 {fmtInt(periodSources.total)} EXP</p>
         <div className="pb-sources">{sourceRows.map(row => <div key={row.id} className="pb-source"><span>{sourceLabels[row.id] || row.id}</span>
-          <i style={{ width: `${Math.max(2, row.raw / totalRaw * 100)}%` }} /><b>{fmtJo(row.raw)} · {(row.raw / ctx.reqRaw(startLevel) * 100).toFixed(1)}%p</b></div>)}</div>
+          <i style={{ width: `${Math.max(2, row.raw / totalRaw * 100)}%` }} /><b>{fmtInt(row.shown)} EXP · {(row.raw / ctx.reqRaw(startLevel) * 100).toFixed(1)}%p</b></div>)}</div>
         <p className="pb-note">%p는 시작 레벨({startLevel}) 필요 경험치 기준이라 레벨이 오른 뒤 얻은 경험치는 실제 표시 %보다 크게 보일 수 있습니다.</p>
-
+        <DailyExperience rows={r.rows} displayDays={breakdown.days} />
         </div>
       </>}
     </div>

@@ -227,7 +227,7 @@ test("보스 프리셋과 사냥터 선택이 화면에 연결돼 있다", async
   assert.match(planner, />다음 목표 직접 입력</);
   assert.match(planner, />지정할 때의 레벨로 입력</);
   assert.doesNotMatch(planner, /\(정확\)/, "추정 모형을 정확하다고 쓰지 않는다");
-  assert.match(planner, /주간 사냥 시간/);
+  assert.match(planner, /하루 사냥 30분 × 횟수/);
   assert.match(planner, /compareAlloc\(input, ctx\)/);
   assert.match(planner, /이 배분으로/);
   assert.match(planner, /추천: 갈 수 있는 지역의 가장 높은 몬스터/);
@@ -236,7 +236,8 @@ test("보스 프리셋과 사냥터 선택이 화면에 연결돼 있다", async
   assert.match(planner, /사냥 추가 경험치 %/);
   assert.match(planner, /몬스터파크 추가 경험치 %/);
   assert.match(planner, /에픽 던전 추가 경험치 %/);
-  assert.match(planner, /hunt: "사냥", coupon4x: "경험치 4배 쿠폰\(PLUS\)", booster: "VIP 부스터\(PLUS\)"/);
+  assert.match(planner, /EXPERIENCE_SOURCE_LABELS/);
+  assert.match(await read('lib/experience-breakdown.mjs'), /hunt: "사냥", coupon4x: "경험치 4배 쿠폰\(PLUS\)", booster: "VIP 부스터\(PLUS\)"/);
   assert.match(planner, /주간 컨텐츠 직접 입력 %/);
   assert.match(planner, /이미 완료/);
 });
@@ -438,7 +439,7 @@ test("옛 탐정 돋보기 횟수는 무료·구매로 옮기고 새 저장값�
 
 test("서버 화면에 무료 탐정 돋보기 자격·구매 한도와 구분된 경험치 이름이 있다", async () => {
   const html=await renderBuiltSsrHtml('detective-daily');
-  for(const label of ['일일 수집 미션 무료 돋보기 사용','하루 1만 마리 이상 사냥하면 매일 1개를 받아요','무료 돋보기 1개 받음','탐정예티 돋보기 하루 구매 개수','구매는 최대 2개','10,971'])assert.ok(html.includes(label),label);
+  for(const label of ['하루 30분 사냥 + 일일 퀘스트로 1만','무료 돋보기 1개 받음','탐정예티 돋보기 하루 구매 개수','구매는 최대 2개','9,600'])assert.ok(html.replaceAll('<!-- -->','').includes(label),label);
   assert.doesNotMatch(html,/탐정예티 돋보기 하루 사용 횟수/);
 });
 
@@ -448,8 +449,18 @@ test("매일1만마리 선택은 일과 입력에서 기본 켬이고 기간 무
   const plain=html.replaceAll('<!-- -->','');
   assert.ok(plain.includes(DAILY_HUNT_LABEL));
   assert.match(html.slice(html.indexOf('class="pb-daily-hunt"'),html.indexOf('class="pb-daily-hunt"')+500),/checked=""/);
-  assert.ok(plain.includes('하루 1만 마리 ≈ 31분(30분당 9,600마리 기준)'));
+  assert.ok(plain.includes('하루 30분 사냥은 9,600마리 기준이에요.'));
   assert.match(plain,/탐정 돋보기 무료 28개\(기간 합계\) · 경험치/);
   const panel=await read('app/exp-efficiency-panel.tsx');
   assert.match(panel,/DAILY_HUNT_LABEL/);assert.match(panel,/dailyHuntDescription\(input\)/);
+});
+
+test("날짜별 근거는 기본 결과 탭에서 기간 합계·주별 접기·전 출처를 실제 HTML로 제공한다", async () => {
+  const html=await renderBuiltSsrHtml('daily-breakdown');
+  assert.match(html,/id="pb-pane-r6"[^>]*>/);
+  assert.doesNotMatch(html.match(/id="pb-pane-r6"[^>]*>/)[0],/hidden/);
+  for(const label of ['날짜별 경험치 획득 근거','출처별 기간 합계','그날 합계(EXP)','그날 끝 위치 · 통과 단계','하루 사냥 30분 × 횟수'])assert.ok(html.includes(label),label);
+  const tables=[...html.matchAll(/data-exp-date="([^"]+)"/g)];assert.equal(tables.length,28);
+  assert.ok(html.includes('data-exp-source="hunt"'));
+  assert.match(html,/<details[^>]*open=""[^>]*class="pb-trace-week"/);
 });
