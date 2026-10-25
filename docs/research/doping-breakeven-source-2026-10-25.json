@@ -1,0 +1,396 @@
+{
+  "date": "2026-10-25",
+  "base": "41bdcfc",
+  "pages": [
+    {
+      "page": "magnifier",
+      "sha256": "a4257a94c1430c49f8cb07d1bf1c5e64044b5e6dead8b705fed30daccef20efe",
+      "chunks": [
+        "/_next/static/chunks/0c10vom5pdwi-.js",
+        "/_next/static/chunks/2nykiepra7i1k.js",
+        "/_next/static/chunks/turbopack-38ch5vw_8x6ny.js",
+        "/_next/static/chunks/158myu8e_yme3.js",
+        "/_next/static/chunks/1-zyr7la1c86p.js",
+        "/_next/static/chunks/22q2t3v1bf7hj.js",
+        "/_next/static/chunks/0cz1d0mv5g_q7.js",
+        "/_next/static/chunks/0_a3f2s3xcdlr.js"
+      ]
+    },
+    {
+      "page": "epicdungeon",
+      "sha256": "d3154f8b2c7d43e336ec3625e2773b73b655c664eccd404fb92b7390ad9befba",
+      "chunks": [
+        "/_next/static/chunks/0c10vom5pdwi-.js",
+        "/_next/static/chunks/2nykiepra7i1k.js",
+        "/_next/static/chunks/turbopack-38ch5vw_8x6ny.js",
+        "/_next/static/chunks/158myu8e_yme3.js",
+        "/_next/static/chunks/1-zyr7la1c86p.js",
+        "/_next/static/chunks/22q2t3v1bf7hj.js",
+        "/_next/static/chunks/0cz1d0mv5g_q7.js",
+        "/_next/static/chunks/0_a3f2s3xcdlr.js"
+      ]
+    },
+    {
+      "page": "exp",
+      "sha256": "57ac2a2b28e9bb8baa498a60b9647e33506d78dddc79ee13b3ec116847d705c9",
+      "chunks": [
+        "/_next/static/chunks/0c10vom5pdwi-.js",
+        "/_next/static/chunks/2nykiepra7i1k.js",
+        "/_next/static/chunks/turbopack-38ch5vw_8x6ny.js",
+        "/_next/static/chunks/158myu8e_yme3.js",
+        "/_next/static/chunks/1-zyr7la1c86p.js",
+        "/_next/static/chunks/22q2t3v1bf7hj.js",
+        "/_next/static/chunks/0cz1d0mv5g_q7.js",
+        "/_next/static/chunks/0_a3f2s3xcdlr.js"
+      ]
+    }
+  ],
+  "manifest": [
+    {
+      "file": "0c10vom5pdwi-.js",
+      "bytes": 201016,
+      "sha256": "f5428594ae709d40dac0c7d7539b23b72142bfe58177151e1d9f8d74da0801ff"
+    },
+    {
+      "file": "0cz1d0mv5g_q7.js",
+      "bytes": 112594,
+      "sha256": "0973c1d64c88adc8e3c950410cb58b288f72118d5965b78049438deb8f2f9683"
+    },
+    {
+      "file": "0_a3f2s3xcdlr.js",
+      "bytes": 17474,
+      "sha256": "978ed291ec740eaea49683b73be763342fda4bc0447cb46a03ef22c0cf6f23eb"
+    },
+    {
+      "file": "1-zyr7la1c86p.js",
+      "bytes": 492,
+      "sha256": "92be9657d4e866d01bf69c4a3d5d1c1ecb8eb3e2ce54b8a975509b7559005b4b"
+    },
+    {
+      "file": "158myu8e_yme3.js",
+      "bytes": 57909,
+      "sha256": "59d6d2186868625417737f3f33980e55f778eb3672cd03a10cf26b1259ca2314"
+    },
+    {
+      "file": "22q2t3v1bf7hj.js",
+      "bytes": 277900,
+      "sha256": "8ad2602276f956a364e2a771c01aa02e228152f18e3fdfd828b48578434339c7"
+    },
+    {
+      "file": "2nykiepra7i1k.js",
+      "bytes": 227537,
+      "sha256": "d3648d33d9b06994e5a2fb25db41dee5725f00e8b618c2edcf3dfd7344d66e02"
+    },
+    {
+      "file": "turbopack-38ch5vw_8x6ny.js",
+      "bytes": 11008,
+      "sha256": "19ec0d217bf63a71336a0a7edcd713bbb18de5b9cffc566ab8e8dad54cd70c2d"
+    }
+  ],
+  "snippets": [
+    {
+      "term": "function f(e,t)",
+      "file": "22q2t3v1bf7hj.js",
+      "byte": 18222,
+      "text": "function f(e,t){return t>0?e/.99/t*1e8:0}function j(e,t){return t>0?e/t*1e8:0}function y(e,t){return t.reduce((t,a)=>{let r;return t+(n[a.level]??0)*((r=e-a.level)>=40?.7:r>=21?(110-r)/100:r>=19?.95:r>=17?.96:r>=15?.97:r>=13?.98:r>=11?.99:10===r?1:r>=5?1.05:r>=2?1.1:r>=-1?1.2:r>=-4?1.1:r>=-9?1.05:r>=-20?(110+r)/100:r>=-35?(4*r+154)/100:.1*(r>=-39))*a.count},0)}function v(e){return e.huntingMobs&&e"
+    },
+    {
+      "term": "function I(e)",
+      "file": "22q2t3v1bf7hj.js",
+      "byte": 19498,
+      "text": "function I(e){return 10*k(e)*190*(1+(e.expBonus??0)/100)}function F(e){return 800*k(e)*190}let A={cash:29800,crimson:5,superCoupon:4500,vipBooster:20,coupon4x:4},$={cash:39800,crimson:11,superCoupon:9e3,vipBooster:20,coupon4x:6};function D(e,t){var a,r;return t.charLevel<280?0:((a=t.charLevel)<280?0:i[a]??0)*e.crimson+(c[t.charLevel]??0)*e.superCoupon+I(t)*e.vipBooster+(r=e.coupon4x,3*N(t)*r)}func"
+    },
+    {
+      "term": "function F(e)",
+      "file": "22q2t3v1bf7hj.js",
+      "byte": 19555,
+      "text": "function F(e){return 800*k(e)*190}let A={cash:29800,crimson:5,superCoupon:4500,vipBooster:20,coupon4x:4},$={cash:39800,crimson:11,superCoupon:9e3,vipBooster:20,coupon4x:6};function D(e,t){var a,r;return t.charLevel<280?0:((a=t.charLevel)<280?0:i[a]??0)*e.crimson+(c[t.charLevel]??0)*e.superCoupon+I(t)*e.vipBooster+(r=e.coupon4x,3*N(t)*r)}function q(e){return D(A,e)+D($,e)}function T(e){return j(A.c"
+    },
+    {
+      "term": "function R(e,t)",
+      "file": "22q2t3v1bf7hj.js",
+      "byte": 19400,
+      "text": "function R(e,t){return f(g[e]?.stage1??0,t)-16e7}function B(e,t){return f(g[e]?.stage2??0,t)-16e7}function I(e){return 10*k(e)*190*(1+(e.expBonus??0)/100)}function F(e){return 800*k(e)*190}let A={cash:29800,crimson:5,superCoupon:4500,vipBooster:20,coupon4x:4},$={cash:39800,crimson:11,superCoupon:9e3,vipBooster:20,coupon4x:6};function D(e,t){var a,r;return t.charLevel<280?0:((a=t.charLevel)<280?0:i"
+    },
+    {
+      "term": "function B(e,t)",
+      "file": "22q2t3v1bf7hj.js",
+      "byte": 19449,
+      "text": "function B(e,t){return f(g[e]?.stage2??0,t)-16e7}function I(e){return 10*k(e)*190*(1+(e.expBonus??0)/100)}function F(e){return 800*k(e)*190}let A={cash:29800,crimson:5,superCoupon:4500,vipBooster:20,coupon4x:4},$={cash:39800,crimson:11,superCoupon:9e3,vipBooster:20,coupon4x:6};function D(e,t){var a,r;return t.charLevel<280?0:((a=t.charLevel)<280?0:i[a]??0)*e.crimson+(c[t.charLevel]??0)*e.superCoup"
+    },
+    {
+      "term": "function K(e,t,a,r,s,n)",
+      "file": "22q2t3v1bf7hj.js",
+      "byte": 20158,
+      "text": "function K(e,t,a,r,s,n){return(n>0?s/n:0)>(r>0?a/r:0)?{name:t,exp:s,priceMeso:n,isUpgrade:!1}:{name:e,exp:s-a,priceMeso:n-r,isUpgrade:!0}}function U(e,t){return{exp70:K(\"추가경험치 50%→70%\",\"추가경험치 70%\",.5*t,e.price50,.7*t,e.price70),coupon4:K(\"3배 쿠폰→4배 쿠폰\",\"4배 쿠폰\",2*t,e.price3x,3*t,e.price4x),booster:K(\"소경축비→고농축비\",\"고농축비\",.1*t,e.priceSmallBooster,.2*t,e.priceLargeBooster)}}let V=[{zone:\"하이마운틴\",minLevel:"
+    },
+    {
+      "term": "function U(e,t)",
+      "file": "22q2t3v1bf7hj.js",
+      "byte": 20296,
+      "text": "function U(e,t){return{exp70:K(\"추가경험치 50%→70%\",\"추가경험치 70%\",.5*t,e.price50,.7*t,e.price70),coupon4:K(\"3배 쿠폰→4배 쿠폰\",\"4배 쿠폰\",2*t,e.price3x,3*t,e.price4x),booster:K(\"소경축비→고농축비\",\"고농축비\",.1*t,e.priceSmallBooster,.2*t,e.priceLargeBooster)}}let V=[{zone:\"하이마운틴\",minLevel:260,multiplier:1},{zone:\"앵글러컴퍼니\",minLevel:270,multiplier:1.5},{zone:\"악몽선경\",minLevel:280,multiplier:2},{zone:\"아우룸 레기스\",minLevel:290,multipl"
+    },
+    {
+      "term": "function eY",
+      "file": "22q2t3v1bf7hj.js",
+      "byte": 80406,
+      "text": "function eY({inputs:e,monsterParkBonus:a=0,parkBonuses:r}){var s;let n=S(e),i=w(e),c=z(e,30),o=(e,t)=>({exp:e,priceMeso:t,efficiency:t>0?e/t:0,ratio:n>0&&t>0?e/t/n:0}),d=U(e,i),x=[{name:\"추가경험치 50%\",...o(.5*i,e.price50)},{name:d.exp70.name,...o(d.exp70.exp,d.exp70.priceMeso)},{name:\"3배 쿠폰\",...o(2*i,e.price3x)},{name:d.coupon4.name,...o(d.coupon4.exp,d.coupon4.priceMeso)},{name:\"소경축비\",...o(.1*i,e.pr"
+    },
+    {
+      "term": "혈맹의 반지(메소)",
+      "file": "22q2t3v1bf7hj.js",
+      "byte": 80982,
+      "text": "혈맹의 반지(메소)\",...o(.1*c,e.priceBloodRingMeso)},{name:\"혈맹의 반지(메포)\",...o(.1*c,f(5900,e.mesoMarketRate))},{name:\"경험치 부스트링(메소)\",...o(.15*c,e.priceBoostringMeso)},{name:\"경험치 부스트링(메포)\",...o(.15*c,f(29900,e.mesoMarketRate))},{name:\"정령의 펜던트(메소)\",...o(.3*c,e.priceJungpenMeso)},{name:\"정령의 펜던트(메포)\",...o(.3*c,f(49900,e.mesoMarketRate))}],g=e.epicDungeonZone,h=e.monsterParkZone,p=f(600,e.mesoMarketRate),u=l[e.ch"
+    },
+    {
+      "term": "정령의 펜던트(메소)",
+      "file": "22q2t3v1bf7hj.js",
+      "byte": 81269,
+      "text": "정령의 펜던트(메소)\",...o(.3*c,e.priceJungpenMeso)},{name:\"정령의 펜던트(메포)\",...o(.3*c,f(49900,e.mesoMarketRate))}],g=e.epicDungeonZone,h=e.monsterParkZone,p=f(600,e.mesoMarketRate),u=l[e.charLevel]??0,b=e.charLevel<280,y=[{name:g+\" 0→1단계\",...o(P(e.epicDungeonZone,e.charLevel),R(e.epicDungeonZone,e.mesoMarketRate))},{name:g+\" 1→2단계\",...o(E(e.epicDungeonZone,e.charLevel),B(e.epicDungeonZone,e.mesoMarketRate))},"
+    },
+    {
+      "term": "부스터류 아이템 사용 시점",
+      "file": "22q2t3v1bf7hj.js",
+      "byte": 40557,
+      "text": "부스터류 아이템 사용 시점의 추가 경험치 획득량을 그대로 입력해주세요(룬, 버닝 포함).\"})]}),(0,t.jsx)(Q,{label:\"추가 경험치 획득량\",value:g.expBonus,onChange:e=>b(\"expBonus\",e),unit:\"%\",max:9999,icon:\"추가 경험치 50%\",width:\"w-[90px] lg:w-[80px]\"})]}),(0,t.jsxs)(\"div\",{className:\"mt-2\",children:[(0,t.jsxs)(\"div\",{className:\"flex items-center gap-1 mb-1\",children:[(0,t.jsx)(\"span\",{className:\"text-xs text-orange-500 dark:text-orange-400 font-bold"
+    },
+    {
+      "term": "function M(e,t,a=0)",
+      "file": "22q2t3v1bf7hj.js",
+      "byte": 19101,
+      "text": "function M(e,t,a=0){return(d[e]??0)*(1+(\"일요일\"===t?.5:3*(\"썬데이\"===t))+a/100)}function L(e){return\"하이마운틴\"===e?h:\"앵글러컴퍼니\"===e?p:\"악몽선경\"===e?u:b}function P(e,t){let a=L(e)[t];return a?a.stage1-a.stage0:0}function E(e,t){let a=L(e)[t];return a?a.stage2-a.stage1:0}function R(e,t){return f(g[e]?.stage1??0,t)-16e7}function B(e,t){return f(g[e]?.stage2??0,t)-16e7}function I(e){return 10*k(e)*190*(1+(e.expBon"
+    }
+  ],
+  "tables": {
+    "monsters": {
+      "byte": 9759,
+      "value": {
+        "260": 1725461,
+        "261": 1750290,
+        "262": 1775159,
+        "263": 1800203,
+        "264": 1828409,
+        "265": 2056974,
+        "266": 2085219,
+        "267": 2113572,
+        "268": 2145596,
+        "269": 2174274,
+        "270": 2445217,
+        "271": 2481337,
+        "272": 2513634,
+        "273": 2546149,
+        "274": 2582906,
+        "275": 2903024,
+        "276": 2939616,
+        "277": 2981010,
+        "278": 3017988,
+        "279": 3059716,
+        "280": 3436027,
+        "281": 3482914,
+        "282": 3524768,
+        "283": 3572010,
+        "284": 3614278,
+        "285": 4062965,
+        "286": 4110304,
+        "287": 4163751,
+        "288": 4217526,
+        "289": 4265489,
+        "290": 4793318,
+        "291": 4847012,
+        "292": 4907812,
+        "293": 4968977,
+        "294": 5023491,
+        "295": 5643220,
+        "296": 5711948,
+        "297": 5781080,
+        "298": 5842650,
+        "299": 5912186
+      }
+    },
+    "epicPoints": {
+      "byte": 12982,
+      "value": {
+        "하이마운틴": {
+          "stage1": 7500,
+          "stage2": 22500
+        },
+        "앵글러컴퍼니": {
+          "stage1": 10000,
+          "stage2": 30000
+        },
+        "악몽선경": {
+          "stage1": 12500,
+          "stage2": 37500
+        },
+        "아우룸 레기스": {
+          "stage1": 15000,
+          "stage2": 45000
+        }
+      }
+    },
+    "nightmare": {
+      "byte": 16689,
+      "value": {
+        "280": {
+          "stage0": 1039200000000,
+          "stage1": 5196000000000,
+          "stage2": 9352800000000
+        },
+        "281": {
+          "stage0": 1053400000000,
+          "stage1": 5267000000000,
+          "stage2": 9480600000000
+        },
+        "282": {
+          "stage0": 1066000000000,
+          "stage1": 5330000000000,
+          "stage2": 9594000000000
+        },
+        "283": {
+          "stage0": 1080200000000,
+          "stage1": 5401000000000,
+          "stage2": 9721800000000
+        },
+        "284": {
+          "stage0": 1093000000000,
+          "stage1": 5465000000000,
+          "stage2": 9837000000000
+        },
+        "285": {
+          "stage0": 1228800000000,
+          "stage1": 6144000000000,
+          "stage2": 11059200000000
+        },
+        "286": {
+          "stage0": 1243000000000,
+          "stage1": 6215000000000,
+          "stage2": 11187000000000
+        },
+        "287": {
+          "stage0": 1259200000000,
+          "stage1": 6296000000000,
+          "stage2": 11332800000000
+        },
+        "288": {
+          "stage0": 1275400000000,
+          "stage1": 6377000000000,
+          "stage2": 11478600000000
+        },
+        "289": {
+          "stage0": 1290000000000,
+          "stage1": 6450000000000,
+          "stage2": 11610000000000
+        },
+        "290": {
+          "stage0": 1449600000000,
+          "stage1": 7248000000000,
+          "stage2": 13046400000000
+        },
+        "291": {
+          "stage0": 1465800000000,
+          "stage1": 7329000000000,
+          "stage2": 13192200000000
+        },
+        "292": {
+          "stage0": 1484200000000,
+          "stage1": 7421000000000,
+          "stage2": 13357800000000
+        },
+        "293": {
+          "stage0": 1502800000000,
+          "stage1": 7514000000000,
+          "stage2": 13525200000000
+        },
+        "294": {
+          "stage0": 1519200000000,
+          "stage1": 7596000000000,
+          "stage2": 13672800000000
+        },
+        "295": {
+          "stage0": 1706600000000,
+          "stage1": 8533000000000,
+          "stage2": 15359400000000
+        },
+        "296": {
+          "stage0": 1727400000000,
+          "stage1": 8637000000000,
+          "stage2": 15546600000000
+        },
+        "297": {
+          "stage0": 1748200000000,
+          "stage1": 8741000000000,
+          "stage2": 15733800000000
+        },
+        "298": {
+          "stage0": 1767000000000,
+          "stage1": 8835000000000,
+          "stage2": 15903000000000
+        },
+        "299": {
+          "stage0": 1788000000000,
+          "stage1": 8940000000000,
+          "stage2": 16092000000000
+        }
+      }
+    },
+    "aurum": {
+      "byte": 17696,
+      "value": {
+        "290": {
+          "stage0": 2174400000000,
+          "stage1": 10872000000000,
+          "stage2": 19569600000000
+        },
+        "291": {
+          "stage0": 2198700000000,
+          "stage1": 10993500000000,
+          "stage2": 19788300000000
+        },
+        "292": {
+          "stage0": 2226300000000,
+          "stage1": 11131500000000,
+          "stage2": 20036700000000
+        },
+        "293": {
+          "stage0": 2254200000000,
+          "stage1": 11271000000000,
+          "stage2": 20287800000000
+        },
+        "294": {
+          "stage0": 2278800000000,
+          "stage1": 11394000000000,
+          "stage2": 20509200000000
+        },
+        "295": {
+          "stage0": 2559900000000,
+          "stage1": 12799500000000,
+          "stage2": 23039100000000
+        },
+        "296": {
+          "stage0": 2591100000000,
+          "stage1": 12955500000000,
+          "stage2": 23319900000000
+        },
+        "297": {
+          "stage0": 2622300000000,
+          "stage1": 13111500000000,
+          "stage2": 23600700000000
+        },
+        "298": {
+          "stage0": 2650500000000,
+          "stage1": 13252500000000,
+          "stage2": 23854500000000
+        },
+        "299": {
+          "stage0": 2682000000000,
+          "stage1": 13410000000000,
+          "stage2": 24138000000000
+        }
+      }
+    }
+  },
+  "notConfirmed": {
+    "rune": "룬·버닝 포함 총수치 직접 입력 안내만 있음. 고정 수치·개별 선택 합산 코드 확인 못함.",
+    "azmoth": "아즈모스 영약은 아이콘 이름 매핑뿐. 증가량 확인 못함."
+  }
+}

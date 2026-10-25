@@ -42,7 +42,7 @@ export default function ItemsPanel({ state, goPersonal }: { state: MainInputStat
   const hasInventory = ROWS.some(row => inventory[row.type] > 0);
 
   return <section className="standalone-panel tab-panel efficiency-screen" id="items-panel" role="tabpanel" aria-labelledby="items-tab">
-    <ExpEfficiencyPanel input={input} />
+    <ExpEfficiencyPanel state={state} />
     <section className="item-conversion-panel" aria-labelledby="item-conversion-title">
       <div className="item-conversion-head">
         <div><span>보유 보상 · 획득량 환산</span><h2 id="item-conversion-title">전부 쓰면 어디까지 오르나요?</h2><p>퍼스널 버닝 탭에 입력한 보유량을 선택 레벨부터 순서대로 사용합니다. 레벨이 오르면 다음 아이템은 새 레벨 값을 적용합니다.</p></div>

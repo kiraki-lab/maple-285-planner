@@ -1,0 +1,418 @@
+[
+  {
+    "level": 285,
+    "fieldLevel": 285,
+    "maplePoints": 2300,
+    "ordinaryPrice": 2100000,
+    "detectivePrice": 100000000,
+    "breakBonus": {
+      "kind": "value",
+      "value": 243.75577228605
+    },
+    "breakBonusEpic2": {
+      "kind": "always",
+      "value": 0
+    },
+    "detective": {
+      "id": "detective",
+      "label": "탐정예티 돋보기 1개",
+      "rawExp": 617570680000,
+      "costMeso": 100000000,
+      "available": true,
+      "priceNote": "",
+      "percent": 0.6205981032686724,
+      "mesoPerMob": 657.8947368421053,
+      "relativeEpic1": 2.046165311226488,
+      "thresholds": [
+        {
+          "id": "epic1",
+          "label": "에픽 EXP 보너스 1단계",
+          "price": 48871906.61054615,
+          "verdict": "비싸요"
+        },
+        {
+          "id": "epic2",
+          "label": "에픽 EXP 보너스 1→2단계",
+          "price": 186822144.3108051,
+          "verdict": "싸요"
+        },
+        {
+          "id": "coupon",
+          "label": "퍼스널 EXP 교환권 1장",
+          "price": 124555555.55555555,
+          "verdict": "싸요"
+        }
+      ]
+    },
+    "dopingRows": [
+      {
+        "bonus": 100,
+        "selected": false,
+        "rawExp": 15439267000,
+        "mesoPerExp": 0.00013601681996949726,
+        "epic1Price": 1221797.6652636537,
+        "epic2Price": 4670553.607770127
+      },
+      {
+        "bonus": 200,
+        "selected": false,
+        "rawExp": 23158900500,
+        "mesoPerExp": 0.00009067787997966483,
+        "epic1Price": 1832696.4978954806,
+        "epic2Price": 7005830.411655191
+      },
+      {
+        "bonus": 250,
+        "selected": false,
+        "rawExp": 27018717250,
+        "mesoPerExp": 0.00007772389712542701,
+        "epic1Price": 2138145.914211394,
+        "epic2Price": 8173468.813597723
+      },
+      {
+        "bonus": 300,
+        "selected": true,
+        "rawExp": 30878534000,
+        "mesoPerExp": 0.00006800840998474863,
+        "epic1Price": 2443595.3305273075,
+        "epic2Price": 9341107.215540254
+      },
+      {
+        "bonus": 400,
+        "selected": false,
+        "rawExp": 38598167500,
+        "mesoPerExp": 0.0000544067279877989,
+        "epic1Price": 3054494.1631591343,
+        "epic2Price": 11676384.01942532
+      },
+      {
+        "bonus": 500,
+        "selected": false,
+        "rawExp": 46317801000,
+        "mesoPerExp": 0.000045338939989832416,
+        "epic1Price": 3665392.995790961,
+        "epic2Price": 14011660.823310383
+      },
+      {
+        "bonus": 600,
+        "selected": false,
+        "rawExp": 54037434500,
+        "mesoPerExp": 0.000038861948562713504,
+        "epic1Price": 4276291.828422788,
+        "epic2Price": 16346937.627195446
+      }
+    ]
+  },
+  {
+    "level": 285,
+    "fieldLevel": 285,
+    "maplePoints": 2150,
+    "ordinaryPrice": 2050000,
+    "detectivePrice": 100000000,
+    "breakBonus": {
+      "kind": "value",
+      "value": 205.49068729245664
+    },
+    "breakBonusEpic2": {
+      "kind": "always",
+      "value": 0
+    },
+    "detective": {
+      "id": "detective",
+      "label": "탐정예티 돋보기 1개",
+      "rawExp": 617570680000,
+      "costMeso": 100000000,
+      "available": true,
+      "priceNote": "",
+      "percent": 0.6205981032686724,
+      "mesoPerMob": 657.8947368421053,
+      "relativeEpic1": 1.862748093246687,
+      "thresholds": [
+        {
+          "id": "epic1",
+          "label": "에픽 EXP 보너스 1단계",
+          "price": 53684124.20474122,
+          "verdict": "비싸요"
+        },
+        {
+          "id": "epic2",
+          "label": "에픽 EXP 보너스 1→2단계",
+          "price": 201258797.09339032,
+          "verdict": "싸요"
+        },
+        {
+          "id": "coupon",
+          "label": "퍼스널 EXP 교환권 1장",
+          "price": 124555555.55555555,
+          "verdict": "싸요"
+        }
+      ]
+    },
+    "dopingRows": [
+      {
+        "bonus": 100,
+        "selected": false,
+        "rawExp": 15439267000,
+        "mesoPerExp": 0.0001327783242559378,
+        "epic1Price": 1342103.1051185303,
+        "epic2Price": 5031469.9273347575
+      },
+      {
+        "bonus": 200,
+        "selected": false,
+        "rawExp": 23158900500,
+        "mesoPerExp": 0.00008851888283729186,
+        "epic1Price": 2013154.6576777955,
+        "epic2Price": 7547204.891002137
+      },
+      {
+        "bonus": 250,
+        "selected": false,
+        "rawExp": 27018717250,
+        "mesoPerExp": 0.00007587332814625017,
+        "epic1Price": 2348680.433957428,
+        "epic2Price": 8805072.372835826
+      },
+      {
+        "bonus": 300,
+        "selected": true,
+        "rawExp": 30878534000,
+        "mesoPerExp": 0.0000663891621279689,
+        "epic1Price": 2684206.2102370607,
+        "epic2Price": 10062939.854669515
+      },
+      {
+        "bonus": 400,
+        "selected": false,
+        "rawExp": 38598167500,
+        "mesoPerExp": 0.00005311132970237512,
+        "epic1Price": 3355257.762796326,
+        "epic2Price": 12578674.818336895
+      },
+      {
+        "bonus": 500,
+        "selected": false,
+        "rawExp": 46317801000,
+        "mesoPerExp": 0.00004425944141864593,
+        "epic1Price": 4026309.315355591,
+        "epic2Price": 15094409.782004274
+      },
+      {
+        "bonus": 600,
+        "selected": false,
+        "rawExp": 54037434500,
+        "mesoPerExp": 0.000037936664073125087,
+        "epic1Price": 4697360.867914856,
+        "epic2Price": 17610144.745671652
+      }
+    ]
+  },
+  {
+    "level": 290,
+    "fieldLevel": 290,
+    "maplePoints": 2300,
+    "ordinaryPrice": 2100000,
+    "detectivePrice": 100000000,
+    "breakBonus": {
+      "kind": "value",
+      "value": 302.10172422850343
+    },
+    "breakBonusEpic2": {
+      "kind": "value",
+      "value": 10.419298923472509
+    },
+    "detective": {
+      "id": "detective",
+      "label": "탐정예티 돋보기 1개",
+      "rawExp": 728584336000,
+      "costMeso": 100000000,
+      "available": true,
+      "priceNote": "",
+      "percent": 0.2475605818434041,
+      "mesoPerMob": 657.8947368421053,
+      "relativeEpic1": 2.3934626442172826,
+      "thresholds": [
+        {
+          "id": "epic1",
+          "label": "에픽 EXP 보너스 1단계",
+          "price": 41780472.42208049,
+          "verdict": "비싸요"
+        },
+        {
+          "id": "epic2",
+          "label": "에픽 EXP 보너스 1→2단계",
+          "price": 152147316.3096557,
+          "verdict": "싸요"
+        },
+        {
+          "id": "coupon",
+          "label": "퍼스널 EXP 교환권 1장",
+          "price": 124555555.55555555,
+          "verdict": "싸요"
+        }
+      ]
+    },
+    "dopingRows": [
+      {
+        "bonus": 100,
+        "selected": false,
+        "rawExp": 18214608400,
+        "mesoPerExp": 0.00011529207512361342,
+        "epic1Price": 1044511.8105520123,
+        "epic2Price": 3803682.9077413934
+      },
+      {
+        "bonus": 200,
+        "selected": false,
+        "rawExp": 27321912600,
+        "mesoPerExp": 0.00007686138341574228,
+        "epic1Price": 1566767.7158280183,
+        "epic2Price": 5705524.361612089
+      },
+      {
+        "bonus": 250,
+        "selected": false,
+        "rawExp": 31875564700,
+        "mesoPerExp": 0.00006588118578492195,
+        "epic1Price": 1827895.6684660213,
+        "epic2Price": 6656445.088547438
+      },
+      {
+        "bonus": 300,
+        "selected": true,
+        "rawExp": 36429216800,
+        "mesoPerExp": 0.00005764603756180671,
+        "epic1Price": 2089023.6211040246,
+        "epic2Price": 7607365.815482787
+      },
+      {
+        "bonus": 400,
+        "selected": false,
+        "rawExp": 45536521000,
+        "mesoPerExp": 0.000046116830049445366,
+        "epic1Price": 2611279.5263800304,
+        "epic2Price": 9509207.269353481
+      },
+      {
+        "bonus": 500,
+        "selected": false,
+        "rawExp": 54643825200,
+        "mesoPerExp": 0.00003843069170787114,
+        "epic1Price": 3133535.4316560365,
+        "epic2Price": 11411048.723224178
+      },
+      {
+        "bonus": 600,
+        "selected": false,
+        "rawExp": 63751129400,
+        "mesoPerExp": 0.00003294059289246098,
+        "epic1Price": 3655791.3369320426,
+        "epic2Price": 13312890.177094877
+      }
+    ]
+  },
+  {
+    "level": 290,
+    "fieldLevel": 290,
+    "maplePoints": 2150,
+    "ordinaryPrice": 2050000,
+    "detectivePrice": 100000000,
+    "breakBonus": {
+      "kind": "value",
+      "value": 259.40889733487506
+    },
+    "breakBonusEpic2": {
+      "kind": "value",
+      "value": 0.18489314089096265
+    },
+    "detective": {
+      "id": "detective",
+      "label": "탐정예티 돋보기 1개",
+      "rawExp": 728584336000,
+      "costMeso": 100000000,
+      "available": true,
+      "priceNote": "",
+      "percent": 0.2475605818434041,
+      "mesoPerMob": 657.8947368421053,
+      "relativeEpic1": 2.1915176666760674,
+      "thresholds": [
+        {
+          "id": "epic1",
+          "label": "에픽 EXP 보너스 1단계",
+          "price": 45630478.6042052,
+          "verdict": "비싸요"
+        },
+        {
+          "id": "epic2",
+          "label": "에픽 EXP 보너스 1→2단계",
+          "price": 163697334.85602987,
+          "verdict": "싸요"
+        },
+        {
+          "id": "coupon",
+          "label": "퍼스널 EXP 교환권 1장",
+          "price": 124555555.55555555,
+          "verdict": "싸요"
+        }
+      ]
+    },
+    "dopingRows": [
+      {
+        "bonus": 100,
+        "selected": false,
+        "rawExp": 18214608400,
+        "mesoPerExp": 0.00011254702571590833,
+        "epic1Price": 1140761.96510513,
+        "epic2Price": 4092433.3714007474
+      },
+      {
+        "bonus": 200,
+        "selected": false,
+        "rawExp": 27321912600,
+        "mesoPerExp": 0.00007503135047727222,
+        "epic1Price": 1711142.9476576953,
+        "epic2Price": 6138650.057101121
+      },
+      {
+        "bonus": 250,
+        "selected": false,
+        "rawExp": 31875564700,
+        "mesoPerExp": 0.0000643125861233762,
+        "epic1Price": 1996333.4389339779,
+        "epic2Price": 7161758.399951308
+      },
+      {
+        "bonus": 300,
+        "selected": true,
+        "rawExp": 36429216800,
+        "mesoPerExp": 0.000056273512857954165,
+        "epic1Price": 2281523.93021026,
+        "epic2Price": 8184866.742801495
+      },
+      {
+        "bonus": 400,
+        "selected": false,
+        "rawExp": 45536521000,
+        "mesoPerExp": 0.00004501881028636334,
+        "epic1Price": 2851904.912762825,
+        "epic2Price": 10231083.428501867
+      },
+      {
+        "bonus": 500,
+        "selected": false,
+        "rawExp": 54643825200,
+        "mesoPerExp": 0.00003751567523863611,
+        "epic1Price": 3422285.8953153905,
+        "epic2Price": 12277300.114202242
+      },
+      {
+        "bonus": 600,
+        "selected": false,
+        "rawExp": 63751129400,
+        "mesoPerExp": 0.0000321562930616881,
+        "epic1Price": 3992666.8778679557,
+        "epic2Price": 14323516.799902616
+      }
+    ]
+  }
+]

@@ -1,0 +1,62 @@
+[
+  {
+    "asset": "public/experience-icons/growth-mission.png",
+    "label": "성장 미션 · PERSONAL 불꽃",
+    "tool": "wz_tool.ps1",
+    "dataRoot": "C:\\Nexon\\Maple\\Data",
+    "node": "UI\\UIEventList.img\\icon\\224",
+    "width": 45,
+    "height": 39,
+    "sha256": "72b25f4653f43d08abec36742ec1a270be7022ea2c497ab70f96fb6864d6e4fb",
+    "reference": "icons/PersonalBurning.png",
+    "sourceManifest": "outputs/doping-breakeven/wz-confirmed/ui-224/manifest.json"
+  },
+  {
+    "asset": "public/experience-icons/boss-mission.png",
+    "label": "퍼스널 보스 미션",
+    "tool": "wz_tool.ps1",
+    "dataRoot": "C:\\Nexon\\Maple\\Data",
+    "node": "UI\\UIEventList.img\\icon\\225",
+    "width": 38,
+    "height": 38,
+    "sha256": "a8b8e84463b0b92dff30fdbe4e26bfbd474ea60bb22b53c3ef4da9289512f3c9",
+    "reference": "icons/PersonalBoss.png",
+    "sourceManifest": "outputs/doping-breakeven/wz-confirmed/ui-225/manifest.json"
+  },
+  {
+    "asset": "public/efficiency-icons/momentum-premium.png",
+    "label": "프리미엄 모멘텀",
+    "tool": "wz_tool.ps1",
+    "dataRoot": "C:\\Nexon\\Maple\\Data",
+    "node": "Item\\Cash\\0568.img\\05681542\\info\\icon",
+    "width": 38,
+    "height": 33,
+    "sha256": "f806e50ea549d077ae9b61a37d898afb3f1d023966f9bbef65bc0d52ae73625b",
+    "reference": "icons/PremiumMomentum.png",
+    "sourceManifest": "outputs/doping-breakeven/wz-confirmed/premium/manifest.json"
+  },
+  {
+    "asset": "public/efficiency-icons/momentum-prime.png",
+    "label": "프라임 모멘텀",
+    "tool": "wz_tool.ps1",
+    "dataRoot": "C:\\Nexon\\Maple\\Data",
+    "node": "Item\\Cash\\0568.img\\05681526\\info\\icon",
+    "width": 37,
+    "height": 35,
+    "sha256": "203fdfc4250d15ced3068b5a3e91cf46974258e073e1459f54d88efab1145c38",
+    "reference": "icons/PrimeMomentum.png",
+    "sourceManifest": "outputs/doping-breakeven/wz-confirmed/prime/manifest.json"
+  },
+  {
+    "asset": "public/experience-icons/extreme-park.png",
+    "label": "익몬 · 슈피겔만",
+    "tool": "wz_tool.ps1",
+    "dataRoot": "C:\\Nexon\\Maple\\Data",
+    "node": "Npc\\9071000.img\\stand\\0",
+    "width": 115,
+    "height": 86,
+    "sha256": "f0793aed05583ffd3cee659c345033368b6a378f1b0e864a0a3cc5383b91e54c",
+    "reference": null,
+    "sourceManifest": "outputs/doping-breakeven/wz-confirmed/spiegelmann-monsterpark/manifest.json"
+  }
+]

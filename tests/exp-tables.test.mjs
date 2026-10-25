@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import efficiencyFixture from "./exp-efficiency-fixture.json" with { type: "json" };
 import haruCrosscheck from "../docs/research/haru1sojae-crosscheck-2026-10-25.json" with { type: "json" };
+import dopingSource from '../docs/research/doping-breakeven-source-2026-10-25.json' with {type:'json'};
 import { compareExpEfficiency, efficiencyDefaults } from "../lib/exp-efficiency.mjs";
 import { defaultMainInput } from "../lib/main-planner.mjs";
 import { monsterParkExperiencePercent } from "../lib/calculator-core.mjs";
@@ -468,20 +469,22 @@ test("아이템 환산의 경험치 합은 300 이후 버려지는 양을 포함
 for (const level of [285, 290, 295]) test(`상품 효율 Lv.${level}: 팀장 스크립트의 패스·에픽·돋보기·충전·교환권 숫자`, () => {
   const planner = defaultMainInput("2026-10-25");
   planner.plus.tier = "free";
-  const result = compareExpEfficiency({ ...efficiencyDefaults(planner), level, fieldLevel: level, ordinaryPrice: 1000000, detectivePrice: 50000000 }, planner);
+  const result = compareExpEfficiency({ ...efficiencyDefaults(planner), maplePoints: 2300, level, fieldLevel: level, ordinaryPrice: 1000000, detectivePrice: 50000000 }, planner);
   assert.deepEqual(result.errors, []);
   const expected = efficiencyFixture[level];
   for (const row of result.rows) {
+    if(row.id==='vipBooster'){assert.equal(row.available,false);assert.equal(row.costMeso,null);assert.equal(row.rawExp,result.rows.find(r=>r.id==='ordinary').rawExp);continue;}
     assert.equal(row.available, true);
     for (const key of ["rawExp", "costMeso", "percent", "mesoPerMob", "relativeEpic1"]) {
       assert.ok(Math.abs(row[key] - expected[row.id][key]) <= Math.max(1e-8, Math.abs(expected[row.id][key]) * 1e-12), `${row.id}.${key}: ${row[key]} != ${expected[row.id][key]}`);
     }
   }
-  assert.equal(result.rows.length, 9);
+  assert.equal(result.rows.length, 10);
   for (const row of result.magnifiers) row.thresholds.forEach((ref, i) => {
     assert.ok(Math.abs(ref.price - expected.thresholds[row.id][i]) < 0.00001);
   });
-  assert.deepEqual(result.rows.map(row => row.mesoPerMob), result.rows.map(row => row.mesoPerMob).sort((a, b) => a - b));
+  const bought=result.rows.filter(row=>row.available);
+  assert.deepEqual(bought.map(row => row.mesoPerMob), bought.map(row => row.mesoPerMob).sort((a, b) => a - b));
 });
 
 test("상품 비교는 9월 구매로 살 수 없는 줄도 보여 주고 무료 보상을 유료 값에 넣지 않는다", () => {
@@ -496,8 +499,8 @@ test("상품 비교는 9월 구매로 살 수 없는 줄도 보여 주고 무료
 });
 
 test("시세 빈칸·0원·손익분기 위아래와 잘못 넣은 교환 비율을 구분한다", () => {
-  const p = defaultMainInput("2026-10-25"), v = { ...efficiencyDefaults(p), level: 285, fieldLevel: 285 };
-  assert.equal(compareExpEfficiency(v, p).rows.find(row => row.id === "ordinary").mesoPerMob, null);
+  const p = defaultMainInput("2026-10-25"), v = { ...efficiencyDefaults(p), maplePoints:2300, level: 285, fieldLevel: 285 };
+  assert.equal(compareExpEfficiency({...v,ordinaryPrice:''}, p).rows.find(row => row.id === "ordinary").mesoPerMob, null);
   const cheap = compareExpEfficiency({ ...v, ordinaryPrice: 0, detectivePrice: 50000000 }, p);
   assert.equal(cheap.magnifiers[0].thresholds[0].verdict, "싸요");
   assert.equal(cheap.magnifiers[1].thresholds[0].verdict, "비싸요");
@@ -521,8 +524,54 @@ test("서로 다른 사냥터·커스텀 배분도 같은 몬스터 단위로 �
   assert.equal(r.rows.find(row => row.id === "ordinary").rawExp, 36429216800);
   assert.equal(r.rows.find(row => row.id === "detective").rawExp, 728584336000);
   assert.equal(r.rows.find(row => row.id === "monster").rawExp, 403625592);
-  assert.equal(r.rows.find(row => row.id === "monster").costMeso, 10 / 0.99 / 2300 * 1e8);
+  assert.equal(r.rows.find(row => row.id === "monster").costMeso, 10 / 0.99 / 2150 * 1e8);
   assert.deepEqual(p, before);
   p.personal.flame.alloc.exp = 2;
   assert.equal(compareExpEfficiency(v, p).rows.find(row => row.id === "monster").available, false);
+});
+
+test('최신 공개 식과 도핑별 가격선·갈림길·VIP 보유분은 285/290에서 일치한다',()=>{
+  const p=defaultMainInput('2026-10-25');
+  for(const level of [285,290])for(const [maplePoints,ordinaryPrice]of [[2300,2100000],[2150,2050000]]){
+    const mob=dopingSource.tables.monsters.value[level];
+    const epic=dopingSource.tables[level>=290?'aurum':'nightmare'].value[level];
+    const point=dopingSource.tables.epicPoints.value[level>=290?'아우룸 레기스':'악몽선경'];
+    const extra=epic.stage1-epic.stage0,cost=point.stage1/.99/maplePoints*1e8-16e7;
+    const expected=(ordinaryPrice*extra/(1900*mob*cost)-1)*100;
+    let detective;
+    for(const bonus of [0,100,200,250,300,400,500,600,777.5]){
+      const values={...efficiencyDefaults(p),level,fieldLevel:level,maplePoints,ordinaryPrice,detectivePrice:1e8,bonus};
+      const r=compareExpEfficiency(values,p),normal=r.rows.find(x=>x.id==='ordinary'),vip=r.rows.find(x=>x.id==='vipBooster'),yeti=r.magnifiers.find(x=>x.id==='detective');
+      assert.equal(normal.rawExp,1900*mob*(1+bonus/100));assert.equal(vip.rawExp,normal.rawExp);assert.equal(vip.available,false);assert.equal(vip.mesoPerMob,null);
+      assert.equal(yeti.rawExp,800*190*mob);
+      if(detective)assert.deepEqual(yeti,detective);detective=yeti;
+      assert.ok(Math.abs(r.breakBonus.value-expected)<1e-10);
+      assert.equal(r.dopingRows.find(x=>x.selected).bonus,bonus);
+      for(const row of r.dopingRows){
+        assert.equal(row.mesoPerExp,ordinaryPrice/(1900*mob*(1+row.bonus/100)));
+        assert.ok(Math.abs(row.epic1Price-1900*mob*(1+row.bonus/100)/extra*cost)<1e-7);
+        assert.ok(Math.abs(row.epic2Price-1900*mob*(1+row.bonus/100)/(epic.stage2-epic.stage1)*(point.stage2/.99/maplePoints*1e8-16e7))<1e-7);
+      }
+    }
+    for(const [offset,verdict]of [[-0.01,'비싸요'],[0.01,'싸요']]){
+      const r=compareExpEfficiency({...efficiencyDefaults(p),level,fieldLevel:level,maplePoints,ordinaryPrice,bonus:expected+offset},p);
+      assert.equal(r.magnifiers.find(x=>x.id==='ordinary').thresholds[0].verdict,verdict);
+    }
+  }
+});
+
+test('도핑 도우미는 확인한 증가량을 더하며 쿠폰 배수를 전체 EXP에 곱하지 않는다',async()=>{
+  const {dopingTotal,normalizeDoping}=await import('../lib/exp-doping.mjs');
+  assert.equal(dopingTotal({coupon:200,potion:20,pendant:true}),250);
+  assert.equal(dopingTotal({coupon:300,extra:70,potion:20,ring:15,pendant:true,title:true,other:65}),600);
+  assert.equal(dopingTotal({coupon:999,extra:-50,other:'bad'}),0);
+  assert.equal(normalizeDoping(null,300).other,300);
+});
+
+test('空시세·0원·음수 에픽 순비용·입력한도에서 갈림길 문구를 구분한다',()=>{
+  const p=defaultMainInput('2026-10-25'),v={...efficiencyDefaults(p),level:285,fieldLevel:285};
+  assert.equal(compareExpEfficiency({...v,ordinaryPrice:''},p).breakBonus.kind,'missing');
+  assert.equal(compareExpEfficiency({...v,ordinaryPrice:0},p).breakBonus.kind,'always');
+  assert.equal(compareExpEfficiency({...v,maplePoints:10000},p).breakBonus.kind,'unavailable');
+  assert.ok(compareExpEfficiency({...v,bonus:10000},p).errors.length);
 });

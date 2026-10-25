@@ -5,6 +5,6 @@ import { assetUrl } from './asset-url';
 
 export const sourceLabel = (id: string) => EXPERIENCE_SOURCE_LABELS[id as keyof typeof EXPERIENCE_SOURCE_LABELS] || id;
 export const percent = (value: number) => value > 0 && value < 0.01 ? '<0.01' : value.toFixed(2);
-export function SourceIcon({ id }: { id: string }) {
-  return <span className="pb-exp-icon"><img src={assetUrl(experienceIcon(id))} width={32} height={32} alt="" />{id.startsWith('attendance') && <img className="pb-exp-badge" src={assetUrl("/experience-icons/attendance.png")} width={16} height={16} alt="출석 보상" />}</span>;
+export function SourceIcon({ id, level }: { id: string; level?: number }) {
+  return <span className={`pb-exp-icon${id==='extreme'?' pb-exp-npc':''}`}><img src={assetUrl(experienceIcon(id,level))} width={32} height={32} alt="" />{id.startsWith('attendance') && <img className="pb-exp-badge" src={assetUrl("/experience-icons/attendance.png")} width={16} height={16} alt="출석 보상" />}</span>;
 }

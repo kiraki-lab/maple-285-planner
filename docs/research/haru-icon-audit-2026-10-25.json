@@ -1,0 +1,469 @@
+{
+  "note": "하루1소재 참고·비교 전용 사본(2026-10-25, 청크 22q2t3v1bf7hj.js sha256 앞 8ad2602276f956a3). 공개·배포 금지. wz_same_pixels는 RGBA 픽셀 완전 일치로 확인한 WZ 노드.",
+  "items": [
+    {
+      "file": "boss/Baldrix.png",
+      "url": "https://haru1sojae.kr/boss/Baldrix.png",
+      "names": [],
+      "size": "25x25",
+      "sha256": "d7b05320e0df756620fbfdbf675b968cf3301a1acbe26137f43c5cc9b3db9862",
+      "wz_same_pixels": null
+    },
+    {
+      "file": "boss/Bellona.png",
+      "url": "https://haru1sojae.kr/boss/Bellona.png",
+      "names": [],
+      "size": "25x25",
+      "sha256": "6b6b47550b1ada5b5d0e8bedee07bd3834ca03aa12f4fd374c85e7c38c9d5657",
+      "wz_same_pixels": null
+    },
+    {
+      "file": "boss/Damien.png",
+      "url": "https://haru1sojae.kr/boss/Damien.png",
+      "names": [],
+      "size": "25x25",
+      "sha256": "6b7ae8a016118e319c3b2b645fb57200420a6d83721af868f1604729550df638",
+      "wz_same_pixels": null
+    },
+    {
+      "file": "boss/Dunkel.png",
+      "url": "https://haru1sojae.kr/boss/Dunkel.png",
+      "names": [],
+      "size": "25x25",
+      "sha256": "b5d9c80fb411792e1395c3cb7eccf6764e8c4b245f6d83b7e9753e3e93ad612f",
+      "wz_same_pixels": null
+    },
+    {
+      "file": "boss/Dusk.png",
+      "url": "https://haru1sojae.kr/boss/Dusk.png",
+      "names": [],
+      "size": "25x25",
+      "sha256": "2e8d8193e0be61063079ba9a925097b910590d1929f28a8e7a2e21d48c5cd6c2",
+      "wz_same_pixels": null
+    },
+    {
+      "file": "boss/FirstAdversary.png",
+      "url": "https://haru1sojae.kr/boss/FirstAdversary.png",
+      "names": [],
+      "size": "25x25",
+      "sha256": "e53284326ead15b2eb0ff5e27445e3beba90d65151dd5246132fd3ed85c323c6",
+      "wz_same_pixels": null
+    },
+    {
+      "file": "boss/GuardianAngelSlime.png",
+      "url": "https://haru1sojae.kr/boss/GuardianAngelSlime.png",
+      "names": [],
+      "size": "25x25",
+      "sha256": "f4d96a1c5302f83c7e1b3d1d0dcf688ac904c9ab5c2eb4ae6d67bf8004458f35",
+      "wz_same_pixels": null
+    },
+    {
+      "file": "boss/Jupiter.png",
+      "url": "https://haru1sojae.kr/boss/Jupiter.png",
+      "names": [],
+      "size": "25x25",
+      "sha256": "c39a83f6c08ee05acb7798b9b8490d49494a6f934a7113e11f2acb249dd9fa85",
+      "wz_same_pixels": null
+    },
+    {
+      "file": "boss/Kaling.png",
+      "url": "https://haru1sojae.kr/boss/Kaling.png",
+      "names": [],
+      "size": "25x25",
+      "sha256": "293f9bffff69f4b1c12403bf1ec59f54b1f00d6beb1ffd16788453b9cf568648",
+      "wz_same_pixels": null
+    },
+    {
+      "file": "boss/Kalos.png",
+      "url": "https://haru1sojae.kr/boss/Kalos.png",
+      "names": [],
+      "size": "25x25",
+      "sha256": "a750602b150727b4386e320ae2b2ce50797dd4ad6b25c678cfe9230b0b03182f",
+      "wz_same_pixels": null
+    },
+    {
+      "file": "boss/Limbo.png",
+      "url": "https://haru1sojae.kr/boss/Limbo.png",
+      "names": [],
+      "size": "25x25",
+      "sha256": "ddbe2249d389cc3d7e7fea69dbd467adf48016e123ad3d9a52c707eb9309bead",
+      "wz_same_pixels": null
+    },
+    {
+      "file": "boss/Lotus.png",
+      "url": "https://haru1sojae.kr/boss/Lotus.png",
+      "names": [],
+      "size": "25x25",
+      "sha256": "88cc3b3a0707ce3e9e39cc4278d84b1aba6cdff9579951b01e6f4d6c3751b653",
+      "wz_same_pixels": null
+    },
+    {
+      "file": "boss/Lucid.png",
+      "url": "https://haru1sojae.kr/boss/Lucid.png",
+      "names": [],
+      "size": "25x25",
+      "sha256": "fa0d6d9a714ed84501ebef44a597132a45f5218dfd792cccac3f89224209484b",
+      "wz_same_pixels": null
+    },
+    {
+      "file": "boss/MaleficStar.png",
+      "url": "https://haru1sojae.kr/boss/MaleficStar.png",
+      "names": [],
+      "size": "25x25",
+      "sha256": "0137a44a6c339e4e434a130f84774d7d2a7149cc579b51e803eddcf9cfd26aa0",
+      "wz_same_pixels": null
+    },
+    {
+      "file": "boss/Seren.png",
+      "url": "https://haru1sojae.kr/boss/Seren.png",
+      "names": [],
+      "size": "25x25",
+      "sha256": "bb9eaa5372c8fc47c398042c541b236c6612e93ac83ecd28eae977aaae7f6ba5",
+      "wz_same_pixels": null
+    },
+    {
+      "file": "boss/VerusHilla.png",
+      "url": "https://haru1sojae.kr/boss/VerusHilla.png",
+      "names": [],
+      "size": "25x25",
+      "sha256": "b0694dbafdc7180aec12ea816e6346977b160f3ce1cde530554fe2d277a99a4b",
+      "wz_same_pixels": null
+    },
+    {
+      "file": "boss/Will.png",
+      "url": "https://haru1sojae.kr/boss/Will.png",
+      "names": [],
+      "size": "25x25",
+      "sha256": "885bd61a98abffbf78e204c373661e0413ce53d893d63306f45c239a11d47d56",
+      "wz_same_pixels": null
+    },
+    {
+      "file": "icons/AnglerCompany.png",
+      "url": "https://haru1sojae.kr/icons/AnglerCompany.png",
+      "names": [
+        "앵글러컴퍼니"
+      ],
+      "size": "38x38",
+      "sha256": "a1e21e4fffeddf2286d328524f9109ae4aa3d1349ceadd1b2a436076d713e8a8",
+      "wz_same_pixels": null
+    },
+    {
+      "file": "icons/Arcs.png",
+      "url": "https://haru1sojae.kr/icons/Arcs.png",
+      "names": [
+        "2.아르크스",
+        "아르크스"
+      ],
+      "size": "38x38",
+      "sha256": "0c7d4252e2b64ec4ed6b5528f36d5de4b992d1f76f24ab67fd14a789eb4ecd83",
+      "wz_same_pixels": null
+    },
+    {
+      "file": "icons/Arteria.png",
+      "url": "https://haru1sojae.kr/icons/Arteria.png",
+      "names": [
+        "5.아르테리아",
+        "아르테리아"
+      ],
+      "size": "38x38",
+      "sha256": "72ed9d9243f78bcd2a0be036e32ddce7d5c3bcde1584f5847e355cbeddb0c406",
+      "wz_same_pixels": null
+    },
+    {
+      "file": "icons/AurumRegis.png",
+      "url": "https://haru1sojae.kr/icons/AurumRegis.png",
+      "names": [
+        "아우룸 레기스"
+      ],
+      "size": "38x38",
+      "sha256": "475b10e9884f16227e6d8fe1ab26144b4ec4b56a8fd3b0071285c4ceec72ed3e",
+      "wz_same_pixels": null
+    },
+    {
+      "file": "icons/Blueberry.png",
+      "url": "https://haru1sojae.kr/icons/Blueberry.png",
+      "names": [
+        "블루베리 농장"
+      ],
+      "size": "33x28",
+      "sha256": "8498b32256373675904a5b425d4045ff9a04a711e623595846d3c16d15b22163",
+      "wz_same_pixels": "public/efficiency-icons/blueberry.png 와 동일"
+    },
+    {
+      "file": "icons/Carcion.png",
+      "url": "https://haru1sojae.kr/icons/Carcion.png",
+      "names": [
+        "6.카르시온",
+        "카르시온"
+      ],
+      "size": "38x38",
+      "sha256": "4878a7c19dcdbc48766dea38477bfa5062309a35d147e5d90592531c9bd96adb",
+      "wz_same_pixels": null
+    },
+    {
+      "file": "icons/Cernium.png",
+      "url": "https://haru1sojae.kr/icons/Cernium.png",
+      "names": [
+        "1.세르니움",
+        "세르니움"
+      ],
+      "size": "38x38",
+      "sha256": "2f851d39d5a09d8ca3a83cbe7ebe6f6e233ca55d845df505bdbe968ad00d1acc",
+      "wz_same_pixels": null
+    },
+    {
+      "file": "icons/CrimsonMekaberry.png",
+      "url": "https://haru1sojae.kr/icons/CrimsonMekaberry.png",
+      "names": [
+        "크림슨 메카베리 농장"
+      ],
+      "size": "33x28",
+      "sha256": "3512ef81703184568ffe985b5ae891ac9c7471eef70c3e26e5cf139a0d21f24f",
+      "wz_same_pixels": "Item/Consume/0283.img/02832979/info/icon (02832980 동일)"
+    },
+    {
+      "file": "icons/Dowonkyung.png",
+      "url": "https://haru1sojae.kr/icons/Dowonkyung.png",
+      "names": [
+        "4.도원경",
+        "도원경"
+      ],
+      "size": "38x38",
+      "sha256": "874f535d660daf55192c0aba93af5cb32faa441a3af4ef93295c85b0f08b825b",
+      "wz_same_pixels": null
+    },
+    {
+      "file": "icons/ExpCoupon.png",
+      "url": "https://haru1sojae.kr/icons/ExpCoupon.png",
+      "names": [
+        "상급 EXP 교환권"
+      ],
+      "size": "32x26",
+      "sha256": "0fd2e416d6456a3bb4b1a096feb7366df20da3aff5ac1a407c595fd58f5c8e25",
+      "wz_same_pixels": "Item/Consume/0263.img/02638500/info/icon (02830369 동일)"
+    },
+    {
+      "file": "icons/ExpCoupon3x.png",
+      "url": "https://haru1sojae.kr/icons/ExpCoupon3x.png",
+      "names": [
+        "경험치 3배 쿠폰"
+      ],
+      "size": "32x32",
+      "sha256": "ee890064b6881791820d383a8ac668fd327ad9a9d25feb83d8c41418254f8fea",
+      "wz_same_pixels": null
+    },
+    {
+      "file": "icons/ExpCoupon4x.png",
+      "url": "https://haru1sojae.kr/icons/ExpCoupon4x.png",
+      "names": [
+        "경험치 4배 쿠폰"
+      ],
+      "size": "32x32",
+      "sha256": "c0d1731d97532008d61e1b530af83731d56ac3513f3e449e79d273841211d1dd",
+      "wz_same_pixels": "public/efficiency-icons/exp-4x-coupon.png 와 동일"
+    },
+    {
+      "file": "icons/Geardrak.png",
+      "url": "https://haru1sojae.kr/icons/Geardrak.png",
+      "names": [
+        "8.기어드락",
+        "기어드락"
+      ],
+      "size": "38x38",
+      "sha256": "2f41123d6b2b4f8cf03b2887b6efab13d3f360ced22ed474c26c3fde56732a20",
+      "wz_same_pixels": null
+    },
+    {
+      "file": "icons/HighMountain.png",
+      "url": "https://haru1sojae.kr/icons/HighMountain.png",
+      "names": [
+        "하이마운틴"
+      ],
+      "size": "38x38",
+      "sha256": "80b1e360d79a488e6c1d6c78b7730d3d25b0e3cbceb845312d53bcad0c726c1a",
+      "wz_same_pixels": null
+    },
+    {
+      "file": "icons/Mekaberry.png",
+      "url": "https://haru1sojae.kr/icons/Mekaberry.png",
+      "names": [
+        "메카베리 농장"
+      ],
+      "size": "33x28",
+      "sha256": "f0fc61f935f293ce3f7c9420540d52d8f3497abb5f6b8df81246114a2a794936",
+      "wz_same_pixels": "public/efficiency-icons/mekaberry.png 와 동일"
+    },
+    {
+      "file": "icons/Mepo.png",
+      "url": "https://haru1sojae.kr/icons/Mepo.png",
+      "names": [
+        "메포"
+      ],
+      "size": "31x31",
+      "sha256": "31f7c267c9938345a135a10e3cf1237e0c07b7a9625b14282244e0bf18072051",
+      "wz_same_pixels": null
+    },
+    {
+      "file": "icons/Meso.png",
+      "url": "https://haru1sojae.kr/icons/Meso.png",
+      "names": [
+        "메소"
+      ],
+      "size": "32x31",
+      "sha256": "64d4c584109363f611dfec109475568b154e0bb478f4cedb1ba1c568d9568b5a",
+      "wz_same_pixels": null
+    },
+    {
+      "file": "icons/MonsterPark.png",
+      "url": "https://haru1sojae.kr/icons/MonsterPark.png",
+      "names": [
+        "몬스터파크"
+      ],
+      "size": "35x29",
+      "sha256": "2ef1090d4a8f22dd6b997beb7ccf651f5c9a3c1daa2488e43766d1d5642a3439",
+      "wz_same_pixels": "Item/Etc/0400.img/04001949/info/icon"
+    },
+    {
+      "file": "icons/NightmareParadise.png",
+      "url": "https://haru1sojae.kr/icons/NightmareParadise.png",
+      "names": [
+        "악몽선경"
+      ],
+      "size": "38x38",
+      "sha256": "065012d0db7ae7fcff91933aaf16732c8140eebf2fea63fb5b375e45080fbfee",
+      "wz_same_pixels": null
+    },
+    {
+      "file": "icons/Odium.png",
+      "url": "https://haru1sojae.kr/icons/Odium.png",
+      "names": [
+        "3.오디움",
+        "오디움"
+      ],
+      "size": "38x38",
+      "sha256": "cf971edb6aa7c73a574999bb12f803b6c5e2ff41dd62383d1fbcb05524e2dc94",
+      "wz_same_pixels": null
+    },
+    {
+      "file": "icons/PersonalBoss.png",
+      "url": "https://haru1sojae.kr/icons/PersonalBoss.png",
+      "names": [
+        "퍼스널 보스"
+      ],
+      "size": "38x38",
+      "sha256": "a8b8e84463b0b92dff30fdbe4e26bfbd474ea60bb22b53c3ef4da9289512f3c9",
+      "wz_same_pixels": "UI/UIEventList.img/icon/225"
+    },
+    {
+      "file": "icons/PersonalBurning.png",
+      "url": "https://haru1sojae.kr/icons/PersonalBurning.png",
+      "names": [
+        "퍼스널 버닝"
+      ],
+      "size": "45x39",
+      "sha256": "72b25f4653f43d08abec36742ec1a270be7022ea2c497ab70f96fb6864d6e4fb",
+      "wz_same_pixels": "UI/UIEventList.img/icon/224"
+    },
+    {
+      "file": "icons/PersonalExpCoupon.png",
+      "url": "https://haru1sojae.kr/icons/PersonalExpCoupon.png",
+      "names": [
+        "퍼스널 EXP 교환권"
+      ],
+      "size": "32x26",
+      "sha256": "588a32a4d8ea067b1e6916efefac0a4e1d5d579b5f204cdf2008f0f1fdd721ca",
+      "wz_same_pixels": "Item/Consume/0283.img/02833099/info/icon"
+    },
+    {
+      "file": "icons/PremiumMomentum.png",
+      "url": "https://haru1sojae.kr/icons/PremiumMomentum.png",
+      "names": [
+        "프리미엄 모멘텀 패스"
+      ],
+      "size": "38x33",
+      "sha256": "f806e50ea549d077ae9b61a37d898afb3f1d023966f9bbef65bc0d52ae73625b",
+      "wz_same_pixels": "Item/Cash/0568.img/05681542/info/icon (05681564 동일)"
+    },
+    {
+      "file": "icons/PrimeMomentum.png",
+      "url": "https://haru1sojae.kr/icons/PrimeMomentum.png",
+      "names": [
+        "프라임 모멘텀 패스"
+      ],
+      "size": "37x35",
+      "sha256": "203fdfc4250d15ced3068b5a3e91cf46974258e073e1459f54d88efab1145c38",
+      "wz_same_pixels": "Item/Cash/0568.img/05681526/info/icon (05681565 동일)"
+    },
+    {
+      "file": "icons/SuspiciousMagnifier.png",
+      "url": "https://haru1sojae.kr/icons/SuspiciousMagnifier.png",
+      "names": [
+        "수상한 돋보기"
+      ],
+      "size": "30x29",
+      "sha256": "8dc3e80cd8c0bf425368f837c463ff6aae056f8cbb099848e4eca915c45a9920",
+      "wz_same_pixels": "Item/Consume/0283.img/02833631/info/icon"
+    },
+    {
+      "file": "icons/Tallahart.png",
+      "url": "https://haru1sojae.kr/icons/Tallahart.png",
+      "names": [
+        "7.탈라하트",
+        "탈라하트"
+      ],
+      "size": "38x38",
+      "sha256": "12e5a32bbbfea99c09551be6e09f400e059c74680437efad5e327e898cc54bea",
+      "wz_same_pixels": null
+    },
+    {
+      "file": "icons/TreasureHunter.png",
+      "url": "https://haru1sojae.kr/icons/TreasureHunter.png",
+      "names": [
+        "트레져 헌터"
+      ],
+      "size": "67x82",
+      "sha256": "3c898f44fe5e9a8dd85f20a26236352ef3407e04f2ef23b742026e605ca400eb",
+      "wz_same_pixels": null
+    },
+    {
+      "file": "icons/VipBooster.png",
+      "url": "https://haru1sojae.kr/icons/VipBooster.png",
+      "names": [
+        "VIP 부스터"
+      ],
+      "size": "34x34",
+      "sha256": "363a91f60a3238091e5a5232ad130a936d031088667dfd533649c9e12df367a7",
+      "wz_same_pixels": "Item/Consume/0263.img/02637168/info/icon (02637169·02639826 동일)"
+    },
+    {
+      "file": "icons/VipSauna.png",
+      "url": "https://haru1sojae.kr/icons/VipSauna.png",
+      "names": [
+        "VIP사우나"
+      ],
+      "size": "38x38",
+      "sha256": "7cffe6f8e6518e52fd3923dbd67f9452d5a14ad1e71b8a3462315064944db1fb",
+      "wz_same_pixels": null
+    },
+    {
+      "file": "icons/Yeonggeop.png",
+      "url": "https://haru1sojae.kr/icons/Yeonggeop.png",
+      "names": [
+        "영겁의 황금태엽"
+      ],
+      "size": "35x35",
+      "sha256": "fcafe7336ba5ca36c2a20566470e365663121f73d618d2c3ee2607c4e7f6d32d",
+      "wz_same_pixels": "Item/Consume/0263.img/02639930/info/icon (02830216 동일)"
+    },
+    {
+      "file": "icons/YetiSuspiciousMagnifier.png",
+      "url": "https://haru1sojae.kr/icons/YetiSuspiciousMagnifier.png",
+      "names": [
+        "탐정예티의 수상한 돋보기"
+      ],
+      "size": "41x38",
+      "sha256": "afcb1a72208f3683bd74971f81fa1fb2273a63f624f2d39e077e9acee741e6c1",
+      "wz_same_pixels": "Item/Consume/0283.img/02833632/info/icon"
+    }
+  ]
+}

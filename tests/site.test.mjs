@@ -5,6 +5,21 @@ import test from "node:test";
 const root = new URL("../", import.meta.url);
 const read = path => readFile(new URL(path, root), "utf8");
 
+test('오늘 시세 기본값과 직접 바꾼 시세·도핑은 저장 후 복원된다',async()=>{
+  const {defaultMainInput}=await import('../lib/main-planner.mjs');
+  const {mergeSaved,parseSaved,serializeSaved}=await import('../lib/saved-input.mjs');
+  const {efficiencyDefaults}=await import('../lib/exp-efficiency.mjs');
+  const input=defaultMainInput('2026-10-25');
+  assert.equal(input.market.maplePoints,2150);assert.equal(input.market.ordinaryPrice,2050000);assert.equal(input.market.detectivePrice,1e8);
+  Object.assign(input.market,{maplePoints:2300,ordinaryPrice:2100000,detectivePrice:0,won:1600});
+  input.efficiency={bonus:250,doping:{coupon:200,extra:0,potion:20,ring:0,pendant:true,title:false,other:0}};
+  const saved=parseSaved(serializeSaved(input),'2026-10-26');
+  assert.deepEqual(saved.market,input.market);assert.deepEqual(saved.efficiency,input.efficiency);assert.equal(saved.routine.huntBonusPct,300);
+  assert.equal(efficiencyDefaults(saved).maplePoints,2300);assert.equal(efficiencyDefaults(saved).bonus,250);
+  const old=mergeSaved({routine:{huntBonusPct:500}},'2026-10-25');assert.equal(old.market.maplePoints,2150);assert.equal(old.routine.huntBonusPct,500);assert.equal(old.efficiency.bonus,null);assert.equal(efficiencyDefaults(old).bonus,500);
+  for(const broken of [null,[],{maplePoints:0,won:NaN,ordinaryPrice:-1}])assert.equal(mergeSaved({market:broken},'2026-10-25').market.maplePoints,2150);
+});
+
 test("옛 PLUS 저장값은 저장한 날의 진행도로 복구하고 새 진행도·두 목표 입력은 그대로 되살린다", async () => {
   const { mergeSaved, parseSaved, serializeSaved } = await import(new URL("lib/saved-input.mjs", root).href);
   const old = mergeSaved({ start: "2026-09-17", plus: { tier: "prime", claimedLevel: 0 } }, "2026-10-10");
@@ -480,7 +495,10 @@ test("경험치의 모든 출처는 로컬 게임 아이콘이 있고 새 WZ 원
   }
   const records=JSON.parse(await read('docs/research/daily-breakdown-readable-icons-2026-10-25.json'));
   assert.equal(records.length,11);
-  for(const record of records){
+  const replacements=JSON.parse(await read('docs/research/doping-breakeven-icons-2026-10-25.json'));
+  assert.equal(replacements.length,5);
+  const current=new Map([...records,...replacements].map(record=>[record.asset,record]));
+  for(const record of current.values()){
     assert.equal(record.tool,'wz_tool.ps1');assert.match(record.dataRoot,/^C:\\Nexon\\MapleT?\\Data$/);
     const data=await readFile(new URL(`../${record.asset}`,import.meta.url));assert.equal(createHash('sha256').update(data).digest('hex'),record.sha256);
     assert.ok(record.node&&record.width>1&&record.height>1);

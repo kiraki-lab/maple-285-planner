@@ -1,0 +1,2 @@
+# The public-source VM fixture is verified byte for byte on Windows and CI.
+tests/fixtures/haru1sojae-*-core.txt -text

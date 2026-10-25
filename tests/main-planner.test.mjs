@@ -104,6 +104,21 @@ const makeCtx = (overrides = {}) => ({
 });
 const ctx = makeCtx();
 
+test('비교용 쿠폰·도핑은 플래너의 기간 사냥과 보유 4배 쿠폰을 중복 가산하지 않는다', () => {
+  const input=defaultMainInput('2026-10-09');
+  input.items.coupon4x=4;
+  const real=createMainContext(), before=simulateMain(input,real);
+  assert.ok(before.sourceRaw.coupon4x>0);
+  for(const coupon of [200,300]){
+    input.efficiency={bonus:coupon+120,doping:{coupon,extra:70,potion:20,ring:0,pendant:true,title:false,other:0}};
+    const after=simulateMain(input,real);
+    assert.deepEqual(after.sourceRaw,before.sourceRaw);
+    assert.deepEqual(after.items.huntItemsUsed,before.items.huntItemsUsed);
+    assert.equal(after.level,before.level);assert.equal(after.exp,before.exp);
+    assert.equal(input.routine.huntBonusPct,300);
+  }
+});
+
 test("PLUS는 지금 레벨과 750포인트 이월로 올라가며 시작 주 추가분은 따로 센다", () => {
   const plan = plusLevelSchedule({ enabled: true, currentLevel: 2, levelPoints: 500, weeklyPoints: 1000, thisWeekRemaining: 250 }, "2026-10-09");
   assert.deepEqual(plan, [
@@ -2291,6 +2306,17 @@ test("전 출처의 레벨별EXP·획득%·시작끝 위치와 단계보상 연�
     assert.equal(b.period.entries.reduce((sum,e)=>sum+Math.round(e.shownPercent*100),0),Math.round(b.period.shownPercent*100));
     assert.equal(b.days.reduce((sum,day)=>sum+Math.round(day.shownPercent*100),0),Math.round(b.period.shownPercent*100));
   }
+});
+
+test('몬파 아이콘의 지역은 날짜 시작/끝이 아니라 실제 지급 직전 레벨로 연결한다',async()=>{
+  const {monsterParkRegion}=await import('../lib/experience-source-icons.mjs');
+  const x=rewardOnly('2026-10-23',284,99);
+  x.routine.runsPerDay=1;
+  const ctx={...createMainContext(),reqRaw:()=>100,routineRaw:()=>({monsterPark:10,grandis:0})};
+  const day=simulateMain(x,ctx).rows[0];
+  assert.equal(day.level,285);assert.equal(day.sourceLevels.monsterPark,284);
+  assert.equal(monsterParkRegion(day.sourceLevels.monsterPark),'arteria');
+  for(const [level,region]of [[280,'arteria'],[284,'arteria'],[285,'carcion'],[289,'carcion'],[290,'tallahart'],[294,'tallahart'],[295,'geardrak'],[299,'geardrak']])assert.equal(monsterParkRegion(level),region);
 });
 
 test("옛 돋보기0~3개 입력은 하루1만마리 이상일 때 ca0ec4a의 마감 위치·단계·경험치를 유지한다", () => {

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import DailyExperience from "./daily-experience";
 import { SourceIcon, percent } from "./experience-source";
+import { normalizeMarket, maplePointMeso, MARKET_DATE } from '@/lib/market.mjs';
 import { EXPERIENCE_SOURCE_LABELS, dailyExperienceBreakdown } from "@/lib/experience-breakdown.mjs";
 import {
   addDay,
@@ -151,6 +152,8 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
   const weekInfo = eventWeek(input.start);
   // EXP 보너스 1단계가 더해 주는 양(기본 보상의 4배)을 교환권 장수로 바꿔 보여 준다.
   const epicStage1 = epicBonusStage1Info(startLevel);
+  const market = normalizeMarket(input.market);
+  const epicSelectedMP = input.routine.epic ? epicStage1.maplePoint * (input.routine.epicMult >= 9 ? 4 : input.routine.epicMult > 1 ? 1 : 0) : 0;
   const epicStage1AddRaw = ctx.weeklyRaw({ level: startLevel, epicMult: 5 }).epic - ctx.weeklyRaw({ level: startLevel, epicMult: 1 }).epic;
   const epicStage1Coupons = epicStage1AddRaw / couponAtStart;
   const couponsPerPointWeek = FLAME_WEEKLY_ADD / 100;
@@ -426,11 +429,13 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
         <NumField label="몬스터파크 하루 판수" value={input.routine.runsPerDay} min={0} max={7} step={1} onChange={value => upd((draft: MainInput) => { draft.routine.runsPerDay = value; })} hint="무료 2판. 이용권·메이플포인트로 하루 7판까지" />
         <NumField label="일요일 판수" value={input.routine.sundayRuns} min={0} max={7} step={1} onChange={value => upd((draft: MainInput) => { draft.routine.sundayRuns = value; })} hint="일요일은 경험치 1.5배. 일요일만 7판 돌면 7" />
         <label className="field"><span>에픽 던전 보상 배수</span><select value={input.routine.epicMult} onChange={event => upd((draft: MainInput) => { draft.routine.epicMult = Number(event.target.value); })}><option value={1}>보너스 없음 (1배 · 0 메이플포인트)</option><option value={5}>EXP 1단계 (합 5배, 흔히 4배 · {fmtInt(epicStage1.maplePoint)} 메이플포인트)</option><option value={9}>EXP 2단계 (합 9배, 흔히 8배 · {fmtInt(epicStage1.maplePoint * 4)} 메이플포인트)</option></select></label>
+        <NumField label="1억 메소 = 메이플포인트" value={market.maplePoints} min={1} step={1} onChange={value=>upd((draft:MainInput)=>{draft.market={...market,maplePoints:value};})} hint={`${MARKET_DATE} · 메소마켓 수수료 1% · 상품 효율과 같은 시세`} />
         <NumField label="하루 사냥 30분 × 횟수" value={input.routine.huntHoursPerWeek * 2 / 7} min={0} max={48} step={0.25} onChange={value => upd((draft: MainInput) => { draft.routine.huntHoursPerWeek = value * 7 * 0.5; })} hint="기본 하루 1회 · 소수 입력 가능. 0이면 일반 사냥 없음" />
         <label className="field"><span>평소 사냥터 몬스터</span><select value={input.routine.huntFieldKey} onChange={event => upd((draft: MainInput) => { draft.routine.huntFieldKey = event.target.value; if (event.target.value === "direct" && !draft.routine.huntFieldLevel) draft.routine.huntFieldLevel = startLevel; })}><option value="flame">플레임과 같게</option><option value="same">내 레벨 몬스터 (레벨업하면 따라감)</option><option value="direct">몬스터 레벨 직접 입력</option></select></label>
         {input.routine.huntFieldKey === "direct" && <NumField label="평소 사냥터 몬스터 레벨" value={input.routine.huntFieldLevel || startLevel} min={260} max={299} step={1} onChange={value => upd((draft: MainInput) => { draft.routine.huntFieldLevel = value; })} hint="260~299 · 플레임 사냥터는 바뀌지 않음" />}
-        <NumField label="사냥 추가 경험치 %" value={input.routine.huntBonusPct} min={0} max={3000} step={10} onChange={value => upd((draft: MainInput) => { draft.routine.huntBonusPct = value; })} hint="룬·경험치 쿠폰·버프·가호 합계. 0이면 순수 경험치" />
+        <NumField label="사냥 추가 경험치 %" value={input.routine.huntBonusPct} min={0} max={9999} step={10} onChange={value => upd((draft: MainInput) => { draft.routine.huntBonusPct = value; })} hint="평소 버프 합계. 보유 보상에 넣은 4배 쿠폰은 빼세요. 0이면 순수 경험치" />
       </div>
+      <p className="pb-note" data-planner-epic-cost={maplePointMeso(epicSelectedMP, market.maplePoints)}>에픽 던전 주 {fmtInt(epicSelectedMP)} 메이플포인트 ≈ {fmtInt(maplePointMeso(epicSelectedMP, market.maplePoints))} 메소 · 수수료 포함, 주화 판매 전</p>
       <details className="pb-more"><summary>가호 추가 경험치 · 내 수치 직접 넣기</summary>
       <div className="field-grid compact">
         <NumField label="몬스터파크 추가 경험치 %" value={input.routine.argoMonsterPark} min={0} max={50} step={5} onChange={value => upd((draft: MainInput) => { draft.routine.argoMonsterPark = value; })} hint="아르고호의 가호 Lv1~6 = 5·10·20·30·40·50%. 익스트림 몬파에도 붙음" />
@@ -620,7 +625,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
         <div className="pb-exp-section-title"><h3>출처별 기간 합계</h3><strong>+{(periodSources.percent / 100).toFixed(2)}레벨</strong></div>
         <p className="pb-note">획득 당시 레벨에서 오른 %를 더했어요. 100%는 1레벨이에요.</p>
         <div className="pb-exp-period">{sourceRows.map(row => <div key={row.id} className="pb-exp-period-source" title={`${fmtInt(row.shown)} EXP`}>
-          <SourceIcon id={row.id} /><div className="pb-gain-source-body"><div className="pb-gain-source-title"><span>{sourceLabels[row.id] || row.id}</span><b>+{percent(row.shownPercent)}%</b></div><div className="pb-gain-bar" aria-hidden="true"><i style={{ width: `${row.percent / totalPercent * 100}%` }} /></div></div>
+          <SourceIcon id={row.id} level={r.rows.find((day: {sourceLevels:Record<string,number>})=>day.sourceLevels[row.id]!==undefined)?.sourceLevels[row.id]} /><div className="pb-gain-source-body"><div className="pb-gain-source-title"><span>{sourceLabels[row.id] || row.id}</span><b>+{percent(row.shownPercent)}%</b></div><div className="pb-gain-bar" aria-hidden="true"><i style={{ width: `${row.percent / totalPercent * 100}%` }} /></div></div>
         </div>)}</div>
         <details className="pb-gain-raw"><summary>기간 전체 EXP 숫자 보기</summary><p className="pb-note pb-period-total">기간 전체 {fmtInt(periodSources.total)} EXP</p></details>
         <DailyExperience rows={r.rows} displayDays={breakdown.days} />
