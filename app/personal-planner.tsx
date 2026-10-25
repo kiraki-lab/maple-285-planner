@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import DailyExperience from "./daily-experience";
+import { SourceIcon, percent } from "./experience-source";
 import { EXPERIENCE_SOURCE_LABELS, dailyExperienceBreakdown } from "@/lib/experience-breakdown.mjs";
 import {
   addDay,
@@ -171,11 +172,11 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
 
   const shortfall = r.mission.shortfall as { index: number; level: number; exp: number; remainingRaw: number } | null;
   const allocTotal = flame.alloc.shard + flame.alloc.exp + flame.alloc.erda;
-  const breakdown = dailyExperienceBreakdown(r.rows, r.sourceRaw);
+  const breakdown = dailyExperienceBreakdown(r.rows, r.sourceRaw, ctx.reqRaw);
   const periodSources = breakdown.period;
-  const sourceRows = periodSources.entries.sort((a, b) => b.raw - a.raw);
+  const sourceRows = periodSources.entries;
   const sourceLabels: Record<string, string> = EXPERIENCE_SOURCE_LABELS;
-  const totalRaw = sourceRows.reduce((sum, row) => sum + row.raw, 0) || 1;
+  const totalPercent = periodSources.percent || 1;
 
   const advices: { tone: "warn" | "info"; text: string }[] = [];
   if (r.flame.overflowLost > 0) {
@@ -616,11 +617,12 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
 
         </div>
         <div className="pb-result-section" role="tabpanel" id="pb-pane-r6" aria-labelledby="pb-tab-r6" tabIndex={0} hidden={resTab !== "r6"}>
-        <h3>출처별 기간 합계</h3>
-        <p className="pb-note pb-period-total">기간 전체 {fmtInt(periodSources.total)} EXP</p>
-        <div className="pb-sources">{sourceRows.map(row => <div key={row.id} className="pb-source"><span>{sourceLabels[row.id] || row.id}</span>
-          <i style={{ width: `${Math.max(2, row.raw / totalRaw * 100)}%` }} /><b>{fmtInt(row.shown)} EXP · {(row.raw / ctx.reqRaw(startLevel) * 100).toFixed(1)}%p</b></div>)}</div>
-        <p className="pb-note">%p는 시작 레벨({startLevel}) 필요 경험치 기준이라 레벨이 오른 뒤 얻은 경험치는 실제 표시 %보다 크게 보일 수 있습니다.</p>
+        <div className="pb-exp-section-title"><h3>출처별 기간 합계</h3><strong>+{(periodSources.percent / 100).toFixed(2)}레벨</strong></div>
+        <p className="pb-note">획득 당시 레벨에서 오른 %를 더했어요. 100%는 1레벨이에요.</p>
+        <div className="pb-exp-period">{sourceRows.map(row => <div key={row.id} className="pb-exp-period-source" title={`${fmtInt(row.shown)} EXP`}>
+          <SourceIcon id={row.id} /><div className="pb-gain-source-body"><div className="pb-gain-source-title"><span>{sourceLabels[row.id] || row.id}</span><b>+{percent(row.shownPercent)}%</b></div><div className="pb-gain-bar" aria-hidden="true"><i style={{ width: `${row.percent / totalPercent * 100}%` }} /></div></div>
+        </div>)}</div>
+        <details className="pb-gain-raw"><summary>기간 전체 EXP 숫자 보기</summary><p className="pb-note pb-period-total">기간 전체 {fmtInt(periodSources.total)} EXP</p></details>
         <DailyExperience rows={r.rows} displayDays={breakdown.days} />
         </div>
       </>}

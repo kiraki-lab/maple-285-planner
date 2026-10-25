@@ -2247,6 +2247,52 @@ test("날짜별 전 출처 합계는 기간·주차 합계 및 실제 시작→�
   assert.equal(roundedExperienceSources({futureSource:0.7,hunt:0.7}).entries.reduce((sum,e)=>sum+e.shown,0),1);
 });
 
+test("획득시점 레벨별 비율은 한 출처의 레벨 경계·뒤 출처·300상한에서 실제 오른 %와 맞는다", async () => {
+  const {dailyExperienceBreakdown}=await import('../lib/experience-breakdown.mjs');
+  const x=rewardOnly('2026-10-23',288,90);
+  x.routine.runsPerDay=1;x.routine.grandis=true;x.routine.argoGrandis=0;
+  const ctx={...createMainContext(),reqRaw:level=>level===288?100:200,routineRaw:()=>({monsterPark:30,grandis:20})};
+  let r=simulateMain(x,ctx),d=r.rows[0];
+  assert.deepEqual(d.start,{level:288,exp:90,steps:x.personal.mission.stepsDone});
+  assert.equal(d.level,289);assert.equal(d.exp,20);
+  assert.deepEqual(d.levelSources,{288:{monsterPark:10},289:{monsterPark:20,grandis:20}});
+  assert.deepEqual(d.levelUps,[{from:288,to:289,source:'monsterPark'}]);
+  let b=dailyExperienceBreakdown(r.rows,r.sourceRaw,ctx.reqRaw);
+  assert.equal(b.days[0].percent,30);assert.equal(b.period.percent,30);
+  assert.equal(b.days[0].entries.find(e=>e.id==='monsterPark').percent,20);
+  assert.deepEqual(b.days[0].entries.find(e=>e.id==='monsterPark').parts.map(p=>[p.level,p.percent]),[[288,10],[289,10]]);
+  x.level=299;x.exp=95;r=simulateMain(x,ctx);d=r.rows[0];
+  assert.deepEqual(d.levelSources,{299:{monsterPark:10}});assert.equal(d.level,300);
+  b=dailyExperienceBreakdown(r.rows,r.sourceRaw,ctx.reqRaw);assert.equal(b.days[0].percent,5);
+});
+
+test("전 출처의 레벨별EXP·획득%·시작끝 위치와 단계보상 연쇄는 보존된다", async () => {
+  const {dailyExperienceBreakdown}=await import('../lib/experience-breakdown.mjs');
+  const ctx=createMainContext();
+  for(const [date,level,exp]of [['2026-10-09',288,45],['2026-10-22',280,99.9],['2026-10-23',287,99.9],['2026-11-18',299,99.99]]){
+    const x=defaultMainInput(date);Object.assign(x,{level,exp});
+    x.magnifiers.ordinaryPerDay=2;x.magnifiers.detectiveBoughtPerDay=2;
+    x.personal.mission={...x.personal.mission,mode:'model',stepsDone:0,designLevel:level,designExp:exp};
+    const r=simulateMain(x,ctx),b=dailyExperienceBreakdown(r.rows,r.sourceRaw,ctx.reqRaw);
+    let from={level:x.level,exp:x.exp};
+    r.rows.forEach((day,i)=>{
+      assert.equal(day.start.level,from.level);assert.ok(Math.abs(day.start.exp-from.exp)<1e-9);
+      const raw={};for(const sources of Object.values(day.levelSources))for(const [id,value]of Object.entries(sources))raw[id]=(raw[id]||0)+value;
+      for(const [id,value]of Object.entries(day.sourceRaw))assert.ok(Math.abs(value-(raw[id]||0))<1,id);
+      const gain=(day.level-day.start.level)*100+day.exp-day.start.exp;
+      assert.ok(Math.abs(gain-b.days[i].percent)<1e-8,day.date);
+      assert.equal(Math.round(b.days[i].entries.reduce((sum,e)=>sum+Math.round(e.shownPercent*100),0)),Math.round(b.days[i].shownPercent*100));
+      assert.equal(b.days[i].shownPercent,Math.round(gain*100)/100);
+      for(const entry of b.days[i].entries)assert.equal(entry.parts.reduce((sum,p)=>sum+Math.round(p.shownPercent*100),0),Math.round(entry.shownPercent*100));
+      assert.deepEqual(day.levelUps.map(up=>up.to),Array.from({length:day.level-day.start.level},(_,j)=>day.start.level+j+1));
+      from=day;
+    });
+    assert.ok(Math.abs(b.period.percent-((r.level-x.level)*100+r.exp-x.exp))<1e-8);
+    assert.equal(b.period.entries.reduce((sum,e)=>sum+Math.round(e.shownPercent*100),0),Math.round(b.period.shownPercent*100));
+    assert.equal(b.days.reduce((sum,day)=>sum+Math.round(day.shownPercent*100),0),Math.round(b.period.shownPercent*100));
+  }
+});
+
 test("옛 돋보기0~3개 입력은 하루1만마리 이상일 때 ca0ec4a의 마감 위치·단계·경험치를 유지한다", () => {
   const fixture=JSON.parse(readFileSync(new URL('./detective-legacy-fixture.json',import.meta.url),'utf8'));
   assert.equal(fixture.baseline,'ca0ec4a');assert.equal(fixture.rows.length,4);

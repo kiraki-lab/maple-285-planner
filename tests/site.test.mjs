@@ -459,8 +459,30 @@ test("날짜별 근거는 기본 결과 탭에서 기간 합계·주별 접기·
   const html=await renderBuiltSsrHtml('daily-breakdown');
   assert.match(html,/id="pb-pane-r6"[^>]*>/);
   assert.doesNotMatch(html.match(/id="pb-pane-r6"[^>]*>/)[0],/hidden/);
-  for(const label of ['날짜별 경험치 획득 근거','출처별 기간 합계','그날 합계(EXP)','그날 끝 위치 · 통과 단계','하루 사냥 30분 × 횟수'])assert.ok(html.includes(label),label);
+  for(const label of ['날짜별 경험치 획득 근거','출처별 기간 합계','획득 당시 레벨 기준','EXP 숫자 보기','하루 사냥 30분 × 횟수'])assert.ok(html.includes(label),label);
   const tables=[...html.matchAll(/data-exp-date="([^"]+)"/g)];assert.equal(tables.length,28);
   assert.ok(html.includes('data-exp-source="hunt"'));
   assert.match(html,/<details[^>]*open=""[^>]*class="pb-trace-week"/);
+  assert.match(html,/class="pb-gain-journey"/);
+  assert.match(html,/data-exp-percent-total="[0-9.]+"/);
+  assert.match(html,/그 외 /);
+  assert.match(html,/src="\/experience-icons\/personal-flame.png"/);
+});
+
+test("경험치의 모든 출처는 로컬 게임 아이콘이 있고 새 WZ 원본 해시와 일치한다", async () => {
+  const {EXPERIENCE_SOURCE_LABELS}=await import('../lib/experience-breakdown.mjs');
+  const {EXPERIENCE_SOURCE_ICONS}=await import('../lib/experience-source-icons.mjs');
+  const {createHash}=await import('node:crypto');
+  const {readFile}=await import('node:fs/promises');
+  for(const id of Object.keys(EXPERIENCE_SOURCE_LABELS)){
+    const icon=EXPERIENCE_SOURCE_ICONS[id];assert.match(icon,/^\/(experience|efficiency)-icons\/[a-z0-9-]+\.png$/);
+    const png=await readFile(new URL(`../public${icon}`,import.meta.url));assert.equal(png.subarray(1,4).toString(),'PNG');
+  }
+  const records=JSON.parse(await read('docs/research/daily-breakdown-readable-icons-2026-10-25.json'));
+  assert.equal(records.length,11);
+  for(const record of records){
+    assert.equal(record.tool,'wz_tool.ps1');assert.match(record.dataRoot,/^C:\\Nexon\\MapleT?\\Data$/);
+    const data=await readFile(new URL(`../${record.asset}`,import.meta.url));assert.equal(createHash('sha256').update(data).digest('hex'),record.sha256);
+    assert.ok(record.node&&record.width>1&&record.height>1);
+  }
 });

@@ -1,0 +1,240 @@
+[
+  {
+    "asset": "public/experience-icons/attendance.png",
+    "dataRoot": "C:\\Nexon\\Maple\\Data",
+    "tool": "wz_tool.ps1",
+    "entry": {
+      "id": "4162001",
+      "name": "attendance",
+      "targets": [
+        "info\\icon",
+        "info\\iconRaw",
+        "icon",
+        "iconRaw"
+      ],
+      "mode": "targets",
+      "kind": "etc",
+      "node_path": "Item\\Etc\\0416.img\\04162001"
+    },
+    "node": "Item\\Etc\\0416.img\\04162001\\info\\icon",
+    "source": "0416.img\\04162001\\info\\icon",
+    "width": 31,
+    "height": 31,
+    "sha256": "5c0a7fba7cc3ccb82284569f53d8224899cdc03dd2f6959babce6cdf9b1c4180"
+  },
+  {
+    "asset": "public/experience-icons/boss-mission.png",
+    "dataRoot": "C:\\Nexon\\Maple\\Data",
+    "tool": "wz_tool.ps1",
+    "entry": {
+      "id": "2830919",
+      "name": "boss-mission",
+      "targets": [
+        "info\\icon",
+        "info\\iconRaw",
+        "icon",
+        "iconRaw"
+      ],
+      "mode": "targets",
+      "kind": "consume",
+      "node_path": "Item\\Consume\\0283.img\\02830919"
+    },
+    "node": "Item\\Consume\\0283.img\\02830919\\info\\icon",
+    "source": "0263.img\\02638850\\info\\icon",
+    "width": 36,
+    "height": 35,
+    "sha256": "de09548312b0354ba253c0f1dfa66514b63cbd4d2f3f0dc3d13a0f5ae6a87c0b"
+  },
+  {
+    "asset": "public/experience-icons/detective-magnifier.png",
+    "dataRoot": "C:\\Nexon\\MapleT\\Data",
+    "tool": "wz_tool.ps1",
+    "entry": {
+      "node_path": "Item\\Consume\\0283.img\\02833632\\info\\icon",
+      "name": "Item/Consume/0283.img/02833632/info/icon",
+      "id": "",
+      "mode": "full-node",
+      "kind": "raw"
+    },
+    "node": "Item\\Consume\\0283.img\\02833632\\info\\icon",
+    "source": "0283.img\\02833632\\info\\icon",
+    "width": 41,
+    "height": 38,
+    "sha256": "afcb1a72208f3683bd74971f81fa1fb2273a63f624f2d39e077e9acee741e6c1"
+  },
+  {
+    "asset": "public/experience-icons/epic-dungeon.png",
+    "dataRoot": "C:\\Nexon\\Maple\\Data",
+    "tool": "wz_tool.ps1",
+    "entry": {
+      "id": "80004174",
+      "name": "epic-dungeon",
+      "targets": [
+        "icon",
+        "iconMouseOver",
+        "iconDisabled"
+      ],
+      "mode": "targets",
+      "kind": "skill",
+      "node_path": "Skill\\800041.img\\skill\\80004174"
+    },
+    "node": "Skill\\800041.img\\skill\\80004174\\icon",
+    "source": "800039.img\\skill\\80003926\\icon",
+    "width": 32,
+    "height": 32,
+    "sha256": "3caab18a2ce6254e12cb2609534fac76503c8bc6100a093a38395f04f998740b"
+  },
+  {
+    "asset": "public/experience-icons/extreme-park.png",
+    "dataRoot": "C:\\Nexon\\Maple\\Data",
+    "tool": "wz_tool.ps1",
+    "entry": {
+      "id": "2832288",
+      "name": "extreme-park",
+      "targets": [
+        "info\\icon",
+        "info\\iconRaw",
+        "icon",
+        "iconRaw"
+      ],
+      "mode": "targets",
+      "kind": "consume",
+      "node_path": "Item\\Consume\\0283.img\\02832288"
+    },
+    "node": "Item\\Consume\\0283.img\\02832288\\info\\icon",
+    "source": "0243.img\\02434941\\info\\icon",
+    "width": 34,
+    "height": 36,
+    "sha256": "3c8674297f3751a30ab11bab24310c6d006b0ae694e745e434b8df45edd5af20"
+  },
+  {
+    "asset": "public/experience-icons/grandis.png",
+    "dataRoot": "C:\\Nexon\\Maple\\Data",
+    "tool": "wz_tool.ps1",
+    "entry": {
+      "id": "1713000",
+      "name": "grandis",
+      "targets": [
+        "info\\icon",
+        "info\\iconRaw",
+        "icon",
+        "iconRaw"
+      ],
+      "mode": "targets",
+      "kind": "eqp",
+      "node_path": "Character\\AuthenticForce\\01713000.img"
+    },
+    "node": "Character\\AuthenticForce\\01713000.img\\info\\icon",
+    "source": "01713000.img\\info\\icon",
+    "width": 38,
+    "height": 38,
+    "sha256": "1e49c1e7bcea167b3673a33956b0c4698682f36c256d6164d588f90b112c4337"
+  },
+  {
+    "asset": "public/experience-icons/growth-mission.png",
+    "dataRoot": "C:\\Nexon\\Maple\\Data",
+    "tool": "wz_tool.ps1",
+    "entry": {
+      "id": "2833092",
+      "name": "growth-mission",
+      "targets": [
+        "info\\icon",
+        "info\\iconRaw",
+        "icon",
+        "iconRaw"
+      ],
+      "mode": "targets",
+      "kind": "consume",
+      "node_path": "Item\\Consume\\0283.img\\02833092"
+    },
+    "node": "Item\\Consume\\0283.img\\02833092\\info\\icon",
+    "source": "0283.img\\02833092\\info\\icon",
+    "width": 28,
+    "height": 30,
+    "sha256": "73b80aa0c52c392fd4e0e51cb7ab6fb49244592c8b844d64e2790bd230651dd3"
+  },
+  {
+    "asset": "public/experience-icons/hunting.png",
+    "dataRoot": "C:\\Nexon\\Maple\\Data",
+    "tool": "wz_tool.ps1",
+    "entry": {
+      "id": "100100",
+      "name": "hunting",
+      "targets": [
+        "stand",
+        "move",
+        "fly"
+      ],
+      "mode": "targets",
+      "kind": "mob",
+      "node_path": "Mob\\0100100.img"
+    },
+    "node": "Mob\\0100100.img\\stand\\0",
+    "source": "0100100.img\\stand\\0",
+    "width": 37,
+    "height": 26,
+    "sha256": "f70daaa784bb6c2dcf4fca02fdf78e022de6af49bd1924f20316a38b6cdf26f0"
+  },
+  {
+    "asset": "public/experience-icons/monster-park.png",
+    "dataRoot": "C:\\Nexon\\Maple\\Data",
+    "tool": "wz_tool.ps1",
+    "entry": {
+      "id": "4001949",
+      "name": "monster-park",
+      "targets": [
+        "info\\icon",
+        "info\\iconRaw",
+        "icon",
+        "iconRaw"
+      ],
+      "mode": "targets",
+      "kind": "etc",
+      "node_path": "Item\\Etc\\0400.img\\04001949"
+    },
+    "node": "Item\\Etc\\0400.img\\04001949\\info\\icon",
+    "source": "0400.img\\04001864\\info\\icon",
+    "width": 35,
+    "height": 29,
+    "sha256": "2ef1090d4a8f22dd6b997beb7ccf651f5c9a3c1daa2488e43766d1d5642a3439"
+  },
+  {
+    "asset": "public/experience-icons/ordinary-magnifier.png",
+    "dataRoot": "C:\\Nexon\\MapleT\\Data",
+    "tool": "wz_tool.ps1",
+    "entry": {
+      "node_path": "Item\\Consume\\0283.img\\02833631\\info\\icon",
+      "name": "Item/Consume/0283.img/02833631/info/icon",
+      "id": "",
+      "mode": "full-node",
+      "kind": "raw"
+    },
+    "node": "Item\\Consume\\0283.img\\02833631\\info\\icon",
+    "source": "0283.img\\02833631\\info\\icon",
+    "width": 30,
+    "height": 29,
+    "sha256": "8dc3e80cd8c0bf425368f837c463ff6aae056f8cbb099848e4eca915c45a9920"
+  },
+  {
+    "asset": "public/experience-icons/personal-flame.png",
+    "dataRoot": "C:\\Nexon\\Maple\\Data",
+    "tool": "wz_tool.ps1",
+    "entry": {
+      "id": "9834766",
+      "name": "personal-flame",
+      "targets": [
+        "stand",
+        "move",
+        "fly"
+      ],
+      "mode": "targets",
+      "kind": "mob",
+      "node_path": "Mob\\9834766.img"
+    },
+    "node": "Mob\\9834766.img\\fly\\0",
+    "source": "9834766.img\\fly\\0",
+    "width": 336,
+    "height": 272,
+    "sha256": "e9f76b5e71be108a638c205e66676c15cfb421fcf3a040027512f92f051ebb03"
+  }
+]
