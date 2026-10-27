@@ -1184,15 +1184,15 @@ test("추천은 가장 좋은 위치에서 0.05%p 안쪽인 후보 가운데서�
     const best = Math.max(...a.options.filter(option => option.summary.stepsCleared === steps).map(option => option.summary.progress));
     assert.ok(best - a.best.summary.progress <= 0.0005 + 1e-12, day);
   });
+});
 
-  test('에픽 보상 자체로 290이 되면 그날 아이콘은 지급 직전의 악몽선경이다', async()=>{
-    const {experienceIcon}=await import('../lib/experience-source-icons.mjs');
-    const x=rewardOnly('2026-10-29',289,99.99);
-    Object.assign(x.routine,{epic:true,epicMult:1,weeklyPending:true});
-    const day=simulateMain(x,createMainContext()).rows[0];
-    assert.equal(day.level,290);assert.equal(day.sourceLevels.epic,289);
-    assert.equal(experienceIcon('epic',day.sourceLevels.epic),'/experience-icons/epic-nightmare.png');
-  });
+test('에픽 보상 자체로 290이 되면 그날 아이콘은 지급 직전의 악몽선경이다', async()=>{
+  const {experienceIcon}=await import('../lib/experience-source-icons.mjs');
+  const x=rewardOnly('2026-10-29',289,99.99);
+  Object.assign(x.routine,{epic:true,epicMult:1,weeklyPending:true});
+  const day=simulateMain(x,createMainContext()).rows[0];
+  assert.equal(day.level,290);assert.equal(day.sourceLevels.epic,289);
+  assert.equal(experienceIcon('epic',day.sourceLevels.epic),'/experience-icons/epic-nightmare.png');
 });
 
 test("아르고호의 가호는 11/25까지만 붙는다", () => {
