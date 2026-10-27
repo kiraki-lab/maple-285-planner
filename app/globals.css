@@ -30,7 +30,7 @@
 .pb-gain-source { display: flex; align-items: center; gap: 10px; padding: 10px 0; }
 .pb-gain-source-body { min-width: 0; flex: 1; }
 .pb-gain-source-title { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.pb-gain-source-title > span { font-size: 13px; font-weight: 600; color: #453b51; overflow-wrap: anywhere; }
+.pb-gain-source-title > span { font-size: 13px; font-weight: 600; color: #453b51; word-break: keep-all; overflow-wrap: anywhere; }
 .pb-gain-source-title > b { font-size: 19px; color: #4a2d92; white-space: nowrap; font-variant-numeric: tabular-nums; letter-spacing: -.04em; }
 .pb-gain-bar { height: 4px; background: #eee9f5; border-radius: 4px; overflow: hidden; margin-top: 6px; }
 .pb-gain-bar i { display: block; height: 100%; background: #a88be9; border-radius: 4px; }
@@ -599,3 +599,85 @@ footer p { margin: 0; color: #65636c; font-size: 12px; text-align: center; }
 }
 .pb-exp-npc { overflow: hidden; }
 .pb-exp-npc > img { width: 52px; height: auto; max-width: none; position: absolute; left: 50%; top: 0; transform: translateX(-50%); }
+
+/* 가격선 → 필요한 입력 → 에픽과의 비교 순서로 읽는다. */
+.pb-epic-icons { display: flex; flex-direction: column; gap: 3px; flex: 0 0 34px; }
+.eff-simple .eff-page-heading h2 { font-size: 27px; }
+.eff-simple .eff-verdict { background: #f4f5fb; border-color: #dfe2ef; }
+.eff-simple .eff-verdict.is-good { background: #f0f9f5; border-color: #c4e1d5; }
+.eff-simple .eff-verdict.is-bad { background: #fff5f3; border-color: #f1d2cc; }
+.eff-simple .eff-verdict-heading { align-items: flex-start; }
+.eff-simple .eff-verdict-heading > .eff-icon { margin-top: 24px; }
+.eff-simple .eff-verdict-heading p { color: #6c7371; }
+.eff-simple .eff-verdict h3 { color: #34463f; font-size: 15px; }
+.eff-simple .eff-verdict h3 > strong { display: block; margin: 4px 0; font-size: clamp(30px,3.5vw,44px); line-height: 1.2; color: #185b46; letter-spacing: -.05em; font-variant-numeric: tabular-nums; }
+.eff-simple .is-bad h3 > strong { color: #963c36; }
+.eff-simple .eff-verdict h3 > span { font-size: 15px; font-weight: 600; }
+.eff-current-price { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 17px 0 0 68px; font-size: 15px; color: #4e5957; }
+.eff-current-price > b { padding: 5px 12px; border-radius: 8px; font-size: 15px; }
+.eff-current-price .good { color: #126345; background: #d6efdf; }
+.eff-current-price .bad { color: #a43432; background: #fbe0db; }
+.eff-verdict-reference { display: flex; align-items: center; gap: 8px; margin: 18px 0 0; padding-top: 12px; border-top: 1px solid #d8e5df; font-size: 12px; color: #5c6d64; line-height: 1.6; }
+.eff-verdict-reference .eff-icon { width: 28px; height: 28px; flex-basis: 28px; }
+.eff-primary-inputs { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 14px; margin-top: 20px; }
+.eff-primary-inputs > div { min-width: 0; }
+.eff-primary-inputs .eff-field > span { font-size: 12px; line-height: 1.4; }
+.eff-primary-inputs input { font-size: 19px; }
+.eff-primary-inputs > div > small { display: block; margin-top: 7px; font-size: 10px; color: #7c7284; line-height: 1.6; }
+.eff-primary-inputs .eff-doping-slider { margin-top: 5px; height: 23px; }
+.eff-more-inputs { margin-top: 14px; padding: 13px 16px; border: 1px solid #e7e0ee; border-radius: 12px; background: #fcfbfe; }
+.eff-more-inputs > summary { cursor: pointer; font-weight: 750; color: #5b4771; font-size: 13px; }
+.eff-more-inputs > summary > span { color: #8b7b98; font-size: 11px; font-weight: 400; margin-left: 10px; }
+.eff-more-inputs > .eff-fields { grid-template-columns: repeat(4,minmax(0,1fr)); }
+.eff-more-inputs .eff-helper .eff-fields { grid-template-columns: repeat(3,minmax(0,1fr)); }
+.eff-simple .eff-chart { gap: 0 24px; }
+.eff-simple .eff-bar-row { padding: 17px 0; }
+.eff-product-exp { text-align: right; color: #76538e; font-size: 15px; font-weight: 750; white-space: nowrap; }
+.eff-product-exp small { font-size: 10px; font-weight: 400; }
+.eff-comparison { display: block; margin: 13px 0 0; font-size: 18px; font-weight: 600; color: #6c487b; letter-spacing: -.035em; line-height: 1.5; }
+.eff-comparison > b { font-size: 24px; font-weight: 850; }
+.eff-comparison.good { color: #1c7657; }
+.eff-simple .eff-bar-track { margin-top: 9px; height: 6px; }
+.eff-simple .eff-bar-bottom { justify-content: space-between; align-items: baseline; gap: 5px 10px; }
+.eff-simple .eff-bar-bottom > small { color: #8d8196; font-size: 10px; }
+.eff-simple .eff-bar-bottom > span { color: #5f4d6c; font-size: 12px; }
+.eff-simple .eff-locked { margin-top: 16px; padding: 14px; border: 1px solid #e6e0ec; border-radius: 12px; }
+.eff-locked-list { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 0 24px; }
+.eff-locked > .eff-price-card { max-width: 520px; margin-top: 15px; background: #f8f7fa; }
+.eff-simple .eff-price-cards { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.eff-simple .eff-price-card { padding: 20px; }
+.eff-simple .eff-price-card header { margin-bottom: 14px; }
+.eff-price-reference { display: flex; align-items: center; gap: 7px; font-size: 12px; line-height: 1.5; color: #74617e; }
+.eff-price-reference > .eff-icon { width: 25px; height: 25px; flex-basis: 25px; }
+.eff-simple .eff-price-number { margin: 13px 0 20px; font-size: 32px; font-variant-numeric: tabular-nums; }
+.eff-price-number > small { display: block; margin-top: 4px; font-size: 12px; color: #8a7299; font-weight: 500; letter-spacing: 0; }
+.eff-other-prices { border-top: 1px solid #eee7f4; padding-top: 12px; }
+.eff-other-prices > summary { cursor: pointer; font-size: 12px; color: #80628f; }
+.eff-other-prices dt { display: flex; align-items: center; gap: 7px; }
+.eff-other-prices dt .eff-icon { width: 24px; height: 24px; flex-basis: 24px; }
+.eff-simple .eff-doping-section { padding-top: 14px; }
+.eff-simple .eff-doping-result { margin: 0 0 12px; }
+.eff-simple .eff-doping-result b { font-size: 17px; }
+@media (max-width: 720px) {
+  .eff-simple .eff-page-heading h2 { font-size: 23px; }
+  .eff-simple .eff-verdict { padding: 18px 16px; }
+  .eff-simple .eff-verdict-heading { gap: 10px; }
+  .eff-simple .eff-verdict-heading > .eff-icon { width: 32px; height: 32px; flex-basis: 32px; margin-top: 30px; }
+  .eff-simple .eff-verdict-heading p { font-size: 10px; }
+  .eff-simple .eff-verdict h3 > strong { font-size: 32px; }
+  .eff-simple .eff-current-price { margin-left: 42px; font-size: 12px; gap: 7px; }
+  .eff-current-price > b { font-size: 13px; padding: 4px 9px; }
+  .eff-verdict-reference { font-size: 11px; }
+  .eff-primary-inputs { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+  .eff-primary-inputs .eff-field > span { font-size: 11px; min-height: 30px; display: flex; align-items: end; }
+  .eff-primary-inputs input { font-size: 18px; }
+  .eff-more-inputs { padding: 12px; }
+  .eff-more-inputs > summary > span { font-size: 10px; margin-left: 5px; }
+  .eff-more-inputs > .eff-fields, .eff-more-inputs .eff-helper .eff-fields { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .eff-simple .eff-chart, .eff-simple .eff-price-cards, .eff-locked-list { grid-template-columns: minmax(0,1fr); }
+  .eff-simple .eff-bar-top { gap: 9px; }
+  .eff-product-exp { font-size: 13px; }
+  .eff-comparison { font-size: 16px; }
+  .eff-comparison > b { font-size: 22px; }
+  .eff-simple .eff-price-card { padding: 18px; }
+}

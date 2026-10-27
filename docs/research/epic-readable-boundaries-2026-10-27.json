@@ -1,0 +1,16 @@
+{
+  "checkedAt": "2026-10-27T12:10:56.469Z",
+  "url": "https://haru1sojae.kr/cont/epicdungeon",
+  "chunk": "https://haru1sojae.kr/_next/static/chunks/1ud72s1_akin2.js?dpl=dpl_5HNg9JEHVCaopctRbkDAqKjhtB8Q",
+  "sha256": "9b259334359315447dfd13296d4d3f92c7e93ac50074da9936d39727204fefda",
+  "fragments": [
+    {
+      "byte": 21455,
+      "text": "{zone:\"악몽선경\",minLevel:280,multiplier:2}"
+    },
+    {
+      "byte": 21503,
+      "text": "{zone:\"아우룸 레기스\",minLevel:290,multiplier:3}"
+    }
+  ]
+}

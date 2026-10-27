@@ -2,9 +2,10 @@
 
 import { useMemo, useState } from "react";
 import DailyExperience from "./daily-experience";
-import { SourceIcon, percent } from "./experience-source";
+import { SourceIcon, sourceLabel, percent } from "./experience-source";
+import { epicDungeonForLevel } from '@/lib/epic-dungeon.mjs';
 import { normalizeMarket, maplePointMeso, MARKET_DATE } from '@/lib/market.mjs';
-import { EXPERIENCE_SOURCE_LABELS, dailyExperienceBreakdown } from "@/lib/experience-breakdown.mjs";
+import { dailyExperienceBreakdown } from "@/lib/experience-breakdown.mjs";
 import {
   addDay,
   analyzeMain, normalizeInput,
@@ -178,7 +179,8 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
   const breakdown = dailyExperienceBreakdown(r.rows, r.sourceRaw, ctx.reqRaw);
   const periodSources = breakdown.period;
   const sourceRows = periodSources.entries;
-  const sourceLabels: Record<string, string> = EXPERIENCE_SOURCE_LABELS;
+  const sourceLevel = (id: string) => r.rows.find((day: {sourceLevels:Record<string,number>}) => day.sourceLevels[id] !== undefined)?.sourceLevels[id];
+  const epicLevels: number[] = [...new Set<number>(r.rows.filter((day: {sourceLevels:Record<string,number>}) => day.sourceLevels.epic !== undefined).map((day: {sourceLevels:Record<string,number>}) => day.sourceLevels.epic >= 290 ? 290 : 280))];
   const totalPercent = periodSources.percent || 1;
 
   const advices: { tone: "warn" | "info"; text: string }[] = [];
@@ -625,7 +627,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
         <div className="pb-exp-section-title"><h3>출처별 기간 합계</h3><strong>+{(periodSources.percent / 100).toFixed(2)}레벨</strong></div>
         <p className="pb-note">획득 당시 레벨에서 오른 %를 더했어요. 100%는 1레벨이에요.</p>
         <div className="pb-exp-period">{sourceRows.map(row => <div key={row.id} className="pb-exp-period-source" title={`${fmtInt(row.shown)} EXP`}>
-          <SourceIcon id={row.id} level={r.rows.find((day: {sourceLevels:Record<string,number>})=>day.sourceLevels[row.id]!==undefined)?.sourceLevels[row.id]} /><div className="pb-gain-source-body"><div className="pb-gain-source-title"><span>{sourceLabels[row.id] || row.id}</span><b>+{percent(row.shownPercent)}%</b></div><div className="pb-gain-bar" aria-hidden="true"><i style={{ width: `${row.percent / totalPercent * 100}%` }} /></div></div>
+          {row.id === 'epic' ? <span className="pb-epic-icons">{epicLevels.map(level => <SourceIcon key={level} id="epic" level={level} />)}</span> : <SourceIcon id={row.id} level={sourceLevel(row.id)} />}<div className="pb-gain-source-body"><div className="pb-gain-source-title"><span>{row.id === 'epic' ? `에픽 던전 (${epicLevels.map(level => epicDungeonForLevel(level).name).join(' · ')})` : sourceLabel(row.id, sourceLevel(row.id))}</span><b>+{percent(row.shownPercent)}%</b></div><div className="pb-gain-bar" aria-hidden="true"><i style={{ width: `${row.percent / totalPercent * 100}%` }} /></div></div>
         </div>)}</div>
         <details className="pb-gain-raw"><summary>기간 전체 EXP 숫자 보기</summary><p className="pb-note pb-period-total">기간 전체 {fmtInt(periodSources.total)} EXP</p></details>
         <DailyExperience rows={r.rows} displayDays={breakdown.days} />

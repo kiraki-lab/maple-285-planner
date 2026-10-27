@@ -5,6 +5,23 @@ import haruCrosscheck from "../docs/research/haru1sojae-crosscheck-2026-10-25.js
 import dopingSource from '../docs/research/doping-breakeven-source-2026-10-25.json' with {type:'json'};
 import { compareExpEfficiency, efficiencyDefaults } from "../lib/exp-efficiency.mjs";
 import { defaultMainInput } from "../lib/main-planner.mjs";
+import { epicDungeonForLevel } from '../lib/epic-dungeon.mjs';
+import { experienceIcon } from '../lib/experience-source-icons.mjs';
+
+test('280~299 에픽 표시 이름·아이콘은 엔진과 같은 290 경계이며 사냥터 레벨과 무관하다',()=>{
+  const planner=defaultMainInput('2026-10-27');
+  for(let level=280;level<=299;level++){
+    const name=level>=290?'아우룸 레기스':'악몽선경',id=level>=290?'aurum':'nightmare';
+    const dungeon=epicDungeonForLevel(level);
+    assert.equal(dungeon.name,name);assert.equal(dungeon.icon,`/experience-icons/epic-${id}.png`);
+    assert.equal(experienceIcon('epic',level),dungeon.icon);
+    const result=compareExpEfficiency({...efficiencyDefaults(planner),level,fieldLevel:level>=290?280:299},planner);
+    for(const [product,stage]of [['epic1','1단계'],['epic2','1→2단계']]){
+      assert.equal(result.rows.find(row=>row.id===product).label,`에픽 던전 ${stage} (${name})`);
+      for(const magnifier of result.magnifiers)assert.equal(magnifier.thresholds.find(ref=>ref.id===product).label,`에픽 던전 ${stage} (${name})`);
+    }
+  }
+});
 import { monsterParkExperiencePercent } from "../lib/calculator-core.mjs";
 import {
   createMainContext,

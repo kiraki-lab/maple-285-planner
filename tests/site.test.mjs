@@ -251,7 +251,8 @@ test("보스 프리셋과 사냥터 선택이 화면에 연결돼 있다", async
   assert.match(planner, /사냥 추가 경험치 %/);
   assert.match(planner, /몬스터파크 추가 경험치 %/);
   assert.match(planner, /에픽 던전 추가 경험치 %/);
-  assert.match(planner, /EXPERIENCE_SOURCE_LABELS/);
+  assert.match(planner, /sourceLabel/);
+  assert.match(await read('app/experience-source.tsx'), /EXPERIENCE_SOURCE_LABELS/);
   assert.match(await read('lib/experience-breakdown.mjs'), /hunt: "사냥", coupon4x: "경험치 4배 쿠폰\(PLUS\)", booster: "VIP 부스터\(PLUS\)"/);
   assert.match(planner, /주간 컨텐츠 직접 입력 %/);
   assert.match(planner, /이미 완료/);
@@ -499,7 +500,9 @@ test("경험치의 모든 출처는 로컬 게임 아이콘이 있고 새 WZ 원
   assert.equal(replacements.length,5);
   const followup=JSON.parse(await read('docs/research/icon-followup-2026-10-25.json'));
   assert.equal(followup.length,7);
-  const current=new Map([...records,...replacements,...followup].map(record=>[record.asset,record]));
+  const epic=JSON.parse(await read('docs/research/epic-readable-icons-2026-10-27.json'));
+  assert.equal(epic.length,2);
+  const current=new Map([...records,...replacements,...followup,...epic].map(record=>[record.asset,record]));
   for(const record of current.values()){
     assert.equal(record.tool,'wz_tool.ps1');assert.match(record.dataRoot,/^C:\\Nexon\\MapleT?\\Data$/);
     const data=await readFile(new URL(`../${record.asset}`,import.meta.url));assert.equal(createHash('sha256').update(data).digest('hex'),record.sha256);

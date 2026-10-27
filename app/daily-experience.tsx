@@ -11,7 +11,7 @@ const integer = (value: number) => value.toLocaleString('ko-KR', { maximumFracti
 function SourceLine({ entry, total, level }: { entry: Entry; total: number; level?: number }) {
   return <li className="pb-gain-source" data-exp-source={entry.id} data-exp-shown={entry.shown} data-exp-percent={entry.shownPercent}>
     <SourceIcon id={entry.id} level={level} />
-    <div className="pb-gain-source-body"><div className="pb-gain-source-title"><span>{sourceLabel(entry.id)}</span><b>+{percent(entry.shownPercent)}%</b></div>
+    <div className="pb-gain-source-body"><div className="pb-gain-source-title"><span>{sourceLabel(entry.id, level)}</span><b>+{percent(entry.shownPercent)}%</b></div>
       <div className="pb-gain-bar" aria-hidden="true"><i style={{ width: `${total ? entry.percent / total * 100 : 0}%` }} /></div>
       {entry.parts.length > 1 && <small>{entry.parts.map(part => `Lv.${part.level} +${percent(part.shownPercent)}%`).join(' · ')}</small>}
     </div>
@@ -30,12 +30,12 @@ export default function DailyExperience({ rows, displayDays }: { rows: Day[]; di
         return <article className="pb-gain-day" key={day.date} data-exp-date={day.date} aria-label={`${dateLabel(day.date)} 경험치`}>
           <header className="pb-gain-day-head"><h4>{dateLabel(day.date)}</h4><strong data-exp-percent-total={display.shownPercent}>+{percent(display.shownPercent)}%</strong></header>
           <p className="pb-gain-journey"><span>{position(day.start.level, day.start.exp)}</span><span aria-hidden="true">→</span><b>{position(day.level, day.exp)}</b></p>
-          {!!day.levelUps.length && <p className="pb-gain-levelup">{day.levelUps.map(up => <span key={up.to}>Lv.{up.from} → Lv.{up.to} 레벨업 · {sourceLabel(up.source)}</span>)}</p>}
+          {!!day.levelUps.length && <p className="pb-gain-levelup">{day.levelUps.map(up => <span key={up.to}>Lv.{up.from} → Lv.{up.to} 레벨업 · {sourceLabel(up.source, day.sourceLevels[up.source])}</span>)}</p>}
           <ul className="pb-gain-list">{large.map(entry => <SourceLine key={entry.id} entry={entry} total={display.percent} level={day.sourceLevels[entry.id]} />)}</ul>
           {!!small.length && <details className="pb-gain-more"><summary>그 외 {small.length}개 <b>+{percent(small.reduce((sum, entry) => sum + entry.shownPercent, 0))}%</b></summary><ul className="pb-gain-list">{small.map(entry => <SourceLine key={entry.id} entry={entry} total={display.percent} level={day.sourceLevels[entry.id]} />)}</ul></details>}
           {!display.entries.length && <p className="pb-note">획득한 경험치가 없어요.</p>}
           <footer className="pb-gain-day-foot"><span>성장 미션</span><b>{day.start.steps === day.steps ? `${day.steps}/45단계` : `${day.start.steps} → ${day.steps}/45단계`}</b></footer>
-          <details className="pb-gain-raw"><summary>EXP 숫자 보기</summary><dl>{display.entries.map(entry => <div key={entry.id}><dt>{sourceLabel(entry.id)}</dt><dd>{integer(entry.shown)}</dd></div>)}<div className="pb-gain-raw-total"><dt>그날 합계</dt><dd data-exp-total={display.total}>{integer(display.total)}</dd></div></dl></details>
+          <details className="pb-gain-raw"><summary>EXP 숫자 보기</summary><dl>{display.entries.map(entry => <div key={entry.id}><dt>{sourceLabel(entry.id, day.sourceLevels[entry.id])}</dt><dd>{integer(entry.shown)}</dd></div>)}<div className="pb-gain-raw-total"><dt>그날 합계</dt><dd data-exp-total={display.total}>{integer(display.total)}</dd></div></dl></details>
         </article>;
       })}</div>
     </details>)}

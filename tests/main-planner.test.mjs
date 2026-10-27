@@ -1139,7 +1139,8 @@ test("일요일 판수를 따로 넣을 수 있고, 값이 없으면 평일 판�
   assert.ok(Math.abs(legacy.sourceRaw.monsterPark - perRun * (5 * 3 * 1.4 + 3 * 1.9)) / legacy.sourceRaw.monsterPark < 1e-9, "옛 저장값은 평일 판수");
 });
 
-test("같은 날 앞 컨텐츠로 레벨이 오르면 다음 컨텐츠는 새 레벨 값으로 계산한다", () => {
+  test("같은 날 앞 컨텐츠로 레벨이 오르면 다음 컨텐츠는 새 레벨 값과 에픽 아이콘을 쓴다", async () => {
+    const {experienceIcon}=await import('../lib/experience-source-icons.mjs');
   const real = createMainContext();
   // 10/8(목) 289레벨 99.5%: 익몬으로 290이 되면 에픽 던전은 아우룸 레기스 1배 2,174,400,000,000
   const weekly = isolated();
@@ -1149,6 +1150,8 @@ test("같은 날 앞 컨텐츠로 레벨이 오르면 다음 컨텐츠는 새 �
   const w = simulateMain(weekly, real);
   assert.equal(w.level, 290);
   assert.equal(w.sourceRaw.epic, 2_174_400_000_000);
+    assert.equal(w.rows[0].sourceLevels.epic, 290);
+    assert.equal(experienceIcon('epic', w.rows[0].sourceLevels.epic), '/experience-icons/epic-aurum.png');
   // 10/5 294레벨 99.95%: 몬파 1판으로 295가 되면 그란디스 일퀘는 기어드락까지 더한 370,429,319,424
   const daily = isolated();
   Object.assign(daily, { start: "2026-10-05", end: "2026-10-05", level: 294, exp: 99.95 });
@@ -1180,6 +1183,15 @@ test("추천은 가장 좋은 위치에서 0.05%p 안쪽인 후보 가운데서�
     assert.equal(a.best.summary.stepsCleared, steps);
     const best = Math.max(...a.options.filter(option => option.summary.stepsCleared === steps).map(option => option.summary.progress));
     assert.ok(best - a.best.summary.progress <= 0.0005 + 1e-12, day);
+  });
+
+  test('에픽 보상 자체로 290이 되면 그날 아이콘은 지급 직전의 악몽선경이다', async()=>{
+    const {experienceIcon}=await import('../lib/experience-source-icons.mjs');
+    const x=rewardOnly('2026-10-29',289,99.99);
+    Object.assign(x.routine,{epic:true,epicMult:1,weeklyPending:true});
+    const day=simulateMain(x,createMainContext()).rows[0];
+    assert.equal(day.level,290);assert.equal(day.sourceLevels.epic,289);
+    assert.equal(experienceIcon('epic',day.sourceLevels.epic),'/experience-icons/epic-nightmare.png');
   });
 });
 

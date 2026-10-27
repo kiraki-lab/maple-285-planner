@@ -1,0 +1,22 @@
+[
+  {
+    "asset": "public/experience-icons/epic-nightmare.png",
+    "tool": "wz_tool.ps1",
+    "dataRoot": "C:\\Nexon\\Maple\\Data",
+    "node": "Map/MapHelper.img/mark/nightmareParadise",
+    "width": 38,
+    "height": 38,
+    "sha256": "1c10a94a5251191d34cdaec6042cde99d5b9c35fbf665c508c283c8bd36713bb",
+    "source": "../kiraki-youtube-team/projects/2026-10-25_magnifier-shorts/assets/nightmare-wz/Map-MapHelper.img-mark-nightmareParadise.nightmareParadise.png"
+  },
+  {
+    "asset": "public/experience-icons/epic-aurum.png",
+    "tool": "wz_tool.ps1",
+    "dataRoot": "C:\\Nexon\\Maple\\Data",
+    "node": "Map/MapHelper.img/mark/AurumRegis",
+    "width": 38,
+    "height": 38,
+    "sha256": "5d0403e7bbb0d138f0abb74f4a07f7c34c957ba21ef626c3b42152a3e1688e8d",
+    "source": "../kiraki-youtube-team/projects/2026-10-25_magnifier-shorts/assets/aurum-wz/Map-MapHelper.img-mark-AurumRegis.AurumRegis.png"
+  }
+]
