@@ -2362,3 +2362,67 @@ test("부스터·일반 돋보기0개인6사례는 db3bac6의 위치·단계·�
     assert.deepEqual({level:r.level,exp:r.exp,steps:r.mission.stepsCleared,sourceRaw:r.sourceRaw,items:r.items},row.expected);
   }
 });
+
+test("깨진 10월 수령 레벨·magnifiers null은 NaN이나 오류 없이 기본값으로 정리한다", () => {
+  const ctx = createMainContext();
+  const x = defaultMainInput("2026-10-25");
+  x.plusOctober = { ...x.plusOctober, enabled: true, currentLevel: 5, claimedLevel: "abc", claimedLevels: {} };
+  const clean = normalizeInput(x, ctx);
+  assert.deepEqual(clean.plusOctober.claimedLevels, { free: 0, premium: 0, prime: 0 });
+  assert.equal(clean.plusOctober.claimedLevel, 0);
+  const zero = structuredClone(x); zero.plusOctober.claimedLevel = 0;
+  assert.deepEqual(simulateMain(x, ctx).items.octoberReceived, simulateMain(zero, ctx).items.octoberReceived);
+  assert.ok(simulateMain(zero, ctx).items.octoberReceived.adv > 0, "열린 10월 보상이 실제로 지급된다");
+  // 일부 등급만 저장돼 있으면 나머지는 정리된 claimedLevel을 따른다.
+  x.plusOctober.claimedLevel = 3; x.plusOctober.claimedLevels = { free: 2 };
+  assert.deepEqual(normalizeInput(x, ctx).plusOctober.claimedLevels, { free: 2, premium: 3, prime: 3 });
+  assert.deepEqual(normalizeInput(normalizeInput(x, ctx), ctx).plusOctober, normalizeInput(x, ctx).plusOctober, "두 번 정리해도 같다");
+
+  const nullMagnifiers = { ...defaultMainInput("2026-10-25"), magnifiers: null };
+  assert.doesNotThrow(() => simulateMain(nullMagnifiers, ctx));
+  assert.deepEqual(normalizeInput(nullMagnifiers, ctx).magnifiers, normalizeInput({ ...nullMagnifiers, magnifiers: {} }, ctx).magnifiers);
+});
+
+test("선택이 없던 옛 입력의 무료 돋보기 판정은 실제로 계산할 주간 사냥 시간과 같다", () => {
+  const ctx = createMainContext();
+  const legacy = hours => normalizeInput({ start: "2026-10-25", routine: hours == null ? {} : { huntHoursPerWeek: hours }, magnifiers: { detectiveFree: true } }, ctx).routine;
+  const missing = legacy();
+  assert.equal(missing.huntHoursPerWeek, defaultMainInput("2026-10-25").routine.huntHoursPerWeek);
+  assert.equal(missing.dailyTenThousand, missing.huntHoursPerWeek * 2 / 7 * 9600 >= 10000, "판정과 계산 시간이 어긋나지 않는다");
+  assert.equal(legacy(3.5).dailyTenThousand, false, "하루 9,600마리는 1만 마리 미만");
+  assert.equal(legacy(4).dailyTenThousand, true);
+});
+
+test("eventWeek은 9/17 1주차부터 11/18 마지막 날까지 남은 충전과 일수를 센다", async () => {
+  const { eventWeek } = await import("../lib/main-planner.mjs");
+  for (const date of ["2026-09-16", "2026-11-19"]) assert.equal(eventWeek(date).week, 0, date);
+  assert.equal(eventWeek("2026-09-17").week, 1);
+  assert.equal(eventWeek("2026-11-18").daysLeft, 0);
+  assert.ok(eventWeek("2026-09-17").refillsLeft > eventWeek("2026-11-12").refillsLeft);
+  assert.equal(eventWeek("2026-11-12").refillsLeft, 0);
+});
+
+test("엔진이 지급하는 290~299 에픽(아우룸 ×1·×5·×9와 보약)과 295~299 몬파(기어드락)는 하루1소재 10/25 원표와 같다", () => {
+  const { tables } = JSON.parse(readFileSync(new URL("../docs/research/haru1sojae-crosscheck-2026-10-25.json", import.meta.url), "utf8"));
+  const real = createMainContext();
+  const aurum = tables.b.value, zones = tables.d.value;
+  for (let level = 290; level <= 299; level += 1) {
+    // 10/22(목) 주간 지급. 0%에서 시작해 한 번 지급으로 레벨이 바뀌지 않는다.
+    for (const [epicMult, stage] of [[1, "stage0"], [5, "stage1"], [9, "stage2"]]) for (const epicBonus of [0, 100]) {
+      const x = isolated();
+      Object.assign(x, { start: "2026-10-22", end: "2026-10-22", level, exp: 0 });
+      x.personal.designDate = x.start;
+      Object.assign(x.routine, { epic: true, epicMult, epicBonus, weeklyPending: true });
+      const r = simulateMain(x, real);
+      assert.equal(r.sourceRaw.epic, aurum[level][stage] + aurum[level].stage0 * epicBonus / 100, `${level} ×${epicMult} +${epicBonus}%`);
+      assert.equal(r.rows[0].sourceLevels.epic, level);
+    }
+    // 10/27(화) 몬파 3판, 아르고 +50%. 290~294 탈라하트, 295~299 기어드락.
+    const x = isolated();
+    Object.assign(x, { start: "2026-10-27", end: "2026-10-27", level, exp: 0 });
+    x.personal.designDate = x.start;
+    Object.assign(x.routine, { runsPerDay: 3, todayPending: true, argoMonsterPark: 50 });
+    const zone = level >= 295 ? "기어드락" : "탈라하트";
+    assert.equal(simulateMain(x, real).sourceRaw.monsterPark, zones[zone] * 3 * 1.5, `${level} ${zone}`);
+  }
+});

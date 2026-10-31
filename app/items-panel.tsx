@@ -34,8 +34,8 @@ export default function ItemsPanel({ state, goPersonal }: { state: MainInputStat
   // 레벨·경험치는 퍼스널 탭 값으로 시작하되 이 탭에서 따로 바꿔 볼 수 있다.
   const [levelText, setLevelText] = useState<string | null>(null);
   const [expText, setExpText] = useState<string | null>(null);
-  const level = clampLevel(levelText === null ? input.level : Number(levelText));
-  const exp = clampExp(expText === null ? input.exp : Number(expText));
+  const level = clampLevel(levelText?.trim() ? Number(levelText) : input.level);
+  const exp = clampExp(expText?.trim() ? Number(expText) : input.exp);
   const inventory = ownedRewardInventory(input);
   const result = simulateItemInventoryConversion({ level, exp, inventory });
   const gain = (result.level - result.startLevel) * 100 + result.exp - result.startExp;
@@ -50,11 +50,11 @@ export default function ItemsPanel({ state, goPersonal }: { state: MainInputStat
           <label className="efficiency-level-picker" htmlFor="item-level-input">
             <span>현재 레벨</span>
             <div className="efficiency-level-control"><b>Lv.</b><input id="item-level-input" type="number" min={LEVEL_MIN} max={LEVEL_MAX} step="1" inputMode="numeric" aria-describedby="item-level-help"
-              value={levelText ?? String(input.level)} onChange={event => setLevelText(event.target.value)} onBlur={() => setLevelText(String(level))} onKeyDown={event => { if (event.key === "Enter") event.currentTarget.blur(); }} /></div>
+              value={levelText ?? String(input.level)} onChange={event => setLevelText(event.target.value)} onBlur={() => setLevelText(levelText?.trim() ? String(level) : null)} onKeyDown={event => { if (event.key === "Enter") event.currentTarget.blur(); }} /></div>
             <small id="item-level-help">260~299</small>
           </label>
           <label className="item-conversion-exp" htmlFor="item-exp-input"><span>현재 경험치</span><div>
-            <input id="item-exp-input" type="number" min="0" max="99.999" step="0.001" inputMode="decimal" value={expText ?? String(input.exp)} onChange={event => setExpText(event.target.value)} onBlur={() => setExpText(String(exp))} onKeyDown={event => { if (event.key === "Enter") event.currentTarget.blur(); }} /><b>%</b></div></label>
+            <input id="item-exp-input" type="number" min="0" max="99.999" step="0.001" inputMode="decimal" value={expText ?? String(input.exp)} onChange={event => setExpText(event.target.value)} onBlur={() => setExpText(expText?.trim() ? String(exp) : null)} onKeyDown={event => { if (event.key === "Enter") event.currentTarget.blur(); }} /><b>%</b></div></label>
           <button type="button" className="item-conversion-sync" onClick={() => { setLevelText(null); setExpText(null); }}>퍼스널 탭 현재값 불러오기</button>
         </div>
       </div>
@@ -64,7 +64,7 @@ export default function ItemsPanel({ state, goPersonal }: { state: MainInputStat
       </div>
       <div className="item-conversion-list" aria-label={`Lv.${level} 아이템별 경험치 환산`}>
         {ROWS.map(row => {
-          const available = row.type !== "mech" || level >= 280;
+          const available = (row.type !== "mech" && row.type !== "crimson") || level >= 280;
           const raw = itemConversionRawExperience(row.type, level) * row.sampleAmount;
           const percent = itemConversionPercent(row.type, level, row.sampleAmount);
           return <article className={!available ? "unavailable" : ""} key={row.type}>
@@ -77,7 +77,7 @@ export default function ItemsPanel({ state, goPersonal }: { state: MainInputStat
       </div>
       {!hasInventory && <div className="item-conversion-empty"><p>보유량이 0이라 결과가 그대로입니다. 퍼스널 버닝 탭의 PLUS와 「남은 출석·보유 보상」에 실제 남은 수량을 입력해 주세요.</p><button type="button" onClick={goPersonal}>퍼스널 버닝 탭으로 이동</button></div>}
       <div className="item-conversion-notes">
-        <p><b>사용 순서:</b> 블루베리 → 메카베리 → 크림슨 → VIP 사우나 → 비약(269) → 비약(279) → 상급 EXP. 크림슨은 메카베리와 같은 농장이지만 동렙몹 마릿수가 고정입니다.</p>
+        <p><b>사용 순서:</b> 블루베리 → 메카베리 → 크림슨 → VIP 사우나 → 비약(269) → 비약(279) → 상급 EXP. 크림슨은 메카베리와 같은 농장이지만 동렙몹 마릿수가 고정입니다. 280 미만에서 시작하면 메카베리·크림슨은 280에 닿은 뒤 씁니다.</p>
         <p><b>보유량 기준일: {input.start}.</b> 그날 사용할 수 있는 9월·10월 PLUS 보유분과 출석·사과 보상만 합합니다. 9월 PLUS·사과 보상은 10/22 02:00, 10월 PLUS·출석 보상은 11/19 02:00 만료입니다. 일 단위 계산이라 만료일 새벽 2시간은 제외합니다. 자동으로 받을 PLUS 보상·사냥용 부스터·4배 쿠폰은 포함하지 않습니다.</p>
         {level < 280 && <p><b>260~279:</b> 이 표는 아이템 자체 경험치 환산입니다.</p>}
         <a href="https://maplescouter.com/ko/exp/item" target="_blank" rel="noreferrer">메이플스카우터 소비아이템 환산과 대조</a>

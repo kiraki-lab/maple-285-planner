@@ -5,7 +5,7 @@ type Entry = { id: string; shown: number; percent: number; shownPercent: number;
 type DisplayDay = { entries: Entry[]; total: number; percent: number; shownPercent: number };
 type Day = { date: string; level: number; exp: number; steps: number; start: { level: number; exp: number; steps: number }; levelUps: { from: number; to: number; source: string }[]; sourceLevels: Record<string,number> };
 const dateLabel = (date: string) => `${Number(date.slice(5, 7))}/${Number(date.slice(8, 10))}`;
-const position = (level: number, exp: number) => `Lv.${level} ${exp.toFixed(2)}%`;
+const position = (level: number, exp: number) => `Lv.${level} ${Math.min(exp, 99.99).toFixed(2)}%`;
 const integer = (value: number) => value.toLocaleString('ko-KR', { maximumFractionDigits: 0 });
 
 function SourceLine({ entry, total, level }: { entry: Entry; total: number; level?: number }) {

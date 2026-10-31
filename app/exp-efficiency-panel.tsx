@@ -34,7 +34,7 @@ export default function ExpEfficiencyPanel({ state }: { state: MainInputState })
   const [changed, setChanged] = useState<Record<string, string>>({});
   const [display, setDisplay] = useState<Record<string, string>>({});
   const [bases, setBases] = useState<Record<string, string>>({});
-  const defaults = efficiencyDefaults(input);
+  const defaults = efficiencyDefaults(input, changed.level === undefined ? input.level : Number(changed.level));
   // 유효한 입력은 공유 상태에 저장하고, 입력 중인 문자열만 임시로 보존한다.
   const active = Object.fromEntries(Object.entries(changed).filter(([key]) => key === 'level' || key === 'fieldLevel' || String(defaults[key as keyof typeof defaults]) === bases[key]));
   const values = { ...defaults, ...active };

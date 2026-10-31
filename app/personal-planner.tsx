@@ -67,7 +67,8 @@ const md = (key: string) => `${Number(key.slice(5, 7))}/${Number(key.slice(8, 10
 const fmtJo = (raw: number, digits = 1) => `${(raw / TRILLION).toFixed(digits)}조`;
 const fmtEok = (raw: number) => `${(raw / 1e8).toFixed(raw >= 1e10 ? 0 : 1)}억`;
 const fmtInt = (value: number) => Math.round(value).toLocaleString("ko-KR");
-const place = (level: number, exp: number) => `Lv.${level} ${exp.toFixed(1)}%`;
+// 99.95% 이상을 반올림하면 다음 레벨처럼 "100.0%"가 되므로 표시 자릿수의 최댓값에서 멈춘다.
+const place = (level: number, exp: number) => `Lv.${level} ${Math.min(exp, 99.9).toFixed(1)}%`;
 const dow = (key: string) => "일월화수목금토"[new Date(`${key}T00:00:00Z`).getUTCDay()];
 
 // 환산 공통 목록의 낮은 쪽부터. 경험치 순으로 난이도를 판단하지 않는다.
@@ -86,6 +87,10 @@ const DIFFICULTY_CLASS: Record<string, string> = { 이지: "easy", 노멀: "norm
 const FIELD_OPTIONS = HUNTING_FIELDS.map((field, index) => ({ key: `${index}`, region: field.region, label: `${field.monster} · Lv.${field.level} · ${field.maps.slice(0, 2).join(", ")}${field.maps.length > 2 ? " 외" : ""}`, level: field.level }));
 const FIELD_REGIONS = [...new Set(HUNTING_FIELDS.map(field => field.region))];
 
+// 입력 문자열은 그대로 보여 주되, 저장값은 칸의 범위와 정수 여부(step 1)에 맞춘다. 화면 문구가 엔진 값과 어긋나지 않게 한다.
+const clampField = (value: number, step?: number, min?: number, max?: number) =>
+  Math.min(max ?? Infinity, Math.max(min ?? -Infinity, step === 1 ? Math.round(value) : value));
+
 function NumField({ label, value, onChange, step, min, max, hint, disabled }: { label: string; value: number; onChange: (value: number) => void; step?: number; min?: number; max?: number; hint?: string; disabled?: boolean }) {
   const [text, setText] = useState(String(value));
   const [focused, setFocused] = useState(false);
@@ -94,7 +99,7 @@ function NumField({ label, value, onChange, step, min, max, hint, disabled }: { 
   return <label className="field"><span>{label}</span>
     <input type="number" inputMode="decimal" value={shown} step={step} min={min} max={max} disabled={disabled}
       onFocus={() => { setText(String(value)); setFocused(true); }} onBlur={() => setFocused(false)}
-      onChange={event => { setText(event.target.value); const parsed = Number(event.target.value); if (event.target.value !== "" && Number.isFinite(parsed)) onChange(parsed); }} />
+      onChange={event => { setText(event.target.value); const parsed = Number(event.target.value); if (event.target.value !== "" && Number.isFinite(parsed)) onChange(clampField(parsed, step, min, max)); }} />
     {hint && <small className="pb-hint">{hint}</small>}
   </label>;
 }
@@ -349,7 +354,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
         <p className="pb-note">9월 프리미엄만 활성화했다면 같은 캐릭터로 참여해야 합니다. 둘 다 활성화했거나 둘 다 활성화하지 않았다면 같은 메이플ID의 다른 캐릭터도 참여할 수 있습니다. 이 계산에는 현재 캐릭터가 받을 보상만 넣어 주세요.</p>
         <div className="field-grid compact">
           <label className="field"><span>10월 구매 등급</span><select value={octoberPlusTierOptions(input.plus).includes(input.plusOctober.tier) ? input.plusOctober.tier : "free"} onChange={event => upd((draft: MainInput) => { draft.plusOctober.claimedLevels = plusClaimedLevels(draft.plusOctober); draft.plusOctober.tier = event.target.value; })}>{octoberPlusTierOptions(input.plus).map(tier => <option key={tier} value={tier}>{({free:"무료",premium:"프리미엄",prime:"프라임"})[tier]}</option>)}</select></label>
-          <label className="field"><span>10월 패스 구매일</span><input type="date" min="2026-10-22" max="2026-11-18" value={input.plusOctober.purchaseDate} onChange={event => upd((draft: MainInput) => { draft.plusOctober.purchaseDate = event.target.value; })} /><small className="pb-hint">그날까지 오른 레벨의 유료 보상도 받습니다</small></label>
+          <label className="field"><span>10월 패스 구매일</span><input type="date" min="2026-10-22" max="2026-11-18" value={input.plusOctober.purchaseDate} onChange={event => event.target.value && upd((draft: MainInput) => { draft.plusOctober.purchaseDate = event.target.value; })} /><small className="pb-hint">그날까지 오른 레벨의 유료 보상도 받습니다</small></label>
           <NumField label="10월 지금 PLUS 레벨" value={input.plusOctober.currentLevel} min={0} max={10} step={1} onChange={value => upd((draft: MainInput) => { draft.plusOctober.currentLevel=value; draft.plusOctober.claimedLevel=Math.min(value,draft.plusOctober.claimedLevel); if(draft.plusOctober.claimedLevels) Object.keys(draft.plusOctober.claimedLevels).forEach(key=>{draft.plusOctober.claimedLevels[key]=Math.min(value,draft.plusOctober.claimedLevels[key]);}); })} hint="10월 패스 화면의 레벨 · 새로 시작하면 0" />
           {(octoberPlusRewardLines(input.plus, input.plusOctober.tier) as Tier[]).map(tier => <NumField key={tier} label={"10월 " + ({free:"무료",premium:"프리미엄",prime:"프라임"}[tier]) + " 이미 받은 레벨"} value={plusClaimedLevels(input.plusOctober)[tier]} min={0} max={input.plusOctober.currentLevel} step={1} onChange={value => upd((draft: MainInput) => { draft.plusOctober.claimedLevels={...plusClaimedLevels(draft.plusOctober),[tier]:value}; })} />)}
           <NumField label="10월 주간 획득 포인트" value={input.plusOctober.weeklyPoints} min={0} max={2500} step={100} onChange={value => upd((draft: MainInput) => { draft.plusOctober.weeklyPoints=value; })} />
@@ -413,7 +418,7 @@ export default function PersonalPlanner({ ctx, state }: { ctx: MainContext; stat
                 <button type="button" aria-label={group.boss + " 파티원 늘리기"} disabled={picked.party >= pickedEntry.maxParty} onClick={() => upd((draft: MainInput) => { draft.personal.bosses[index].party = Math.min(pickedEntry.maxParty, draft.personal.bosses[index].party + 1); })}>+</button>
               </div>
               <span className="pb-bossrow-exp">{fmtJo(bossRaw(picked.id, picked.party), 3)}</span>
-              <label className="pb-bossrow-done" title="이번 주에 이미 잡았으면 체크"><input type="checkbox" checked={picked.doneThisWeek} onChange={event => upd((draft: MainInput) => { draft.personal.bosses[index].doneThisWeek = event.target.checked; })} />잡음</label>
+              <label className="pb-bossrow-done" title="이번 주에 이미 잡았으면 체크"><input type="checkbox" aria-label={group.boss + " 이번 주 잡음"} checked={picked.doneThisWeek} onChange={event => upd((draft: MainInput) => { draft.personal.bosses[index].doneThisWeek = event.target.checked; })} />잡음</label>
             </div> : null}
           </div>;
         })}
