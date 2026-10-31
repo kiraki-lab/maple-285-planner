@@ -435,30 +435,36 @@ export function simulateItemInventoryConversion({ level, exp, inventory }: { lev
     totalRawExperience += requested - rest;
   };
 
-  itemConversionOrder.forEach(type => {
-    let quantity = remaining[type];
-    let guard = 0;
-    while (quantity > 1e-9 && currentLevel < ITEM_CONVERSION_UPPER_BOUND && guard < 64) {
-      guard += 1;
-      const rawPerUnit = itemConversionRawExperience(type, currentLevel);
-      if (rawPerUnit <= 0) break;
-      const required = itemConversionRequiredExperience(currentLevel);
-      const needed = Math.max(0, required - rawExperience);
-      if (type === "sauna") {
-        const amount = Math.min(quantity, needed > 1e-6 ? needed / rawPerUnit : quantity);
-        applyRawExperience(rawPerUnit * amount);
-        quantity -= amount;
-        used[type] += amount;
-      } else {
-        const count = Math.min(Math.floor(quantity), Math.max(1, Math.ceil(needed / rawPerUnit - 1e-12)));
-        if (count <= 0) break;
-        applyRawExperience(rawPerUnit * count);
-        quantity -= count;
-        used[type] += count;
+  // 메카베리·크림슨은 280 미만에서 0이라 건너뛴다. 뒤 아이템(비약 등)으로 280을 넘기면 남은 것을 다시 쓴다.
+  for (let pass = 0, progressed = true; progressed && pass < itemConversionOrder.length; pass += 1) {
+    progressed = false;
+    itemConversionOrder.forEach(type => {
+      let quantity = remaining[type];
+      const before = quantity;
+      let guard = 0;
+      while (quantity > 1e-9 && currentLevel < ITEM_CONVERSION_UPPER_BOUND && guard < 64) {
+        guard += 1;
+        const rawPerUnit = itemConversionRawExperience(type, currentLevel);
+        if (rawPerUnit <= 0) break;
+        const required = itemConversionRequiredExperience(currentLevel);
+        const needed = Math.max(0, required - rawExperience);
+        if (type === "sauna") {
+          const amount = Math.min(quantity, needed > 1e-6 ? needed / rawPerUnit : quantity);
+          applyRawExperience(rawPerUnit * amount);
+          quantity -= amount;
+          used[type] += amount;
+        } else {
+          const count = Math.min(Math.floor(quantity), Math.max(1, Math.ceil(needed / rawPerUnit - 1e-12)));
+          if (count <= 0) break;
+          applyRawExperience(rawPerUnit * count);
+          quantity -= count;
+          used[type] += count;
+        }
       }
-    }
-    remaining[type] = Math.max(0, quantity);
-  });
+      remaining[type] = Math.max(0, quantity);
+      if (remaining[type] < before) progressed = true;
+    });
+  }
 
   const required = itemConversionRequiredExperience(currentLevel);
   return {

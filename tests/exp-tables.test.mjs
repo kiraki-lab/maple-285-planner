@@ -592,3 +592,50 @@ test('空시세·0원·음수 에픽 순비용·입력한도에서 갈림길 문
   assert.equal(compareExpEfficiency({...v,maplePoints:10000},p).breakBonus.kind,'unavailable');
   assert.ok(compareExpEfficiency({...v,bonus:10000},p).errors.length);
 });
+
+test("280 미만에서 시작해 비약으로 280을 넘기면 남은 메카베리·크림슨을 이어서 쓴다", () => {
+  const crossed = simulateItemInventoryConversion({ level: 279, exp: 0, inventory: { potion279: 1, mech: 5, crimson: 2 } });
+  const from280 = simulateItemInventoryConversion({ level: 280, exp: 0, inventory: { mech: 5, crimson: 2 } });
+  assert.equal(crossed.level, 280);
+  assert.equal(crossed.remaining.mech, 0);
+  assert.equal(crossed.remaining.crimson, 0);
+  assert.deepEqual([crossed.used.mech, crossed.used.crimson, crossed.used.potion279], [5, 2, 1]);
+  assert.ok(Math.abs(crossed.exp - from280.exp) < 1e-9, `${crossed.exp} vs ${from280.exp}`);
+  // 280에 닿지 못하면 메카베리·크림슨은 남는다.
+  const stuck = simulateItemInventoryConversion({ level: 270, exp: 0, inventory: { mech: 5, crimson: 2 } });
+  assert.deepEqual([stuck.level, stuck.exp, stuck.remaining.mech, stuck.remaining.crimson], [270, 0, 5, 2]);
+});
+
+test("시세·비교 도핑은 숫자와 숫자 문자열만 받고 true·배열·빈칸은 기본값으로 돌린다", async () => {
+  const { normalizeMarket, MARKET_DEFAULTS } = await import("../lib/market.mjs");
+  const { normalizeEfficiencyDoping } = await import("../lib/exp-doping.mjs");
+  assert.deepEqual(normalizeMarket({ maplePoints: true, won: [1500], shardPrice: false, ordinaryPrice: " ", detectivePrice: "Infinity" }), { ...MARKET_DEFAULTS });
+  assert.deepEqual(normalizeMarket({ maplePoints: "2300", won: 1600, shardPrice: "0", ordinaryPrice: 0, detectivePrice: "5e7" }),
+    { maplePoints: 2300, won: 1600, shardPrice: 0, ordinaryPrice: 0, detectivePrice: 5e7 });
+  for (const bonus of [false, true, [], [300], " ", null, "abc", -1]) assert.equal(normalizeEfficiencyDoping({ bonus }).bonus, null, JSON.stringify(bonus));
+  assert.equal(normalizeEfficiencyDoping({ bonus: "250" }).bonus, 250);
+  assert.equal(normalizeEfficiencyDoping({ bonus: 0 }).bonus, 0);
+  const { parseSaved } = await import("../lib/saved-input.mjs");
+  const saved = parseSaved(JSON.stringify({ version: 2, input: { routine: { huntBonusPct: 300 }, market: { maplePoints: true }, efficiency: { bonus: " " } } }), "2026-10-25");
+  assert.equal(saved.market.maplePoints, MARKET_DEFAULTS.maplePoints);
+  assert.equal(efficiencyDefaults(saved).bonus, 300, "깨진 비교 도핑은 사냥 추가 경험치를 덮지 않는다");
+});
+
+test("효율 비교는 null 시세를 0원이 아니라 빈칸으로 보고 숫자가 아닌 값은 오류로 돌린다", () => {
+  const p = defaultMainInput("2026-10-25"), v = { ...efficiencyDefaults(p), level: 285, fieldLevel: 285 };
+  for (const ordinaryPrice of [null, undefined, "", "  "]) {
+    const r = compareExpEfficiency({ ...v, ordinaryPrice }, p);
+    assert.deepEqual(r.errors, []);
+    assert.equal(r.breakBonus.kind, "missing", String(ordinaryPrice));
+    assert.equal(r.rows.find(row => row.id === "ordinary").mesoPerMob, null);
+  }
+  for (const change of [{ bonus: " " }, { bonus: true }, { shardPrice: null }, { maplePoints: false }, { ordinaryPrice: true }, { detectivePrice: "abc" }, { level: "285.5" }])
+    assert.ok(compareExpEfficiency({ ...v, ...change }, p).errors.length > 0, JSON.stringify(change));
+  assert.deepEqual(compareExpEfficiency({ ...v, level: "285", fieldLevel: "285", bonus: "300" }, p).errors, [], "입력칸의 숫자 문자열은 그대로 받는다");
+});
+
+test("반올림 배분은 출처가 없어도 목표 합계에서 멈추지 않는다", async () => {
+  const { roundedExperienceSources, dailyExperienceBreakdown } = await import("../lib/experience-breakdown.mjs");
+  assert.deepEqual(roundedExperienceSources({}, 5), { entries: [], total: 5 });
+  assert.doesNotThrow(() => dailyExperienceBreakdown([{ sourceRaw: {}, levelSources: {} }], { hunt: 5 }));
+});
