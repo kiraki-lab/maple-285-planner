@@ -639,3 +639,15 @@ test("반올림 배분은 출처가 없어도 목표 합계에서 멈추지 않�
   assert.deepEqual(roundedExperienceSources({}, 5), { entries: [], total: 5 });
   assert.doesNotThrow(() => dailyExperienceBreakdown([{ sourceRaw: {}, levelSources: {} }], { hunt: 5 }));
 });
+
+test("효율 탭에서 캐릭터 레벨만 바꾸면 사냥터 기본값과 가격선도 그 레벨을 따른다", () => {
+  const planner = defaultMainInput("2026-10-31");
+  const planner299 = { ...planner, level: 299 };
+  const edited = efficiencyDefaults(planner, 299);
+  assert.deepEqual(edited, efficiencyDefaults(planner299));
+  const fromPanel = compareExpEfficiency(edited, planner);
+  const fromPlanner = compareExpEfficiency(efficiencyDefaults(planner299), planner299);
+  assert.equal(fromPanel.level, 299);
+  assert.deepEqual(fromPanel.dopingRows, fromPlanner.dopingRows);
+  for (const bad of [Number(""), 279, 300, 285.5, NaN]) assert.deepEqual(efficiencyDefaults(planner, bad), efficiencyDefaults(planner), String(bad));
+});

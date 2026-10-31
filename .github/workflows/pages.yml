@@ -49,7 +49,7 @@ jobs:
         run: |
           test -f dist/client/index.html
           grep -q '/maple-285-planner/assets/' dist/client/index.html
-          ! grep -Eq '(href|src)="/assets/' dist/client/index.html
+          ! grep -Eq '(href|src)="/(assets|experience-icons|efficiency-icons)/' dist/client/index.html
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5

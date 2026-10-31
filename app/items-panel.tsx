@@ -34,8 +34,8 @@ export default function ItemsPanel({ state, goPersonal }: { state: MainInputStat
   // 레벨·경험치는 퍼스널 탭 값으로 시작하되 이 탭에서 따로 바꿔 볼 수 있다.
   const [levelText, setLevelText] = useState<string | null>(null);
   const [expText, setExpText] = useState<string | null>(null);
-  const level = clampLevel(levelText === null ? input.level : Number(levelText));
-  const exp = clampExp(expText === null ? input.exp : Number(expText));
+  const level = clampLevel(levelText?.trim() ? Number(levelText) : input.level);
+  const exp = clampExp(expText?.trim() ? Number(expText) : input.exp);
   const inventory = ownedRewardInventory(input);
   const result = simulateItemInventoryConversion({ level, exp, inventory });
   const gain = (result.level - result.startLevel) * 100 + result.exp - result.startExp;
@@ -50,11 +50,11 @@ export default function ItemsPanel({ state, goPersonal }: { state: MainInputStat
           <label className="efficiency-level-picker" htmlFor="item-level-input">
             <span>현재 레벨</span>
             <div className="efficiency-level-control"><b>Lv.</b><input id="item-level-input" type="number" min={LEVEL_MIN} max={LEVEL_MAX} step="1" inputMode="numeric" aria-describedby="item-level-help"
-              value={levelText ?? String(input.level)} onChange={event => setLevelText(event.target.value)} onBlur={() => setLevelText(String(level))} onKeyDown={event => { if (event.key === "Enter") event.currentTarget.blur(); }} /></div>
+              value={levelText ?? String(input.level)} onChange={event => setLevelText(event.target.value)} onBlur={() => setLevelText(levelText?.trim() ? String(level) : null)} onKeyDown={event => { if (event.key === "Enter") event.currentTarget.blur(); }} /></div>
             <small id="item-level-help">260~299</small>
           </label>
           <label className="item-conversion-exp" htmlFor="item-exp-input"><span>현재 경험치</span><div>
-            <input id="item-exp-input" type="number" min="0" max="99.999" step="0.001" inputMode="decimal" value={expText ?? String(input.exp)} onChange={event => setExpText(event.target.value)} onBlur={() => setExpText(String(exp))} onKeyDown={event => { if (event.key === "Enter") event.currentTarget.blur(); }} /><b>%</b></div></label>
+            <input id="item-exp-input" type="number" min="0" max="99.999" step="0.001" inputMode="decimal" value={expText ?? String(input.exp)} onChange={event => setExpText(event.target.value)} onBlur={() => setExpText(expText?.trim() ? String(exp) : null)} onKeyDown={event => { if (event.key === "Enter") event.currentTarget.blur(); }} /><b>%</b></div></label>
           <button type="button" className="item-conversion-sync" onClick={() => { setLevelText(null); setExpText(null); }}>퍼스널 탭 현재값 불러오기</button>
         </div>
       </div>
