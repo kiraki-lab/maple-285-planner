@@ -69,7 +69,7 @@ const ARTERIA_MONSTER_PARK_PER_RUN = 107_204_032_000;
 const CARCION_MONSTER_PARK_PER_RUN = 156_017_856_000;
 const TALLAHART_MONSTER_PARK_PER_RUN = 218_575_316_000;
 const GEARDRAK_MONSTER_PARK_PER_RUN = 316_934_208_200;
-// 295~299 기어드락 몬파: 하루1소재 3pbsp2-ukxvfz.js의 지역 표. 일퀘는 기존 295 값과 메이플로드
+// 295~299 기어드락 몬파: 하루1소재 3pbsp2-ukxvfz.js의 지역 표(10/25 22q2t3v1bf7hj.js d표로 재확인). 일퀘는 기존 295 값과 메이플로드
 // https://mapleroad.kr/lib/exp_calculator?level=299&exp=0&flag_arcane=0&flag_grandis=0&flag_monster_park=0&flag_epic_dungeon=0&flag_add_exp=0
 // (각 레벨로 조회). 일퀘 전 지역 합계 370,429,319,424; API는 %만 공개하므로 정수 정밀도를 증명하지 않는다.
 export const WEEKLY_CONTENT_RAW: Record<number, { extreme: number; epic: number; sauna: number; adv1000: number }> = {
@@ -82,7 +82,7 @@ export const WEEKLY_CONTENT_RAW: Record<number, { extreme: number; epic: number;
 };
 // 에픽 던전 1배 기준 경험치(하루1소재 에픽던전 표 stage0, 하이마운틴 환산).
 // 최선 던전 배수: 260~269 ×1, 270~279 ×1.5, 280~289 ×2, 290~299 ×3.
-// 290레벨부터는 아우룸 레기스가 최선이라 악몽선경 값에 1.5배가 붙는다. 보상 배수 5(= EXP 1단계, 기본 + 400% 추가)는 입력으로 곱한다.
+// 290레벨부터는 아우룸 레기스가 최선이라 악몽선경 값에 1.5배가 붙는다(하루1소재 zone multiplier 2→3, b표 = 이 표 ×3). 보상 배수 5(= EXP 1단계, 기본 + 400% 추가)는 입력으로 곱한다.
 const EPIC_DUNGEON_BASE_RAW: Record<number, number> = {
   260: 260_900_000_000,
   261: 264_700_000_000,

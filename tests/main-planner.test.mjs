@@ -2401,3 +2401,28 @@ test("eventWeek은 9/17 1주차부터 11/18 마지막 날까지 남은 충전과
   assert.ok(eventWeek("2026-09-17").refillsLeft > eventWeek("2026-11-12").refillsLeft);
   assert.equal(eventWeek("2026-11-12").refillsLeft, 0);
 });
+
+test("엔진이 지급하는 290~299 에픽(아우룸 ×1·×5·×9와 보약)과 295~299 몬파(기어드락)는 하루1소재 10/25 원표와 같다", () => {
+  const { tables } = JSON.parse(readFileSync(new URL("../docs/research/haru1sojae-crosscheck-2026-10-25.json", import.meta.url), "utf8"));
+  const real = createMainContext();
+  const aurum = tables.b.value, zones = tables.d.value;
+  for (let level = 290; level <= 299; level += 1) {
+    // 10/22(목) 주간 지급. 0%에서 시작해 한 번 지급으로 레벨이 바뀌지 않는다.
+    for (const [epicMult, stage] of [[1, "stage0"], [5, "stage1"], [9, "stage2"]]) for (const epicBonus of [0, 100]) {
+      const x = isolated();
+      Object.assign(x, { start: "2026-10-22", end: "2026-10-22", level, exp: 0 });
+      x.personal.designDate = x.start;
+      Object.assign(x.routine, { epic: true, epicMult, epicBonus, weeklyPending: true });
+      const r = simulateMain(x, real);
+      assert.equal(r.sourceRaw.epic, aurum[level][stage] + aurum[level].stage0 * epicBonus / 100, `${level} ×${epicMult} +${epicBonus}%`);
+      assert.equal(r.rows[0].sourceLevels.epic, level);
+    }
+    // 10/27(화) 몬파 3판, 아르고 +50%. 290~294 탈라하트, 295~299 기어드락.
+    const x = isolated();
+    Object.assign(x, { start: "2026-10-27", end: "2026-10-27", level, exp: 0 });
+    x.personal.designDate = x.start;
+    Object.assign(x.routine, { runsPerDay: 3, todayPending: true, argoMonsterPark: 50 });
+    const zone = level >= 295 ? "기어드락" : "탈라하트";
+    assert.equal(simulateMain(x, real).sourceRaw.monsterPark, zones[zone] * 3 * 1.5, `${level} ${zone}`);
+  }
+});

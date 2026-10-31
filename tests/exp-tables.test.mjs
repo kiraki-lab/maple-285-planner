@@ -651,3 +651,17 @@ test("효율 탭에서 캐릭터 레벨만 바꾸면 사냥터 기본값과 가�
   assert.deepEqual(fromPanel.dopingRows, fromPlanner.dopingRows);
   for (const bad of [Number(""), 279, 300, 285.5, NaN]) assert.deepEqual(efficiencyDefaults(planner, bad), efficiencyDefaults(planner), String(bad));
 });
+
+test("효율 비교의 에픽 1단계·1→2단계는 290~299에서 아우룸 원표 증분과 15,000/45,000 메포를 쓴다", () => {
+  const { tables } = haruCrosscheck;
+  const planner = defaultMainInput("2026-10-31");
+  for (let level = 280; level <= 299; level += 1) {
+    const [table, zone] = level >= 290 ? [tables.b.value, "아우룸 레기스"] : [tables.u.value, "악몽선경"];
+    const r = compareExpEfficiency({ ...efficiencyDefaults(planner), level, fieldLevel: level, maplePoints: 2150 }, planner);
+    const epic1 = r.rows.find(row => row.id === "epic1"), epic2 = r.rows.find(row => row.id === "epic2");
+    assert.equal(epic1.rawExp, table[level].stage1 - table[level].stage0, `${level} 0→1`);
+    assert.equal(epic2.rawExp, table[level].stage2 - table[level].stage1, `${level} 1→2`);
+    assert.equal(epic1.costMeso, tables.g.value[zone].stage1 / 0.99 / 2150 * 1e8 - 160_000_000);
+    assert.equal(epic2.costMeso, tables.g.value[zone].stage2 / 0.99 / 2150 * 1e8 - 160_000_000);
+  }
+});
